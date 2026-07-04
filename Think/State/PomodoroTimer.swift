@@ -56,7 +56,8 @@ final class PomodoroTimer {
     }
 
     var progress: Double {
-        1 - Double(remainingSeconds) / Double(phaseTotalSeconds)
+        guard phaseTotalSeconds > 0 else { return 0 }
+        return min(max(1 - Double(remainingSeconds) / Double(phaseTotalSeconds), 0), 1)
     }
 
     var remainingLabel: String {
@@ -64,8 +65,10 @@ final class PomodoroTimer {
     }
 
     func select(_ preset: Preset) {
+        stopRunning()
         self.preset = preset
-        reset()
+        phase = .work
+        remainingSeconds = preset.workMinutes * 60
     }
 
     func toggle() {
@@ -166,8 +169,10 @@ final class PomodoroTimer {
 
     private func syncLiveActivity() {
         guard let endDate else { return }
+        let startDate = endDate.addingTimeInterval(-TimeInterval(max(phaseTotalSeconds, 1)))
         let state = PomodoroActivityAttributes.ContentState(
             phase: phase == .work ? .work : .rest,
+            startDate: startDate,
             endDate: endDate
         )
         let content = ActivityContent(state: state, staleDate: endDate)

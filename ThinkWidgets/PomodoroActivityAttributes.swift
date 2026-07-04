@@ -17,6 +17,19 @@ nonisolated struct PomodoroActivityAttributes: ActivityAttributes {
         }
 
         var phase: Phase
+        var startDate: Date
         var endDate: Date
+
+        var progressRange: ClosedRange<Date> {
+            startDate...max(startDate, endDate)
+        }
+
+        func progress(at date: Date = .now) -> Double {
+            let totalDuration = endDate.timeIntervalSince(startDate)
+            guard totalDuration > 0 else { return 0 }
+
+            let elapsed = date.timeIntervalSince(startDate)
+            return min(max(elapsed / totalDuration, 0), 1)
+        }
     }
 }

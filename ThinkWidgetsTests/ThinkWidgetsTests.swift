@@ -68,23 +68,35 @@ struct DailyQuoteTimelineTests {
 struct PomodoroLiveActivityPresentationTests {
 
     @Test func workPhaseUsesDeepWorkPresentation() {
-        let state = PomodoroActivityAttributes.ContentState(phase: .work, endDate: .now)
+        let now = Date.now
+        let state = PomodoroActivityAttributes.ContentState(
+            phase: .work,
+            startDate: now,
+            endDate: now.addingTimeInterval(25 * 60)
+        )
 
         #expect(PomodoroLiveActivityPresentation.title(for: state) == "Deep work")
         #expect(PomodoroLiveActivityPresentation.symbol(for: state) == "brain.head.profile")
     }
 
     @Test func restPhaseUsesBreakPresentation() {
-        let state = PomodoroActivityAttributes.ContentState(phase: .rest, endDate: .now)
+        let now = Date.now
+        let state = PomodoroActivityAttributes.ContentState(
+            phase: .rest,
+            startDate: now,
+            endDate: now.addingTimeInterval(5 * 60)
+        )
 
         #expect(PomodoroLiveActivityPresentation.title(for: state) == "Break")
         #expect(PomodoroLiveActivityPresentation.symbol(for: state) == "cup.and.saucer")
     }
 
     @Test func activityContentStateRoundTripsThroughJSON() throws {
+        let startDate = Date(timeIntervalSinceReferenceDate: 804_470_400)
         let state = PomodoroActivityAttributes.ContentState(
             phase: .work,
-            endDate: Date(timeIntervalSinceReferenceDate: 804_470_400)
+            startDate: startDate,
+            endDate: startDate.addingTimeInterval(25 * 60)
         )
 
         let encoded = try JSONEncoder().encode(state)
