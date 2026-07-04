@@ -8,6 +8,7 @@ import SwiftUI
 struct PathDetailView: View {
     let path: ThinkingPath
     @Environment(ProgressStore.self) private var progress
+    @Environment(\.haptics) private var haptics
 
     private var completed: Int { progress.pathCompletedDays }
     private var isFinished: Bool { completed >= path.steps.count }
@@ -38,7 +39,9 @@ struct PathDetailView: View {
                             .font(.subheadline)
                     }
                     Button(progress.canCompletePathStepToday ? "Mark day complete" : "Come back tomorrow") {
+                        guard progress.canCompletePathStepToday else { return }
                         progress.completePathStep()
+                        haptics.play(.success)
                     }
                     .buttonStyle(.glassProminent)
                     .disabled(!progress.canCompletePathStepToday)

@@ -43,6 +43,7 @@ struct ThinkApp: App {
         WindowGroup {
             RootTabView()
                 .environment(progress)
+                .environment(\.haptics, .live)
                 .preferredColorScheme(appearance.colorScheme)
         }
         .modelContainer(for: JournalEntry.self, inMemory: isUITesting)
