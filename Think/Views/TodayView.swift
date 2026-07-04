@@ -65,7 +65,7 @@ struct TodayView: View {
                     Text(Date.now.formatted(.dateTime.weekday(.wide).month(.abbreviated).day()))
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(.secondary)
-                    Text("Today's rep")
+                    Text("Today's practice")
                         .font(.largeTitle.bold())
                         .foregroundStyle(.primary)
                 }
