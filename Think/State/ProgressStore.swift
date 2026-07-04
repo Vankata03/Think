@@ -63,6 +63,11 @@ final class ProgressStore {
         return calendar.isDateInToday(last)
     }
 
+    var completedPathStepToday: Bool {
+        guard let last = lastPathCompletionDay else { return false }
+        return calendar.isDateInToday(last)
+    }
+
     var canCompletePathStepToday: Bool {
         guard pathCompletedDays < PathLibrary.deepFocus.steps.count else { return false }
         guard let last = lastPathCompletionDay else { return true }

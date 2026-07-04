@@ -73,6 +73,19 @@ struct ProgressStoreTests {
         #expect(store.completedTaskToday)
     }
 
+    @Test func completedPathStepTodayOnlyReflectsTodaysCompletion() {
+        let defaults = makeDefaults()
+        defaults.set(3, forKey: "pathCompletedDays")
+        defaults.set(Calendar.current.date(byAdding: .day, value: -1, to: Date.now), forKey: "lastPathCompletionDay")
+        let store = ProgressStore(defaults: defaults)
+
+        #expect(!store.completedPathStepToday)
+
+        store.completePathStep()
+
+        #expect(store.completedPathStepToday)
+    }
+
     private func makeDefaults() -> UserDefaults {
         let suiteName = "ThinkTests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!

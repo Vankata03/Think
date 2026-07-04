@@ -20,6 +20,32 @@ nonisolated struct PomodoroActivityAttributes: ActivityAttributes {
         var startDate: Date
         var endDate: Date
 
+        init(phase: Phase, startDate: Date, endDate: Date) {
+            self.phase = phase
+            self.startDate = startDate
+            self.endDate = endDate
+        }
+
+        private enum CodingKeys: String, CodingKey {
+            case phase
+            case startDate
+            case endDate
+        }
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            phase = try container.decode(Phase.self, forKey: .phase)
+            endDate = try container.decode(Date.self, forKey: .endDate)
+            startDate = try container.decodeIfPresent(Date.self, forKey: .startDate) ?? endDate
+        }
+
+        func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(phase, forKey: .phase)
+            try container.encode(startDate, forKey: .startDate)
+            try container.encode(endDate, forKey: .endDate)
+        }
+
         var progressRange: ClosedRange<Date> {
             startDate...max(startDate, endDate)
         }

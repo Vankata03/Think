@@ -7,7 +7,6 @@ import SwiftUI
 
 struct FocusView: View {
     @Environment(ProgressStore.self) private var progress
-    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.haptics) private var haptics
     @Environment(\.scenePhase) private var scenePhase
     @State private var timer = PomodoroTimer()
@@ -16,7 +15,7 @@ struct FocusView: View {
 
     private var sessionQuote: Quote { ContentLibrary.dailyQuote() }
     private var prominentButtonForeground: Color {
-        colorScheme == .dark ? .black : .white
+        .black
     }
 
     var body: some View {

@@ -16,7 +16,10 @@ struct PathsView: View {
                     header
 
                     VStack(spacing: 0) {
-                        sectionHeader("Training atlas", detail: "\(progress.pathCompletedDays)/21")
+                        sectionHeader(
+                            "Training atlas",
+                            detail: "\(progress.pathCompletedDays)/\(PathLibrary.deepFocus.steps.count)"
+                        )
                             .padding(.bottom, 16)
 
                         ProgressView(value: Double(progress.pathCompletedDays) / Double(PathLibrary.deepFocus.steps.count))

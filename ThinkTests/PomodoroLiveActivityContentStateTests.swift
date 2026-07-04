@@ -9,6 +9,22 @@ import Testing
 
 struct PomodoroLiveActivityContentStateTests {
 
+    @Test func contentStateDecodesLegacyPayloadWithoutStartDate() throws {
+        let endDate = Date(timeIntervalSinceReferenceDate: 1_000)
+        let data = """
+        {
+          "phase": "work",
+          "endDate": \(endDate.timeIntervalSinceReferenceDate)
+        }
+        """.data(using: .utf8)!
+
+        let state = try JSONDecoder().decode(PomodoroActivityAttributes.ContentState.self, from: data)
+
+        #expect(state.phase == .work)
+        #expect(state.startDate == endDate)
+        #expect(state.endDate == endDate)
+    }
+
     @Test func contentStateReportsElapsedProgress() {
         let startDate = Date(timeIntervalSinceReferenceDate: 1_000)
         let endDate = startDate.addingTimeInterval(25 * 60)

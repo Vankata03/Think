@@ -100,7 +100,7 @@ struct TodayView: View {
         var completed = 0
         if todaysEntry != nil { completed += 1 }
         if progress.focusSessionsToday > 0 { completed += 1 }
-        if progress.pathCompletedDays > 0 { completed += 1 }
+        if progress.completedPathStepToday { completed += 1 }
         return completed
     }
 

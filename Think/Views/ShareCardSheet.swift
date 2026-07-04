@@ -32,7 +32,6 @@ private enum PhotoSaveState: Equatable {
 
 struct ShareCardSheet: View {
     let quote: Quote
-    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
     @Environment(\.haptics) private var haptics
 
@@ -41,7 +40,7 @@ struct ShareCardSheet: View {
 
     private let previewScale = 0.24
     private var prominentButtonForeground: Color {
-        colorScheme == .dark ? .black : .white
+        .black
     }
 
     var body: some View {
