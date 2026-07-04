@@ -26,6 +26,7 @@ private enum Feedback {
 
 struct ProfileView: View {
     @Environment(ProgressStore.self) private var progress
+    @Environment(\.haptics) private var haptics
     @Environment(\.openURL) private var openURL
     @Environment(\.requestReview) private var requestReview
     @AppStorage(Appearance.storageKey) private var appearance = Appearance.system
@@ -47,75 +48,296 @@ struct ProfileView: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                Section("Progress") {
-                    LabeledContent("Current streak") {
-                        Label("\(progress.displayedStreak) days", systemImage: "flame.fill")
-                            .foregroundStyle(progress.displayedStreak > 0 ? .orange : .secondary)
-                    }
-                    LabeledContent("Focus sessions", value: "\(progress.totalFocusSessions)")
-                    LabeledContent("Path days completed", value: "\(progress.pathCompletedDays)")
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    header
+                    progressPanel
+                    journalPanel
+                    settingsPanel
+                    feedbackPanel
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 12)
+                .padding(.bottom, 120)
+            }
+            .navigationTitle("Profile")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(.hidden, for: .navigationBar)
+            .background(Color(.systemGroupedBackground).ignoresSafeArea())
+            .scrollContentBackground(.hidden)
+            .safeAreaInset(edge: .bottom) {
+                Color.clear.frame(height: 76)
+            }
+        }
+    }
+
+    private var header: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Profile")
+                .font(.largeTitle.bold())
+                .foregroundStyle(.primary)
+            Text("Progress, settings, and your private notes.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private var progressPanel: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionHeader("Progress")
+            VStack(spacing: 16) {
+                HStack(spacing: 12) {
+                    profileMetric(
+                        value: "\(progress.displayedStreak)",
+                        label: "Current streak",
+                        systemImage: "flame.fill"
+                    )
+                    profileMetric(
+                        value: "\(progress.totalFocusSessions)",
+                        label: "Focus sessions",
+                        systemImage: "timer"
+                    )
                 }
 
-                Section {
-                    NavigationLink {
-                        JournalView()
-                    } label: {
-                        Label("Journal", systemImage: "book.closed")
-                    }
+                HStack {
+                    Label("Path days completed", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
+                        .foregroundStyle(.primary)
+                    Spacer()
+                    Text("\(progress.pathCompletedDays)")
+                        .font(.system(.title3, design: .rounded).weight(.semibold))
+                        .monospacedDigit()
+                        .foregroundStyle(Color.accentColor)
                 }
+                .font(.subheadline)
 
-                Section("Settings") {
-                    Picker(selection: $appearance) {
+                ProgressView(value: Double(progress.pathCompletedDays) / Double(PathLibrary.deepFocus.steps.count))
+                    .tint(.accentColor)
+            }
+            .padding(18)
+            .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .stroke(.separator.opacity(0.6), lineWidth: 1)
+            }
+        }
+    }
+
+    private var journalPanel: some View {
+        NavigationLink {
+            JournalView()
+        } label: {
+            HStack(spacing: 14) {
+                Image(systemName: "book.closed")
+                    .font(.title3)
+                    .foregroundStyle(Color.accentColor)
+                    .frame(width: 32)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Journal")
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                    Text("Private notes and daily answers")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.bold))
+                    .foregroundStyle(.secondary)
+            }
+            .padding(14)
+            .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .stroke(.separator.opacity(0.6), lineWidth: 1)
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("Journal")
+    }
+
+    private func profileMetric(value: String, label: String, systemImage: String) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: systemImage)
+                .font(.headline)
+                .foregroundStyle(Color.accentColor)
+                .frame(width: 24)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(value)
+                    .font(.system(.title3, design: .rounded).weight(.semibold))
+                    .monospacedDigit()
+                    .foregroundStyle(.primary)
+                Text(label)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .background(Color(.tertiarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(.separator.opacity(0.6), lineWidth: 1)
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    private var settingsPanel: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionHeader("Settings")
+            VStack(spacing: 0) {
+                VStack(alignment: .leading, spacing: 10) {
+                    settingsLabel("Appearance", systemImage: "circle.lefthalf.filled")
+
+                    Picker("Appearance", selection: $appearance) {
                         ForEach(Appearance.allCases) { option in
                             Text(option.label).tag(option)
                         }
-                    } label: {
-                        Label("Appearance", systemImage: "circle.lefthalf.filled")
                     }
-                    Toggle(isOn: $dailyLineEnabled) {
-                        Label("Daily line notification", systemImage: "bell")
-                    }
-                    if dailyLineEnabled {
-                        DatePicker(selection: dailyLineTime, displayedComponents: .hourAndMinute) {
-                            Label("Time", systemImage: "clock")
-                        }
-                    }
+                    .pickerStyle(.segmented)
                 }
-                .onChange(of: dailyLineEnabled) {
-                    DailyQuoteNotifier.refreshSchedule()
-                }
-                .onChange(of: dailyLineMinutes) {
-                    DailyQuoteNotifier.refreshSchedule()
-                }
+                .padding(.vertical, 10)
 
-                Section("Feedback") {
-                    Button {
-                        sendMail(subject: "Think — idea")
-                    } label: {
-                        Label("Share an idea", systemImage: "lightbulb")
-                    }
-                    Button {
-                        sendMail(subject: "Think — problem")
-                    } label: {
-                        Label("Report a problem", systemImage: "exclamationmark.bubble")
-                    }
-                    Button {
-                        requestReview()
-                    } label: {
-                        Label("Rate Think", systemImage: "star")
-                    }
-                }
+                Divider()
 
+                Toggle(isOn: $dailyLineEnabled) {
+                    settingsLabel("Daily line notification", systemImage: "bell")
+                }
+                .toggleStyle(AdaptiveSwitchToggleStyle())
+                .padding(.vertical, 10)
+
+                if dailyLineEnabled {
+                    Divider()
+                    DatePicker(selection: dailyLineTime, displayedComponents: .hourAndMinute) {
+                        settingsLabel("Time", systemImage: "clock")
+                    }
+                    .tint(.accentColor)
+                    .padding(.top, 10)
+                }
             }
-            .navigationTitle("Profile")
+            .padding(18)
+            .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .stroke(.separator.opacity(0.6), lineWidth: 1)
+            }
         }
+        .onChange(of: dailyLineEnabled) {
+            haptics.play(.selection)
+            DailyQuoteNotifier.refreshSchedule()
+        }
+        .onChange(of: dailyLineMinutes) {
+            DailyQuoteNotifier.refreshSchedule()
+        }
+    }
+
+    private var feedbackPanel: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionHeader("Feedback")
+            VStack(spacing: 0) {
+                feedbackButton("Share an idea", systemImage: "lightbulb") {
+                    sendMail(subject: "Think — idea")
+                }
+                Divider()
+                feedbackButton("Report a problem", systemImage: "exclamationmark.bubble") {
+                    sendMail(subject: "Think — problem")
+                }
+                Divider()
+                feedbackButton("Rate Think", systemImage: "star") {
+                    requestReview()
+                }
+            }
+            .padding(18)
+            .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .stroke(.separator.opacity(0.6), lineWidth: 1)
+            }
+        }
+    }
+
+    private func settingsLabel(_ title: String, systemImage: String) -> some View {
+        Label {
+            Text(title)
+                .foregroundStyle(.primary)
+        } icon: {
+            Image(systemName: systemImage)
+                .foregroundStyle(Color.accentColor)
+        }
+        .font(.subheadline)
+    }
+
+    private func feedbackButton(_ title: String, systemImage: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                Image(systemName: systemImage)
+                    .font(.headline)
+                    .foregroundStyle(Color.accentColor)
+                    .frame(width: 24)
+                Text(title)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(.primary)
+                Spacer()
+            }
+            .padding(.vertical, 13)
+        }
+        .buttonStyle(.plain)
     }
 
     private func sendMail(subject: String) {
         if let url = Feedback.mailURL(subject: subject) {
             openURL(url)
         }
+    }
+
+    private func sectionHeader(_ title: String) -> some View {
+        Text(title)
+            .font(.caption.weight(.semibold))
+            .textCase(.uppercase)
+            .foregroundStyle(.secondary)
+            .accessibilityAddTraits(.isHeader)
+    }
+}
+
+private struct AdaptiveSwitchToggleStyle: ToggleStyle {
+    @Environment(\.colorScheme) private var colorScheme
+
+    func makeBody(configuration: Configuration) -> some View {
+        Button {
+            withAnimation(.spring(response: 0.24, dampingFraction: 0.82)) {
+                configuration.isOn.toggle()
+            }
+        } label: {
+            HStack(spacing: 12) {
+                configuration.label
+                Spacer()
+                switchBody(isOn: configuration.isOn)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityValue(configuration.isOn ? "On" : "Off")
+    }
+
+    private func switchBody(isOn: Bool) -> some View {
+        RoundedRectangle(cornerRadius: 16, style: .continuous)
+            .fill(isOn ? Color.accentColor : Color(.tertiarySystemFill))
+            .frame(width: 50, height: 30)
+            .overlay(alignment: isOn ? .trailing : .leading) {
+                Circle()
+                    .fill(activeThumbColor(isOn: isOn))
+                    .frame(width: 24, height: 24)
+                    .shadow(color: .black.opacity(0.16), radius: 2, y: 1)
+                    .padding(3)
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(.separator.opacity(isOn ? 0 : 0.6), lineWidth: 1)
+            }
+    }
+
+    private func activeThumbColor(isOn: Bool) -> Color {
+        guard isOn else { return Color(.systemBackground) }
+        return colorScheme == .dark ? .black : .white
     }
 }
 

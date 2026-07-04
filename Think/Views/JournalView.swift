@@ -70,6 +70,7 @@ struct JournalView: View {
 
 private struct NewNoteSheet: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.haptics) private var haptics
     @Environment(\.modelContext) private var modelContext
     @Environment(ProgressStore.self) private var progress
 
@@ -77,19 +78,47 @@ private struct NewNoteSheet: View {
 
     var body: some View {
         NavigationStack {
-            TextEditor(text: $text)
-                .padding(8)
-                .navigationTitle("New note")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("Cancel") { dismiss() }
-                    }
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button("Save") { save() }
-                            .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            VStack(alignment: .leading, spacing: 14) {
+                Text("Capture the thought while it is still clear.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+
+                ZStack(alignment: .topLeading) {
+                    TextEditor(text: $text)
+                        .scrollContentBackground(.hidden)
+                        .foregroundStyle(.primary)
+                        .padding(12)
+
+                    if text.isEmpty {
+                        Text("Start writing...")
+                            .foregroundStyle(.secondary)
+                            .padding(.horizontal, 18)
+                            .padding(.vertical, 20)
+                            .allowsHitTesting(false)
                     }
                 }
+                .frame(minHeight: 260)
+                .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .stroke(.separator.opacity(0.6), lineWidth: 1)
+                }
+
+                Spacer()
+            }
+            .padding(20)
+            .navigationTitle("New note")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") { save() }
+                        .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
+            }
+            .background(Color(.systemGroupedBackground).ignoresSafeArea())
         }
     }
 
@@ -98,6 +127,7 @@ private struct NewNoteSheet: View {
         guard !trimmed.isEmpty else { return }
         modelContext.insert(JournalEntry(prompt: "", text: trimmed, kind: JournalEntry.kindNote))
         progress.markTodayComplete()
+        haptics.play(.success)
         dismiss()
     }
 }

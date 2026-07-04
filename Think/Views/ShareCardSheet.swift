@@ -32,12 +32,17 @@ private enum PhotoSaveState: Equatable {
 
 struct ShareCardSheet: View {
     let quote: Quote
+    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.haptics) private var haptics
 
     @State private var style: CardStyle = .paper
     @State private var photoSaveState = PhotoSaveState.idle
 
     private let previewScale = 0.24
+    private var prominentButtonForeground: Color {
+        colorScheme == .dark ? .black : .white
+    }
 
     var body: some View {
         NavigationStack {
@@ -48,6 +53,7 @@ struct ShareCardSheet: View {
                 Spacer()
             }
             .padding()
+            .background(Color(.systemGroupedBackground).ignoresSafeArea())
             .navigationTitle("Share card")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -78,8 +84,11 @@ struct ShareCardSheet: View {
         HStack(spacing: 12) {
             ForEach(CardStyle.all) { candidate in
                 Button {
-                    style = candidate
-                    photoSaveState = .idle
+                    if candidate != style {
+                        haptics.play(.selection)
+                        style = candidate
+                        photoSaveState = .idle
+                    }
                 } label: {
                     VStack(spacing: 6) {
                         Circle()
@@ -113,8 +122,15 @@ struct ShareCardSheet: View {
             ) {
                 Label("Share", systemImage: "square.and.arrow.up")
                     .frame(maxWidth: .infinity)
+                    .foregroundStyle(prominentButtonForeground)
             }
-            .buttonStyle(.glassProminent)
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .tint(.accentColor)
+            .foregroundStyle(prominentButtonForeground)
+            .simultaneousGesture(TapGesture().onEnded {
+                haptics.play(.selection)
+            })
 
             Button {
                 saveToPhotos()
@@ -122,7 +138,9 @@ struct ShareCardSheet: View {
                 Label(photoSaveState.label, systemImage: photoSaveState.systemImage)
                     .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.glass)
+            .buttonStyle(.bordered)
+            .controlSize(.large)
+            .tint(.accentColor)
             .disabled(photoSaveState == .saving || photoSaveState == .saved)
         }
     }
@@ -146,6 +164,7 @@ struct ShareCardSheet: View {
             guard status == .authorized || status == .limited else {
                 Task { @MainActor in
                     photoSaveState = .failed
+                    haptics.play(.warning)
                 }
                 return
             }
@@ -155,6 +174,7 @@ struct ShareCardSheet: View {
             } completionHandler: { success, _ in
                 Task { @MainActor in
                     photoSaveState = success ? .saved : .failed
+                    haptics.play(success ? .success : .warning)
                 }
             }
         }

@@ -7,34 +7,41 @@ import SwiftUI
 
 struct FocusView: View {
     @Environment(ProgressStore.self) private var progress
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.haptics) private var haptics
     @Environment(\.scenePhase) private var scenePhase
     @State private var timer = PomodoroTimer()
     @State private var showingFocusTip = false
+    @State private var appeared = false
 
     private var sessionQuote: Quote { ContentLibrary.dailyQuote() }
+    private var prominentButtonForeground: Color {
+        colorScheme == .dark ? .black : .white
+    }
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 28) {
-                Spacer()
+            VStack(spacing: 0) {
+                focusHeader
+                    .padding(.horizontal, 22)
+                    .padding(.top, 18)
 
-                ring
+                Spacer(minLength: 42)
 
-                Text("\u{201C}\(sessionQuote.text)\u{201D}")
-                    .font(.subheadline)
-                    .fontDesign(.serif)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 32)
+                VStack(spacing: 28) {
+                    ring
+                    focusCue
+                    controls
+                    presets
+                }
+                .opacity(appeared ? 1 : 0)
+                .scaleEffect(appeared ? 1 : 0.97)
 
-                controls
-                presets
-
-                Spacer()
+                Spacer(minLength: 64)
             }
-            .padding()
             .navigationTitle("Focus")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
@@ -44,17 +51,19 @@ struct FocusView: View {
                     }
                     .accessibilityLabel("Silence distractions")
                 }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Text("\(progress.focusSessionsToday) today")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
             }
+            .background(Color(.systemGroupedBackground).ignoresSafeArea())
             .sheet(isPresented: $showingFocusTip) {
                 FocusTipSheet()
             }
             .onAppear {
-                timer.onWorkSessionComplete = { progress.recordFocusSession() }
+                timer.onWorkSessionComplete = {
+                    progress.recordFocusSession()
+                    haptics.play(.success)
+                }
+                withAnimation(.easeOut(duration: 0.45)) {
+                    appeared = true
+                }
             }
             .onChange(of: scenePhase) { _, newPhase in
                 if newPhase == .active {
@@ -64,58 +73,117 @@ struct FocusView: View {
         }
     }
 
-    private var ring: some View {
-        ZStack {
-            Circle()
-                .stroke(Color(.tertiarySystemFill), lineWidth: 10)
-            Circle()
-                .trim(from: 0, to: timer.progress)
-                .stroke(
-                    timer.phase == .work ? Color.accentColor : Color.green,
-                    style: StrokeStyle(lineWidth: 10, lineCap: .round)
-                )
-                .rotationEffect(.degrees(-90))
-                .animation(.linear(duration: 1), value: timer.progress)
-            VStack(spacing: 4) {
-                Text(timer.remainingLabel)
-                    .font(.system(size: 44, weight: .medium, design: .rounded))
-                    .monospacedDigit()
-                Text(timer.phase.rawValue)
+    private var focusHeader: some View {
+        HStack(alignment: .center) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(timer.phase == .work ? "Deep work" : "Break")
+                    .font(.largeTitle.bold())
+                    .foregroundStyle(.primary)
+                Text(timer.isRunning ? "Session in progress" : "Guard the next block")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
+            Spacer()
+            Text("\(progress.focusSessionsToday) today")
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(.regularMaterial, in: Capsule())
         }
-        .frame(width: 220, height: 220)
+    }
+
+    private var ring: some View {
+        ZStack {
+            Circle()
+                .fill(.regularMaterial)
+                .frame(width: 238, height: 238)
+                .shadow(
+                    color: timer.isRunning ? Color.accentColor.opacity(0.22) : .clear,
+                    radius: timer.isRunning ? 34 : 0
+                )
+
+            Circle()
+                .stroke(Color(.tertiarySystemFill), lineWidth: 12)
+            Circle()
+                .trim(from: 0, to: timer.progress)
+                .stroke(
+                    timer.phase == .work ? Color.accentColor : .green,
+                    style: StrokeStyle(lineWidth: 12, lineCap: .round)
+                )
+                .rotationEffect(.degrees(-90))
+                .shadow(
+                    color: (timer.phase == .work ? Color.accentColor : .green).opacity(0.35),
+                    radius: timer.isRunning ? 12 : 4
+                )
+                .animation(.linear(duration: 0.8), value: timer.progress)
+            VStack(spacing: 4) {
+                Text(timer.remainingLabel)
+                    .font(.system(size: 48, weight: .medium, design: .rounded))
+                    .monospacedDigit()
+                    .foregroundStyle(.primary)
+                Text(timer.phase.rawValue)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(width: 250, height: 250)
+        .animation(.easeInOut(duration: 0.25), value: timer.isRunning)
+    }
+
+    private var focusCue: some View {
+        VStack(spacing: 8) {
+            Text("Focus cue")
+                .font(.caption.weight(.semibold))
+                .textCase(.uppercase)
+                .foregroundStyle(Color.accentColor)
+            Text("\u{201C}\(sessionQuote.text)\u{201D}")
+                .font(.system(.callout, design: .serif))
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .lineSpacing(2)
+        }
+        .padding(.horizontal, 34)
     }
 
     private var controls: some View {
         HStack(spacing: 16) {
             Button {
+                haptics.play(.reset)
                 timer.reset()
             } label: {
                 Image(systemName: "arrow.counterclockwise")
                     .frame(width: 24, height: 24)
             }
-            .buttonStyle(.glass)
+            .buttonStyle(.bordered)
+            .buttonBorderShape(.circle)
+            .controlSize(.large)
             .accessibilityLabel("Reset timer")
 
             Button {
+                haptics.play(timer.isRunning ? .pause : .start)
                 timer.toggle()
             } label: {
                 Label(timer.isRunning ? "Pause" : "Start",
                       systemImage: timer.isRunning ? "pause.fill" : "play.fill")
-                    .frame(minWidth: 120)
-                    .foregroundStyle(.black)
+                    .frame(minWidth: 132)
+                    .foregroundStyle(prominentButtonForeground)
             }
-            .buttonStyle(.glassProminent)
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .tint(.accentColor)
+            .foregroundStyle(prominentButtonForeground)
 
             Button {
+                haptics.play(.selection)
                 timer.skipPhase()
             } label: {
                 Image(systemName: "forward.end")
                     .frame(width: 24, height: 24)
             }
-            .buttonStyle(.glass)
+            .buttonStyle(.bordered)
+            .buttonBorderShape(.circle)
+            .controlSize(.large)
             .accessibilityLabel(timer.phase == .work ? "Skip to break" : "Skip to work")
         }
     }
@@ -124,13 +192,37 @@ struct FocusView: View {
         HStack(spacing: 10) {
             ForEach(PomodoroTimer.Preset.all, id: \.workMinutes) { preset in
                 Button(preset.label) {
+                    if preset != timer.preset {
+                        haptics.play(.selection)
+                    }
                     timer.select(preset)
                 }
-                .font(.subheadline.weight(preset == timer.preset ? .medium : .regular))
-                .buttonStyle(.bordered)
-                .tint(preset == timer.preset ? .accentColor : .secondary)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(presetForeground(for: preset))
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(presetBackground(for: preset), in: Capsule())
+                .overlay {
+                    Capsule()
+                        .stroke(presetStroke(for: preset), lineWidth: 1)
+                }
+                .contentShape(Capsule())
+                .buttonStyle(.plain)
+                .accessibilityLabel(preset.label)
             }
         }
+    }
+
+    private func presetForeground(for preset: PomodoroTimer.Preset) -> Color {
+        preset == timer.preset ? .accentColor : .secondary
+    }
+
+    private func presetBackground(for preset: PomodoroTimer.Preset) -> Color {
+        preset == timer.preset ? Color.accentColor.opacity(0.16) : Color(.secondarySystemGroupedBackground)
+    }
+
+    private func presetStroke(for preset: PomodoroTimer.Preset) -> Color {
+        preset == timer.preset ? Color.accentColor.opacity(0.28) : Color(.separator).opacity(0.6)
     }
 }
 

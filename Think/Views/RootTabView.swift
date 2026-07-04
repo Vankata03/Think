@@ -22,7 +22,7 @@ struct RootTabView: View {
                 ProfileView()
             }
         }
-        .tabBarMinimizeBehavior(.onScrollDown)
+        .tint(.accentColor)
     }
 }
 
