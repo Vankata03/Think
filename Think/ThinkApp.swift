@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import Foundation
 
 @main
 struct ThinkApp: App {
@@ -17,10 +18,25 @@ struct ThinkApp: App {
 
     init() {
         isUITesting = ProcessInfo.processInfo.arguments.contains("-ui-testing")
+        Self.prepareApplicationSupportDirectory()
         if isUITesting, let bundleIdentifier = Bundle.main.bundleIdentifier {
             UserDefaults.standard.removePersistentDomain(forName: bundleIdentifier)
         }
         _progress = State(initialValue: ProgressStore())
+    }
+
+    private static func prepareApplicationSupportDirectory() {
+        guard let applicationSupportURL = FileManager.default.urls(
+            for: .applicationSupportDirectory,
+            in: .userDomainMask
+        ).first else {
+            return
+        }
+
+        try? FileManager.default.createDirectory(
+            at: applicationSupportURL,
+            withIntermediateDirectories: true
+        )
     }
 
     var body: some Scene {
