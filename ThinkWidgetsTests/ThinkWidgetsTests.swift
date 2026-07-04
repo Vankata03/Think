@@ -30,7 +30,7 @@ struct DailyQuoteTimelineTests {
 
     @Test func dailyQuoteWidgetViewBodyBuildsForSampleEntry() {
         let entry = QuoteEntry(date: .now, quote: ContentLibrary.dailyQuote())
-        let view = DailyQuoteWidgetView(entry: entry)
+        let view = DailyQuoteWidgetView(entry: entry, familyOverride: .systemSmall)
 
         _ = view.body
     }

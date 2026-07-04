@@ -38,11 +38,21 @@ nonisolated struct DailyQuoteProvider: TimelineProvider {
 }
 
 struct DailyQuoteWidgetView: View {
-    @Environment(\.widgetFamily) private var family
+    @Environment(\.widgetFamily) private var environmentFamily
     let entry: QuoteEntry
+    private let familyOverride: WidgetFamily?
 
     private let ink = Color(red: 0.07, green: 0.07, blue: 0.08)
     private let brandYellow = Color(red: 1.0, green: 0.83, blue: 0.20)
+
+    init(entry: QuoteEntry, familyOverride: WidgetFamily? = nil) {
+        self.entry = entry
+        self.familyOverride = familyOverride
+    }
+
+    private var family: WidgetFamily {
+        familyOverride ?? environmentFamily
+    }
 
     var body: some View {
         content
