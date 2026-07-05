@@ -7,47 +7,59 @@ import SwiftUI
 import SwiftData
 
 struct JournalView: View {
-    @Query(sort: \JournalEntry.date, order: .reverse) private var entries: [JournalEntry]
+    private enum Section: String, CaseIterable, Identifiable {
+        case notes = "Notes"
+        case questions = "Questions"
+        case retros = "Retros"
 
-    @State private var selectedKind = JournalEntry.kindNote
+        var id: String { rawValue }
+    }
+
+    @Query(sort: \JournalEntry.date, order: .reverse) private var entries: [JournalEntry]
+    @Query(sort: \DailyRetro.date, order: .reverse) private var retros: [DailyRetro]
+
+    @State private var section = Section.notes
     @State private var composingNote = false
+    @State private var composingRetro = false
 
     private var filtered: [JournalEntry] {
-        entries.filter { $0.kind == selectedKind }
+        let kind = section == .notes ? JournalEntry.kindNote : JournalEntry.kindQuestion
+        return entries.filter { $0.kind == kind }
     }
 
     var body: some View {
         List {
-            Section {
-                Picker("Entries", selection: $selectedKind) {
-                    Text("Notes").tag(JournalEntry.kindNote)
-                    Text("Daily questions").tag(JournalEntry.kindQuestion)
+            SwiftUI.Section {
+                Picker("Entries", selection: $section) {
+                    ForEach(Section.allCases) { section in
+                        Text(section.rawValue).tag(section)
+                    }
                 }
                 .pickerStyle(.segmented)
                 .listRowInsets(EdgeInsets())
                 .listRowBackground(Color.clear)
             }
 
-            if filtered.isEmpty {
-                Text(selectedKind == JournalEntry.kindNote
-                     ? "Write anything on your mind. Tap + to start."
-                     : "Your answers to the daily question will appear here.")
-                    .foregroundStyle(.secondary)
-            } else {
-                ForEach(filtered) { entry in
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(entry.date.formatted(date: .abbreviated, time: .shortened))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        if !entry.prompt.isEmpty {
-                            Text(entry.prompt)
-                                .font(.subheadline.weight(.medium))
-                        }
-                        Text(entry.text)
-                            .font(.subheadline)
-                            .foregroundStyle(entry.prompt.isEmpty ? .primary : .secondary)
+            switch section {
+            case .notes, .questions:
+                if filtered.isEmpty {
+                    Text(section == .notes
+                         ? "Write anything on your mind. Tap + to start."
+                         : "Your answers to the daily question will appear here.")
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(filtered) { entry in
+                        entryRow(entry)
                     }
-                    .padding(.vertical, 4)
+                }
+            case .retros:
+                if retros.isEmpty {
+                    Text("Close each day with two honest minutes. Your evening retrospectives will appear here.")
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(retros) { retro in
+                        retroRow(retro)
+                    }
                 }
             }
         }
@@ -55,15 +67,63 @@ struct JournalView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    composingNote = true
+                    if section == .retros {
+                        composingRetro = true
+                    } else {
+                        composingNote = true
+                    }
                 } label: {
                     Image(systemName: "plus")
                 }
-                .accessibilityLabel("New note")
+                .accessibilityLabel(section == .retros ? "New retrospective" : "New note")
             }
         }
         .sheet(isPresented: $composingNote) {
             NewNoteSheet()
+        }
+        .sheet(isPresented: $composingRetro) {
+            RetroSheet()
+        }
+    }
+
+    private func entryRow(_ entry: JournalEntry) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(entry.date.formatted(date: .abbreviated, time: .shortened))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            if !entry.prompt.isEmpty {
+                Text(entry.prompt)
+                    .font(.subheadline.weight(.medium))
+            }
+            Text(entry.text)
+                .font(.subheadline)
+                .foregroundStyle(entry.prompt.isEmpty ? .primary : .secondary)
+        }
+        .padding(.vertical, 4)
+    }
+
+    private func retroRow(_ retro: DailyRetro) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(retro.date.formatted(date: .abbreviated, time: .omitted))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            retroSection("Went well", systemImage: "checkmark.circle", text: retro.wentWell)
+            retroSection("Improve", systemImage: "arrow.up.circle", text: retro.improve)
+            retroSection("Tomorrow", systemImage: "sunrise", text: retro.tomorrow)
+        }
+        .padding(.vertical, 4)
+    }
+
+    @ViewBuilder
+    private func retroSection(_ title: String, systemImage: String, text: String) -> some View {
+        if !text.isEmpty {
+            VStack(alignment: .leading, spacing: 2) {
+                Label(title, systemImage: systemImage)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Color.accentColor)
+                Text(text)
+                    .font(.subheadline)
+            }
         }
     }
 }
@@ -137,5 +197,5 @@ private struct NewNoteSheet: View {
         JournalView()
     }
     .environment(ProgressStore())
-    .modelContainer(for: JournalEntry.self, inMemory: true)
+    .modelContainer(for: [JournalEntry.self, DailyRetro.self], inMemory: true)
 }

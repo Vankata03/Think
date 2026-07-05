@@ -9,6 +9,8 @@ import StoreKit
 
 private enum Feedback {
     static let address = "ivanterziev93@gmail.com"
+    static let privacyPolicyURL = URL(string: "https://vankata03.github.io/think-legal/privacy-policy.html")
+    static let supportURL = URL(string: "https://vankata03.github.io/think-legal/support.html")
 
     static func mailURL(subject: String) -> URL? {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
@@ -29,21 +31,18 @@ struct ProfileView: View {
     @Environment(\.haptics) private var haptics
     @Environment(\.openURL) private var openURL
     @Environment(\.requestReview) private var requestReview
-    @AppStorage(Appearance.storageKey) private var appearance = Appearance.system
+    @AppStorage(Appearance.storageKey) private var appearance = Appearance.dark
     @AppStorage(DailyQuoteNotifier.enabledKey) private var dailyLineEnabled = false
     @AppStorage(DailyQuoteNotifier.minutesKey) private var dailyLineMinutes = DailyQuoteNotifier.defaultMinutes
+    @AppStorage(RetroReminder.enabledKey) private var retroReminderEnabled = false
+    @AppStorage(RetroReminder.minutesKey) private var retroReminderMinutes = RetroReminder.defaultMinutes
 
     private var dailyLineTime: Binding<Date> {
-        Binding {
-            Calendar.current.date(
-                bySettingHour: dailyLineMinutes / 60,
-                minute: dailyLineMinutes % 60,
-                second: 0, of: .now
-            ) ?? .now
-        } set: { newValue in
-            let components = Calendar.current.dateComponents([.hour, .minute], from: newValue)
-            dailyLineMinutes = (components.hour ?? 8) * 60 + (components.minute ?? 0)
-        }
+        $dailyLineMinutes.timeOfDay
+    }
+
+    private var retroReminderTime: Binding<Date> {
+        $retroReminderMinutes.timeOfDay
     }
 
     var body: some View {
@@ -211,6 +210,23 @@ struct ProfileView: View {
                         settingsLabel("Time", systemImage: "clock")
                     }
                     .tint(.accentColor)
+                    .padding(.vertical, 10)
+                }
+
+                Divider()
+
+                Toggle(isOn: $retroReminderEnabled) {
+                    settingsLabel("Evening retrospective reminder", systemImage: "moon.stars")
+                }
+                .toggleStyle(AdaptiveSwitchToggleStyle())
+                .padding(.vertical, 10)
+
+                if retroReminderEnabled {
+                    Divider()
+                    DatePicker(selection: retroReminderTime, displayedComponents: .hourAndMinute) {
+                        settingsLabel("Time", systemImage: "clock")
+                    }
+                    .tint(.accentColor)
                     .padding(.top, 10)
                 }
             }
@@ -228,6 +244,13 @@ struct ProfileView: View {
         .onChange(of: dailyLineMinutes) {
             DailyQuoteNotifier.refreshSchedule()
         }
+        .onChange(of: retroReminderEnabled) {
+            haptics.play(.selection)
+            RetroReminder.refreshSchedule()
+        }
+        .onChange(of: retroReminderMinutes) {
+            RetroReminder.refreshSchedule()
+        }
     }
 
     private var feedbackPanel: some View {
@@ -244,6 +267,18 @@ struct ProfileView: View {
                 Divider()
                 feedbackButton("Rate Think", systemImage: "star") {
                     requestReview()
+                }
+                Divider()
+                feedbackButton("Help & Support", systemImage: "questionmark.circle") {
+                    if let url = Feedback.supportURL {
+                        openURL(url)
+                    }
+                }
+                Divider()
+                feedbackButton("Privacy Policy", systemImage: "hand.raised") {
+                    if let url = Feedback.privacyPolicyURL {
+                        openURL(url)
+                    }
                 }
             }
             .padding(18)
@@ -279,6 +314,7 @@ struct ProfileView: View {
                 Spacer()
             }
             .padding(.vertical, 13)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }

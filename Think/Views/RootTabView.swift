@@ -29,5 +29,5 @@ struct RootTabView: View {
 #Preview {
     RootTabView()
         .environment(ProgressStore())
-        .modelContainer(for: JournalEntry.self, inMemory: true)
+        .modelContainer(for: [JournalEntry.self, DailyRetro.self], inMemory: true)
 }

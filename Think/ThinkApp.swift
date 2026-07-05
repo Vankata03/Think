@@ -13,7 +13,8 @@ import Foundation
 struct ThinkApp: App {
     @Environment(\.scenePhase) private var scenePhase
     @State private var progress: ProgressStore
-    @AppStorage(Appearance.storageKey) private var appearance = Appearance.system
+    @AppStorage(Appearance.storageKey) private var appearance = Appearance.dark
+    @AppStorage(Onboarding.completedKey) private var completedOnboarding = false
     private let isUITesting: Bool
 
     init() {
@@ -22,7 +23,16 @@ struct ThinkApp: App {
         if isUITesting, let bundleIdentifier = Bundle.main.bundleIdentifier {
             UserDefaults.standard.removePersistentDomain(forName: bundleIdentifier)
         }
-        _progress = State(initialValue: ProgressStore())
+        let progressDefaults: UserDefaults
+        if isUITesting, let bundleIdentifier = Bundle.main.bundleIdentifier {
+            let suiteName = "\(bundleIdentifier).ui-tests"
+            let defaults = UserDefaults(suiteName: suiteName) ?? .standard
+            defaults.removePersistentDomain(forName: suiteName)
+            progressDefaults = defaults
+        } else {
+            progressDefaults = SharedDefaults.appGroup()
+        }
+        _progress = State(initialValue: ProgressStore(defaults: progressDefaults))
     }
 
     private static func prepareApplicationSupportDirectory() {
@@ -41,12 +51,19 @@ struct ThinkApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootTabView()
-                .environment(progress)
-                .environment(\.haptics, .live)
-                .preferredColorScheme(appearance.colorScheme)
+            Group {
+                if isUITesting || completedOnboarding {
+                    RootTabView()
+                } else {
+                    OnboardingView()
+                }
+            }
+            .environment(progress)
+            .environment(\.haptics, .live)
+            .preferredColorScheme(appearance.colorScheme)
+            .animation(.easeInOut(duration: 0.3), value: completedOnboarding)
         }
-        .modelContainer(for: JournalEntry.self, inMemory: isUITesting)
+        .modelContainer(for: [JournalEntry.self, DailyRetro.self], inMemory: isUITesting)
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
                 // Slide the scheduled notification window forward.

@@ -20,6 +20,14 @@ struct ThinkingPath: Identifiable, Codable, Hashable {
     let icon: String
     let isAvailable: Bool
     let steps: [PathStep]
+
+    /// The step to work on given how many days are complete, or nil
+    /// once the path is finished. Shared so iOS and watchOS resolve
+    /// the current step identically.
+    func currentStep(afterCompleted completed: Int) -> PathStep? {
+        guard completed >= 0, completed < steps.count else { return nil }
+        return steps[completed]
+    }
 }
 
 enum PathLibrary {

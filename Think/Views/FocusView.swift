@@ -16,7 +16,7 @@ struct FocusView: View {
 
     private var sessionQuote: Quote { ContentLibrary.dailyQuote() }
     private var prominentButtonForeground: Color {
-        colorScheme == .dark ? .black : .white
+        .prominentButtonForeground(for: colorScheme)
     }
 
     var body: some View {
@@ -47,9 +47,9 @@ struct FocusView: View {
                     Button {
                         showingFocusTip = true
                     } label: {
-                        Image(systemName: "moon")
+                        Image(systemName: "lightbulb")
                     }
-                    .accessibilityLabel("Silence distractions")
+                    .accessibilityLabel("Tip: silence distractions")
                 }
             }
             .background(Color(.systemGroupedBackground).ignoresSafeArea())
@@ -79,7 +79,7 @@ struct FocusView: View {
                 Text(timer.phase == .work ? "Deep work" : "Break")
                     .font(.largeTitle.bold())
                     .foregroundStyle(.primary)
-                Text(timer.isRunning ? "Session in progress" : "Guard the next block")
+                Text(timer.isRunning ? "Session in progress" : "Ready when you are")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }

@@ -8,12 +8,16 @@ import SwiftUI
 struct PathDetailView: View {
     let path: ThinkingPath
     @Environment(ProgressStore.self) private var progress
+    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.haptics) private var haptics
 
+    private var prominentButtonForeground: Color {
+        .prominentButtonForeground(for: colorScheme)
+    }
+
     private var completed: Int { progress.pathCompletedDays }
-    private var isFinished: Bool { completed >= path.steps.count }
     private var currentStep: PathStep? {
-        isFinished ? nil : path.steps[completed]
+        path.currentStep(afterCompleted: completed)
     }
 
     var body: some View {
@@ -38,12 +42,18 @@ struct PathDetailView: View {
                         Text(step.task)
                             .font(.subheadline)
                     }
-                    Button(progress.canCompletePathStepToday ? "Mark day complete" : "Come back tomorrow") {
+                    Button {
                         guard progress.canCompletePathStepToday else { return }
                         progress.completePathStep()
                         haptics.play(.success)
+                    } label: {
+                        Text(progress.canCompletePathStepToday ? "Mark day complete" : "Come back tomorrow")
+                            .foregroundStyle(prominentButtonForeground)
+                            .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.glassProminent)
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .tint(.accentColor)
                     .disabled(!progress.canCompletePathStepToday)
                 }
             } else {

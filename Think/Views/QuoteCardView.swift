@@ -32,10 +32,12 @@ struct QuoteCardView: View {
                     .lineSpacing(18)
                     .minimumScaleFactor(0.6)
 
-                Text(quote.author)
-                    .font(.system(size: 40, design: .serif))
-                    .italic()
-                    .foregroundStyle(style.accent)
+                if let attribution = quote.attribution {
+                    Text(attribution)
+                        .font(.system(size: 40, design: .serif))
+                        .italic()
+                        .foregroundStyle(style.accent)
+                }
 
                 Spacer()
 

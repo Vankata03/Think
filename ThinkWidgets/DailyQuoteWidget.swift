@@ -86,9 +86,11 @@ struct DailyQuoteWidgetView: View {
                     .foregroundStyle(.white)
                     .minimumScaleFactor(0.7)
                 Spacer(minLength: 0)
-                Text(entry.quote.author)
-                    .font(.caption2)
-                    .foregroundStyle(brandYellow)
+                if let attribution = entry.quote.attribution {
+                    Text(attribution)
+                        .font(.caption2)
+                        .foregroundStyle(brandYellow)
+                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
