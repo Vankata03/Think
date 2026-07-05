@@ -31,7 +31,7 @@ struct ProfileView: View {
     @Environment(\.haptics) private var haptics
     @Environment(\.openURL) private var openURL
     @Environment(\.requestReview) private var requestReview
-    @AppStorage(Appearance.storageKey) private var appearance = Appearance.system
+    @AppStorage(Appearance.storageKey) private var appearance = Appearance.dark
     @AppStorage(DailyQuoteNotifier.enabledKey) private var dailyLineEnabled = false
     @AppStorage(DailyQuoteNotifier.minutesKey) private var dailyLineMinutes = DailyQuoteNotifier.defaultMinutes
 

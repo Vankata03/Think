@@ -13,7 +13,7 @@ import Foundation
 struct ThinkApp: App {
     @Environment(\.scenePhase) private var scenePhase
     @State private var progress: ProgressStore
-    @AppStorage(Appearance.storageKey) private var appearance = Appearance.system
+    @AppStorage(Appearance.storageKey) private var appearance = Appearance.dark
     @AppStorage(Onboarding.completedKey) private var completedOnboarding = false
     private let isUITesting: Bool
 
