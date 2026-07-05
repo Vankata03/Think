@@ -14,6 +14,7 @@ struct ThinkApp: App {
     @Environment(\.scenePhase) private var scenePhase
     @State private var progress: ProgressStore
     @AppStorage(Appearance.storageKey) private var appearance = Appearance.system
+    @AppStorage(Onboarding.completedKey) private var completedOnboarding = false
     private let isUITesting: Bool
 
     init() {
@@ -50,10 +51,17 @@ struct ThinkApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootTabView()
-                .environment(progress)
-                .environment(\.haptics, .live)
-                .preferredColorScheme(appearance.colorScheme)
+            Group {
+                if isUITesting || completedOnboarding {
+                    RootTabView()
+                } else {
+                    OnboardingView()
+                }
+            }
+            .environment(progress)
+            .environment(\.haptics, .live)
+            .preferredColorScheme(appearance.colorScheme)
+            .animation(.easeInOut(duration: 0.3), value: completedOnboarding)
         }
         .modelContainer(for: JournalEntry.self, inMemory: isUITesting)
         .onChange(of: scenePhase) { _, phase in
