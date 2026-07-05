@@ -10,6 +10,7 @@ import StoreKit
 private enum Feedback {
     static let address = "ivanterziev93@gmail.com"
     static let privacyPolicyURL = URL(string: "https://vankata03.github.io/think-legal/privacy-policy.html")
+    static let supportURL = URL(string: "https://vankata03.github.io/think-legal/support.html")
 
     static func mailURL(subject: String) -> URL? {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
@@ -245,6 +246,12 @@ struct ProfileView: View {
                 Divider()
                 feedbackButton("Rate Think", systemImage: "star") {
                     requestReview()
+                }
+                Divider()
+                feedbackButton("Help & Support", systemImage: "questionmark.circle") {
+                    if let url = Feedback.supportURL {
+                        openURL(url)
+                    }
                 }
                 Divider()
                 feedbackButton("Privacy Policy", systemImage: "hand.raised") {
