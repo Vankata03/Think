@@ -48,8 +48,9 @@ struct ContentLibraryTests {
         #expect(attributed.allSatisfy { $0.attribution == $0.author })
     }
 
-    @Test func libraryIsLargeEnoughForMonthlyRotation() {
-        #expect(ContentLibrary.quotes.count >= 60)
-        #expect(ContentLibrary.questions.count >= 40)
+    @Test func libraryIsLargeEnoughForQuarterlyRotation() {
+        #expect(ContentLibrary.quotes.count >= 90)
+        #expect(ContentLibrary.questions.count >= 90)
+        #expect(Set(ContentLibrary.questions).count == ContentLibrary.questions.count)
     }
 }
