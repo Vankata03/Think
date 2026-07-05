@@ -11,9 +11,11 @@ struct TodayView: View {
     @Environment(\.haptics) private var haptics
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \JournalEntry.date, order: .reverse) private var entries: [JournalEntry]
+    @Query(sort: \DailyRetro.date, order: .reverse) private var retros: [DailyRetro]
 
     @State private var answer = ""
     @State private var showingShareCard = false
+    @State private var showingRetro = false
     @State private var appeared = false
     @State private var savedPulse = false
 
@@ -24,6 +26,16 @@ struct TodayView: View {
         entries.first { $0.kind == JournalEntry.kindQuestion && Calendar.current.isDateInToday($0.date) }
     }
 
+    private var todaysRetro: DailyRetro? {
+        retros.first { Calendar.current.isDateInToday($0.date) }
+    }
+
+    /// The retrospective belongs to the evening; surface the card from
+    /// 8pm on, or any time one was already written today.
+    private var showsRetroCard: Bool {
+        todaysRetro != nil || Calendar.current.component(.hour, from: .now) >= 20
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -31,6 +43,9 @@ struct TodayView: View {
                     ritualHeader
                     quoteCard
                     questionCard
+                    if showsRetroCard {
+                        retroCard
+                    }
                     sectionHeader("Training log", detail: "today")
                     statsRow
                 }
@@ -43,6 +58,14 @@ struct TodayView: View {
             .navigationTitle("Today")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    NavigationLink {
+                        JournalView()
+                    } label: {
+                        Image(systemName: "book.closed")
+                    }
+                    .accessibilityLabel("Journal")
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     streakBadge
                 }
@@ -229,6 +252,71 @@ struct TodayView: View {
         }
     }
 
+    private var retroCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            sectionHeader(
+                "Evening retrospective",
+                detail: todaysRetro == nil ? "2 minutes" : "written"
+            )
+
+            if let retro = todaysRetro {
+                VStack(alignment: .leading, spacing: 10) {
+                    retroSummaryRow("checkmark.circle", retro.wentWell)
+                    retroSummaryRow("arrow.up.circle", retro.improve)
+                    retroSummaryRow("sunrise", retro.tomorrow)
+                }
+                Button {
+                    haptics.play(.selection)
+                    showingRetro = true
+                } label: {
+                    Label("Edit retrospective", systemImage: "pencil")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+                .tint(.accentColor)
+            } else {
+                Text("How was the day? Close it honestly before it closes on you.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                Button {
+                    haptics.play(.selection)
+                    showingRetro = true
+                } label: {
+                    Label("Begin retrospective", systemImage: "moon.stars")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .tint(.accentColor)
+            }
+        }
+        .padding(18)
+        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .stroke(.separator.opacity(0.6), lineWidth: 1)
+        }
+        .sheet(isPresented: $showingRetro) {
+            RetroSheet()
+        }
+    }
+
+    @ViewBuilder
+    private func retroSummaryRow(_ systemImage: String, _ text: String) -> some View {
+        if !text.isEmpty {
+            HStack(alignment: .top, spacing: 10) {
+                Image(systemName: systemImage)
+                    .font(.footnote)
+                    .foregroundStyle(Color.accentColor)
+                    .frame(width: 18)
+                Text(text)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+            }
+        }
+    }
+
     private var statsRow: some View {
         HStack(spacing: 12) {
             metricTile(
@@ -300,5 +388,5 @@ struct TodayView: View {
 #Preview {
     TodayView()
         .environment(ProgressStore())
-        .modelContainer(for: JournalEntry.self, inMemory: true)
+        .modelContainer(for: [JournalEntry.self, DailyRetro.self], inMemory: true)
 }

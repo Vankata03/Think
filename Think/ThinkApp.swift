@@ -63,7 +63,7 @@ struct ThinkApp: App {
             .preferredColorScheme(appearance.colorScheme)
             .animation(.easeInOut(duration: 0.3), value: completedOnboarding)
         }
-        .modelContainer(for: JournalEntry.self, inMemory: isUITesting)
+        .modelContainer(for: [JournalEntry.self, DailyRetro.self], inMemory: isUITesting)
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
                 // Slide the scheduled notification window forward.

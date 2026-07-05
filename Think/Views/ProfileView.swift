@@ -34,17 +34,27 @@ struct ProfileView: View {
     @AppStorage(Appearance.storageKey) private var appearance = Appearance.dark
     @AppStorage(DailyQuoteNotifier.enabledKey) private var dailyLineEnabled = false
     @AppStorage(DailyQuoteNotifier.minutesKey) private var dailyLineMinutes = DailyQuoteNotifier.defaultMinutes
+    @AppStorage(RetroReminder.enabledKey) private var retroReminderEnabled = false
+    @AppStorage(RetroReminder.minutesKey) private var retroReminderMinutes = RetroReminder.defaultMinutes
 
     private var dailyLineTime: Binding<Date> {
+        timeBinding(minutes: $dailyLineMinutes, defaultHour: 8)
+    }
+
+    private var retroReminderTime: Binding<Date> {
+        timeBinding(minutes: $retroReminderMinutes, defaultHour: 21)
+    }
+
+    private func timeBinding(minutes: Binding<Int>, defaultHour: Int) -> Binding<Date> {
         Binding {
             Calendar.current.date(
-                bySettingHour: dailyLineMinutes / 60,
-                minute: dailyLineMinutes % 60,
+                bySettingHour: minutes.wrappedValue / 60,
+                minute: minutes.wrappedValue % 60,
                 second: 0, of: .now
             ) ?? .now
         } set: { newValue in
             let components = Calendar.current.dateComponents([.hour, .minute], from: newValue)
-            dailyLineMinutes = (components.hour ?? 8) * 60 + (components.minute ?? 0)
+            minutes.wrappedValue = (components.hour ?? defaultHour) * 60 + (components.minute ?? 0)
         }
     }
 
@@ -215,6 +225,23 @@ struct ProfileView: View {
                     .tint(.accentColor)
                     .padding(.top, 10)
                 }
+
+                Divider()
+
+                Toggle(isOn: $retroReminderEnabled) {
+                    settingsLabel("Evening retrospective reminder", systemImage: "moon.stars")
+                }
+                .toggleStyle(AdaptiveSwitchToggleStyle())
+                .padding(.vertical, 10)
+
+                if retroReminderEnabled {
+                    Divider()
+                    DatePicker(selection: retroReminderTime, displayedComponents: .hourAndMinute) {
+                        settingsLabel("Time", systemImage: "clock")
+                    }
+                    .tint(.accentColor)
+                    .padding(.top, 10)
+                }
             }
             .padding(18)
             .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
@@ -229,6 +256,13 @@ struct ProfileView: View {
         }
         .onChange(of: dailyLineMinutes) {
             DailyQuoteNotifier.refreshSchedule()
+        }
+        .onChange(of: retroReminderEnabled) {
+            haptics.play(.selection)
+            RetroReminder.refreshSchedule()
+        }
+        .onChange(of: retroReminderMinutes) {
+            RetroReminder.refreshSchedule()
         }
     }
 
