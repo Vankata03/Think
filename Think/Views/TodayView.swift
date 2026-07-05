@@ -260,11 +260,14 @@ struct TodayView: View {
             )
 
             if let retro = todaysRetro {
-                VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: 12) {
                     retroSummaryRow("checkmark.circle", retro.wentWell)
                     retroSummaryRow("arrow.up.circle", retro.improve)
                     retroSummaryRow("sunrise", retro.tomorrow)
                 }
+                .padding(14)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color(.tertiarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                 Button {
                     haptics.play(.selection)
                     showingRetro = true

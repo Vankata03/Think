@@ -113,7 +113,9 @@ struct OnboardingView: View {
                 practiceRow(icon: "text.quote", title: "Read the daily line", detail: "One idea worth carrying all day.")
                 practiceRow(icon: "pencil.line", title: "Answer one question", detail: "A few private sentences. Stored on your device only.")
                 practiceRow(icon: "timer", title: "Train your attention", detail: "A path step or a focus session. Your streak grows.")
+                practiceRow(icon: "moon.stars", title: "Close the day", detail: "A two-minute evening retrospective: what went well, what's next.")
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(18)
             .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
             .overlay {
@@ -123,6 +125,7 @@ struct OnboardingView: View {
 
             Spacer()
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 24)
     }
 
@@ -205,6 +208,7 @@ struct OnboardingView: View {
 
             Spacer()
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 24)
     }
 
@@ -246,6 +250,7 @@ struct OnboardingView: View {
 
             Spacer()
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 24)
     }
 
