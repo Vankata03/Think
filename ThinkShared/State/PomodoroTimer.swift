@@ -3,15 +3,20 @@
 //  Think
 //
 
+#if canImport(ActivityKit)
 import ActivityKit
+#endif
 import Foundation
 import Observation
+#if canImport(UserNotifications)
 import UserNotifications
+#endif
 
 /// Wall-clock based pomodoro: while running, the source of truth is
 /// `endDate`, not tick counting — so the timer stays correct across
 /// app suspension. A local notification fires at phase end when the
 /// app is in the background.
+@MainActor
 @Observable
 final class PomodoroTimer {
 
@@ -161,13 +166,16 @@ final class PomodoroTimer {
         tickTask?.cancel()
         tickTask = nil
         if systemSideEffectsEnabled {
+            #if canImport(UserNotifications)
             UNUserNotificationCenter.current()
                 .removePendingNotificationRequests(withIdentifiers: [Self.notificationID])
+            #endif
             endLiveActivity()
         }
     }
 
     private func syncLiveActivity() {
+        #if os(iOS) && canImport(ActivityKit)
         guard let endDate else { return }
         let startDate = endDate.addingTimeInterval(-TimeInterval(max(phaseTotalSeconds, 1)))
         let state = PomodoroActivityAttributes.ContentState(
@@ -186,9 +194,11 @@ final class PomodoroTimer {
             let activity = try? Activity.request(attributes: PomodoroActivityAttributes(), content: content)
             liveActivityID = activity?.id
         }
+        #endif
     }
 
     private func endLiveActivity() {
+        #if os(iOS) && canImport(ActivityKit)
         guard liveActivityID != nil else { return }
         liveActivityID = nil
         // Ends every activity of this type, which also cleans up any
@@ -198,18 +208,22 @@ final class PomodoroTimer {
                 await activity.end(nil, dismissalPolicy: .immediate)
             }
         }
+        #endif
     }
 
     private func requestAuthorizationIfNeeded() {
+        #if canImport(UserNotifications)
         guard !requestedAuthorization else { return }
         requestedAuthorization = true
         Task {
             _ = try? await UNUserNotificationCenter.current()
                 .requestAuthorization(options: [.alert, .sound])
         }
+        #endif
     }
 
     private func schedulePhaseEndNotification() {
+        #if os(iOS) && canImport(ActivityKit) && canImport(UserNotifications)
         // The Live Activity already shows the countdown on the lock
         // screen; the notification is only the fallback when the user
         // has Live Activities disabled.
@@ -234,5 +248,6 @@ final class PomodoroTimer {
         Task {
             try? await UNUserNotificationCenter.current().add(request)
         }
+        #endif
     }
 }

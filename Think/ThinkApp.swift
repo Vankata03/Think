@@ -22,7 +22,16 @@ struct ThinkApp: App {
         if isUITesting, let bundleIdentifier = Bundle.main.bundleIdentifier {
             UserDefaults.standard.removePersistentDomain(forName: bundleIdentifier)
         }
-        _progress = State(initialValue: ProgressStore())
+        let progressDefaults: UserDefaults
+        if isUITesting, let bundleIdentifier = Bundle.main.bundleIdentifier {
+            let suiteName = "\(bundleIdentifier).ui-tests"
+            let defaults = UserDefaults(suiteName: suiteName) ?? .standard
+            defaults.removePersistentDomain(forName: suiteName)
+            progressDefaults = defaults
+        } else {
+            progressDefaults = SharedDefaults.appGroup()
+        }
+        _progress = State(initialValue: ProgressStore(defaults: progressDefaults))
     }
 
     private static func prepareApplicationSupportDirectory() {

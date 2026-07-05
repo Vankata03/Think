@@ -79,21 +79,11 @@
 			);
 			target = 02A861D82FF9722200441A2B /* Think */;
 		};
-		AB0000000000000000000010 /* Exceptions for "Think" folder in "ThinkWidgetsExtension" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Models/ContentLibrary.swift,
-			);
-			target = AB000000000000000000000F /* ThinkWidgetsExtension */;
-		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		02A861DB2FF9722200441A2B /* Think */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				AB0000000000000000000010 /* Exceptions for "Think" folder in "ThinkWidgetsExtension" target */,
-			);
 			path = Think;
 			sourceTree = "<group>";
 		};
@@ -281,6 +271,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				AB0000000000000000000005 /* ThinkWidgets */,
+				AC0000000000000000000010 /* ThinkShared */,
 			);
 			name = ThinkWidgetsExtension;
 			packageProductDependencies = (
