@@ -11,25 +11,43 @@ import Testing
 struct ContentLibraryTests {
 
     @Test func dailyQuoteUsesStableDayRotation() {
-        let firstDay = Calendar.current.startOfDay(for: Date(timeIntervalSinceReferenceDate: 0))
-        let secondDay = Calendar.current.date(byAdding: .day, value: 1, to: firstDay)!
-        let firstIndex = Int(firstDay.timeIntervalSince1970 / 86_400) % ContentLibrary.quotes.count
-        let secondIndex = Int(secondDay.timeIntervalSince1970 / 86_400) % ContentLibrary.quotes.count
+        let calendar = Calendar.current
+        let firstDay = calendar.startOfDay(for: Date(timeIntervalSinceReferenceDate: 0))
+        let secondDay = calendar.date(byAdding: .day, value: 1, to: firstDay)!
 
-        #expect(ContentLibrary.dailyQuote(for: firstDay) == ContentLibrary.quotes[firstIndex])
-        #expect(ContentLibrary.dailyQuote(for: secondDay) == ContentLibrary.quotes[secondIndex])
-        #expect(secondIndex == (firstIndex + 1) % ContentLibrary.quotes.count)
+        let first = ContentLibrary.dailyQuote(for: firstDay)
+        let firstIndex = ContentLibrary.quotes.firstIndex(of: first)!
+
+        // Same day is stable; the next day advances exactly one slot.
+        #expect(ContentLibrary.dailyQuote(for: firstDay.addingTimeInterval(3_600)) == first)
+        #expect(ContentLibrary.dailyQuote(for: secondDay) == ContentLibrary.quotes[(firstIndex + 1) % ContentLibrary.quotes.count])
     }
 
     @Test func dailyQuestionUsesStableDayRotation() {
-        let firstDay = Calendar.current.startOfDay(for: Date(timeIntervalSinceReferenceDate: 0))
-        let secondDay = Calendar.current.date(byAdding: .day, value: 1, to: firstDay)!
-        let firstIndex = Int(firstDay.timeIntervalSince1970 / 86_400) % ContentLibrary.questions.count
-        let secondIndex = Int(secondDay.timeIntervalSince1970 / 86_400) % ContentLibrary.questions.count
+        let calendar = Calendar.current
+        let firstDay = calendar.startOfDay(for: Date(timeIntervalSinceReferenceDate: 0))
+        let secondDay = calendar.date(byAdding: .day, value: 1, to: firstDay)!
 
-        #expect(ContentLibrary.dailyQuestion(for: firstDay) == ContentLibrary.questions[firstIndex])
-        #expect(ContentLibrary.dailyQuestion(for: secondDay) == ContentLibrary.questions[secondIndex])
-        #expect(secondIndex == (firstIndex + 1) % ContentLibrary.questions.count)
+        let first = ContentLibrary.dailyQuestion(for: firstDay)
+        let firstIndex = ContentLibrary.questions.firstIndex(of: first)!
+
+        #expect(ContentLibrary.dailyQuestion(for: firstDay.addingTimeInterval(3_600)) == first)
+        #expect(ContentLibrary.dailyQuestion(for: secondDay) == ContentLibrary.questions[(firstIndex + 1) % ContentLibrary.questions.count])
+    }
+
+    @Test func rotationAdvancesOncePerDayAcrossAYear() {
+        // Calendar-based day ordinals must advance exactly one slot per
+        // local day, including across DST transitions.
+        let calendar = Calendar.current
+        var day = calendar.startOfDay(for: Date(timeIntervalSinceReferenceDate: 0))
+        var previousIndex = ContentLibrary.quotes.firstIndex(of: ContentLibrary.dailyQuote(for: day))!
+
+        for _ in 0..<365 {
+            day = calendar.date(byAdding: .day, value: 1, to: day)!
+            let index = ContentLibrary.quotes.firstIndex(of: ContentLibrary.dailyQuote(for: day))!
+            #expect(index == (previousIndex + 1) % ContentLibrary.quotes.count)
+            previousIndex = index
+        }
     }
 
     @Test func quotesHaveStableUniqueIdentifiers() {

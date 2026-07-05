@@ -10,9 +10,13 @@ struct WatchTodayView: View {
 
     private var quote: Quote { ContentLibrary.dailyQuote() }
     private var nextStep: PathStep? {
-        let index = min(progress.pathCompletedDays, PathLibrary.deepFocus.steps.count - 1)
-        guard PathLibrary.deepFocus.steps.indices.contains(index) else { return nil }
-        return PathLibrary.deepFocus.steps[index]
+        let steps = PathLibrary.deepFocus.steps
+        guard progress.pathCompletedDays < steps.count else { return nil }
+        return steps[progress.pathCompletedDays]
+    }
+
+    private var pathFinished: Bool {
+        progress.pathCompletedDays >= PathLibrary.deepFocus.steps.count
     }
 
     private var dailyProgressCount: Int {
@@ -108,6 +112,13 @@ struct WatchTodayView: View {
             .padding(10)
             .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             .accessibilityElement(children: .combine)
+        } else if pathFinished {
+            Label("Deep Focus completed", systemImage: "checkmark.seal.fill")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.green)
+                .padding(10)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
         }
     }
 }

@@ -268,7 +268,13 @@ nonisolated enum ContentLibrary {
         questions[dayNumber(for: date) % questions.count]
     }
 
+    /// Calendar-based day ordinal. Seconds math (`interval / 86_400`)
+    /// repeats or skips days across DST transitions, where local
+    /// midnights are not 24 hours apart.
     private static func dayNumber(for date: Date) -> Int {
-        Int(Calendar.current.startOfDay(for: date).timeIntervalSince1970 / 86_400)
+        let calendar = Calendar.current
+        let reference = calendar.startOfDay(for: Date(timeIntervalSince1970: 0))
+        let day = calendar.startOfDay(for: date)
+        return max(0, calendar.dateComponents([.day], from: reference, to: day).day ?? 0)
     }
 }
