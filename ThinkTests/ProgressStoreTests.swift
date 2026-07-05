@@ -123,6 +123,46 @@ struct ProgressStoreTests {
         #expect(ProgressStore.storedDisplayedStreak(in: defaults, now: inTwoDays) == 0)
     }
 
+    @Test func migrationCopiesLegacyProgressOnce() {
+        let source = makeDefaults()
+        let destination = makeDefaults()
+        source.set(7, forKey: "pathCompletedDays")
+        source.set(3, forKey: "streak")
+
+        SharedDefaults.migrateProgressIfNeeded(from: source, to: destination)
+
+        #expect(destination.integer(forKey: "pathCompletedDays") == 7)
+        #expect(destination.integer(forKey: "streak") == 3)
+
+        // A second migration must not clobber newer destination values.
+        source.set(1, forKey: "pathCompletedDays")
+        destination.set(9, forKey: "pathCompletedDays")
+        SharedDefaults.migrateProgressIfNeeded(from: source, to: destination)
+
+        #expect(destination.integer(forKey: "pathCompletedDays") == 9)
+    }
+
+    @Test func migrationDoesNotOverwriteExistingDestinationValues() {
+        let source = makeDefaults()
+        let destination = makeDefaults()
+        source.set(7, forKey: "pathCompletedDays")
+        destination.set(12, forKey: "pathCompletedDays")
+
+        SharedDefaults.migrateProgressIfNeeded(from: source, to: destination)
+
+        #expect(destination.integer(forKey: "pathCompletedDays") == 12)
+    }
+
+    @Test func migrationSkipsWhenSourceAndDestinationAreSameStore() {
+        let defaults = makeDefaults()
+        defaults.set(5, forKey: "pathCompletedDays")
+
+        SharedDefaults.migrateProgressIfNeeded(from: defaults, to: defaults)
+
+        #expect(defaults.integer(forKey: "pathCompletedDays") == 5)
+        #expect(!defaults.bool(forKey: SharedDefaults.migrationMarkerKey))
+    }
+
     private func makeDefaults() -> UserDefaults {
         let suiteName = "ThinkTests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!

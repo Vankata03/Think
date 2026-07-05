@@ -21,6 +21,17 @@ final class ProgressStore {
         static let focusSessionDayCount = "focusSessionDayCount"
     }
 
+    /// Every key this store persists, for migrating between defaults suites.
+    nonisolated static let persistedKeys: [String] = [
+        Key.streak,
+        Key.lastCompletedDay,
+        Key.pathCompletedDays,
+        Key.lastPathCompletionDay,
+        Key.totalFocusSessions,
+        Key.focusSessionDay,
+        Key.focusSessionDayCount,
+    ]
+
     private let defaults: UserDefaults
     private let calendar = Calendar.current
 
