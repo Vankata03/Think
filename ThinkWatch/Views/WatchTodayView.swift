@@ -59,9 +59,11 @@ struct WatchTodayView: View {
             Text(quote.text)
                 .font(.system(.callout, design: .serif).weight(.medium))
                 .fixedSize(horizontal: false, vertical: true)
-            Text(quote.author)
-                .font(.caption2.weight(.medium))
-                .foregroundStyle(.secondary)
+            if let attribution = quote.attribution {
+                Text(attribution)
+                    .font(.caption2.weight(.medium))
+                    .foregroundStyle(.secondary)
+            }
         }
         .padding(10)
         .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))

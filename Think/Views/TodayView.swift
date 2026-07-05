@@ -136,9 +136,11 @@ struct TodayView: View {
                 .fixedSize(horizontal: false, vertical: true)
 
             HStack {
-                Text(quote.author)
-                    .font(.footnote.weight(.medium))
-                    .foregroundStyle(.secondary)
+                if let attribution = quote.attribution {
+                    Text(attribution)
+                        .font(.footnote.weight(.medium))
+                        .foregroundStyle(.secondary)
+                }
                 Spacer()
                 Button {
                     haptics.play(.selection)

@@ -38,4 +38,18 @@ struct ContentLibraryTests {
         #expect(ids.count == ContentLibrary.quotes.count)
         #expect(ContentLibrary.quotes.allSatisfy { !$0.text.isEmpty && !$0.author.isEmpty })
     }
+
+    @Test func houseLinesCarryNoDisplayAttribution() {
+        let house = ContentLibrary.quotes.filter { $0.author == ContentLibrary.houseAuthor }
+        let attributed = ContentLibrary.quotes.filter { $0.author != ContentLibrary.houseAuthor }
+
+        #expect(!house.isEmpty)
+        #expect(house.allSatisfy { $0.attribution == nil })
+        #expect(attributed.allSatisfy { $0.attribution == $0.author })
+    }
+
+    @Test func libraryIsLargeEnoughForMonthlyRotation() {
+        #expect(ContentLibrary.quotes.count >= 60)
+        #expect(ContentLibrary.questions.count >= 40)
+    }
 }
