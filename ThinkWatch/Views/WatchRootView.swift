@@ -8,8 +8,11 @@ import SwiftUI
 struct WatchRootView: View {
     var body: some View {
         TabView {
-            Text("Today")
-                .tag(0)
+            NavigationStack {
+                WatchTodayView()
+            }
+            .tag(0)
+
             Text("Focus")
                 .tag(1)
         }

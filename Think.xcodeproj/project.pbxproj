@@ -112,16 +112,6 @@
 			path = ThinkTests;
 			sourceTree = "<group>";
 		};
-		AC0000000000000000000010 /* ThinkShared */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = ThinkShared;
-			sourceTree = "<group>";
-		};
-		AC0000000000000000000002 /* ThinkWatch */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = ThinkWatch;
-			sourceTree = "<group>";
-		};
 		02A861F32FF9722300441A2B /* ThinkUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = ThinkUITests;
@@ -139,6 +129,16 @@
 		AB1000000000000000000002 /* ThinkWidgetsTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = ThinkWidgetsTests;
+			sourceTree = "<group>";
+		};
+		AC0000000000000000000002 /* ThinkWatch */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ThinkWatch;
+			sourceTree = "<group>";
+		};
+		AC0000000000000000000010 /* ThinkShared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ThinkShared;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
