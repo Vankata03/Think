@@ -17,19 +17,29 @@ struct OnboardingView: View {
     @AppStorage(Onboarding.completedKey) private var completed = false
     @AppStorage(DailyQuoteNotifier.enabledKey) private var dailyLineEnabled = false
     @AppStorage(DailyQuoteNotifier.minutesKey) private var dailyLineMinutes = DailyQuoteNotifier.defaultMinutes
+    @AppStorage(RetroReminder.enabledKey) private var retroReminderEnabled = false
+    @AppStorage(RetroReminder.minutesKey) private var retroReminderMinutes = RetroReminder.defaultMinutes
 
     @State private var page = 0
 
     private var dailyLineTime: Binding<Date> {
+        timeBinding(minutes: $dailyLineMinutes, defaultHour: 8)
+    }
+
+    private var retroReminderTime: Binding<Date> {
+        timeBinding(minutes: $retroReminderMinutes, defaultHour: 21)
+    }
+
+    private func timeBinding(minutes: Binding<Int>, defaultHour: Int) -> Binding<Date> {
         Binding {
             Calendar.current.date(
-                bySettingHour: dailyLineMinutes / 60,
-                minute: dailyLineMinutes % 60,
+                bySettingHour: minutes.wrappedValue / 60,
+                minute: minutes.wrappedValue % 60,
                 second: 0, of: .now
             ) ?? .now
         } set: { newValue in
             let components = Calendar.current.dateComponents([.hour, .minute], from: newValue)
-            dailyLineMinutes = (components.hour ?? 8) * 60 + (components.minute ?? 0)
+            minutes.wrappedValue = (components.hour ?? defaultHour) * 60 + (components.minute ?? 0)
         }
     }
 
@@ -157,23 +167,16 @@ struct OnboardingView: View {
                 .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 10) {
-                Text("One line, once a day")
+                Text("Bookend your day")
                     .font(.largeTitle.bold())
-                Text("Get the daily line at a time you choose. No streak guilt, no marketing — just the line.")
+                Text("A line to open the morning, a two-minute retrospective to close the evening. Both optional, both at times you choose.")
                     .font(.body)
                     .foregroundStyle(.secondary)
             }
 
             VStack(spacing: 0) {
                 Toggle(isOn: $dailyLineEnabled) {
-                    Label {
-                        Text("Daily line notification")
-                            .foregroundStyle(.primary)
-                    } icon: {
-                        Image(systemName: "bell")
-                            .foregroundStyle(Color.accentColor)
-                    }
-                    .font(.subheadline)
+                    onboardingLabel("Daily line notification", systemImage: "bell")
                 }
                 .tint(.accentColor)
                 .padding(.vertical, 10)
@@ -181,14 +184,24 @@ struct OnboardingView: View {
                 if dailyLineEnabled {
                     Divider()
                     DatePicker(selection: dailyLineTime, displayedComponents: .hourAndMinute) {
-                        Label {
-                            Text("Time")
-                                .foregroundStyle(.primary)
-                        } icon: {
-                            Image(systemName: "clock")
-                                .foregroundStyle(Color.accentColor)
-                        }
-                        .font(.subheadline)
+                        onboardingLabel("Time", systemImage: "clock")
+                    }
+                    .tint(.accentColor)
+                    .padding(.vertical, 10)
+                }
+
+                Divider()
+
+                Toggle(isOn: $retroReminderEnabled) {
+                    onboardingLabel("Evening retrospective reminder", systemImage: "moon.stars")
+                }
+                .tint(.accentColor)
+                .padding(.vertical, 10)
+
+                if retroReminderEnabled {
+                    Divider()
+                    DatePicker(selection: retroReminderTime, displayedComponents: .hourAndMinute) {
+                        onboardingLabel("Time", systemImage: "clock")
                     }
                     .tint(.accentColor)
                     .padding(.top, 10)
@@ -201,6 +214,7 @@ struct OnboardingView: View {
                     .stroke(.separator.opacity(0.6), lineWidth: 1)
             }
             .animation(.default, value: dailyLineEnabled)
+            .animation(.default, value: retroReminderEnabled)
 
             Text("You can change this anytime in Profile.")
                 .font(.footnote)
@@ -254,6 +268,17 @@ struct OnboardingView: View {
         .padding(.horizontal, 24)
     }
 
+    private func onboardingLabel(_ title: String, systemImage: String) -> some View {
+        Label {
+            Text(title)
+                .foregroundStyle(.primary)
+        } icon: {
+            Image(systemName: systemImage)
+                .foregroundStyle(Color.accentColor)
+        }
+        .font(.subheadline)
+    }
+
     private func advance() {
         haptics.play(.selection)
         if page < 2 {
@@ -266,6 +291,9 @@ struct OnboardingView: View {
     private func finish() {
         if dailyLineEnabled {
             DailyQuoteNotifier.refreshSchedule()
+        }
+        if retroReminderEnabled {
+            RetroReminder.refreshSchedule()
         }
         haptics.play(.success)
         completed = true
