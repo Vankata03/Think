@@ -75,7 +75,7 @@ struct TodayView: View {
                         .font(.system(.title2, design: .rounded).weight(.bold))
                         .monospacedDigit()
                         .foregroundStyle(progress.displayedStreak > 0 ? Color.accentColor : .secondary)
-                    Text("streak")
+                    Text(streakCaption)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -94,6 +94,13 @@ struct TodayView: View {
             .font(.caption.weight(.medium))
             .foregroundStyle(.secondary)
         }
+    }
+
+    /// Streak-zero copy follows the "no guilt" principle: a fresh user
+    /// is invited to start, a lapsed one to begin again.
+    private var streakCaption: String {
+        if progress.displayedStreak > 0 { return "streak" }
+        return progress.lastCompletedDay == nil ? "start today" : "begin again"
     }
 
     private var dailyProgressCount: Int {
@@ -228,7 +235,7 @@ struct TodayView: View {
                 systemImage: "timer"
             )
             metricTile(
-                value: progress.pathCompletedDays > 0 ? "Day \(progress.pathCompletedDays)" : "-",
+                value: progress.pathCompletedDays > 0 ? "Day \(progress.pathCompletedDays)" : "Not started",
                 label: PathLibrary.deepFocus.name,
                 systemImage: "point.topleft.down.to.point.bottomright.curvepath"
             )
