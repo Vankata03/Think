@@ -58,4 +58,7 @@ Motivational app for young ambitious people. Not a quote-wallpaper app: every da
 - [x] Premium UI pass and semantic haptics (PR #2, 2026-07-05)
 - [x] GitHub Actions build/test CI and shared Xcode test plan
 - [x] Apple Watch companion v1: Today glance and watch-local focus timer
+- [x] First-launch onboarding (practice intro, notification opt-in, first path)
+- [x] Zero-state polish (no-guilt streak copy, path "Not started")
+- [x] Watch face streak complication (accessory families via watch widget extension)
 - [ ] App Store 1.0 release prep: signing, screenshots, metadata, final branch/tag flow

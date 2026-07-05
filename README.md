@@ -9,6 +9,7 @@ The product direction is captured in [PLAN.md](PLAN.md).
 - `Think/` - iOS app source, models, state, and SwiftUI views.
 - `ThinkShared/` - model and state code shared by iOS, widgets, tests, and Watch.
 - `ThinkWatch/` - watchOS companion app source.
+- `ThinkWatchWidgets/` - watch face complication (WidgetKit) extension.
 - `ThinkWidgets/` - WidgetKit and ActivityKit extension.
 - `ThinkTests/` - app unit tests using Swift Testing.
 - `ThinkWidgetsTests/` - widget extension unit tests using Swift Testing.
