@@ -86,6 +86,29 @@ struct ProgressStoreTests {
         #expect(store.completedPathStepToday)
     }
 
+    @Test func sharedDefaultsUsesConfiguredAppGroupName() {
+        #expect(SharedDefaults.appGroupSuiteName == "group.com.ivanterziev.Think")
+    }
+
+    @Test func sharedDefaultsReturnsNamedSuiteWhenAvailable() {
+        let suiteName = "ThinkTests.SharedDefaults.\(UUID().uuidString)"
+        let fallback = makeDefaults()
+        let defaults = SharedDefaults.make(suiteName: suiteName, fallback: fallback)
+
+        defaults.set(42, forKey: "probe")
+
+        #expect(defaults.integer(forKey: "probe") == 42)
+        #expect(defaults !== fallback)
+        defaults.removePersistentDomain(forName: suiteName)
+    }
+
+    @Test func sharedDefaultsFallsBackWhenSuiteCannotBeOpened() {
+        let fallback = makeDefaults()
+        let defaults = SharedDefaults.make(suiteName: "", fallback: fallback)
+
+        #expect(defaults === fallback)
+    }
+
     private func makeDefaults() -> UserDefaults {
         let suiteName = "ThinkTests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!

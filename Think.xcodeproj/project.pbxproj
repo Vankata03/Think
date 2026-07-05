@@ -102,6 +102,11 @@
 			path = ThinkTests;
 			sourceTree = "<group>";
 		};
+		AC0000000000000000000010 /* ThinkShared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ThinkShared;
+			sourceTree = "<group>";
+		};
 		02A861F32FF9722300441A2B /* ThinkUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = ThinkUITests;
@@ -166,6 +171,7 @@
 			isa = PBXGroup;
 			children = (
 				02A861DB2FF9722200441A2B /* Think */,
+				AC0000000000000000000010 /* ThinkShared */,
 				AB0000000000000000000005 /* ThinkWidgets */,
 				02A861E92FF9722300441A2B /* ThinkTests */,
 				02A861F32FF9722300441A2B /* ThinkUITests */,
@@ -206,6 +212,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				02A861DB2FF9722200441A2B /* Think */,
+				AC0000000000000000000010 /* ThinkShared */,
 			);
 			name = Think;
 			packageProductDependencies = (
