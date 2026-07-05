@@ -41,7 +41,7 @@ struct ShareCardSheet: View {
 
     private let previewScale = 0.24
     private var prominentButtonForeground: Color {
-        colorScheme == .dark ? .black : .white
+        .prominentButtonForeground(for: colorScheme)
     }
 
     var body: some View {

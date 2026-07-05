@@ -37,9 +37,9 @@ Add a Watch app target inside `Think.xcodeproj`. The Watch target should compile
 - `ProgressStore.swift`
 - `PomodoroTimer.swift`
 
-Progress sharing should use an App Group-backed `UserDefaults` suite named `group.com.ivanterziev.Think`. The iOS app and Watch app both construct `ProgressStore` with the same suite when available. Tests continue to inject temporary `UserDefaults` suites so progress behavior stays deterministic.
+Progress storage should use an App Group-backed `UserDefaults` suite named `group.com.ivanterziev.Think`. App Groups only share data between targets on the same device: on the iPhone that is the app, its widgets, and tests; on the Watch it is the Watch app and its complications. There is no cross-device sync in v1 — a session recorded on the Watch is visible to the Watch complication but not to the iPhone app. Phone-and-watch progress sync (WatchConnectivity or CloudKit) is explicitly later work. Tests continue to inject temporary `UserDefaults` suites so progress behavior stays deterministic.
 
-The Watch app owns its timer instance locally. A completed Watch work session calls `ProgressStore.recordFocusSession()`, which updates shared progress. The iPhone focus timer and Watch focus timer do not try to stay in lockstep in v1.
+The Watch app owns its timer instance locally. A completed Watch work session calls `ProgressStore.recordFocusSession()`, which updates the Watch-local shared progress. The iPhone focus timer and Watch focus timer do not try to stay in lockstep in v1.
 
 ## Watch UI
 
@@ -64,7 +64,7 @@ Focus:
 1. Watch `FocusView` owns `@State private var timer = PomodoroTimer(systemSideEffectsEnabled: false)`.
 2. Starting, pausing, skipping, and resetting only mutate local Watch timer state.
 3. `onWorkSessionComplete` calls `progress.recordFocusSession()`.
-4. Shared defaults make the completed session visible to the phone app on next read/refresh.
+4. Shared defaults make the completed session visible to other targets on the same device (the Watch complication); the iPhone app keeps its own progress until cross-device sync ships.
 
 ## Error Handling
 

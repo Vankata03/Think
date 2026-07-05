@@ -10,9 +10,7 @@ struct WatchTodayView: View {
 
     private var quote: Quote { ContentLibrary.dailyQuote() }
     private var nextStep: PathStep? {
-        let steps = PathLibrary.deepFocus.steps
-        guard progress.pathCompletedDays < steps.count else { return nil }
-        return steps[progress.pathCompletedDays]
+        PathLibrary.deepFocus.currentStep(afterCompleted: progress.pathCompletedDays)
     }
 
     private var pathFinished: Bool {

@@ -3,6 +3,7 @@
 //  Think
 //
 
+import Combine
 import SwiftUI
 import SwiftData
 
@@ -10,6 +11,7 @@ struct TodayView: View {
     @Environment(ProgressStore.self) private var progress
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.haptics) private var haptics
+    @Environment(\.scenePhase) private var scenePhase
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \JournalEntry.date, order: .reverse) private var entries: [JournalEntry]
     @Query(sort: \DailyRetro.date, order: .reverse) private var retros: [DailyRetro]
@@ -17,6 +19,7 @@ struct TodayView: View {
     @State private var answer = ""
     @State private var showingShareCard = false
     @State private var showingRetro = false
+    @State private var now = Date.now
     @State private var appeared = false
     @State private var savedPulse = false
 
@@ -32,9 +35,11 @@ struct TodayView: View {
     }
 
     /// The retrospective belongs to the evening; surface the card from
-    /// 8pm on, or any time one was already written today.
+    /// 8pm on, or any time one was already written today. Depends on
+    /// `now` state (refreshed each minute and on foregrounding) so the
+    /// card appears while the app idles across the 8pm boundary.
     private var showsRetroCard: Bool {
-        todaysRetro != nil || Calendar.current.component(.hour, from: .now) >= 20
+        todaysRetro != nil || Calendar.current.component(.hour, from: now) >= 20
     }
 
     var body: some View {
@@ -79,6 +84,14 @@ struct TodayView: View {
             .onAppear {
                 withAnimation(.easeOut(duration: 0.45)) {
                     appeared = true
+                }
+            }
+            .onReceive(Timer.publish(every: 60, on: .main, in: .common).autoconnect()) { date in
+                now = date
+            }
+            .onChange(of: scenePhase) { _, phase in
+                if phase == .active {
+                    now = .now
                 }
             }
         }
@@ -245,7 +258,7 @@ struct TodayView: View {
                 saveAnswer()
             } label: {
                 Label("Save answer", systemImage: "checkmark")
-                    .foregroundStyle(colorScheme == .dark ? .black : .white)
+                    .foregroundStyle(Color.prominentButtonForeground(for: colorScheme))
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
@@ -290,7 +303,7 @@ struct TodayView: View {
                     showingRetro = true
                 } label: {
                     Label("Begin retrospective", systemImage: "moon.stars")
-                        .foregroundStyle(colorScheme == .dark ? .black : .white)
+                        .foregroundStyle(Color.prominentButtonForeground(for: colorScheme))
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)

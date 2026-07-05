@@ -12,13 +12,12 @@ struct PathDetailView: View {
     @Environment(\.haptics) private var haptics
 
     private var prominentButtonForeground: Color {
-        colorScheme == .dark ? .black : .white
+        .prominentButtonForeground(for: colorScheme)
     }
 
     private var completed: Int { progress.pathCompletedDays }
-    private var isFinished: Bool { completed >= path.steps.count }
     private var currentStep: PathStep? {
-        isFinished ? nil : path.steps[completed]
+        path.currentStep(afterCompleted: completed)
     }
 
     var body: some View {

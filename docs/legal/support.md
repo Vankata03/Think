@@ -21,4 +21,4 @@ The streak resets, but nothing else is lost. Begin again; the practice matters m
 Profile → Settings → Daily line notification.
 
 **Does the Apple Watch app need the iPhone nearby?**
-No. The watch timer runs on the watch itself. Completed sessions count toward the shared progress on that device pair.
+No. The watch timer runs on the watch itself, and completed sessions count toward the watch's own progress. Watch and iPhone progress are tracked separately for now.

@@ -16,7 +16,7 @@ struct FocusView: View {
 
     private var sessionQuote: Quote { ContentLibrary.dailyQuote() }
     private var prominentButtonForeground: Color {
-        colorScheme == .dark ? .black : .white
+        .prominentButtonForeground(for: colorScheme)
     }
 
     var body: some View {

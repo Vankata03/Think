@@ -38,24 +38,11 @@ struct ProfileView: View {
     @AppStorage(RetroReminder.minutesKey) private var retroReminderMinutes = RetroReminder.defaultMinutes
 
     private var dailyLineTime: Binding<Date> {
-        timeBinding(minutes: $dailyLineMinutes, defaultHour: 8)
+        $dailyLineMinutes.timeOfDay
     }
 
     private var retroReminderTime: Binding<Date> {
-        timeBinding(minutes: $retroReminderMinutes, defaultHour: 21)
-    }
-
-    private func timeBinding(minutes: Binding<Int>, defaultHour: Int) -> Binding<Date> {
-        Binding {
-            Calendar.current.date(
-                bySettingHour: minutes.wrappedValue / 60,
-                minute: minutes.wrappedValue % 60,
-                second: 0, of: .now
-            ) ?? .now
-        } set: { newValue in
-            let components = Calendar.current.dateComponents([.hour, .minute], from: newValue)
-            minutes.wrappedValue = (components.hour ?? defaultHour) * 60 + (components.minute ?? 0)
-        }
+        $retroReminderMinutes.timeOfDay
     }
 
     var body: some View {
