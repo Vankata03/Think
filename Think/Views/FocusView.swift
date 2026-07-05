@@ -79,7 +79,7 @@ struct FocusView: View {
                 Text(timer.phase == .work ? "Deep work" : "Break")
                     .font(.largeTitle.bold())
                     .foregroundStyle(.primary)
-                Text(timer.isRunning ? "Session in progress" : "Guard the next block")
+                Text(timer.isRunning ? "Session in progress" : "Ready when you are")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
