@@ -8,6 +8,7 @@ import SwiftData
 
 struct TodayView: View {
     @Environment(ProgressStore.self) private var progress
+    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.haptics) private var haptics
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \JournalEntry.date, order: .reverse) private var entries: [JournalEntry]
@@ -73,6 +74,8 @@ struct TodayView: View {
             .toolbarBackground(.hidden, for: .navigationBar)
             .background(Color(.systemGroupedBackground).ignoresSafeArea())
             .scrollContentBackground(.hidden)
+            .scrollDismissesKeyboard(.interactively)
+            .dismissKeyboardOnTap()
             .onAppear {
                 withAnimation(.easeOut(duration: 0.45)) {
                     appeared = true
@@ -242,6 +245,7 @@ struct TodayView: View {
                 saveAnswer()
             } label: {
                 Label("Save answer", systemImage: "checkmark")
+                    .foregroundStyle(colorScheme == .dark ? .black : .white)
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
@@ -286,6 +290,7 @@ struct TodayView: View {
                     showingRetro = true
                 } label: {
                     Label("Begin retrospective", systemImage: "moon.stars")
+                        .foregroundStyle(colorScheme == .dark ? .black : .white)
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)

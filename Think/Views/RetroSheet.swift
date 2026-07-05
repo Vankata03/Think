@@ -59,6 +59,8 @@ struct RetroSheet: View {
                 .padding(20)
             }
             .background(Color(.systemGroupedBackground).ignoresSafeArea())
+            .scrollDismissesKeyboard(.interactively)
+            .dismissKeyboardOnTap()
             .navigationTitle("Retrospective")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

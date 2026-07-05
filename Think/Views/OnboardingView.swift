@@ -13,6 +13,7 @@ enum Onboarding {
 }
 
 struct OnboardingView: View {
+    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.haptics) private var haptics
     @AppStorage(Onboarding.completedKey) private var completed = false
     @AppStorage(DailyQuoteNotifier.enabledKey) private var dailyLineEnabled = false
@@ -78,6 +79,7 @@ struct OnboardingView: View {
             } label: {
                 Text(page < 2 ? "Continue" : "Begin practice")
                     .font(.headline)
+                    .foregroundStyle(colorScheme == .dark ? .black : .white)
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)

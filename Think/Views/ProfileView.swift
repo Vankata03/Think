@@ -223,7 +223,7 @@ struct ProfileView: View {
                         settingsLabel("Time", systemImage: "clock")
                     }
                     .tint(.accentColor)
-                    .padding(.top, 10)
+                    .padding(.vertical, 10)
                 }
 
                 Divider()
