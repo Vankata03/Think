@@ -47,9 +47,9 @@ struct FocusView: View {
                     Button {
                         showingFocusTip = true
                     } label: {
-                        Image(systemName: "moon")
+                        Image(systemName: "lightbulb")
                     }
-                    .accessibilityLabel("Silence distractions")
+                    .accessibilityLabel("Tip: silence distractions")
                 }
             }
             .background(Color(.systemGroupedBackground).ignoresSafeArea())
