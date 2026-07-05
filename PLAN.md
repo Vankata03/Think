@@ -17,7 +17,7 @@ Motivational app for young ambitious people. Not a quote-wallpaper app: every da
 - **Share cards / wallpapers** — same render engine. Quote + template → Instagram story or wallpaper resolution. Weekly wallpaper drop: 2 free, rest Pro. Generator (any quote + style + color) beats static gallery.
 - **Feedback** — Profile section: "Share an idea" / "Report a problem" (prefilled mail, app + iOS version in footer) and "Rate Think" (StoreKit review prompt). In-app feedback form once the server exists.
 - **Daily line notification** — opt-in, user-chosen time (Profile > Settings). Sliding 8-day window of scheduled local notifications, refreshed on app-active.
-- **Later**: Apple Watch, additional paths, StoreKit paywall, and Pro content gating.
+- **Later**: phone-synced Watch focus timer, additional paths, StoreKit paywall, and Pro content gating.
 
 ## Design principles
 - Calm, not hype. Serif for quotes, sans for UI, lots of whitespace. Reference tier: Stoic, Waking Up — not quote-spam apps.
@@ -57,4 +57,5 @@ Motivational app for young ambitious people. Not a quote-wallpaper app: every da
 - [x] Home-screen / lock-screen quote widgets (DailyQuoteWidget: systemSmall/Medium + accessoryInline/Rectangular, 7-day timeline, flips at midnight)
 - [x] Premium UI pass and semantic haptics (PR #2, 2026-07-05)
 - [x] GitHub Actions build/test CI and shared Xcode test plan
+- [x] Apple Watch companion v1: Today glance and watch-local focus timer
 - [ ] App Store 1.0 release prep: signing, screenshots, metadata, final branch/tag flow

@@ -38,7 +38,7 @@
 - Modify: `ThinkTests/ProgressStoreTests.swift`
 - Modify: `Think.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append these tests inside `ProgressStoreTests` before `makeDefaults()`:
 
@@ -67,7 +67,7 @@ Append these tests inside `ProgressStoreTests` before `makeDefaults()`:
     }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run after accepting the Xcode license:
 
@@ -77,7 +77,7 @@ xcodebuild test -project Think.xcodeproj -scheme Think -testPlan Think -destinat
 
 Expected: fails because `SharedDefaults` does not exist.
 
-- [ ] **Step 3: Add minimal implementation**
+- [x] **Step 3: Add minimal implementation**
 
 Create `ThinkShared/State/SharedDefaults.swift`:
 
@@ -105,7 +105,7 @@ enum SharedDefaults {
 }
 ```
 
-- [ ] **Step 4: Add `ThinkShared` to the Think target**
+- [x] **Step 4: Add `ThinkShared` to the Think target**
 
 Modify `Think.xcodeproj/project.pbxproj`:
 
@@ -128,7 +128,7 @@ Add `AC0000000000000000000010 /* ThinkShared */` to `fileSystemSynchronizedGroup
 				AC0000000000000000000010 /* ThinkShared */,
 ```
 
-- [ ] **Step 5: Run test to verify it passes**
+- [x] **Step 5: Run test to verify it passes**
 
 Run:
 
@@ -138,7 +138,7 @@ xcodebuild test -project Think.xcodeproj -scheme Think -testPlan Think -destinat
 
 Expected: passes after the project includes `ThinkShared` in the Think target, which `ThinkTests` imports with `@testable import Think`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 Commit after Task 2 project wiring makes the new file visible to tests:
 
@@ -161,7 +161,7 @@ git commit -m "test: cover shared defaults"
 - Modify: `Think/ThinkApp.swift`
 - Modify: `Think.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Move shared files**
+- [x] **Step 1: Move shared files**
 
 Use `mkdir -p ThinkShared/Models ThinkShared/State`, then move:
 
@@ -174,7 +174,7 @@ Think/State/PomodoroTimer.swift -> ThinkShared/State/PomodoroTimer.swift
 
 Do not change public type names. Existing iOS call sites should still compile once `ThinkShared` is added to the target.
 
-- [ ] **Step 2: Make `PomodoroTimer` cross-platform**
+- [x] **Step 2: Make `PomodoroTimer` cross-platform**
 
 In `ThinkShared/State/PomodoroTimer.swift`, replace the import block with:
 
@@ -278,7 +278,7 @@ In `stopRunning()`, wrap notification removal:
         #endif
 ```
 
-- [ ] **Step 3: Wire iOS app to shared defaults**
+- [x] **Step 3: Wire iOS app to shared defaults**
 
 In `Think/ThinkApp.swift`, replace `_progress = State(initialValue: ProgressStore())` in `init()` with:
 
@@ -297,7 +297,7 @@ In `Think/ThinkApp.swift`, replace `_progress = State(initialValue: ProgressStor
 
 Keep the existing UI-test removal of the app bundle persistent domain for SwiftData and app settings cleanup.
 
-- [ ] **Step 4: Update Xcode synchronized groups**
+- [x] **Step 4: Update Xcode synchronized groups**
 
 Modify `Think.xcodeproj/project.pbxproj`:
 
@@ -309,7 +309,7 @@ AB000000000000000000000F /* ThinkWidgetsExtension */
 
 Remove `AB0000000000000000000010 /* Exceptions for "Think" folder in "ThinkWidgetsExtension" target */` from the `Think` root group exceptions list because `ContentLibrary.swift` now lives in `ThinkShared`.
 
-- [ ] **Step 5: Run moved-code tests**
+- [x] **Step 5: Run moved-code tests**
 
 Run after Xcode license acceptance:
 
@@ -319,7 +319,7 @@ xcodebuild test -project Think.xcodeproj -scheme Think -testPlan Think -destinat
 
 Expected: all selected tests pass.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add ThinkShared Think/ThinkApp.swift Think.xcodeproj/project.pbxproj Think/Models/ContentLibrary.swift Think/Models/ThinkingPath.swift Think/State/ProgressStore.swift Think/State/PomodoroTimer.swift
@@ -336,7 +336,7 @@ git commit -m "refactor: extract shared watch state"
 - Modify: `Think.xcodeproj/project.pbxproj`
 - Create: `Think.xcodeproj/xcshareddata/xcschemes/ThinkWatchApp.xcscheme`
 
-- [ ] **Step 1: Create entitlements**
+- [x] **Step 1: Create entitlements**
 
 Create `Think/Think.entitlements` and `ThinkWatch/ThinkWatch.entitlements` with identical content:
 
@@ -353,7 +353,7 @@ Create `Think/Think.entitlements` and `ThinkWatch/ThinkWatch.entitlements` with 
 </plist>
 ```
 
-- [ ] **Step 2: Create minimal Watch app**
+- [x] **Step 2: Create minimal Watch app**
 
 Create `ThinkWatch/ThinkWatchApp.swift`:
 
@@ -406,7 +406,7 @@ struct WatchRootView: View {
 }
 ```
 
-- [ ] **Step 3: Add Watch target to project**
+- [x] **Step 3: Add Watch target to project**
 
 Modify `Think.xcodeproj/project.pbxproj` with these objects.
 
@@ -611,7 +611,7 @@ Add configuration list:
 
 Add `CODE_SIGN_ENTITLEMENTS = Think/Think.entitlements;` to both `Think` target build configurations.
 
-- [ ] **Step 4: Create shared Watch scheme**
+- [x] **Step 4: Create shared Watch scheme**
 
 Create `Think.xcodeproj/xcshareddata/xcschemes/ThinkWatchApp.xcscheme`:
 
@@ -695,7 +695,7 @@ Create `Think.xcodeproj/xcshareddata/xcschemes/ThinkWatchApp.xcscheme`:
 </Scheme>
 ```
 
-- [ ] **Step 5: Verify target listing**
+- [x] **Step 5: Verify target listing**
 
 Run after Xcode license acceptance:
 
@@ -705,7 +705,7 @@ xcodebuild -list -project Think.xcodeproj
 
 Expected: schemes include `Think`, `ThinkWidgetsExtension`, and `ThinkWatchApp`; targets include `ThinkWatchApp`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add Think/Think.entitlements ThinkWatch Think.xcodeproj/project.pbxproj Think.xcodeproj/xcshareddata/xcschemes/ThinkWatchApp.xcscheme
@@ -718,7 +718,7 @@ git commit -m "feat: add watch app target"
 - Create: `ThinkWatch/Views/WatchTodayView.swift`
 - Modify: `ThinkWatch/Views/WatchRootView.swift`
 
-- [ ] **Step 1: Write Watch Today view**
+- [x] **Step 1: Write Watch Today view**
 
 Create `ThinkWatch/Views/WatchTodayView.swift`:
 
@@ -843,7 +843,7 @@ struct WatchTodayView: View {
 }
 ```
 
-- [ ] **Step 2: Wire root to Today**
+- [x] **Step 2: Wire root to Today**
 
 Replace `WatchRootView.body` with:
 
@@ -862,7 +862,7 @@ Replace `WatchRootView.body` with:
     }
 ```
 
-- [ ] **Step 3: Build Watch scheme**
+- [x] **Step 3: Build Watch scheme**
 
 Run after Xcode license acceptance:
 
@@ -872,7 +872,7 @@ xcodebuild build -project Think.xcodeproj -scheme ThinkWatchApp -destination 'pl
 
 Expected: Watch app builds and Today view compiles.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add ThinkWatch/Views/WatchTodayView.swift ThinkWatch/Views/WatchRootView.swift
@@ -885,7 +885,7 @@ git commit -m "feat: add watch today glance"
 - Create: `ThinkWatch/Views/WatchFocusView.swift`
 - Modify: `ThinkWatch/Views/WatchRootView.swift`
 
-- [ ] **Step 1: Write Watch Focus view**
+- [x] **Step 1: Write Watch Focus view**
 
 Create `ThinkWatch/Views/WatchFocusView.swift`:
 
@@ -1012,7 +1012,7 @@ struct WatchFocusView: View {
 }
 ```
 
-- [ ] **Step 2: Wire root to Focus**
+- [x] **Step 2: Wire root to Focus**
 
 Replace the `Text("Focus")` placeholder in `WatchRootView` with:
 
@@ -1023,7 +1023,7 @@ Replace the `Text("Focus")` placeholder in `WatchRootView` with:
             .tag(1)
 ```
 
-- [ ] **Step 3: Build Watch scheme**
+- [x] **Step 3: Build Watch scheme**
 
 Run:
 
@@ -1033,7 +1033,7 @@ xcodebuild build -project Think.xcodeproj -scheme ThinkWatchApp -destination 'pl
 
 Expected: Watch app builds with Today and Focus screens.
 
-- [ ] **Step 4: Run timer and progress tests**
+- [x] **Step 4: Run timer and progress tests**
 
 Run:
 
@@ -1043,7 +1043,7 @@ xcodebuild test -project Think.xcodeproj -scheme Think -testPlan Think -destinat
 
 Expected: timer and progress tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add ThinkWatch/Views/WatchFocusView.swift ThinkWatch/Views/WatchRootView.swift
@@ -1057,7 +1057,7 @@ git commit -m "feat: add watch focus timer"
 - Modify: `PLAN.md`
 - Test: `Think.xctestplan`
 
-- [ ] **Step 1: Update README project structure**
+- [x] **Step 1: Update README project structure**
 
 In `README.md`, add:
 
@@ -1077,7 +1077,7 @@ Watch app build:
       -destination 'platform=watchOS Simulator,name=Apple Watch Series 11 (46mm),OS=latest'
 ```
 
-- [ ] **Step 2: Update PLAN progress**
+- [x] **Step 2: Update PLAN progress**
 
 In `PLAN.md`, replace the Later bullet:
 
@@ -1097,7 +1097,7 @@ Add to build order:
 - [x] Apple Watch companion v1: Today glance and watch-local focus timer
 ```
 
-- [ ] **Step 3: Full iOS test plan**
+- [x] **Step 3: Full iOS test plan**
 
 Run after Xcode license acceptance:
 
@@ -1107,7 +1107,7 @@ xcodebuild test -project Think.xcodeproj -scheme Think -testPlan Think -destinat
 
 Expected: app unit tests, UI tests, and widget tests pass.
 
-- [ ] **Step 4: Watch build**
+- [x] **Step 4: Watch build**
 
 Run:
 
@@ -1117,7 +1117,7 @@ xcodebuild build -project Think.xcodeproj -scheme ThinkWatchApp -destination 'pl
 
 Expected: Watch app builds.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add README.md PLAN.md

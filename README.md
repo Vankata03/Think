@@ -7,6 +7,8 @@ The product direction is captured in [PLAN.md](PLAN.md).
 ## Project Structure
 
 - `Think/` - iOS app source, models, state, and SwiftUI views.
+- `ThinkShared/` - model and state code shared by iOS, widgets, tests, and Watch.
+- `ThinkWatch/` - watchOS companion app source.
 - `ThinkWidgets/` - WidgetKit and ActivityKit extension.
 - `ThinkTests/` - app unit tests using Swift Testing.
 - `ThinkWidgetsTests/` - widget extension unit tests using Swift Testing.
@@ -31,6 +33,15 @@ xcodebuild build \
   -project Think.xcodeproj \
   -scheme Think \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
+```
+
+Watch app build:
+
+```sh
+xcodebuild build \
+  -project Think.xcodeproj \
+  -scheme ThinkWatchApp \
+  -destination 'platform=watchOS Simulator,name=Apple Watch Series 11 (46mm),OS=latest'
 ```
 
 ## Test
