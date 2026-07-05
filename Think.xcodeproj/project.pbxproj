@@ -69,17 +69,6 @@
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		AD000000000000000000000A /* Embed Foundation Extensions */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 13;
-			files = (
-				AD0000000000000000000001 /* ThinkWatchWidgetsExtension.appex in Embed Foundation Extensions */,
-			);
-			name = "Embed Foundation Extensions";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		AC000000000000000000000A /* Embed Watch Content */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -89,6 +78,17 @@
 				AC000000000000000000000B /* ThinkWatchApp.app in Embed Watch Content */,
 			);
 			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AD000000000000000000000A /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				AD0000000000000000000001 /* ThinkWatchWidgetsExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -421,8 +421,8 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				AD0000000000000000000004 /* ThinkWatchWidgets */,
 				AC0000000000000000000010 /* ThinkShared */,
+				AD0000000000000000000004 /* ThinkWatchWidgets */,
 			);
 			name = ThinkWatchWidgetsExtension;
 			packageProductDependencies = (
