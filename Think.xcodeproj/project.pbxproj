@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		AB0000000000000000000001 /* ThinkWidgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = AB0000000000000000000002 /* ThinkWidgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		AC000000000000000000000B /* ThinkWatchApp.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = AC0000000000000000000001 /* ThinkWatchApp.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -39,6 +40,13 @@
 			remoteGlobalIDString = AB000000000000000000000F;
 			remoteInfo = ThinkWidgetsExtension;
 		};
+		AC000000000000000000000D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 02A861D12FF9722200441A2B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AC0000000000000000000006;
+			remoteInfo = ThinkWatchApp;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -53,6 +61,17 @@
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AC000000000000000000000A /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				AC000000000000000000000B /* ThinkWatchApp.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -62,6 +81,7 @@
 		AB0000000000000000000002 /* ThinkWidgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ThinkWidgetsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB0000000000000000000011 /* Think.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = Think.xctestplan; sourceTree = "<group>"; };
 		AB1000000000000000000001 /* ThinkWidgetsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ThinkWidgetsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		AC0000000000000000000001 /* ThinkWatchApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ThinkWatchApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -95,6 +115,11 @@
 		AC0000000000000000000010 /* ThinkShared */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = ThinkShared;
+			sourceTree = "<group>";
+		};
+		AC0000000000000000000002 /* ThinkWatch */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ThinkWatch;
 			sourceTree = "<group>";
 		};
 		02A861F32FF9722300441A2B /* ThinkUITests */ = {
@@ -154,6 +179,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AC0000000000000000000004 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -162,6 +194,7 @@
 			children = (
 				02A861DB2FF9722200441A2B /* Think */,
 				AC0000000000000000000010 /* ThinkShared */,
+				AC0000000000000000000002 /* ThinkWatch */,
 				AB0000000000000000000005 /* ThinkWidgets */,
 				02A861E92FF9722300441A2B /* ThinkTests */,
 				02A861F32FF9722300441A2B /* ThinkUITests */,
@@ -179,6 +212,7 @@
 				02A861F02FF9722300441A2B /* ThinkUITests.xctest */,
 				AB0000000000000000000002 /* ThinkWidgetsExtension.appex */,
 				AB1000000000000000000001 /* ThinkWidgetsTests.xctest */,
+				AC0000000000000000000001 /* ThinkWatchApp.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -194,11 +228,13 @@
 				02A861D62FF9722200441A2B /* Frameworks */,
 				02A861D72FF9722200441A2B /* Resources */,
 				AB000000000000000000000A /* Embed Foundation Extensions */,
+				AC000000000000000000000A /* Embed Watch Content */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				AB000000000000000000000C /* PBXTargetDependency */,
+				AC000000000000000000000C /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				02A861DB2FF9722200441A2B /* Think */,
@@ -303,6 +339,29 @@
 			productReference = AB1000000000000000000001 /* ThinkWidgetsTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		AC0000000000000000000006 /* ThinkWatchApp */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AC0000000000000000000007 /* Build configuration list for PBXNativeTarget "ThinkWatchApp" */;
+			buildPhases = (
+				AC0000000000000000000003 /* Sources */,
+				AC0000000000000000000004 /* Frameworks */,
+				AC0000000000000000000005 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				AC0000000000000000000002 /* ThinkWatch */,
+				AC0000000000000000000010 /* ThinkShared */,
+			);
+			name = ThinkWatchApp;
+			packageProductDependencies = (
+			);
+			productName = ThinkWatchApp;
+			productReference = AC0000000000000000000001 /* ThinkWatchApp.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -327,6 +386,9 @@
 					AB000000000000000000000F = {
 						CreatedOnToolsVersion = 26.6;
 					};
+					AC0000000000000000000006 = {
+						CreatedOnToolsVersion = 26.6;
+					};
 				};
 			};
 			buildConfigurationList = 02A861D42FF9722200441A2B /* Build configuration list for PBXProject "Think" */;
@@ -345,6 +407,7 @@
 			targets = (
 				02A861D82FF9722200441A2B /* Think */,
 				AB000000000000000000000F /* ThinkWidgetsExtension */,
+				AC0000000000000000000006 /* ThinkWatchApp */,
 				02A861E52FF9722300441A2B /* ThinkTests */,
 				AB1000000000000000000006 /* ThinkWidgetsTests */,
 				02A861EF2FF9722300441A2B /* ThinkUITests */,
@@ -382,6 +445,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		AB1000000000000000000005 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AC0000000000000000000005 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -426,6 +496,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AC0000000000000000000003 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -448,6 +525,11 @@
 			isa = PBXTargetDependency;
 			target = AB000000000000000000000F /* ThinkWidgetsExtension */;
 			targetProxy = AB1000000000000000000007 /* PBXContainerItemProxy */;
+		};
+		AC000000000000000000000C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AC0000000000000000000006 /* ThinkWatchApp */;
+			targetProxy = AC000000000000000000000D /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -578,6 +660,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Think/Think.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = H2Z5VT54PS;
@@ -615,6 +698,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Think/Think.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = H2Z5VT54PS;
@@ -840,6 +924,74 @@
 			};
 			name = Release;
 		};
+		AC0000000000000000000008 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = ThinkWatch/ThinkWatch.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = H2Z5VT54PS;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Think;
+				INFOPLIST_KEY_WKApplication = YES;
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.ivanterziev.Think;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ivanterziev.Think.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "watchos watchsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Debug;
+		};
+		AC0000000000000000000009 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = ThinkWatch/ThinkWatch.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = H2Z5VT54PS;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Think;
+				INFOPLIST_KEY_WKApplication = YES;
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.ivanterziev.Think;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ivanterziev.Think.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "watchos watchsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -893,6 +1045,15 @@
 			buildConfigurations = (
 				AB1000000000000000000009 /* Debug */,
 				AB100000000000000000000A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AC0000000000000000000007 /* Build configuration list for PBXNativeTarget "ThinkWatchApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AC0000000000000000000008 /* Debug */,
+				AC0000000000000000000009 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
