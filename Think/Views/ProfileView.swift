@@ -9,6 +9,7 @@ import StoreKit
 
 private enum Feedback {
     static let address = "ivanterziev93@gmail.com"
+    static let privacyPolicyURL = URL(string: "https://vankata03.github.io/think-legal/privacy-policy.html")
 
     static func mailURL(subject: String) -> URL? {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
@@ -245,6 +246,12 @@ struct ProfileView: View {
                 feedbackButton("Rate Think", systemImage: "star") {
                     requestReview()
                 }
+                Divider()
+                feedbackButton("Privacy Policy", systemImage: "hand.raised") {
+                    if let url = Feedback.privacyPolicyURL {
+                        openURL(url)
+                    }
+                }
             }
             .padding(18)
             .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
@@ -279,6 +286,7 @@ struct ProfileView: View {
                 Spacer()
             }
             .padding(.vertical, 13)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
