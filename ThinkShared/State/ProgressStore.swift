@@ -11,7 +11,7 @@ import Observation
 @Observable
 final class ProgressStore {
 
-    private enum Key {
+    private nonisolated enum Key {
         static let streak = "streak"
         static let lastCompletedDay = "lastCompletedDay"
         static let pathCompletedDays = "pathCompletedDays"
@@ -41,6 +41,21 @@ final class ProgressStore {
         totalFocusSessions = defaults.integer(forKey: Key.totalFocusSessions)
         focusSessionDay = defaults.object(forKey: Key.focusSessionDay) as? Date
         focusSessionDayCount = defaults.integer(forKey: Key.focusSessionDayCount)
+    }
+
+    /// Same rule as `displayedStreak`, computed straight from stored
+    /// defaults so widget timeline providers can read it off the main actor.
+    nonisolated static func storedDisplayedStreak(
+        in defaults: UserDefaults,
+        calendar: Calendar = .current,
+        now: Date = .now
+    ) -> Int {
+        guard let last = defaults.object(forKey: Key.lastCompletedDay) as? Date,
+              let yesterday = calendar.date(byAdding: .day, value: -1, to: now) else { return 0 }
+        if calendar.isDate(last, inSameDayAs: now) || calendar.isDate(last, inSameDayAs: yesterday) {
+            return defaults.integer(forKey: Key.streak)
+        }
+        return 0
     }
 
     /// Streak shown to the user: still alive if the last completed day

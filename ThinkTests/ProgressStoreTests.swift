@@ -109,6 +109,20 @@ struct ProgressStoreTests {
         #expect(defaults === fallback)
     }
 
+    @Test func storedDisplayedStreakMatchesLiveStoreAndExpiresAfterYesterday() {
+        let defaults = makeDefaults()
+        let store = ProgressStore(defaults: defaults)
+
+        #expect(ProgressStore.storedDisplayedStreak(in: defaults) == 0)
+
+        store.markTodayComplete()
+
+        #expect(ProgressStore.storedDisplayedStreak(in: defaults) == store.displayedStreak)
+
+        let inTwoDays = Calendar.current.date(byAdding: .day, value: 2, to: .now)!
+        #expect(ProgressStore.storedDisplayedStreak(in: defaults, now: inTwoDays) == 0)
+    }
+
     private func makeDefaults() -> UserDefaults {
         let suiteName = "ThinkTests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!

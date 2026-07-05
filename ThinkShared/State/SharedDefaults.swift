@@ -5,7 +5,7 @@
 
 import Foundation
 
-enum SharedDefaults {
+nonisolated enum SharedDefaults {
     static let appGroupSuiteName = "group.com.ivanterziev.Think"
 
     static func appGroup() -> UserDefaults {
