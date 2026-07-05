@@ -13,8 +13,10 @@ struct WatchRootView: View {
             }
             .tag(0)
 
-            Text("Focus")
-                .tag(1)
+            NavigationStack {
+                WatchFocusView()
+            }
+            .tag(1)
         }
         .tabViewStyle(.verticalPage)
     }

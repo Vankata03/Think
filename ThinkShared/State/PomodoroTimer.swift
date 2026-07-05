@@ -25,7 +25,7 @@ final class PomodoroTimer {
         case rest = "break"
     }
 
-    struct Preset: Equatable {
+    struct Preset: Hashable {
         let workMinutes: Int
         let restMinutes: Int
 
