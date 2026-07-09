@@ -16,9 +16,10 @@ struct StreakShareSheet: View {
     @State private var kind: StreakCardKind = .streak
     @State private var style: CardStyle = .paper
     @State private var photoSaveState = PhotoSaveState.idle
-    /// Rendered once per kind/style combination; re-rendering the full
-    /// 1080x1920 card on every body evaluation is wasteful.
-    @State private var renderedImage: UIImage?
+    /// Rendered once per card-input combination; re-rendering the full
+    /// 1080x1920 card on every body evaluation is wasteful. Keyed so a
+    /// stale image is never shared while a re-render is in flight.
+    @State private var renderedImage: (key: String, image: UIImage)?
 
     private let previewScale = 0.24
     private var prominentButtonForeground: Color {
@@ -45,9 +46,20 @@ struct StreakShareSheet: View {
             }
         }
         .presentationDetents([.large])
-        .task(id: "\(kind.id)-\(style.id)") {
-            renderedImage = renderUIImage()
+        .task(id: renderKey) {
+            renderedImage = (renderKey, renderUIImage())
         }
+    }
+
+    /// Everything the card draws from: card kind, theme, month, and the
+    /// progress values baked into the image.
+    private var renderKey: String {
+        "\(kind.id)|\(style.id)|\(month.timeIntervalSinceReferenceDate)|\(progress.displayedStreak)|\(progress.completedDays.hashValue)"
+    }
+
+    private var currentRenderedImage: UIImage? {
+        guard let renderedImage, renderedImage.key == renderKey else { return nil }
+        return renderedImage.image
     }
 
     private var card: StreakCardView {
@@ -130,7 +142,7 @@ struct StreakShareSheet: View {
     }
 
     private var actions: some View {
-        let image = Image(uiImage: renderedImage ?? UIImage())
+        let image = Image(uiImage: currentRenderedImage ?? UIImage())
 
         return HStack(spacing: 12) {
             ShareLink(
@@ -145,6 +157,7 @@ struct StreakShareSheet: View {
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
             .tint(.accentColor)
+            .disabled(currentRenderedImage == nil)
             .simultaneousGesture(TapGesture().onEnded {
                 haptics.play(.selection)
             })
@@ -171,7 +184,7 @@ struct StreakShareSheet: View {
 
     private func saveToPhotos() {
         photoSaveState = .saving
-        let image = renderedImage ?? renderUIImage()
+        let image = currentRenderedImage ?? renderUIImage()
 
         PHPhotoLibrary.requestAuthorization(for: .addOnly) { status in
             guard status == .authorized || status == .limited else {
