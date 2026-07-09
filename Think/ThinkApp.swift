@@ -66,6 +66,7 @@ struct ThinkApp: App {
         .modelContainer(for: [JournalEntry.self, DailyRetro.self], inMemory: isUITesting)
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
+                progress.recordAppOpen()
                 // Slide the scheduled notification window forward.
                 DailyQuoteNotifier.refreshSchedule()
             }

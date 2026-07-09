@@ -1,17 +1,19 @@
 //
-//  ShareCardSheet.swift
+//  StreakShareSheet.swift
 //  Think
 //
 
 import Photos
 import SwiftUI
 
-struct ShareCardSheet: View {
-    let quote: Quote
+struct StreakShareSheet: View {
+    let month: Date
+    @Environment(ProgressStore.self) private var progress
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
     @Environment(\.haptics) private var haptics
 
+    @State private var kind: StreakCardKind = .streak
     @State private var style: CardStyle = .paper
     @State private var photoSaveState = PhotoSaveState.idle
 
@@ -24,13 +26,14 @@ struct ShareCardSheet: View {
         NavigationStack {
             VStack(spacing: 24) {
                 cardPreview
+                kindPicker
                 stylePicker
                 actions
                 Spacer()
             }
             .padding()
             .background(Color(.systemGroupedBackground).ignoresSafeArea())
-            .navigationTitle("Share card")
+            .navigationTitle("Share streak")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -41,12 +44,29 @@ struct ShareCardSheet: View {
         .presentationDetents([.large])
     }
 
+    private var card: StreakCardView {
+        StreakCardView(
+            kind: kind,
+            streak: progress.displayedStreak,
+            month: month,
+            completedDays: progress.completedDays,
+            style: style
+        )
+    }
+
+    /// Caption attached to the share so the image travels with a hook.
+    private var shareMessage: String {
+        let days = progress.displayedStreak
+        let run = days == 1 ? "1 day" : "\(days) days"
+        return "\(run) of deliberate thinking with Think — one honest question a day."
+    }
+
     private var cardPreview: some View {
-        QuoteCardView(quote: quote, style: style)
+        card
             .scaleEffect(previewScale)
             .frame(
-                width: QuoteCardView.designSize.width * previewScale,
-                height: QuoteCardView.designSize.height * previewScale
+                width: StreakCardView.designSize.width * previewScale,
+                height: StreakCardView.designSize.height * previewScale
             )
             .clipShape(RoundedRectangle(cornerRadius: 16))
             .overlay(
@@ -54,6 +74,21 @@ struct ShareCardSheet: View {
                     .strokeBorder(.separator, lineWidth: 0.5)
             )
             .animation(.default, value: style)
+            .animation(.default, value: kind)
+    }
+
+    private var kindPicker: some View {
+        Picker("Card", selection: $kind) {
+            ForEach(StreakCardKind.allCases) { candidate in
+                Text(candidate.name).tag(candidate)
+            }
+        }
+        .pickerStyle(.segmented)
+        .frame(maxWidth: 260)
+        .onChange(of: kind) {
+            haptics.play(.selection)
+            photoSaveState = .idle
+        }
     }
 
     private var stylePicker: some View {
@@ -89,12 +124,13 @@ struct ShareCardSheet: View {
     }
 
     private var actions: some View {
-        let image = renderedImage()
+        let image = Image(uiImage: renderUIImage())
 
         return HStack(spacing: 12) {
             ShareLink(
                 item: image,
-                preview: SharePreview(quote.text, image: image)
+                message: Text(shareMessage),
+                preview: SharePreview(shareMessage, image: image)
             ) {
                 Label("Share", systemImage: "square.and.arrow.up")
                     .frame(maxWidth: .infinity)
@@ -103,7 +139,6 @@ struct ShareCardSheet: View {
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
             .tint(.accentColor)
-            .foregroundStyle(prominentButtonForeground)
             .simultaneousGesture(TapGesture().onEnded {
                 haptics.play(.selection)
             })
@@ -121,13 +156,9 @@ struct ShareCardSheet: View {
         }
     }
 
-    private func renderedImage() -> Image {
-        Image(uiImage: renderUIImage())
-    }
-
     private func renderUIImage() -> UIImage {
-        let renderer = ImageRenderer(content: QuoteCardView(quote: quote, style: style))
-        renderer.proposedSize = ProposedViewSize(QuoteCardView.designSize)
+        let renderer = ImageRenderer(content: card)
+        renderer.proposedSize = ProposedViewSize(StreakCardView.designSize)
         renderer.scale = 1
         return renderer.uiImage ?? UIImage()
     }
@@ -158,5 +189,6 @@ struct ShareCardSheet: View {
 }
 
 #Preview {
-    ShareCardSheet(quote: ContentLibrary.dailyQuote())
+    StreakShareSheet(month: .now)
+        .environment(ProgressStore())
 }

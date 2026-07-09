@@ -19,6 +19,7 @@ struct TodayView: View {
     @State private var answer = ""
     @State private var showingShareCard = false
     @State private var showingRetro = false
+    @State private var showingStreakCalendar = false
     @State private var now = Date.now
     @State private var appeared = false
     @State private var savedPulse = false
@@ -109,17 +110,6 @@ struct TodayView: View {
                         .foregroundStyle(.primary)
                 }
                 Spacer()
-                VStack(alignment: .trailing, spacing: 4) {
-                    Text("\(progress.displayedStreak)")
-                        .font(.system(.title2, design: .rounded).weight(.bold))
-                        .monospacedDigit()
-                        .foregroundStyle(progress.displayedStreak > 0 ? Color.accentColor : .secondary)
-                    Text(streakCaption)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                .accessibilityElement(children: .combine)
-                .accessibilityLabel("\(progress.displayedStreak) day streak")
             }
 
             ProgressView(value: dailyProgress)
@@ -128,22 +118,18 @@ struct TodayView: View {
             HStack {
                 Text("Daily practice")
                 Spacer()
-                Text("\(dailyProgressCount)/3")
+                Text("\(dailyProgressCount)/4")
             }
             .font(.caption.weight(.medium))
             .foregroundStyle(.secondary)
         }
     }
 
-    /// Streak-zero copy follows the "no guilt" principle: a fresh user
-    /// is invited to start, a lapsed one to begin again.
-    private var streakCaption: String {
-        if progress.displayedStreak > 0 { return "streak" }
-        return progress.lastCompletedDay == nil ? "start today" : "begin again"
-    }
-
+    /// Showing up is the first quarter of the day's practice; the three
+    /// actions fill the rest.
     private var dailyProgressCount: Int {
         var completed = 0
+        if progress.openedToday { completed += 1 }
         if todaysEntry != nil { completed += 1 }
         if progress.focusSessionsToday > 0 { completed += 1 }
         if progress.completedPathStepToday { completed += 1 }
@@ -151,14 +137,30 @@ struct TodayView: View {
     }
 
     private var dailyProgress: Double {
-        Double(dailyProgressCount) / 3
+        Double(dailyProgressCount) / 4
     }
 
     private var streakBadge: some View {
-        Label("\(progress.displayedStreak)", systemImage: "flame.fill")
-            .font(.subheadline.weight(.medium))
+        Button {
+            haptics.play(.selection)
+            showingStreakCalendar = true
+        } label: {
+            HStack(spacing: 4) {
+                Image(systemName: "flame.fill")
+                    .font(.body)
+                if progress.displayedStreak > 0 {
+                    Text("\(progress.displayedStreak)")
+                        .font(.system(.subheadline, design: .rounded).weight(.bold))
+                        .monospacedDigit()
+                }
+            }
             .foregroundStyle(progress.displayedStreak > 0 ? Color.accentColor : .secondary)
-            .accessibilityLabel("\(progress.displayedStreak) day streak")
+        }
+        .accessibilityLabel("\(progress.displayedStreak) day streak")
+        .accessibilityHint("Shows your streak calendar")
+        .sheet(isPresented: $showingStreakCalendar) {
+            StreakCalendarSheet()
+        }
     }
 
     private var quoteCard: some View {
