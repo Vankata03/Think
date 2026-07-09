@@ -16,6 +16,9 @@ struct StreakShareSheet: View {
     @State private var kind: StreakCardKind = .streak
     @State private var style: CardStyle = .paper
     @State private var photoSaveState = PhotoSaveState.idle
+    /// Rendered once per kind/style combination; re-rendering the full
+    /// 1080x1920 card on every body evaluation is wasteful.
+    @State private var renderedImage: UIImage?
 
     private let previewScale = 0.24
     private var prominentButtonForeground: Color {
@@ -42,6 +45,9 @@ struct StreakShareSheet: View {
             }
         }
         .presentationDetents([.large])
+        .task(id: "\(kind.id)-\(style.id)") {
+            renderedImage = renderUIImage()
+        }
     }
 
     private var card: StreakCardView {
@@ -124,7 +130,7 @@ struct StreakShareSheet: View {
     }
 
     private var actions: some View {
-        let image = Image(uiImage: renderUIImage())
+        let image = Image(uiImage: renderedImage ?? UIImage())
 
         return HStack(spacing: 12) {
             ShareLink(
@@ -165,7 +171,7 @@ struct StreakShareSheet: View {
 
     private func saveToPhotos() {
         photoSaveState = .saving
-        let image = renderUIImage()
+        let image = renderedImage ?? renderUIImage()
 
         PHPhotoLibrary.requestAuthorization(for: .addOnly) { status in
             guard status == .authorized || status == .limited else {

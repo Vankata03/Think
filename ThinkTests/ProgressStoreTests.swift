@@ -219,6 +219,23 @@ struct ProgressStoreTests {
         #expect(destination.integer(forKey: "totalFocusSessions") == 11)
     }
 
+    @Test func migrationCopiesCompletedDayHistoryAndLastOpenDay() {
+        let source = makeDefaults()
+        let destination = makeDefaults()
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: .now)
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: today)!
+        source.set([today, yesterday], forKey: "completedDays")
+        source.set(today, forKey: "lastOpenDay")
+
+        SharedDefaults.migrateProgressIfNeeded(from: source, to: destination)
+
+        let migrated = ProgressStore(defaults: destination)
+        #expect(migrated.hasCompleted(today))
+        #expect(migrated.hasCompleted(yesterday))
+        #expect(migrated.openedToday)
+    }
+
     @Test func migrationDoesNotOverwriteExistingDestinationValues() {
         let source = makeDefaults()
         let destination = makeDefaults()
