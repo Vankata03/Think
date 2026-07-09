@@ -19,6 +19,8 @@ final class ProgressStore {
         static let totalFocusSessions = "totalFocusSessions"
         static let focusSessionDay = "focusSessionDay"
         static let focusSessionDayCount = "focusSessionDayCount"
+        static let completedDays = "completedDays"
+        static let lastOpenDay = "lastOpenDay"
     }
 
     /// Every key this store persists, for migrating between defaults suites.
@@ -30,10 +32,12 @@ final class ProgressStore {
         Key.totalFocusSessions,
         Key.focusSessionDay,
         Key.focusSessionDayCount,
+        Key.completedDays,
+        Key.lastOpenDay,
     ]
 
     private let defaults: UserDefaults
-    private let calendar = Calendar.current
+    private let calendar: Calendar
 
     private(set) var streak: Int
     private(set) var lastCompletedDay: Date?
@@ -42,16 +46,43 @@ final class ProgressStore {
     private(set) var totalFocusSessions: Int
     private var focusSessionDay: Date?
     private var focusSessionDayCount: Int
+    /// Start-of-day dates for every completed practice day, for the
+    /// streak calendar. Grows one entry per day at most.
+    private(set) var completedDays: Set<Date>
+    private var lastOpenDay: Date?
 
-    init(defaults: UserDefaults = .standard) {
+    init(defaults: UserDefaults = .standard, calendar: Calendar = .current) {
+        let storedStreak = defaults.integer(forKey: Key.streak)
+        let storedLastCompletedDay = defaults.object(forKey: Key.lastCompletedDay) as? Date
+
         self.defaults = defaults
-        streak = defaults.integer(forKey: Key.streak)
-        lastCompletedDay = defaults.object(forKey: Key.lastCompletedDay) as? Date
+        self.calendar = calendar
+        streak = storedStreak
+        lastCompletedDay = storedLastCompletedDay
         pathCompletedDays = defaults.integer(forKey: Key.pathCompletedDays)
         lastPathCompletionDay = defaults.object(forKey: Key.lastPathCompletionDay) as? Date
         totalFocusSessions = defaults.integer(forKey: Key.totalFocusSessions)
         focusSessionDay = defaults.object(forKey: Key.focusSessionDay) as? Date
         focusSessionDayCount = defaults.integer(forKey: Key.focusSessionDayCount)
+        lastOpenDay = defaults.object(forKey: Key.lastOpenDay) as? Date
+        if let stored = defaults.array(forKey: Key.completedDays) as? [Date] {
+            completedDays = Set(stored.map { calendar.startOfDay(for: $0) })
+        } else {
+            // History shipped after streaks did; reconstruct the current
+            // run from the streak counter so existing users don't open
+            // an empty calendar.
+            var backfilled: Set<Date> = []
+            if let last = storedLastCompletedDay, storedStreak > 0 {
+                let lastDay = calendar.startOfDay(for: last)
+                for offset in 0..<storedStreak {
+                    if let day = calendar.date(byAdding: .day, value: -offset, to: lastDay) {
+                        backfilled.insert(day)
+                    }
+                }
+            }
+            completedDays = backfilled
+            defaults.set(Array(backfilled), forKey: Key.completedDays)
+        }
     }
 
     /// Same rule as `displayedStreak`, computed straight from stored
@@ -109,8 +140,28 @@ final class ProgressStore {
             streak = 1
         }
         lastCompletedDay = today
+        completedDays.insert(today)
         defaults.set(streak, forKey: Key.streak)
         defaults.set(today, forKey: Key.lastCompletedDay)
+        defaults.set(Array(completedDays), forKey: Key.completedDays)
+    }
+
+    func hasCompleted(_ date: Date) -> Bool {
+        completedDays.contains(calendar.startOfDay(for: date))
+    }
+
+    /// Showing up counts: the first open of the day is the first slice
+    /// of the daily-practice bar. Does not touch the streak.
+    var openedToday: Bool {
+        guard let day = lastOpenDay else { return false }
+        return calendar.isDateInToday(day)
+    }
+
+    func recordAppOpen() {
+        guard !openedToday else { return }
+        let today = calendar.startOfDay(for: .now)
+        lastOpenDay = today
+        defaults.set(today, forKey: Key.lastOpenDay)
     }
 
     func completePathStep() {

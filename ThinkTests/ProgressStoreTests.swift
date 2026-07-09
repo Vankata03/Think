@@ -86,6 +86,70 @@ struct ProgressStoreTests {
         #expect(store.completedPathStepToday)
     }
 
+    @Test func markingTodayCompleteRecordsDayInHistory() {
+        let defaults = makeDefaults()
+        let store = ProgressStore(defaults: defaults)
+
+        store.markTodayComplete()
+
+        #expect(store.hasCompleted(.now))
+        #expect(!store.hasCompleted(Calendar.current.date(byAdding: .day, value: -1, to: .now)!))
+
+        // History survives a reload from the same defaults.
+        let reloaded = ProgressStore(defaults: defaults)
+        #expect(reloaded.hasCompleted(.now))
+    }
+
+    @Test func missingHistoryBackfillsFromCurrentStreak() {
+        let defaults = makeDefaults()
+        let calendar = Calendar.current
+        defaults.set(3, forKey: "streak")
+        defaults.set(calendar.date(byAdding: .day, value: -1, to: calendar.startOfDay(for: .now)), forKey: "lastCompletedDay")
+
+        let store = ProgressStore(defaults: defaults)
+
+        #expect(!store.hasCompleted(.now))
+        for offset in 1...3 {
+            let day = calendar.date(byAdding: .day, value: -offset, to: .now)!
+            #expect(store.hasCompleted(day))
+        }
+        #expect(!store.hasCompleted(calendar.date(byAdding: .day, value: -4, to: .now)!))
+    }
+
+    @Test func emptyHistoryBackfillIsPersistedAndNotRepeated() {
+        let defaults = makeDefaults()
+        _ = ProgressStore(defaults: defaults)
+
+        // The (empty) backfill result is stored, so a streak written later
+        // by another process is not re-synthesized into history.
+        #expect(defaults.array(forKey: "completedDays") != nil)
+    }
+
+    @Test func recordingAppOpenCountsForTodayButNotTheStreak() {
+        let defaults = makeDefaults()
+        let store = ProgressStore(defaults: defaults)
+
+        #expect(!store.openedToday)
+
+        store.recordAppOpen()
+        store.recordAppOpen()
+
+        #expect(store.openedToday)
+        #expect(store.displayedStreak == 0)
+        #expect(!store.completedTaskToday)
+
+        let reloaded = ProgressStore(defaults: defaults)
+        #expect(reloaded.openedToday)
+    }
+
+    @Test func appOpenFromAnEarlierDayDoesNotCountToday() {
+        let defaults = makeDefaults()
+        defaults.set(Calendar.current.date(byAdding: .day, value: -1, to: Date.now), forKey: "lastOpenDay")
+        let store = ProgressStore(defaults: defaults)
+
+        #expect(!store.openedToday)
+    }
+
     @Test func sharedDefaultsUsesConfiguredAppGroupName() {
         #expect(SharedDefaults.appGroupSuiteName == "group.com.ivanterziev.Think")
     }
@@ -153,6 +217,23 @@ struct ProgressStoreTests {
         SharedDefaults.migrateProgressIfNeeded(from: source, to: destination)
 
         #expect(destination.integer(forKey: "totalFocusSessions") == 11)
+    }
+
+    @Test func migrationCopiesCompletedDayHistoryAndLastOpenDay() {
+        let source = makeDefaults()
+        let destination = makeDefaults()
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: .now)
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: today)!
+        source.set([today, yesterday], forKey: "completedDays")
+        source.set(today, forKey: "lastOpenDay")
+
+        SharedDefaults.migrateProgressIfNeeded(from: source, to: destination)
+
+        let migrated = ProgressStore(defaults: destination)
+        #expect(migrated.hasCompleted(today))
+        #expect(migrated.hasCompleted(yesterday))
+        #expect(migrated.openedToday)
     }
 
     @Test func migrationDoesNotOverwriteExistingDestinationValues() {
