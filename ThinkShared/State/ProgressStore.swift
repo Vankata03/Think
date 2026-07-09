@@ -37,7 +37,7 @@ final class ProgressStore {
     ]
 
     private let defaults: UserDefaults
-    private let calendar = Calendar.current
+    private let calendar: Calendar
 
     private(set) var streak: Int
     private(set) var lastCompletedDay: Date?
@@ -51,12 +51,12 @@ final class ProgressStore {
     private(set) var completedDays: Set<Date>
     private var lastOpenDay: Date?
 
-    init(defaults: UserDefaults = .standard) {
-        let calendar = Calendar.current
+    init(defaults: UserDefaults = .standard, calendar: Calendar = .current) {
         let storedStreak = defaults.integer(forKey: Key.streak)
         let storedLastCompletedDay = defaults.object(forKey: Key.lastCompletedDay) as? Date
 
         self.defaults = defaults
+        self.calendar = calendar
         streak = storedStreak
         lastCompletedDay = storedLastCompletedDay
         pathCompletedDays = defaults.integer(forKey: Key.pathCompletedDays)
