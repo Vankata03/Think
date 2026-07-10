@@ -80,14 +80,19 @@ struct StreakCalendarSheet: View {
             Spacer()
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(progress.displayedStreak) day streak")
+        .accessibilityLabel(progress.displayedStreak == 1
+                            ? String(localized: "1 day streak")
+                            : String(localized: "\(progress.displayedStreak) day streak"))
     }
 
     /// Streak-zero copy follows the "no guilt" principle: a fresh user
     /// is invited to start, a lapsed one to begin again.
     private var streakCaption: String {
-        if progress.displayedStreak > 0 { return "day streak" }
-        return progress.lastCompletedDay == nil ? "start today" : "begin again"
+        if progress.displayedStreak == 1 { return String(localized: "day streak") }
+        if progress.displayedStreak > 1 { return String(localized: "days streak") }
+        return progress.lastCompletedDay == nil
+            ? String(localized: "start today")
+            : String(localized: "begin again")
     }
 
     private var calendarCard: some View {
@@ -179,7 +184,10 @@ struct StreakCalendarSheet: View {
     }
 
     private func accessibilityLabel(for day: Date, completed: Bool) -> Text {
-        Text(day.formatted(.dateTime.month(.wide).day())) + Text(completed ? ", completed" : "")
+        let date = day.formatted(.dateTime.month(.wide).day())
+        return completed
+            ? Text(String(localized: "\(date), completed"))
+            : Text(verbatim: date)
     }
 
     private var isCurrentMonthDisplayed: Bool {

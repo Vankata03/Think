@@ -36,7 +36,6 @@ struct WatchTodayView: View {
             .padding(.horizontal, 4)
             .padding(.bottom, 8)
         }
-        .navigationTitle("Today")
         .accessibilityElement(children: .contain)
     }
 
@@ -48,7 +47,9 @@ struct WatchTodayView: View {
             Label("\(progress.displayedStreak)", systemImage: "flame.fill")
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.yellow)
-                .accessibilityLabel("\(progress.displayedStreak) day streak")
+                .accessibilityLabel(progress.displayedStreak == 1
+                                    ? String(localized: "1 day streak")
+                                    : String(localized: "\(progress.displayedStreak) day streak"))
         }
     }
 
@@ -86,7 +87,7 @@ struct WatchTodayView: View {
             ProgressView(value: Double(dailyProgressCount), total: 3)
                 .tint(.yellow)
                 .accessibilityLabel("Daily progress")
-                .accessibilityValue("\(dailyProgressCount) of 3")
+                .accessibilityValue(String(localized: "\(dailyProgressCount) of 3"))
         }
         .padding(10)
         .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
@@ -96,7 +97,11 @@ struct WatchTodayView: View {
     private var pathBlock: some View {
         if let nextStep {
             VStack(alignment: .leading, spacing: 5) {
-                Label("Deep Focus", systemImage: "scope")
+                Label {
+                    Text(PathLibrary.deepFocus.name)
+                } icon: {
+                    Image(systemName: "scope")
+                }
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.yellow)
                 Text("Day \(nextStep.id): \(nextStep.title)")
@@ -111,7 +116,11 @@ struct WatchTodayView: View {
             .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             .accessibilityElement(children: .combine)
         } else if pathFinished {
-            Label("Deep Focus completed", systemImage: "checkmark.seal.fill")
+            Label {
+                Text("\(PathLibrary.deepFocus.name) completed")
+            } icon: {
+                Image(systemName: "checkmark.seal.fill")
+            }
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.green)
                 .padding(10)

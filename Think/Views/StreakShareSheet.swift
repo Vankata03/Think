@@ -75,8 +75,10 @@ struct StreakShareSheet: View {
     /// Caption attached to the share so the image travels with a hook.
     private var shareMessage: String {
         let days = progress.displayedStreak
-        let run = days == 1 ? "1 day" : "\(days) days"
-        return "\(run) of deliberate thinking with Think — one honest question a day."
+        let run = days == 1
+            ? String(localized: "1 day")
+            : String(localized: "\(days) days")
+        return String(localized: "\(run) of deliberate thinking with Think — one honest question a day.")
     }
 
     private var cardPreview: some View {
@@ -179,6 +181,7 @@ struct StreakShareSheet: View {
         let renderer = ImageRenderer(content: card)
         renderer.proposedSize = ProposedViewSize(StreakCardView.designSize)
         renderer.scale = 1
+        renderer.isOpaque = true
         return renderer.uiImage ?? UIImage()
     }
 

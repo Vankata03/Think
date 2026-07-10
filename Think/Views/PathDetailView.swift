@@ -47,7 +47,9 @@ struct PathDetailView: View {
                         progress.completePathStep()
                         haptics.play(.success)
                     } label: {
-                        Text(progress.canCompletePathStepToday ? "Mark day complete" : "Come back tomorrow")
+                        Text(progress.canCompletePathStepToday
+                             ? String(localized: "Mark day complete")
+                             : String(localized: "Come back tomorrow"))
                             .foregroundStyle(prominentButtonForeground)
                             .frame(maxWidth: .infinity)
                     }

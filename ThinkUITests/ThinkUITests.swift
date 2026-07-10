@@ -15,27 +15,24 @@ final class ThinkUITests: XCTestCase {
     func testLaunchShowsTodayCoreLoop() throws {
         let app = launchApp()
 
-        XCTAssertTrue(app.staticTexts["Question of the day"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.buttons["Share"].exists)
-        XCTAssertTrue(app.staticTexts["Focus sessions today"].exists)
-        XCTAssertTrue(app.tabBars.buttons["Today"].isSelected)
+        XCTAssertTrue(app.descendants(matching: .any)["QuestionOfTheDayCard"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["ShareQuote"].exists)
+        XCTAssertTrue(app.descendants(matching: .any)["TrainingLog"].exists)
+        XCTAssertTrue(app.tabBars.buttons.element(boundBy: 0).isSelected)
     }
 
     @MainActor
     func testTabsExposePrimarySections() throws {
         let app = launchApp()
 
-        app.tabBars.buttons["Paths"].tap()
-        XCTAssertTrue(app.navigationBars["Paths"].waitForExistence(timeout: 2))
-        XCTAssertTrue(app.staticTexts["Deep focus"].exists)
+        app.tabBars.buttons.element(boundBy: 1).tap()
+        XCTAssertTrue(app.descendants(matching: .any)["Path.deep-focus"].waitForExistence(timeout: 2))
 
-        app.tabBars.buttons["Focus"].tap()
-        XCTAssertTrue(app.navigationBars["Focus"].waitForExistence(timeout: 2))
+        app.tabBars.buttons.element(boundBy: 2).tap()
         XCTAssertTrue(app.staticTexts["25:00"].exists)
 
-        app.tabBars.buttons["Profile"].tap()
-        XCTAssertTrue(app.navigationBars["Profile"].waitForExistence(timeout: 2))
-        XCTAssertTrue(app.staticTexts["Progress"].exists)
+        app.tabBars.buttons.element(boundBy: 3).tap()
+        XCTAssertTrue(app.descendants(matching: .any)["ProfileProgress"].waitForExistence(timeout: 2))
     }
 
     @MainActor

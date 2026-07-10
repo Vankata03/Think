@@ -62,7 +62,10 @@ struct StreakComplicationView: View {
                 .monospacedDigit()
                 .foregroundStyle(entry.streak > 0 ? brandYellow : .secondary)
                 .widgetLabel {
-                    Label("day streak", systemImage: "flame.fill")
+                    Label(
+                        entry.streak == 1 ? String(localized: "day streak") : String(localized: "days streak"),
+                        systemImage: "flame.fill"
+                    )
                 }
 
         case .accessoryRectangular:
@@ -88,11 +91,13 @@ struct StreakComplicationView: View {
     }
 
     private var inlineText: String {
-        entry.streak > 0 ? "\(entry.streak)-day streak" : "Begin today"
+        if entry.streak == 1 { return String(localized: "1-day streak") }
+        if entry.streak > 1 { return String(localized: "\(entry.streak)-day streak") }
+        return String(localized: "Begin today")
     }
 
     private var rectangularText: String {
-        entry.streak > 0 ? "\(entry.streak)-day streak" : "Begin today"
+        inlineText
     }
 }
 

@@ -467,7 +467,13 @@
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				bg,
+				de,
 				en,
+				es,
+				fr,
+				it,
+				"pt-BR",
 				Base,
 			);
 			mainGroup = 02A861D02FF9722200441A2B;

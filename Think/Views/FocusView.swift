@@ -76,10 +76,14 @@ struct FocusView: View {
     private var focusHeader: some View {
         HStack(alignment: .center) {
             VStack(alignment: .leading, spacing: 4) {
-                Text(timer.phase == .work ? "Deep work" : "Break")
+                Text(timer.phase == .work
+                     ? String(localized: "Deep work")
+                     : String(localized: "Break"))
                     .font(.largeTitle.bold())
                     .foregroundStyle(.primary)
-                Text(timer.isRunning ? "Session in progress" : "Ready when you are")
+                Text(timer.isRunning
+                     ? String(localized: "Session in progress")
+                     : String(localized: "Ready when you are"))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
@@ -122,7 +126,7 @@ struct FocusView: View {
                     .font(.system(size: 48, weight: .medium, design: .rounded))
                     .monospacedDigit()
                     .foregroundStyle(.primary)
-                Text(timer.phase.rawValue)
+                Text(timer.phase.label)
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(.secondary)
             }
@@ -164,7 +168,7 @@ struct FocusView: View {
                 haptics.play(timer.isRunning ? .pause : .start)
                 timer.toggle()
             } label: {
-                Label(timer.isRunning ? "Pause" : "Start",
+                Label(timer.isRunning ? String(localized: "Pause") : String(localized: "Start"),
                       systemImage: timer.isRunning ? "pause.fill" : "play.fill")
                     .frame(minWidth: 132)
                     .foregroundStyle(prominentButtonForeground)
@@ -184,7 +188,9 @@ struct FocusView: View {
             .buttonStyle(.bordered)
             .buttonBorderShape(.circle)
             .controlSize(.large)
-            .accessibilityLabel(timer.phase == .work ? "Skip to break" : "Skip to work")
+            .accessibilityLabel(timer.phase == .work
+                                ? String(localized: "Skip to break")
+                                : String(localized: "Skip to work"))
         }
     }
 
@@ -259,7 +265,7 @@ private struct FocusTipSheet: View {
         }
     }
 
-    private func tipRow(number: Int, text: String) -> some View {
+    private func tipRow(number: Int, text: LocalizedStringKey) -> some View {
         HStack(alignment: .top, spacing: 12) {
             Text("\(number)")
                 .font(.subheadline.weight(.medium))

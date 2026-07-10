@@ -77,9 +77,9 @@ struct RetroSheet: View {
     }
 
     private func retroField(
-        _ title: String,
+        _ title: LocalizedStringKey,
         systemImage: String,
-        placeholder: String,
+        placeholder: LocalizedStringKey,
         text: Binding<String>
     ) -> some View {
         VStack(alignment: .leading, spacing: 10) {

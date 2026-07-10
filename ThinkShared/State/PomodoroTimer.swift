@@ -23,6 +23,13 @@ final class PomodoroTimer {
     enum Phase: String {
         case work = "deep work"
         case rest = "break"
+
+        var label: String {
+            switch self {
+            case .work: String(localized: "deep work")
+            case .rest: String(localized: "break")
+            }
+        }
     }
 
     struct Preset: Hashable {

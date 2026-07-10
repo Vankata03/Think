@@ -24,8 +24,10 @@ struct TodayView: View {
     @State private var appeared = false
     @State private var savedPulse = false
 
-    private var quote: Quote { ContentLibrary.dailyQuote() }
-    private var question: String { ContentLibrary.dailyQuestion() }
+    private var practice: DailyPractice { ContentLibrary.dailyPractice() }
+    private var quote: Quote { practice.quote }
+    private var question: String { practice.question }
+    private var action: String { practice.action }
 
     private var todaysEntry: JournalEntry? {
         entries.first { $0.kind == JournalEntry.kindQuestion && Calendar.current.isDateInToday($0.date) }
@@ -125,8 +127,15 @@ struct TodayView: View {
         }
     }
 
-    /// Showing up is the first quarter of the day's practice; the three
-    /// actions fill the rest.
+    /// Streak-zero copy follows the "no guilt" principle: a fresh user
+    /// is invited to start, a lapsed one to begin again.
+    private var streakCaption: String {
+        if progress.displayedStreak > 0 { return String(localized: "streak") }
+        return progress.lastCompletedDay == nil
+            ? String(localized: "start today")
+            : String(localized: "begin again")
+    }
+
     private var dailyProgressCount: Int {
         var completed = 0
         if progress.openedToday { completed += 1 }
@@ -156,7 +165,9 @@ struct TodayView: View {
             }
             .foregroundStyle(progress.displayedStreak > 0 ? Color.accentColor : .secondary)
         }
-        .accessibilityLabel("\(progress.displayedStreak) day streak")
+        .accessibilityLabel(progress.displayedStreak == 1
+                            ? String(localized: "1 day streak")
+                            : String(localized: "\(progress.displayedStreak) day streak"))
         .accessibilityHint("Shows your streak calendar")
         .sheet(isPresented: $showingStreakCalendar) {
             StreakCalendarSheet()
@@ -191,6 +202,21 @@ struct TodayView: View {
                 }
                 .buttonStyle(.bordered)
                 .tint(.accentColor)
+                .accessibilityIdentifier("ShareQuote")
+            }
+
+            Divider()
+
+            VStack(alignment: .leading, spacing: 6) {
+                Label("Today's move", systemImage: "arrow.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .textCase(.uppercase)
+
+                Text(action)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(.primary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
         .padding(18)
@@ -230,6 +256,7 @@ struct TodayView: View {
         }
         .scaleEffect(savedPulse ? 1.015 : 1)
         .animation(.spring(response: 0.28, dampingFraction: 0.8), value: savedPulse)
+        .accessibilityIdentifier("QuestionOfTheDayCard")
     }
 
     private func answeredState(_ entry: JournalEntry) -> some View {
@@ -348,14 +375,17 @@ struct TodayView: View {
                 systemImage: "timer"
             )
             metricTile(
-                value: progress.pathCompletedDays > 0 ? "Day \(progress.pathCompletedDays)" : "Not started",
-                label: PathLibrary.deepFocus.name,
+                value: progress.pathCompletedDays > 0
+                    ? String(localized: "Day \(progress.pathCompletedDays)")
+                    : String(localized: "Not started"),
+                label: LocalizedStringKey(PathLibrary.deepFocus.name),
                 systemImage: "point.topleft.down.to.point.bottomright.curvepath"
             )
         }
+        .accessibilityIdentifier("TrainingLog")
     }
 
-    private func sectionHeader(_ title: String, detail: String? = nil) -> some View {
+    private func sectionHeader(_ title: LocalizedStringKey, detail: LocalizedStringKey? = nil) -> some View {
         HStack(alignment: .lastTextBaseline) {
             Text(title)
                 .font(.caption.weight(.semibold))
@@ -370,7 +400,7 @@ struct TodayView: View {
         .accessibilityElement(children: .combine)
     }
 
-    private func metricTile(value: String, label: String, systemImage: String) -> some View {
+    private func metricTile(value: String, label: LocalizedStringKey, systemImage: String) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             Image(systemName: systemImage)
                 .font(.system(size: 18, weight: .semibold))
