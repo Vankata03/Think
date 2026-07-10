@@ -110,9 +110,7 @@ struct StreakCardView: View {
                 }
             }
 
-            Text(streak == 1
-                 ? String(localized: "1 day streak")
-                 : String(localized: "\(streak) day streak"))
+            Text(String(localized: "\(streak) day streak"))
                 .font(.system(size: 48, design: .serif))
                 .italic()
                 .foregroundStyle(style.accent)

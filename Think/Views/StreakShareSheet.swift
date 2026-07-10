@@ -75,9 +75,7 @@ struct StreakShareSheet: View {
     /// Caption attached to the share so the image travels with a hook.
     private var shareMessage: String {
         let days = progress.displayedStreak
-        let run = days == 1
-            ? String(localized: "1 day")
-            : String(localized: "\(days) days")
+        let run = String(localized: "\(days) days")
         return String(localized: "\(run) of deliberate thinking with Think — one honest question a day.")
     }
 

@@ -72,6 +72,27 @@ def restore_placeholders(text, values)
   CGI.unescapeHTML(restored)
 end
 
+def localized?(item, locale)
+  localization = item.dig("localizations", locale)
+  return false unless localization
+
+  values = []
+  visit = lambda do |node|
+    return unless node.is_a?(Hash)
+    if node["stringUnit"].is_a?(Hash)
+      values << node.dig("stringUnit", "value")
+    else
+      node.each_value { |child| visit.call(child) }
+    end
+  end
+  visit.call(localization)
+  !values.empty?
+end
+
+def has_variations?(item, locale)
+  item.dig("localizations", locale, "variations").is_a?(Hash)
+end
+
 def deepl_translate(language, entries)
   key = ENV.fetch("DEEPL_AUTH_KEY")
   endpoint = ENV.fetch(
@@ -94,10 +115,10 @@ def deepl_translate(language, entries)
     text: masked.map(&:first),
     source_lang: "EN",
     target_lang: target,
-    formality: "prefer_less",
     tag_handling: "xml",
     context: "Think is a calm reflective app. Its voice is concise, direct, natural, and personal."
   }
+  body[:formality] = "prefer_less" unless target == "BG"
   body[:glossary_id] = ENV["DEEPL_GLOSSARY_ID"] if ENV["DEEPL_GLOSSARY_ID"]
   request.body = JSON.generate(body)
   http = Net::HTTP.new(uri.host, uri.port)
@@ -175,7 +196,10 @@ end
 requested.each do |locale|
   if force
     catalogs.each_value do |catalog|
-      catalog.fetch("strings", {}).each_value { |item| item.fetch("localizations", {}).delete(locale) }
+      catalog.fetch("strings", {}).each_value do |item|
+        next if has_variations?(item, locale)
+        item.fetch("localizations", {}).delete(locale)
+      end
     end
     catalogs.each { |path, catalog| File.write(path, JSON.pretty_generate(catalog) + "\n", encoding: "UTF-8") }
   end
@@ -190,8 +214,11 @@ requested.each do |locale|
     end
   end
 
+  protected_values = {}
+
   unique_values.each do |value, occurrences|
     next unless invariant?(value)
+    protected_values[value] = true
     occurrences.each do |_, item|
       item["localizations"] ||= {}
       item["localizations"][locale] = {
@@ -202,6 +229,7 @@ requested.each do |locale|
 
   overrides.fetch(locale, {}).each do |source, translated|
     next unless unique_values.key?(source)
+    protected_values[source] = true
     raise "Placeholder mismatch in override: #{source.inspect}" unless placeholders(source) == placeholders(translated)
     unique_values.fetch(source).each do |_, item|
       item["localizations"] ||= {}
@@ -218,8 +246,10 @@ requested.each do |locale|
   end
 
   missing = unique_values.keys.reject do |value|
+    next true if protected_values[value]
+    next true if unique_values[value].all? { |_, item| has_variations?(item, locale) }
     next false if force
-    unique_values[value].all? { |_, item| item.dig("localizations", locale, "stringUnit", "value") }
+    unique_values[value].all? { |_, item| localized?(item, locale) }
   end
 
   if overrides_only
@@ -248,8 +278,9 @@ requested.each do |locale|
           completed << [:ok, index, slice, result]
         rescue StandardError => error
           if attempts < 5
-            warn "#{locale}: retrying batch #{index + 1} after #{error.class}"
-            sleep(attempts * 20) if error.message.start_with?("Claude failed")
+            delay = attempts * 20
+            warn "#{locale}: retrying batch #{index + 1} after #{error.class} in #{delay}s"
+            sleep(delay)
             retry
           end
           raise

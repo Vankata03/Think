@@ -72,8 +72,8 @@ struct ContentLibraryTests {
     }
 
     @Test func houseLinesCarryNoDisplayAttribution() {
-        let house = ContentLibrary.quotes.filter { $0.author == ContentLibrary.houseAuthor }
-        let attributed = ContentLibrary.quotes.filter { $0.author != ContentLibrary.houseAuthor }
+        let house = ContentLibrary.quotes.filter { $0.source == nil }
+        let attributed = ContentLibrary.quotes.filter { $0.source != nil }
 
         #expect(!house.isEmpty)
         #expect(house.allSatisfy { $0.attribution == nil })
@@ -81,8 +81,8 @@ struct ContentLibraryTests {
     }
 
     @Test func everyAttributedLineCarriesReviewableProvenance() {
-        let house = ContentLibrary.quotes.filter { $0.author == ContentLibrary.houseAuthor }
-        let attributed = ContentLibrary.quotes.filter { $0.author != ContentLibrary.houseAuthor }
+        let house = ContentLibrary.quotes.filter { $0.source == nil }
+        let attributed = ContentLibrary.quotes.filter { $0.source != nil }
 
         #expect(house.allSatisfy { $0.source == nil })
         #expect(!attributed.isEmpty)

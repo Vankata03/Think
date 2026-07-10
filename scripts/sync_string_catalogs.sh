@@ -32,9 +32,20 @@ sync_catalog() {
   xcrun xcstringstool sync "$catalog" "${args[@]}"
 }
 
+sync_catalog_file_if_present() {
+  local catalog="$1"
+  local stringsdata="$2"
+  if [[ ! -f "$stringsdata" ]]; then
+    print "No InfoPlist stringsdata found at $stringsdata; keeping the manual catalog entries."
+    return 0
+  fi
+  xcrun xcstringstool sync "$catalog" --stringsdata "$stringsdata"
+}
+
 sync_catalog Think/Localizable.xcstrings "$BASE/Debug-iphonesimulator/Think.build/Objects-normal/arm64"
 sync_catalog ThinkWatch/Localizable.xcstrings "$BASE/Debug-watchsimulator/ThinkWatchApp.build/Objects-normal/arm64"
 sync_catalog ThinkWidgets/Localizable.xcstrings "$BASE/Debug-iphonesimulator/ThinkWidgetsExtension.build/Objects-normal/arm64"
 sync_catalog ThinkWatchWidgets/Localizable.xcstrings "$BASE/Debug-watchsimulator/ThinkWatchWidgetsExtension.build/Objects-normal/arm64"
+sync_catalog_file_if_present Think/InfoPlist.xcstrings "${LOCALIZATION_INFOPLIST_STRINGSDATA:-$BASE/Debug-iphonesimulator/Think.build/InfoPlist.stringsdata}"
 
 print "String catalogs synchronized."

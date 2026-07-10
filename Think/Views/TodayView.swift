@@ -136,6 +136,11 @@ struct TodayView: View {
             : String(localized: "begin again")
     }
 
+    private var streakAccessibilityLabel: String {
+        guard progress.displayedStreak > 0 else { return streakCaption }
+        return String(localized: "\(progress.displayedStreak) day streak")
+    }
+
     private var dailyProgressCount: Int {
         var completed = 0
         if progress.openedToday { completed += 1 }
@@ -162,12 +167,12 @@ struct TodayView: View {
                         .font(.system(.subheadline, design: .rounded).weight(.bold))
                         .monospacedDigit()
                 }
+                Text(streakCaption)
+                    .font(.caption.weight(.medium))
             }
             .foregroundStyle(progress.displayedStreak > 0 ? Color.accentColor : .secondary)
         }
-        .accessibilityLabel(progress.displayedStreak == 1
-                            ? String(localized: "1 day streak")
-                            : String(localized: "\(progress.displayedStreak) day streak"))
+        .accessibilityLabel(streakAccessibilityLabel)
         .accessibilityHint("Shows your streak calendar")
         .sheet(isPresented: $showingStreakCalendar) {
             StreakCalendarSheet()
@@ -371,14 +376,14 @@ struct TodayView: View {
         HStack(spacing: 12) {
             metricTile(
                 value: "\(progress.focusSessionsToday)",
-                label: "Focus sessions today",
+                label: String(localized: "Focus sessions today"),
                 systemImage: "timer"
             )
             metricTile(
                 value: progress.pathCompletedDays > 0
                     ? String(localized: "Day \(progress.pathCompletedDays)")
                     : String(localized: "Not started"),
-                label: LocalizedStringKey(PathLibrary.deepFocus.name),
+                label: PathLibrary.deepFocus.name,
                 systemImage: "point.topleft.down.to.point.bottomright.curvepath"
             )
         }
@@ -400,7 +405,7 @@ struct TodayView: View {
         .accessibilityElement(children: .combine)
     }
 
-    private func metricTile(value: String, label: LocalizedStringKey, systemImage: String) -> some View {
+    private func metricTile(value: String, label: String, systemImage: String) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             Image(systemName: systemImage)
                 .font(.system(size: 18, weight: .semibold))
@@ -409,7 +414,7 @@ struct TodayView: View {
                 .font(.system(.title3, design: .rounded).weight(.semibold))
                 .monospacedDigit()
                 .foregroundStyle(.primary)
-            Text(label)
+            Text(verbatim: label)
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)

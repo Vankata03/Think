@@ -31,6 +31,7 @@ catalog["strings"] ||= {}
 add_entry = lambda do |key, value, comment|
   item = catalog["strings"][key] ||= {}
   item["comment"] = comment
+  item["extractionState"] = "manual"
   item["localizations"] ||= {}
   item["localizations"]["en"] = {
     "stringUnit" => { "state" => "translated", "value" => value }
@@ -53,6 +54,25 @@ entries.each_with_index do |(line, author, question, action), index|
 end
 
 paths_source = File.read(paths_path, encoding: "UTF-8")
+expected_path_keys = []
+paths_source.split(/(?=^\s*private static let source\w+)/).each do |path_block|
+  path_id = path_block[/^\s*id:\s*"([^"]+)"/, 1]
+  next unless path_id
+
+  base = "path.#{path_id}"
+  expected_path_keys.concat(["#{base}.name", "#{base}.tagline"])
+  path_block.scan(/PathStep\s*\(\s*id:\s*(\d+)/) do |step_id|
+    step_base = "#{base}.step.#{step_id.first}"
+    expected_path_keys.concat([
+      "#{step_base}.title",
+      "#{step_base}.lesson",
+      "#{step_base}.task"
+    ])
+  end
+end
+
+abort "Could not identify thinking path source blocks" if expected_path_keys.empty?
+
 paths_source.scan(/private static let source\w+ = ThinkingPath\(\s*id: "([^"]+)",\s*name: "([^"]+)",\s*tagline: "([^"]+)",\s*icon: "[^"]+",\s*isAvailable: (?:true|false),\s*steps: \[(.*?)\]\s*\)/m) do |id, name, tagline, steps_block|
   base = "path.#{id}"
   {
@@ -76,6 +96,9 @@ paths_source.scan(/private static let source\w+ = ThinkingPath\(\s*id: "([^"]+)"
     end
   end
 end
+
+missing_path_keys = expected_path_keys - valid_keys
+abort "Failed to extract thinking path keys: #{missing_path_keys.join(', ')}" unless missing_path_keys.empty?
 
 catalog["strings"].select! { |key, _| valid_keys.include?(key) }
 

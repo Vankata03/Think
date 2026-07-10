@@ -39,7 +39,7 @@ nonisolated struct Quote: Identifiable, Codable, Hashable {
     /// House lines remain visually unattributed because the card already carries
     /// the Think wordmark.
     var attribution: String? {
-        author == ContentLibrary.houseAuthor ? nil : author
+        source == nil ? nil : author
     }
 
     var notificationText: String {

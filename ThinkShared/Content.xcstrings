@@ -3,7 +3,7 @@
   "strings": {
     "path.clear-thinking.name": {
       "comment": "Thinking path name.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -51,7 +51,7 @@
     },
     "path.clear-thinking.tagline": {
       "comment": "Short description of a thinking path.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -99,7 +99,7 @@
     },
     "path.deep-focus.name": {
       "comment": "Thinking path name.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -147,7 +147,7 @@
     },
     "path.deep-focus.step.1.lesson": {
       "comment": "Brief lesson for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -195,7 +195,7 @@
     },
     "path.deep-focus.step.1.task": {
       "comment": "Concrete task for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -243,7 +243,7 @@
     },
     "path.deep-focus.step.1.title": {
       "comment": "Thinking path step title.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -291,7 +291,7 @@
     },
     "path.deep-focus.step.2.lesson": {
       "comment": "Brief lesson for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -339,7 +339,7 @@
     },
     "path.deep-focus.step.2.task": {
       "comment": "Concrete task for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -387,7 +387,7 @@
     },
     "path.deep-focus.step.2.title": {
       "comment": "Thinking path step title.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -435,7 +435,7 @@
     },
     "path.deep-focus.step.3.lesson": {
       "comment": "Brief lesson for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -483,7 +483,7 @@
     },
     "path.deep-focus.step.3.task": {
       "comment": "Concrete task for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -531,7 +531,7 @@
     },
     "path.deep-focus.step.3.title": {
       "comment": "Thinking path step title.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -579,7 +579,7 @@
     },
     "path.deep-focus.step.4.lesson": {
       "comment": "Brief lesson for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -627,7 +627,7 @@
     },
     "path.deep-focus.step.4.task": {
       "comment": "Concrete task for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -675,7 +675,7 @@
     },
     "path.deep-focus.step.4.title": {
       "comment": "Thinking path step title.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -723,7 +723,7 @@
     },
     "path.deep-focus.step.5.lesson": {
       "comment": "Brief lesson for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -771,7 +771,7 @@
     },
     "path.deep-focus.step.5.task": {
       "comment": "Concrete task for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -819,7 +819,7 @@
     },
     "path.deep-focus.step.5.title": {
       "comment": "Thinking path step title.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -867,7 +867,7 @@
     },
     "path.deep-focus.step.6.lesson": {
       "comment": "Brief lesson for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -915,7 +915,7 @@
     },
     "path.deep-focus.step.6.task": {
       "comment": "Concrete task for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -963,7 +963,7 @@
     },
     "path.deep-focus.step.6.title": {
       "comment": "Thinking path step title.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -1011,7 +1011,7 @@
     },
     "path.deep-focus.step.7.lesson": {
       "comment": "Brief lesson for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -1059,7 +1059,7 @@
     },
     "path.deep-focus.step.7.task": {
       "comment": "Concrete task for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -1107,7 +1107,7 @@
     },
     "path.deep-focus.step.7.title": {
       "comment": "Thinking path step title.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -1155,7 +1155,7 @@
     },
     "path.deep-focus.step.8.lesson": {
       "comment": "Brief lesson for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -1203,7 +1203,7 @@
     },
     "path.deep-focus.step.8.task": {
       "comment": "Concrete task for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -1251,7 +1251,7 @@
     },
     "path.deep-focus.step.8.title": {
       "comment": "Thinking path step title.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -1299,7 +1299,7 @@
     },
     "path.deep-focus.step.9.lesson": {
       "comment": "Brief lesson for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -1347,7 +1347,7 @@
     },
     "path.deep-focus.step.9.task": {
       "comment": "Concrete task for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -1395,7 +1395,7 @@
     },
     "path.deep-focus.step.9.title": {
       "comment": "Thinking path step title.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -1443,7 +1443,7 @@
     },
     "path.deep-focus.step.10.lesson": {
       "comment": "Brief lesson for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -1491,7 +1491,7 @@
     },
     "path.deep-focus.step.10.task": {
       "comment": "Concrete task for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -1539,7 +1539,7 @@
     },
     "path.deep-focus.step.10.title": {
       "comment": "Thinking path step title.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -1587,7 +1587,7 @@
     },
     "path.deep-focus.step.11.lesson": {
       "comment": "Brief lesson for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -1635,7 +1635,7 @@
     },
     "path.deep-focus.step.11.task": {
       "comment": "Concrete task for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -1683,7 +1683,7 @@
     },
     "path.deep-focus.step.11.title": {
       "comment": "Thinking path step title.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -1731,7 +1731,7 @@
     },
     "path.deep-focus.step.12.lesson": {
       "comment": "Brief lesson for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -1779,7 +1779,7 @@
     },
     "path.deep-focus.step.12.task": {
       "comment": "Concrete task for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -1827,7 +1827,7 @@
     },
     "path.deep-focus.step.12.title": {
       "comment": "Thinking path step title.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -1875,7 +1875,7 @@
     },
     "path.deep-focus.step.13.lesson": {
       "comment": "Brief lesson for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -1923,7 +1923,7 @@
     },
     "path.deep-focus.step.13.task": {
       "comment": "Concrete task for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -1971,7 +1971,7 @@
     },
     "path.deep-focus.step.13.title": {
       "comment": "Thinking path step title.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -2019,7 +2019,7 @@
     },
     "path.deep-focus.step.14.lesson": {
       "comment": "Brief lesson for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -2067,7 +2067,7 @@
     },
     "path.deep-focus.step.14.task": {
       "comment": "Concrete task for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -2115,7 +2115,7 @@
     },
     "path.deep-focus.step.14.title": {
       "comment": "Thinking path step title.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -2163,7 +2163,7 @@
     },
     "path.deep-focus.step.15.lesson": {
       "comment": "Brief lesson for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -2211,7 +2211,7 @@
     },
     "path.deep-focus.step.15.task": {
       "comment": "Concrete task for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -2259,7 +2259,7 @@
     },
     "path.deep-focus.step.15.title": {
       "comment": "Thinking path step title.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -2307,7 +2307,7 @@
     },
     "path.deep-focus.step.16.lesson": {
       "comment": "Brief lesson for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -2355,7 +2355,7 @@
     },
     "path.deep-focus.step.16.task": {
       "comment": "Concrete task for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -2403,7 +2403,7 @@
     },
     "path.deep-focus.step.16.title": {
       "comment": "Thinking path step title.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -2451,7 +2451,7 @@
     },
     "path.deep-focus.step.17.lesson": {
       "comment": "Brief lesson for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -2499,7 +2499,7 @@
     },
     "path.deep-focus.step.17.task": {
       "comment": "Concrete task for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -2547,7 +2547,7 @@
     },
     "path.deep-focus.step.17.title": {
       "comment": "Thinking path step title.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -2595,7 +2595,7 @@
     },
     "path.deep-focus.step.18.lesson": {
       "comment": "Brief lesson for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -2643,7 +2643,7 @@
     },
     "path.deep-focus.step.18.task": {
       "comment": "Concrete task for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -2691,7 +2691,7 @@
     },
     "path.deep-focus.step.18.title": {
       "comment": "Thinking path step title.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -2739,7 +2739,7 @@
     },
     "path.deep-focus.step.19.lesson": {
       "comment": "Brief lesson for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -2787,7 +2787,7 @@
     },
     "path.deep-focus.step.19.task": {
       "comment": "Concrete task for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -2835,7 +2835,7 @@
     },
     "path.deep-focus.step.19.title": {
       "comment": "Thinking path step title.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -2883,7 +2883,7 @@
     },
     "path.deep-focus.step.20.lesson": {
       "comment": "Brief lesson for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -2931,7 +2931,7 @@
     },
     "path.deep-focus.step.20.task": {
       "comment": "Concrete task for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -2979,7 +2979,7 @@
     },
     "path.deep-focus.step.20.title": {
       "comment": "Thinking path step title.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -3027,7 +3027,7 @@
     },
     "path.deep-focus.step.21.lesson": {
       "comment": "Brief lesson for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -3075,7 +3075,7 @@
     },
     "path.deep-focus.step.21.task": {
       "comment": "Concrete task for this path step.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -3123,7 +3123,7 @@
     },
     "path.deep-focus.step.21.title": {
       "comment": "Thinking path step title.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -3171,7 +3171,7 @@
     },
     "path.deep-focus.tagline": {
       "comment": "Short description of a thinking path.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -3219,7 +3219,7 @@
     },
     "path.discipline.name": {
       "comment": "Thinking path name.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -3267,7 +3267,7 @@
     },
     "path.discipline.tagline": {
       "comment": "Short description of a thinking path.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -3315,7 +3315,7 @@
     },
     "path.learning-machine.name": {
       "comment": "Thinking path name.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -3363,7 +3363,7 @@
     },
     "path.learning-machine.tagline": {
       "comment": "Short description of a thinking path.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -3411,7 +3411,7 @@
     },
     "practice.001.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -3459,7 +3459,7 @@
     },
     "practice.001.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -3507,7 +3507,7 @@
     },
     "practice.001.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -3555,7 +3555,7 @@
     },
     "practice.001.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -3603,7 +3603,7 @@
     },
     "practice.002.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -3651,7 +3651,7 @@
     },
     "practice.002.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -3699,7 +3699,7 @@
     },
     "practice.002.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -3747,7 +3747,7 @@
     },
     "practice.002.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -3795,7 +3795,7 @@
     },
     "practice.003.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -3843,7 +3843,7 @@
     },
     "practice.003.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -3891,7 +3891,7 @@
     },
     "practice.003.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -3939,7 +3939,7 @@
     },
     "practice.003.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -3987,7 +3987,7 @@
     },
     "practice.004.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -4035,7 +4035,7 @@
     },
     "practice.004.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -4083,7 +4083,7 @@
     },
     "practice.004.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -4131,7 +4131,7 @@
     },
     "practice.004.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -4179,7 +4179,7 @@
     },
     "practice.005.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -4227,7 +4227,7 @@
     },
     "practice.005.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -4275,7 +4275,7 @@
     },
     "practice.005.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -4323,7 +4323,7 @@
     },
     "practice.005.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -4371,7 +4371,7 @@
     },
     "practice.006.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -4419,7 +4419,7 @@
     },
     "practice.006.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -4467,7 +4467,7 @@
     },
     "practice.006.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -4515,7 +4515,7 @@
     },
     "practice.006.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -4563,7 +4563,7 @@
     },
     "practice.007.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -4611,7 +4611,7 @@
     },
     "practice.007.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -4659,7 +4659,7 @@
     },
     "practice.007.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -4707,7 +4707,7 @@
     },
     "practice.007.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -4755,7 +4755,7 @@
     },
     "practice.008.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -4803,7 +4803,7 @@
     },
     "practice.008.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -4851,7 +4851,7 @@
     },
     "practice.008.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -4899,7 +4899,7 @@
     },
     "practice.008.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -4947,7 +4947,7 @@
     },
     "practice.009.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -4995,7 +4995,7 @@
     },
     "practice.009.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -5043,7 +5043,7 @@
     },
     "practice.009.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -5091,7 +5091,7 @@
     },
     "practice.009.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -5139,7 +5139,7 @@
     },
     "practice.010.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -5187,7 +5187,7 @@
     },
     "practice.010.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -5235,7 +5235,7 @@
     },
     "practice.010.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -5283,7 +5283,7 @@
     },
     "practice.010.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -5331,7 +5331,7 @@
     },
     "practice.011.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -5379,7 +5379,7 @@
     },
     "practice.011.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -5427,7 +5427,7 @@
     },
     "practice.011.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -5475,7 +5475,7 @@
     },
     "practice.011.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -5523,7 +5523,7 @@
     },
     "practice.012.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -5571,7 +5571,7 @@
     },
     "practice.012.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -5619,7 +5619,7 @@
     },
     "practice.012.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -5667,7 +5667,7 @@
     },
     "practice.012.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -5715,7 +5715,7 @@
     },
     "practice.013.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -5763,7 +5763,7 @@
     },
     "practice.013.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -5811,7 +5811,7 @@
     },
     "practice.013.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -5859,7 +5859,7 @@
     },
     "practice.013.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -5907,7 +5907,7 @@
     },
     "practice.014.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -5955,7 +5955,7 @@
     },
     "practice.014.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -6003,7 +6003,7 @@
     },
     "practice.014.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -6051,7 +6051,7 @@
     },
     "practice.014.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -6099,7 +6099,7 @@
     },
     "practice.015.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -6147,7 +6147,7 @@
     },
     "practice.015.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -6195,7 +6195,7 @@
     },
     "practice.015.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -6243,7 +6243,7 @@
     },
     "practice.015.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -6291,7 +6291,7 @@
     },
     "practice.016.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -6339,7 +6339,7 @@
     },
     "practice.016.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -6387,7 +6387,7 @@
     },
     "practice.016.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -6435,7 +6435,7 @@
     },
     "practice.016.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -6483,7 +6483,7 @@
     },
     "practice.017.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -6531,7 +6531,7 @@
     },
     "practice.017.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -6579,7 +6579,7 @@
     },
     "practice.017.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -6627,7 +6627,7 @@
     },
     "practice.017.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -6675,7 +6675,7 @@
     },
     "practice.018.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -6723,7 +6723,7 @@
     },
     "practice.018.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -6771,7 +6771,7 @@
     },
     "practice.018.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -6819,7 +6819,7 @@
     },
     "practice.018.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -6867,7 +6867,7 @@
     },
     "practice.019.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -6915,7 +6915,7 @@
     },
     "practice.019.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -6963,7 +6963,7 @@
     },
     "practice.019.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -7011,7 +7011,7 @@
     },
     "practice.019.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -7059,7 +7059,7 @@
     },
     "practice.020.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -7107,7 +7107,7 @@
     },
     "practice.020.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -7155,7 +7155,7 @@
     },
     "practice.020.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -7203,7 +7203,7 @@
     },
     "practice.020.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -7251,7 +7251,7 @@
     },
     "practice.021.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -7299,7 +7299,7 @@
     },
     "practice.021.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -7347,7 +7347,7 @@
     },
     "practice.021.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -7395,7 +7395,7 @@
     },
     "practice.021.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -7443,7 +7443,7 @@
     },
     "practice.022.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -7491,7 +7491,7 @@
     },
     "practice.022.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -7539,7 +7539,7 @@
     },
     "practice.022.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -7587,7 +7587,7 @@
     },
     "practice.022.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -7635,7 +7635,7 @@
     },
     "practice.023.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -7683,7 +7683,7 @@
     },
     "practice.023.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -7731,7 +7731,7 @@
     },
     "practice.023.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -7779,7 +7779,7 @@
     },
     "practice.023.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -7827,7 +7827,7 @@
     },
     "practice.024.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -7875,7 +7875,7 @@
     },
     "practice.024.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -7923,7 +7923,7 @@
     },
     "practice.024.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -7971,7 +7971,7 @@
     },
     "practice.024.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -8019,7 +8019,7 @@
     },
     "practice.025.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -8067,7 +8067,7 @@
     },
     "practice.025.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -8115,7 +8115,7 @@
     },
     "practice.025.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -8163,7 +8163,7 @@
     },
     "practice.025.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -8211,7 +8211,7 @@
     },
     "practice.026.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -8259,7 +8259,7 @@
     },
     "practice.026.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -8307,7 +8307,7 @@
     },
     "practice.026.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -8355,7 +8355,7 @@
     },
     "practice.026.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -8403,7 +8403,7 @@
     },
     "practice.027.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -8451,7 +8451,7 @@
     },
     "practice.027.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -8499,7 +8499,7 @@
     },
     "practice.027.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -8547,7 +8547,7 @@
     },
     "practice.027.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -8595,7 +8595,7 @@
     },
     "practice.028.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -8643,7 +8643,7 @@
     },
     "practice.028.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -8691,7 +8691,7 @@
     },
     "practice.028.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -8739,7 +8739,7 @@
     },
     "practice.028.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -8787,7 +8787,7 @@
     },
     "practice.029.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -8835,7 +8835,7 @@
     },
     "practice.029.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -8883,7 +8883,7 @@
     },
     "practice.029.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -8931,7 +8931,7 @@
     },
     "practice.029.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -8979,7 +8979,7 @@
     },
     "practice.030.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -9027,7 +9027,7 @@
     },
     "practice.030.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -9075,7 +9075,7 @@
     },
     "practice.030.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -9123,7 +9123,7 @@
     },
     "practice.030.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -9171,7 +9171,7 @@
     },
     "practice.031.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -9219,7 +9219,7 @@
     },
     "practice.031.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -9267,7 +9267,7 @@
     },
     "practice.031.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -9315,7 +9315,7 @@
     },
     "practice.031.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -9363,7 +9363,7 @@
     },
     "practice.032.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -9411,7 +9411,7 @@
     },
     "practice.032.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -9459,7 +9459,7 @@
     },
     "practice.032.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -9507,7 +9507,7 @@
     },
     "practice.032.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -9555,7 +9555,7 @@
     },
     "practice.033.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -9603,7 +9603,7 @@
     },
     "practice.033.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -9651,7 +9651,7 @@
     },
     "practice.033.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -9699,7 +9699,7 @@
     },
     "practice.033.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -9747,7 +9747,7 @@
     },
     "practice.034.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -9795,7 +9795,7 @@
     },
     "practice.034.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -9843,7 +9843,7 @@
     },
     "practice.034.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -9891,7 +9891,7 @@
     },
     "practice.034.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -9939,7 +9939,7 @@
     },
     "practice.035.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -9987,7 +9987,7 @@
     },
     "practice.035.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -10035,7 +10035,7 @@
     },
     "practice.035.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -10083,7 +10083,7 @@
     },
     "practice.035.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -10131,7 +10131,7 @@
     },
     "practice.036.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -10179,7 +10179,7 @@
     },
     "practice.036.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -10227,7 +10227,7 @@
     },
     "practice.036.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -10275,7 +10275,7 @@
     },
     "practice.036.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -10323,7 +10323,7 @@
     },
     "practice.037.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -10371,7 +10371,7 @@
     },
     "practice.037.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -10419,7 +10419,7 @@
     },
     "practice.037.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -10467,7 +10467,7 @@
     },
     "practice.037.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -10515,7 +10515,7 @@
     },
     "practice.038.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -10563,7 +10563,7 @@
     },
     "practice.038.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -10611,7 +10611,7 @@
     },
     "practice.038.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -10659,7 +10659,7 @@
     },
     "practice.038.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -10707,7 +10707,7 @@
     },
     "practice.039.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -10755,7 +10755,7 @@
     },
     "practice.039.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -10803,7 +10803,7 @@
     },
     "practice.039.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -10851,7 +10851,7 @@
     },
     "practice.039.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -10899,7 +10899,7 @@
     },
     "practice.040.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -10947,7 +10947,7 @@
     },
     "practice.040.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -10995,7 +10995,7 @@
     },
     "practice.040.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -11043,7 +11043,7 @@
     },
     "practice.040.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -11091,7 +11091,7 @@
     },
     "practice.041.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -11139,7 +11139,7 @@
     },
     "practice.041.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -11187,7 +11187,7 @@
     },
     "practice.041.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -11235,7 +11235,7 @@
     },
     "practice.041.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -11283,7 +11283,7 @@
     },
     "practice.042.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -11331,7 +11331,7 @@
     },
     "practice.042.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -11379,7 +11379,7 @@
     },
     "practice.042.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -11427,7 +11427,7 @@
     },
     "practice.042.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -11475,7 +11475,7 @@
     },
     "practice.043.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -11523,7 +11523,7 @@
     },
     "practice.043.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -11571,7 +11571,7 @@
     },
     "practice.043.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -11619,7 +11619,7 @@
     },
     "practice.043.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -11667,7 +11667,7 @@
     },
     "practice.044.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -11715,7 +11715,7 @@
     },
     "practice.044.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -11763,7 +11763,7 @@
     },
     "practice.044.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -11811,7 +11811,7 @@
     },
     "practice.044.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -11859,7 +11859,7 @@
     },
     "practice.045.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -11907,7 +11907,7 @@
     },
     "practice.045.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -11955,7 +11955,7 @@
     },
     "practice.045.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -12003,7 +12003,7 @@
     },
     "practice.045.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -12051,7 +12051,7 @@
     },
     "practice.046.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -12099,7 +12099,7 @@
     },
     "practice.046.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -12147,7 +12147,7 @@
     },
     "practice.046.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -12195,7 +12195,7 @@
     },
     "practice.046.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -12243,7 +12243,7 @@
     },
     "practice.047.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -12291,7 +12291,7 @@
     },
     "practice.047.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -12339,7 +12339,7 @@
     },
     "practice.047.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -12387,7 +12387,7 @@
     },
     "practice.047.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -12435,7 +12435,7 @@
     },
     "practice.048.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -12483,7 +12483,7 @@
     },
     "practice.048.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -12531,7 +12531,7 @@
     },
     "practice.048.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -12579,7 +12579,7 @@
     },
     "practice.048.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -12627,7 +12627,7 @@
     },
     "practice.049.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -12675,7 +12675,7 @@
     },
     "practice.049.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -12723,7 +12723,7 @@
     },
     "practice.049.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -12771,7 +12771,7 @@
     },
     "practice.049.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -12819,7 +12819,7 @@
     },
     "practice.050.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -12867,7 +12867,7 @@
     },
     "practice.050.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -12915,7 +12915,7 @@
     },
     "practice.050.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -12963,7 +12963,7 @@
     },
     "practice.050.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -13011,7 +13011,7 @@
     },
     "practice.051.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -13059,7 +13059,7 @@
     },
     "practice.051.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -13107,7 +13107,7 @@
     },
     "practice.051.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -13155,7 +13155,7 @@
     },
     "practice.051.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -13203,7 +13203,7 @@
     },
     "practice.052.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -13251,7 +13251,7 @@
     },
     "practice.052.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -13299,7 +13299,7 @@
     },
     "practice.052.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -13347,7 +13347,7 @@
     },
     "practice.052.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -13395,7 +13395,7 @@
     },
     "practice.053.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -13443,7 +13443,7 @@
     },
     "practice.053.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -13491,7 +13491,7 @@
     },
     "practice.053.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -13539,7 +13539,7 @@
     },
     "practice.053.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -13587,7 +13587,7 @@
     },
     "practice.054.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -13635,7 +13635,7 @@
     },
     "practice.054.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -13683,7 +13683,7 @@
     },
     "practice.054.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -13731,7 +13731,7 @@
     },
     "practice.054.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -13779,7 +13779,7 @@
     },
     "practice.055.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -13827,7 +13827,7 @@
     },
     "practice.055.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -13875,7 +13875,7 @@
     },
     "practice.055.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -13923,7 +13923,7 @@
     },
     "practice.055.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -13971,7 +13971,7 @@
     },
     "practice.056.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -14019,7 +14019,7 @@
     },
     "practice.056.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -14067,7 +14067,7 @@
     },
     "practice.056.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -14115,7 +14115,7 @@
     },
     "practice.056.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -14163,7 +14163,7 @@
     },
     "practice.057.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -14211,7 +14211,7 @@
     },
     "practice.057.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -14259,7 +14259,7 @@
     },
     "practice.057.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -14307,7 +14307,7 @@
     },
     "practice.057.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -14355,7 +14355,7 @@
     },
     "practice.058.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -14403,7 +14403,7 @@
     },
     "practice.058.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -14451,7 +14451,7 @@
     },
     "practice.058.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -14499,7 +14499,7 @@
     },
     "practice.058.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -14547,7 +14547,7 @@
     },
     "practice.059.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -14595,7 +14595,7 @@
     },
     "practice.059.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -14643,7 +14643,7 @@
     },
     "practice.059.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -14691,7 +14691,7 @@
     },
     "practice.059.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -14739,7 +14739,7 @@
     },
     "practice.060.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -14787,7 +14787,7 @@
     },
     "practice.060.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -14835,7 +14835,7 @@
     },
     "practice.060.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -14883,7 +14883,7 @@
     },
     "practice.060.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -14931,7 +14931,7 @@
     },
     "practice.061.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -14979,7 +14979,7 @@
     },
     "practice.061.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -15027,7 +15027,7 @@
     },
     "practice.061.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -15075,7 +15075,7 @@
     },
     "practice.061.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -15123,7 +15123,7 @@
     },
     "practice.062.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -15171,7 +15171,7 @@
     },
     "practice.062.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -15219,7 +15219,7 @@
     },
     "practice.062.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -15267,7 +15267,7 @@
     },
     "practice.062.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -15315,7 +15315,7 @@
     },
     "practice.063.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -15363,7 +15363,7 @@
     },
     "practice.063.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -15411,7 +15411,7 @@
     },
     "practice.063.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -15459,7 +15459,7 @@
     },
     "practice.063.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -15507,7 +15507,7 @@
     },
     "practice.064.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -15555,7 +15555,7 @@
     },
     "practice.064.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -15603,7 +15603,7 @@
     },
     "practice.064.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -15651,7 +15651,7 @@
     },
     "practice.064.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -15699,7 +15699,7 @@
     },
     "practice.065.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -15747,7 +15747,7 @@
     },
     "practice.065.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -15795,7 +15795,7 @@
     },
     "practice.065.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -15843,7 +15843,7 @@
     },
     "practice.065.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -15891,7 +15891,7 @@
     },
     "practice.066.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -15939,7 +15939,7 @@
     },
     "practice.066.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -15987,7 +15987,7 @@
     },
     "practice.066.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -16035,7 +16035,7 @@
     },
     "practice.066.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -16083,7 +16083,7 @@
     },
     "practice.067.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -16131,7 +16131,7 @@
     },
     "practice.067.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -16179,7 +16179,7 @@
     },
     "practice.067.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -16227,7 +16227,7 @@
     },
     "practice.067.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -16275,7 +16275,7 @@
     },
     "practice.068.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -16323,7 +16323,7 @@
     },
     "practice.068.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -16371,7 +16371,7 @@
     },
     "practice.068.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -16419,7 +16419,7 @@
     },
     "practice.068.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -16467,7 +16467,7 @@
     },
     "practice.069.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -16515,7 +16515,7 @@
     },
     "practice.069.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -16563,7 +16563,7 @@
     },
     "practice.069.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -16611,7 +16611,7 @@
     },
     "practice.069.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -16659,7 +16659,7 @@
     },
     "practice.070.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -16707,7 +16707,7 @@
     },
     "practice.070.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -16755,7 +16755,7 @@
     },
     "practice.070.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -16803,7 +16803,7 @@
     },
     "practice.070.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -16851,7 +16851,7 @@
     },
     "practice.071.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -16899,7 +16899,7 @@
     },
     "practice.071.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -16947,7 +16947,7 @@
     },
     "practice.071.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -16995,7 +16995,7 @@
     },
     "practice.071.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -17043,7 +17043,7 @@
     },
     "practice.072.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -17091,7 +17091,7 @@
     },
     "practice.072.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -17139,7 +17139,7 @@
     },
     "practice.072.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -17187,7 +17187,7 @@
     },
     "practice.072.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -17235,7 +17235,7 @@
     },
     "practice.073.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -17283,7 +17283,7 @@
     },
     "practice.073.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -17331,7 +17331,7 @@
     },
     "practice.073.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -17379,7 +17379,7 @@
     },
     "practice.073.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -17427,7 +17427,7 @@
     },
     "practice.074.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -17475,7 +17475,7 @@
     },
     "practice.074.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -17523,7 +17523,7 @@
     },
     "practice.074.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -17571,7 +17571,7 @@
     },
     "practice.074.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -17619,7 +17619,7 @@
     },
     "practice.075.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -17667,7 +17667,7 @@
     },
     "practice.075.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -17715,7 +17715,7 @@
     },
     "practice.075.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -17763,7 +17763,7 @@
     },
     "practice.075.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -17811,7 +17811,7 @@
     },
     "practice.076.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -17859,7 +17859,7 @@
     },
     "practice.076.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -17907,7 +17907,7 @@
     },
     "practice.076.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -17955,7 +17955,7 @@
     },
     "practice.076.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -18003,7 +18003,7 @@
     },
     "practice.077.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -18051,7 +18051,7 @@
     },
     "practice.077.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -18099,7 +18099,7 @@
     },
     "practice.077.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -18147,7 +18147,7 @@
     },
     "practice.077.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -18195,7 +18195,7 @@
     },
     "practice.078.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -18243,7 +18243,7 @@
     },
     "practice.078.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -18291,7 +18291,7 @@
     },
     "practice.078.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -18339,7 +18339,7 @@
     },
     "practice.078.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -18387,7 +18387,7 @@
     },
     "practice.079.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -18435,7 +18435,7 @@
     },
     "practice.079.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -18483,7 +18483,7 @@
     },
     "practice.079.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -18531,7 +18531,7 @@
     },
     "practice.079.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -18579,7 +18579,7 @@
     },
     "practice.080.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -18627,7 +18627,7 @@
     },
     "practice.080.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -18675,7 +18675,7 @@
     },
     "practice.080.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -18723,7 +18723,7 @@
     },
     "practice.080.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -18771,7 +18771,7 @@
     },
     "practice.081.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -18819,7 +18819,7 @@
     },
     "practice.081.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -18867,7 +18867,7 @@
     },
     "practice.081.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -18915,7 +18915,7 @@
     },
     "practice.081.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -18963,7 +18963,7 @@
     },
     "practice.082.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -19011,7 +19011,7 @@
     },
     "practice.082.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -19059,7 +19059,7 @@
     },
     "practice.082.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -19107,7 +19107,7 @@
     },
     "practice.082.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -19155,7 +19155,7 @@
     },
     "practice.083.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -19203,7 +19203,7 @@
     },
     "practice.083.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -19251,7 +19251,7 @@
     },
     "practice.083.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -19299,7 +19299,7 @@
     },
     "practice.083.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -19347,7 +19347,7 @@
     },
     "practice.084.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -19395,7 +19395,7 @@
     },
     "practice.084.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -19443,7 +19443,7 @@
     },
     "practice.084.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -19491,7 +19491,7 @@
     },
     "practice.084.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -19539,7 +19539,7 @@
     },
     "practice.085.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -19587,7 +19587,7 @@
     },
     "practice.085.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -19635,7 +19635,7 @@
     },
     "practice.085.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -19683,7 +19683,7 @@
     },
     "practice.085.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -19731,7 +19731,7 @@
     },
     "practice.086.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -19779,7 +19779,7 @@
     },
     "practice.086.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -19827,7 +19827,7 @@
     },
     "practice.086.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -19875,7 +19875,7 @@
     },
     "practice.086.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -19923,7 +19923,7 @@
     },
     "practice.087.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -19971,7 +19971,7 @@
     },
     "practice.087.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -20019,7 +20019,7 @@
     },
     "practice.087.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -20067,7 +20067,7 @@
     },
     "practice.087.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -20115,7 +20115,7 @@
     },
     "practice.088.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -20163,7 +20163,7 @@
     },
     "practice.088.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -20211,7 +20211,7 @@
     },
     "practice.088.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -20259,7 +20259,7 @@
     },
     "practice.088.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -20307,7 +20307,7 @@
     },
     "practice.089.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -20355,7 +20355,7 @@
     },
     "practice.089.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -20403,7 +20403,7 @@
     },
     "practice.089.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -20451,7 +20451,7 @@
     },
     "practice.089.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -20499,7 +20499,7 @@
     },
     "practice.090.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -20547,7 +20547,7 @@
     },
     "practice.090.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -20595,7 +20595,7 @@
     },
     "practice.090.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -20643,7 +20643,7 @@
     },
     "practice.090.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -20691,7 +20691,7 @@
     },
     "practice.091.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -20739,7 +20739,7 @@
     },
     "practice.091.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -20787,7 +20787,7 @@
     },
     "practice.091.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -20835,7 +20835,7 @@
     },
     "practice.091.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -20883,7 +20883,7 @@
     },
     "practice.092.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -20931,7 +20931,7 @@
     },
     "practice.092.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -20979,7 +20979,7 @@
     },
     "practice.092.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -21027,7 +21027,7 @@
     },
     "practice.092.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -21075,7 +21075,7 @@
     },
     "practice.093.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -21123,7 +21123,7 @@
     },
     "practice.093.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -21171,7 +21171,7 @@
     },
     "practice.093.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -21219,7 +21219,7 @@
     },
     "practice.093.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -21267,7 +21267,7 @@
     },
     "practice.094.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -21315,7 +21315,7 @@
     },
     "practice.094.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -21363,7 +21363,7 @@
     },
     "practice.094.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -21411,7 +21411,7 @@
     },
     "practice.094.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -21459,7 +21459,7 @@
     },
     "practice.095.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -21507,7 +21507,7 @@
     },
     "practice.095.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -21555,7 +21555,7 @@
     },
     "practice.095.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -21603,7 +21603,7 @@
     },
     "practice.095.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -21651,7 +21651,7 @@
     },
     "practice.096.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -21699,7 +21699,7 @@
     },
     "practice.096.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -21747,7 +21747,7 @@
     },
     "practice.096.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -21795,7 +21795,7 @@
     },
     "practice.096.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -21843,7 +21843,7 @@
     },
     "practice.097.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -21891,7 +21891,7 @@
     },
     "practice.097.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -21939,7 +21939,7 @@
     },
     "practice.097.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -21987,7 +21987,7 @@
     },
     "practice.097.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -22035,7 +22035,7 @@
     },
     "practice.098.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -22083,7 +22083,7 @@
     },
     "practice.098.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -22131,7 +22131,7 @@
     },
     "practice.098.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -22179,7 +22179,7 @@
     },
     "practice.098.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -22227,7 +22227,7 @@
     },
     "practice.099.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -22275,7 +22275,7 @@
     },
     "practice.099.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -22323,7 +22323,7 @@
     },
     "practice.099.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -22371,7 +22371,7 @@
     },
     "practice.099.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -22419,7 +22419,7 @@
     },
     "practice.100.action": {
       "comment": "Concrete action paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -22467,7 +22467,7 @@
     },
     "practice.100.author": {
       "comment": "Displayed attribution. Think is hidden in the UI.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -22515,7 +22515,7 @@
     },
     "practice.100.line": {
       "comment": "Daily practice line. Keep concise and provocative.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {
@@ -22563,7 +22563,7 @@
     },
     "practice.100.question": {
       "comment": "Reflection question paired with the daily line.",
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "bg": {
           "stringUnit": {

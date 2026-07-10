@@ -80,16 +80,15 @@ struct StreakCalendarSheet: View {
             Spacer()
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel(progress.displayedStreak == 1
-                            ? String(localized: "1 day streak")
-                            : String(localized: "\(progress.displayedStreak) day streak"))
+        .accessibilityLabel(progress.displayedStreak > 0
+                            ? String(localized: "\(progress.displayedStreak) day streak")
+                            : streakCaption)
     }
 
     /// Streak-zero copy follows the "no guilt" principle: a fresh user
     /// is invited to start, a lapsed one to begin again.
     private var streakCaption: String {
-        if progress.displayedStreak == 1 { return String(localized: "day streak") }
-        if progress.displayedStreak > 1 { return String(localized: "days streak") }
+        if progress.displayedStreak > 0 { return String(localized: "streak") }
         return progress.lastCompletedDay == nil
             ? String(localized: "start today")
             : String(localized: "begin again")

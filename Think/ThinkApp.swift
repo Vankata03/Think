@@ -62,6 +62,9 @@ struct ThinkApp: App {
             .environment(\.haptics, .live)
             .preferredColorScheme(appearance.colorScheme)
             .animation(.easeInOut(duration: 0.3), value: completedOnboarding)
+            .onReceive(NotificationCenter.default.publisher(for: NSLocale.currentLocaleDidChangeNotification)) { _ in
+                RetroReminder.refreshSchedule()
+            }
         }
         .modelContainer(for: [JournalEntry.self, DailyRetro.self], inMemory: isUITesting)
         .onChange(of: scenePhase) { _, phase in
