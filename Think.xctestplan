@@ -10,6 +10,8 @@
   ],
   "defaultOptions" : {
     "codeCoverage" : true,
+    "language" : "en",
+    "region" : "US",
     "targetForVariableExpansion" : {
       "containerPath" : "container:Think.xcodeproj",
       "identifier" : "02A861D82FF9722200441A2B",

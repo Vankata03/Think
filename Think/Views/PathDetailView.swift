@@ -41,6 +41,7 @@ struct PathDetailView: View {
                             .foregroundStyle(.secondary)
                         Text(step.task)
                             .font(.subheadline)
+                            .accessibilityIdentifier("PathCurrentTask")
                     }
                     Button {
                         guard progress.canCompletePathStepToday else { return }
@@ -77,6 +78,8 @@ struct PathDetailView: View {
                 }
             }
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("PathDetail.\(path.id)")
         .navigationTitle(path.name)
         .navigationBarTitleDisplayMode(.inline)
     }

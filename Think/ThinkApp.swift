@@ -22,6 +22,7 @@ struct ThinkApp: App {
         Self.prepareApplicationSupportDirectory()
         if isUITesting, let bundleIdentifier = Bundle.main.bundleIdentifier {
             UserDefaults.standard.removePersistentDomain(forName: bundleIdentifier)
+            SharedDefaults.appGroup().removeObject(forKey: SharedDefaults.pomodoroTimerStateKey)
         }
         let progressDefaults: UserDefaults
         if isUITesting, let bundleIdentifier = Bundle.main.bundleIdentifier {
