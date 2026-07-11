@@ -42,3 +42,10 @@ fastlane/test_output/
 tmp/
 temp/
 .superpowers/
+
+# Local-only: AI-assistant state and internal planning/marketing material
+.codex/
+.claude/
+docs/
+Screenshots/
+scripts/
