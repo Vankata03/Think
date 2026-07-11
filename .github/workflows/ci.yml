@@ -1,16 +1,32 @@
 name: CI
 
+# Path filters must stay in sync with ci-skip.yml, which provides the
+# green no-op "build-test" check for changes that only touch these paths.
 on:
   pull_request:
     branches:
       - develop
       - prod
       - "release/**"
+    paths-ignore:
+      - "**.md"
+      - LICENSE
+      - .gitignore
+      - "docs/**"
+      - "Screenshots/**"
+      - "scripts/**"
   push:
     branches:
       - develop
       - prod
       - "release/**"
+    paths-ignore:
+      - "**.md"
+      - LICENSE
+      - .gitignore
+      - "docs/**"
+      - "Screenshots/**"
+      - "scripts/**"
   workflow_dispatch:
 
 concurrency:
@@ -57,9 +73,17 @@ jobs:
             2>&1 | tee BuildLogs/build-for-testing.log | xcbeautify --renderer github-actions
 
       - name: Test
+        env:
+          # The skip-ui-tests PR label drops the slow XCUITest suite.
+          SKIP_UI_TESTS: ${{ contains(github.event.pull_request.labels.*.name, 'skip-ui-tests') }}
         run: |
           mkdir -p BuildLogs TestResults
           set -o pipefail
+          EXTRA_ARGS=()
+          if [ "$SKIP_UI_TESTS" = "true" ]; then
+            echo "skip-ui-tests label present; skipping ThinkUITests"
+            EXTRA_ARGS+=(-skip-testing:ThinkUITests)
+          fi
           NSUnbufferedIO=YES xcodebuild test-without-building \
             -project Think.xcodeproj \
             -scheme Think \
@@ -68,6 +92,7 @@ jobs:
             -derivedDataPath DerivedData \
             -resultBundlePath TestResults/Think.xcresult \
             CODE_SIGNING_ALLOWED=NO \
+            "${EXTRA_ARGS[@]}" \
             2>&1 | tee BuildLogs/test.log | xcbeautify --renderer github-actions
 
       - name: Upload raw xcodebuild logs
