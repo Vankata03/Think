@@ -4,13 +4,14 @@
 //
 
 import Testing
+import Foundation
 @testable import Think
 
 @MainActor
 struct PomodoroTimerTests {
 
     @Test func timerStartsInClassicWorkPhase() {
-        let timer = PomodoroTimer()
+        let timer = PomodoroTimer(systemSideEffectsEnabled: false)
 
         #expect(timer.preset == .classic)
         #expect(timer.phase == .work)
@@ -20,7 +21,7 @@ struct PomodoroTimerTests {
     }
 
     @Test func selectingPresetResetsWorkDuration() {
-        let timer = PomodoroTimer()
+        let timer = PomodoroTimer(systemSideEffectsEnabled: false)
 
         timer.select(.long)
 
@@ -31,7 +32,7 @@ struct PomodoroTimerTests {
     }
 
     @Test func skippingWorkMovesToRestWithoutRecordingSession() {
-        let timer = PomodoroTimer()
+        let timer = PomodoroTimer(systemSideEffectsEnabled: false)
         var completedWorkSessions = 0
         timer.onWorkSessionComplete = { completedWorkSessions += 1 }
 
@@ -43,7 +44,7 @@ struct PomodoroTimerTests {
     }
 
     @Test func resetReturnsToCurrentPresetWorkPhase() {
-        let timer = PomodoroTimer()
+        let timer = PomodoroTimer(systemSideEffectsEnabled: false)
 
         timer.select(.long)
         timer.skipPhase()
@@ -97,6 +98,45 @@ struct PomodoroTimerTests {
         #expect(timer.phase == .work)
         #expect(timer.remainingSeconds == 50 * 60)
         #expect(timer.progress == 0)
+    }
+
+    @Test func runningTimerRestoresAfterCreatingANewTimer() {
+        let suiteName = "ThinkTests.PomodoroTimer.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let firstTimer = PomodoroTimer(systemSideEffectsEnabled: false, defaults: defaults)
+        firstTimer.select(.long)
+        firstTimer.skipPhase()
+        firstTimer.start()
+
+        let restoredTimer = PomodoroTimer(systemSideEffectsEnabled: false, defaults: defaults)
+
+        #expect(restoredTimer.isRunning)
+        #expect(restoredTimer.preset == .long)
+        #expect(restoredTimer.phase == .rest)
+        #expect((1...(10 * 60)).contains(restoredTimer.remainingSeconds))
+
+        firstTimer.reset()
+        restoredTimer.reset()
+    }
+
+    @Test func resetPersistsAnInactiveTimer() {
+        let suiteName = "ThinkTests.PomodoroTimer.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let timer = PomodoroTimer(systemSideEffectsEnabled: false, defaults: defaults)
+        timer.select(.long)
+        timer.start()
+        timer.reset()
+
+        let restoredTimer = PomodoroTimer(systemSideEffectsEnabled: false, defaults: defaults)
+
+        #expect(!restoredTimer.isRunning)
+        #expect(restoredTimer.phase == .work)
+        #expect(restoredTimer.preset == .long)
+        #expect(restoredTimer.remainingSeconds == 50 * 60)
     }
 
     @Test func completingWorkPhaseMovesToBreakAndRecordsOneSession() {

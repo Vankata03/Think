@@ -29,7 +29,7 @@ final class ThinkUITests: XCTestCase {
         XCTAssertTrue(app.descendants(matching: .any)["Path.deep-focus"].waitForExistence(timeout: 2))
 
         app.tabBars.buttons.element(boundBy: 2).tap()
-        XCTAssertTrue(app.staticTexts["25:00"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.descendants(matching: .any)["FocusTimer"].waitForExistence(timeout: 2))
 
         app.tabBars.buttons.element(boundBy: 3).tap()
         XCTAssertTrue(app.descendants(matching: .any)["ProfileProgress"].waitForExistence(timeout: 2))
@@ -39,39 +39,38 @@ final class ThinkUITests: XCTestCase {
     func testShareSheetShowsAvailableCardStyles() throws {
         let app = launchApp()
 
-        app.buttons["Share"].tap()
+        app.buttons["ShareQuote"].tap()
 
-        XCTAssertTrue(app.navigationBars["Share card"].waitForExistence(timeout: 3))
-        XCTAssertTrue(app.descendants(matching: .any)["Paper"].waitForExistence(timeout: 2))
-        XCTAssertTrue(app.descendants(matching: .any)["Midnight"].waitForExistence(timeout: 2))
-        XCTAssertTrue(app.descendants(matching: .any)["Clay"].waitForExistence(timeout: 2))
-        XCTAssertTrue(app.descendants(matching: .any)["Forest"].waitForExistence(timeout: 2))
-        XCTAssertTrue(app.buttons["Save"].waitForExistence(timeout: 2))
-        app.buttons["Done"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)["ShareCardSheet"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.descendants(matching: .any)["CardStyle.paper"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.descendants(matching: .any)["CardStyle.midnight"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.descendants(matching: .any)["CardStyle.clay"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.descendants(matching: .any)["CardStyle.forest"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["SaveShareCard"].waitForExistence(timeout: 2))
+        app.buttons["DismissShareCard"].tap()
     }
 
     @MainActor
     func testFocusPresetChangesTimerDuration() throws {
         let app = launchApp()
 
-        app.tabBars.buttons["Focus"].tap()
-        XCTAssertTrue(app.staticTexts["25:00"].waitForExistence(timeout: 2))
+        app.tabBars.buttons.element(boundBy: 2).tap()
+        XCTAssertTrue(app.descendants(matching: .any)["FocusTimer"].waitForExistence(timeout: 2))
 
-        app.buttons["50 / 10"].tap()
+        app.buttons["FocusPreset.50"].tap()
 
-        XCTAssertTrue(app.staticTexts["50:00"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.descendants(matching: .any)["FocusTimer.50"].waitForExistence(timeout: 2))
     }
 
     @MainActor
     func testDeepFocusPathOpensCurrentStep() throws {
         let app = launchApp()
 
-        app.tabBars.buttons["Paths"].tap()
-        app.staticTexts["Deep focus"].tap()
+        app.tabBars.buttons.element(boundBy: 1).tap()
+        app.descendants(matching: .any)["Path.deep-focus"].tap()
 
-        XCTAssertTrue(app.navigationBars["Deep focus"].waitForExistence(timeout: 2))
-        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Day '")).firstMatch.waitForExistence(timeout: 2))
-        XCTAssertTrue(app.staticTexts["Today's task"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.descendants(matching: .any)["PathDetail.deep-focus"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.descendants(matching: .any)["PathCurrentTask"].waitForExistence(timeout: 2))
     }
 
     @MainActor
@@ -79,15 +78,15 @@ final class ThinkUITests: XCTestCase {
         let note = "UI note \(UUID().uuidString)"
         let app = launchApp()
 
-        app.tabBars.buttons["Profile"].tap()
+        app.tabBars.buttons.element(boundBy: 3).tap()
         app.buttons["Journal"].tap()
-        XCTAssertTrue(app.navigationBars["Journal"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.descendants(matching: .any)["JournalView"].waitForExistence(timeout: 2))
 
-        app.navigationBars["Journal"].buttons["New note"].tap()
-        XCTAssertTrue(app.navigationBars["New note"].waitForExistence(timeout: 2))
-        app.textViews.firstMatch.tap()
-        app.textViews.firstMatch.typeText(note)
-        app.buttons["Save"].tap()
+        app.buttons["NewNote"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)["NewNoteSheet"].waitForExistence(timeout: 2))
+        app.textViews["NewNoteInput"].tap()
+        app.textViews["NewNoteInput"].typeText(note)
+        app.buttons["SaveNewNote"].tap()
 
         XCTAssertTrue(app.staticTexts[note].waitForExistence(timeout: 3))
     }
@@ -97,13 +96,13 @@ final class ThinkUITests: XCTestCase {
         let answer = "Daily answer \(UUID().uuidString)"
         let app = launchApp()
 
-        let field = app.textFields.firstMatch
+        let field = app.textFields["DailyQuestionInput"]
         XCTAssertTrue(field.waitForExistence(timeout: 2))
         field.tap()
         field.typeText(answer)
-        app.buttons["Save answer"].tap()
+        app.buttons["SaveDailyAnswer"].tap()
 
-        XCTAssertTrue(app.staticTexts["Answered"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.descendants(matching: .any)["DailyQuestionAnswered"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts[answer].waitForExistence(timeout: 2))
     }
 
@@ -111,7 +110,7 @@ final class ThinkUITests: XCTestCase {
     func testLaunchPerformance() throws {
         measure(metrics: [XCTApplicationLaunchMetric()]) {
             let app = XCUIApplication()
-            app.launchArguments = ["-ui-testing"]
+            app.launchArguments = englishLaunchArguments
             app.launch()
         }
     }
@@ -119,8 +118,12 @@ final class ThinkUITests: XCTestCase {
     @MainActor
     private func launchApp() -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["-ui-testing"]
+        app.launchArguments = englishLaunchArguments
         app.launch()
         return app
+    }
+
+    private var englishLaunchArguments: [String] {
+        ["-ui-testing", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
     }
 }
