@@ -72,6 +72,7 @@ struct JournalView: View {
             }
         }
         .navigationTitle("Journal")
+        .accessibilityIdentifier("JournalView")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
@@ -86,6 +87,7 @@ struct JournalView: View {
                 .accessibilityLabel(section == .retros
                                     ? String(localized: "New retrospective")
                                     : String(localized: "New note"))
+                .accessibilityIdentifier("NewNote")
             }
         }
         .sheet(isPresented: $composingNote) {
@@ -158,6 +160,7 @@ private struct NewNoteSheet: View {
                         .scrollContentBackground(.hidden)
                         .foregroundStyle(.primary)
                         .padding(12)
+                        .accessibilityIdentifier("NewNoteInput")
 
                     if text.isEmpty {
                         Text("Start writing...")
@@ -186,9 +189,12 @@ private struct NewNoteSheet: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") { save() }
                         .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        .accessibilityIdentifier("SaveNewNote")
                 }
             }
             .background(Color(.systemGroupedBackground).ignoresSafeArea())
+            .accessibilityElement(children: .contain)
+            .accessibilityIdentifier("NewNoteSheet")
         }
     }
 

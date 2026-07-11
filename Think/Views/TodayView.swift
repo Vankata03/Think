@@ -261,6 +261,7 @@ struct TodayView: View {
         }
         .scaleEffect(savedPulse ? 1.015 : 1)
         .animation(.spring(response: 0.28, dampingFraction: 0.8), value: savedPulse)
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("QuestionOfTheDayCard")
     }
 
@@ -269,6 +270,7 @@ struct TodayView: View {
             Label("Answered", systemImage: "checkmark.circle.fill")
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.green)
+                .accessibilityIdentifier("DailyQuestionAnswered")
             Text(entry.text)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
@@ -287,6 +289,7 @@ struct TodayView: View {
                 .foregroundStyle(.primary)
                 .padding(14)
                 .background(Color(.tertiarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .accessibilityIdentifier("DailyQuestionInput")
 
             Button {
                 saveAnswer()
@@ -300,6 +303,7 @@ struct TodayView: View {
             .tint(.accentColor)
             .opacity(answer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.45 : 1)
             .disabled(answer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            .accessibilityIdentifier("SaveDailyAnswer")
         }
     }
 

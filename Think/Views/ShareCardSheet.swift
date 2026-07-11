@@ -35,8 +35,11 @@ struct ShareCardSheet: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") { dismiss() }
+                        .accessibilityIdentifier("DismissShareCard")
                 }
             }
+            .accessibilityElement(children: .contain)
+            .accessibilityIdentifier("ShareCardSheet")
         }
         .presentationDetents([.large])
     }
@@ -84,6 +87,7 @@ struct ShareCardSheet: View {
                     }
                 }
                 .buttonStyle(.plain)
+                .accessibilityIdentifier("CardStyle.\(candidate.id)")
             }
         }
     }
@@ -118,6 +122,7 @@ struct ShareCardSheet: View {
             .controlSize(.large)
             .tint(.accentColor)
             .disabled(photoSaveState == .saving || photoSaveState == .saved)
+            .accessibilityIdentifier("SaveShareCard")
         }
     }
 

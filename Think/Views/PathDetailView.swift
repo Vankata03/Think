@@ -39,6 +39,7 @@ struct PathDetailView: View {
                         Text("Today's task")
                             .font(.caption)
                             .foregroundStyle(.secondary)
+                            .accessibilityIdentifier("PathCurrentTask")
                         Text(step.task)
                             .font(.subheadline)
                     }
@@ -77,6 +78,8 @@ struct PathDetailView: View {
                 }
             }
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("PathDetail.\(path.id)")
         .navigationTitle(path.name)
         .navigationBarTitleDisplayMode(.inline)
     }

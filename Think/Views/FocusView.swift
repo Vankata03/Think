@@ -61,6 +61,7 @@ struct FocusView: View {
                     progress.recordFocusSession()
                     haptics.play(.success)
                 }
+                timer.resync()
                 withAnimation(.easeOut(duration: 0.45)) {
                     appeared = true
                 }
@@ -132,6 +133,8 @@ struct FocusView: View {
             }
         }
         .frame(width: 250, height: 250)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("FocusTimer\(timer.preset == .long ? ".50" : "")")
         .animation(.easeInOut(duration: 0.25), value: timer.isRunning)
     }
 
@@ -215,6 +218,7 @@ struct FocusView: View {
                 .contentShape(Capsule())
                 .buttonStyle(.plain)
                 .accessibilityLabel(preset.label)
+                .accessibilityIdentifier("FocusPreset.\(preset.workMinutes)")
             }
         }
     }
