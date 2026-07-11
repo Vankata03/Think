@@ -44,6 +44,16 @@ final class PomodoroTimer {
     }
 
     private static let notificationID = "pomodoro-phase-end"
+    private static let persistedStateKey = SharedDefaults.pomodoroTimerStateKey
+
+    private struct PersistedState: Codable {
+        let workMinutes: Int
+        let restMinutes: Int
+        let phase: String
+        let remainingSeconds: Int
+        let isRunning: Bool
+        let endDate: Date?
+    }
 
     private(set) var preset: Preset = .classic
     private(set) var phase: Phase = .work
@@ -58,9 +68,12 @@ final class PomodoroTimer {
     private var requestedAuthorization = false
     private var liveActivityID: String?
     private let systemSideEffectsEnabled: Bool
+    private let defaults: UserDefaults?
 
-    init(systemSideEffectsEnabled: Bool = true) {
+    init(systemSideEffectsEnabled: Bool = true, defaults: UserDefaults? = nil) {
         self.systemSideEffectsEnabled = systemSideEffectsEnabled
+        self.defaults = defaults ?? (systemSideEffectsEnabled ? SharedDefaults.appGroup() : nil)
+        restorePersistedState()
     }
 
     var phaseTotalSeconds: Int {
@@ -81,6 +94,7 @@ final class PomodoroTimer {
         self.preset = preset
         phase = .work
         remainingSeconds = preset.workMinutes * 60
+        persistState()
     }
 
     func toggle() {
@@ -94,10 +108,16 @@ final class PomodoroTimer {
         }
         isRunning = true
         endDate = .now.addingTimeInterval(TimeInterval(remainingSeconds))
+        persistState()
         if systemSideEffectsEnabled {
             schedulePhaseEndNotification()
             syncLiveActivity()
         }
+        startTicking()
+    }
+
+    private func startTicking() {
+        tickTask?.cancel()
         tickTask = Task { [weak self] in
             let clock = ContinuousClock()
             while !Task.isCancelled {
@@ -119,6 +139,7 @@ final class PomodoroTimer {
         stopRunning()
         phase = .work
         remainingSeconds = preset.workMinutes * 60
+        persistState()
     }
 
     func skipPhase() {
@@ -128,10 +149,15 @@ final class PomodoroTimer {
         if phase == .work {
             phase = .rest
             remainingSeconds = phaseTotalSeconds
-            if wasRunning { start() }
+            if wasRunning {
+                start()
+            } else {
+                persistState()
+            }
         } else {
             phase = .work
             remainingSeconds = phaseTotalSeconds
+            persistState()
         }
     }
 
@@ -153,6 +179,7 @@ final class PomodoroTimer {
             if restEnd > .now {
                 endDate = restEnd
                 remainingSeconds = Int(restEnd.timeIntervalSinceNow.rounded(.up))
+                persistState()
                 if systemSideEffectsEnabled {
                     schedulePhaseEndNotification()
                     syncLiveActivity()
@@ -165,6 +192,7 @@ final class PomodoroTimer {
         stopRunning()
         phase = .work
         remainingSeconds = preset.workMinutes * 60
+        persistState()
     }
 
     private func stopRunning() {
@@ -179,6 +207,50 @@ final class PomodoroTimer {
             #endif
             endLiveActivity()
         }
+        persistState()
+    }
+
+    private func restorePersistedState() {
+        guard let defaults,
+              let data = defaults.data(forKey: Self.persistedStateKey),
+              let state = try? JSONDecoder().decode(PersistedState.self, from: data),
+              state.workMinutes >= 0,
+              state.restMinutes >= 0,
+              let restoredPhase = Phase(rawValue: state.phase) else {
+            return
+        }
+
+        preset = Preset(workMinutes: state.workMinutes, restMinutes: state.restMinutes)
+        phase = restoredPhase
+        remainingSeconds = max(0, state.remainingSeconds)
+
+        guard state.isRunning, let restoredEndDate = state.endDate else { return }
+
+        isRunning = true
+        endDate = restoredEndDate
+        remainingSeconds = max(0, Int(restoredEndDate.timeIntervalSinceNow.rounded(.up)))
+        startTicking()
+
+        if systemSideEffectsEnabled, restoredEndDate > .now {
+            // ActivityKit keeps the activity alive across app termination, but
+            // the in-memory ID does not survive. Reconnect before creating a
+            // new activity.
+            syncLiveActivity()
+        }
+    }
+
+    private func persistState() {
+        guard let defaults else { return }
+        let state = PersistedState(
+            workMinutes: preset.workMinutes,
+            restMinutes: preset.restMinutes,
+            phase: phase.rawValue,
+            remainingSeconds: remainingSeconds,
+            isRunning: isRunning,
+            endDate: isRunning ? endDate : nil
+        )
+        guard let data = try? JSONEncoder().encode(state) else { return }
+        defaults.set(data, forKey: Self.persistedStateKey)
     }
 
     private func syncLiveActivity() {
@@ -197,6 +269,17 @@ final class PomodoroTimer {
                     .first { $0.id == id }?
                     .update(content)
             }
+        } else if let existingActivity = Activity<PomodoroActivityAttributes>.activities.first {
+            // ActivityKit keeps the activity alive across app termination, but
+            // the in-memory ID does not survive. Reconnect before creating a
+            // new activity.
+            liveActivityID = existingActivity.id
+            let id = existingActivity.id
+            Task.detached {
+                await Activity<PomodoroActivityAttributes>.activities
+                    .first { $0.id == id }?
+                    .update(content)
+            }
         } else if ActivityAuthorizationInfo().areActivitiesEnabled {
             let activity = try? Activity.request(attributes: PomodoroActivityAttributes(), content: content)
             liveActivityID = activity?.id
@@ -206,7 +289,6 @@ final class PomodoroTimer {
 
     private func endLiveActivity() {
         #if os(iOS) && canImport(ActivityKit)
-        guard liveActivityID != nil else { return }
         liveActivityID = nil
         // Ends every activity of this type, which also cleans up any
         // orphans left over from a previous app run.

@@ -7,6 +7,7 @@ import Foundation
 
 nonisolated enum SharedDefaults {
     static let appGroupSuiteName = "group.com.ivanterziev.Think"
+    static let pomodoroTimerStateKey = "pomodoro.timer.state"
 
     static func appGroup() -> UserDefaults {
         let defaults = make(suiteName: appGroupSuiteName, fallback: .standard)
