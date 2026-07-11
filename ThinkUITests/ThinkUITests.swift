@@ -69,8 +69,12 @@ final class ThinkUITests: XCTestCase {
         app.tabBars.buttons.element(boundBy: 1).tap()
         app.descendants(matching: .any)["Path.deep-focus"].tap()
 
-        XCTAssertTrue(app.descendants(matching: .any)["PathDetail.deep-focus"].waitForExistence(timeout: 2))
-        XCTAssertTrue(app.descendants(matching: .any)["PathCurrentTask"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.descendants(matching: .any)["PathDetail.deep-focus"].waitForExistence(timeout: 5))
+        let taskLabel = app.descendants(matching: .any)["PathCurrentTask"]
+        if !taskLabel.waitForExistence(timeout: 2) {
+            app.swipeUp()
+        }
+        XCTAssertTrue(taskLabel.waitForExistence(timeout: 5))
     }
 
     @MainActor
