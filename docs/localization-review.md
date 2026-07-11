@@ -11,12 +11,12 @@ practices; the table still requires independent native sign-off and layout QA.
 | Locale | Language | Draft coverage | Content review | UI review | Layout review | Release-ready |
 |---|---|---:|---:|---:|---:|---:|
 | `en` | English source | Source | Complete | Complete | Complete | Yes |
-| `bg` | Bulgarian | Complete | Complete | Complete | Complete | Yes |
-| `de` | German | Complete | Complete | Complete | Complete | Yes |
-| `es` | Spanish | Complete | Complete | Complete | Complete | Yes |
-| `fr` | French | Complete | Complete | Complete | Complete | Yes |
-| `it` | Italian | Complete | Complete | Complete | Complete | Yes |
-| `pt-BR` | Brazilian Portuguese | Complete | Complete | Complete | Complete | Yes |
+| `bg` | Bulgarian | Complete | Pending | Pending | Pending | No |
+| `de` | German | Complete | Pending | Pending | Pending | No |
+| `es` | Spanish | Complete | Pending | Pending | Pending | No |
+| `fr` | French | Complete | Pending | Pending | Pending | No |
+| `it` | Italian | Complete | Pending | Pending | Pending | No |
+| `pt-BR` | Brazilian Portuguese | Complete | Pending | Pending | Pending | No |
 
 ## Release policy
 

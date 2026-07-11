@@ -39,9 +39,9 @@ struct PathDetailView: View {
                         Text("Today's task")
                             .font(.caption)
                             .foregroundStyle(.secondary)
-                            .accessibilityIdentifier("PathCurrentTask")
                         Text(step.task)
                             .font(.subheadline)
+                            .accessibilityIdentifier("PathCurrentTask")
                     }
                     Button {
                         guard progress.canCompletePathStepToday else { return }

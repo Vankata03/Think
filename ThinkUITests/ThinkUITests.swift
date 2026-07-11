@@ -39,6 +39,7 @@ final class ThinkUITests: XCTestCase {
     func testShareSheetShowsAvailableCardStyles() throws {
         let app = launchApp()
 
+        XCTAssertTrue(app.buttons["ShareQuote"].waitForExistence(timeout: 3))
         app.buttons["ShareQuote"].tap()
 
         XCTAssertTrue(app.descendants(matching: .any)["ShareCardSheet"].waitForExistence(timeout: 3))
@@ -67,6 +68,7 @@ final class ThinkUITests: XCTestCase {
         let app = launchApp()
 
         app.tabBars.buttons.element(boundBy: 1).tap()
+        XCTAssertTrue(app.descendants(matching: .any)["Path.deep-focus"].waitForExistence(timeout: 3))
         app.descendants(matching: .any)["Path.deep-focus"].tap()
 
         XCTAssertTrue(app.descendants(matching: .any)["PathDetail.deep-focus"].waitForExistence(timeout: 5))
@@ -83,6 +85,7 @@ final class ThinkUITests: XCTestCase {
         let app = launchApp()
 
         app.tabBars.buttons.element(boundBy: 3).tap()
+        XCTAssertTrue(app.buttons["Journal"].waitForExistence(timeout: 3))
         app.buttons["Journal"].tap()
         XCTAssertTrue(app.descendants(matching: .any)["JournalView"].waitForExistence(timeout: 2))
 
