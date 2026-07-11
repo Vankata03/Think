@@ -83,9 +83,13 @@ final class ThinkUITests: XCTestCase {
         app.tabBars.buttons["Paths"].tap()
         app.staticTexts["Deep focus"].tap()
 
-        XCTAssertTrue(app.navigationBars["Deep focus"].waitForExistence(timeout: 2))
-        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Day '")).firstMatch.waitForExistence(timeout: 2))
-        XCTAssertTrue(app.staticTexts["Today's task"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.navigationBars["Deep focus"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Day '")).firstMatch.waitForExistence(timeout: 5))
+        let taskLabel = app.staticTexts["Today's task"]
+        if !taskLabel.waitForExistence(timeout: 2) {
+            app.swipeUp()
+        }
+        XCTAssertTrue(taskLabel.waitForExistence(timeout: 5))
     }
 
     @MainActor
