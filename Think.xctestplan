@@ -1,0 +1,45 @@
+{
+  "configurations" : [
+    {
+      "id" : "7A4F3B43-6D1F-42C2-A27F-CE5B3D32BE18",
+      "name" : "Default",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : true,
+    "language" : "en",
+    "region" : "US",
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:Think.xcodeproj",
+      "identifier" : "02A861D82FF9722200441A2B",
+      "name" : "Think"
+    }
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:Think.xcodeproj",
+        "identifier" : "02A861E52FF9722300441A2B",
+        "name" : "ThinkTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Think.xcodeproj",
+        "identifier" : "02A861EF2FF9722300441A2B",
+        "name" : "ThinkUITests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Think.xcodeproj",
+        "identifier" : "AB1000000000000000000006",
+        "name" : "ThinkWidgetsTests"
+      }
+    }
+  ],
+  "version" : 1
+}

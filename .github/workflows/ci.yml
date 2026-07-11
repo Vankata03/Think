@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - prod
+      - "release/**"
+  push:
+    branches:
+      - develop
+      - prod
+      - "release/**"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    name: build-test
+    runs-on: macos-26
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Show toolchain
+        run: |
+          xcodebuild -version
+          xcode-select -p
+          xcrun simctl list devices available | grep -E -- '-- iOS|iPhone 17 Pro' || true
+
+      - name: Install CI tools
+        run: |
+          if ! command -v xcbeautify >/dev/null; then
+            brew install xcbeautify
+          fi
+          xcbeautify --version
+
+      - name: Build for testing
+        run: |
+          mkdir -p BuildLogs
+          set -o pipefail
+          NSUnbufferedIO=YES xcodebuild build-for-testing \
+            -project Think.xcodeproj \
+            -scheme Think \
+            -testPlan Think \
+            -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=latest' \
+            -derivedDataPath DerivedData \
+            CODE_SIGNING_ALLOWED=NO \
+            2>&1 | tee BuildLogs/build-for-testing.log | xcbeautify --renderer github-actions
+
+      - name: Test
+        run: |
+          mkdir -p BuildLogs TestResults
+          set -o pipefail
+          NSUnbufferedIO=YES xcodebuild test-without-building \
+            -project Think.xcodeproj \
+            -scheme Think \
+            -testPlan Think \
+            -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=latest' \
+            -derivedDataPath DerivedData \
+            -resultBundlePath TestResults/Think.xcresult \
+            CODE_SIGNING_ALLOWED=NO \
+            2>&1 | tee BuildLogs/test.log | xcbeautify --renderer github-actions
+
+      - name: Upload raw xcodebuild logs
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: xcodebuild-logs
+          path: BuildLogs
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Upload test result bundle
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: Think.xcresult
+          path: TestResults/Think.xcresult
+          if-no-files-found: ignore
+          retention-days: 14

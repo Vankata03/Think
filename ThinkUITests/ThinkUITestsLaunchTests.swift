@@ -20,6 +20,7 @@ final class ThinkUITestsLaunchTests: XCTestCase {
     @MainActor
     func testLaunch() throws {
         let app = XCUIApplication()
+        app.launchArguments = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
         app.launch()
 
         // Insert steps here to perform after app launch but before taking a screenshot,
