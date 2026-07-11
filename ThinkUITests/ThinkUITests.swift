@@ -36,6 +36,20 @@ final class ThinkUITests: XCTestCase {
     }
 
     @MainActor
+    func testProfileExposesPrivacyActions() throws {
+        let app = launchApp()
+
+        app.tabBars.buttons.element(boundBy: 3).tap()
+
+        XCTAssertTrue(app.buttons["Export journal"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["Delete all data"].waitForExistence(timeout: 2))
+
+        app.buttons["Delete all data"].tap()
+        XCTAssertTrue(app.alerts["Delete all data?"].waitForExistence(timeout: 2))
+        app.alerts.buttons["Cancel"].tap()
+    }
+
+    @MainActor
     func testShareSheetShowsAvailableCardStyles() throws {
         let app = launchApp()
 

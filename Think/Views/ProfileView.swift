@@ -6,6 +6,8 @@
 import SwiftUI
 import SwiftData
 import StoreKit
+import UIKit
+import UserNotifications
 
 private enum Feedback {
     static let address = "ivanterziev93@gmail.com"
@@ -28,14 +30,25 @@ private enum Feedback {
 
 struct ProfileView: View {
     @Environment(ProgressStore.self) private var progress
+    @Environment(\.modelContext) private var modelContext
     @Environment(\.haptics) private var haptics
     @Environment(\.openURL) private var openURL
+    @Environment(\.scenePhase) private var scenePhase
     @Environment(\.requestReview) private var requestReview
     @AppStorage(Appearance.storageKey) private var appearance = Appearance.dark
     @AppStorage(DailyQuoteNotifier.enabledKey) private var dailyLineEnabled = false
     @AppStorage(DailyQuoteNotifier.minutesKey) private var dailyLineMinutes = DailyQuoteNotifier.defaultMinutes
     @AppStorage(RetroReminder.enabledKey) private var retroReminderEnabled = false
     @AppStorage(RetroReminder.minutesKey) private var retroReminderMinutes = RetroReminder.defaultMinutes
+    @Query(sort: \JournalEntry.date, order: .reverse) private var journalEntries: [JournalEntry]
+    @Query(sort: \DailyRetro.date, order: .reverse) private var retrospectives: [DailyRetro]
+
+    @State private var notificationAuthorization = UNAuthorizationStatus.notDetermined
+    @State private var exportURL: URL?
+    @State private var showingExportSheet = false
+    @State private var showingExportError = false
+    @State private var showingDeleteConfirmation = false
+    @State private var showingDeleteError = false
 
     private var dailyLineTime: Binding<Date> {
         $dailyLineMinutes.timeOfDay
@@ -52,6 +65,7 @@ struct ProfileView: View {
                     header
                     progressPanel
                     journalPanel
+                    privacyPanel
                     settingsPanel
                     feedbackPanel
                 }
@@ -66,6 +80,36 @@ struct ProfileView: View {
             .scrollContentBackground(.hidden)
             .safeAreaInset(edge: .bottom) {
                 Color.clear.frame(height: 76)
+            }
+            .task {
+                refreshNotificationAuthorization()
+            }
+            .onChange(of: scenePhase) { _, phase in
+                guard phase == .active else { return }
+                refreshNotificationAuthorization()
+            }
+            .sheet(isPresented: $showingExportSheet, onDismiss: removeTemporaryExport) {
+                if let exportURL {
+                    JournalExportSheet(fileURL: exportURL)
+                }
+            }
+            .alert("Export failed", isPresented: $showingExportError) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("Think could not create the journal export. Try again.")
+            }
+            .alert("Delete all data?", isPresented: $showingDeleteConfirmation) {
+                Button("Delete Everything", role: .destructive) {
+                    deleteAllData()
+                }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("This removes journal entries, retrospectives, streaks, and focus history from this device. This cannot be undone.")
+            }
+            .alert("Delete failed", isPresented: $showingDeleteError) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("Think could not delete every local record. Try again.")
             }
         }
     }
@@ -155,6 +199,28 @@ struct ProfileView: View {
         .accessibilityIdentifier("Journal")
     }
 
+    private var privacyPanel: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionHeader("Privacy")
+            VStack(spacing: 0) {
+                privacyButton("Export journal", systemImage: "square.and.arrow.up") {
+                    exportJournal()
+                }
+                Divider()
+                privacyButton("Delete all data", systemImage: "trash", destructive: true) {
+                    showingDeleteConfirmation = true
+                }
+            }
+            .padding(.horizontal, 18)
+            .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .stroke(.separator.opacity(0.6), lineWidth: 1)
+            }
+        }
+        .accessibilityIdentifier("Privacy")
+    }
+
     private func profileMetric(value: String, label: LocalizedStringKey, systemImage: String) -> some View {
         HStack(spacing: 10) {
             Image(systemName: systemImage)
@@ -230,6 +296,11 @@ struct ProfileView: View {
                     .tint(.accentColor)
                     .padding(.top, 10)
                 }
+
+                if notificationAuthorization == .denied {
+                    Divider()
+                    notificationDeniedNotice
+                }
             }
             .padding(18)
             .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
@@ -240,18 +311,41 @@ struct ProfileView: View {
         }
         .onChange(of: dailyLineEnabled) {
             haptics.play(.selection)
-            DailyQuoteNotifier.refreshSchedule()
+            refreshNotificationPreferences()
         }
         .onChange(of: dailyLineMinutes) {
-            DailyQuoteNotifier.refreshSchedule()
+            refreshNotificationPreferences()
         }
         .onChange(of: retroReminderEnabled) {
             haptics.play(.selection)
-            RetroReminder.refreshSchedule()
+            refreshNotificationPreferences()
         }
         .onChange(of: retroReminderMinutes) {
-            RetroReminder.refreshSchedule()
+            refreshNotificationPreferences()
         }
+    }
+
+    private var notificationDeniedNotice: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label("Notifications are off", systemImage: "bell.slash.fill")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.primary)
+
+            Text("The reminder switches can stay on, but Think cannot schedule reminders until notifications are allowed in Settings.")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Button("Open Settings") {
+                openAppSettings()
+            }
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(Color.accentColor)
+            .accessibilityIdentifier("OpenNotificationSettings")
+        }
+        .padding(.vertical, 10)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("NotificationPermissionDenied")
     }
 
     private var feedbackPanel: some View {
@@ -320,10 +414,113 @@ struct ProfileView: View {
         .buttonStyle(.plain)
     }
 
+    private func privacyButton(
+        _ title: String,
+        systemImage: String,
+        destructive: Bool = false,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                Image(systemName: systemImage)
+                    .font(.headline)
+                    .foregroundStyle(destructive ? .red : Color.accentColor)
+                    .frame(width: 24)
+                Text(LocalizedStringKey(title))
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(destructive ? .red : .primary)
+                Spacer()
+                if !destructive {
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding(.vertical, 13)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier(title)
+    }
+
     private func sendMail(subject: String) {
         if let url = Feedback.mailURL(subject: subject) {
             openURL(url)
         }
+    }
+
+    private func exportJournal() {
+        do {
+            let export = JournalExport(entries: journalEntries, retrospectives: retrospectives)
+            exportURL = try export.writeToTemporaryFile()
+            showingExportSheet = true
+            haptics.play(.success)
+        } catch {
+            showingExportError = true
+            haptics.play(.warning)
+        }
+    }
+
+    private func removeTemporaryExport() {
+        if let exportURL {
+            try? FileManager.default.removeItem(at: exportURL)
+        }
+        exportURL = nil
+    }
+
+    private func deleteAllData() {
+        do {
+            for entry in try modelContext.fetch(FetchDescriptor<JournalEntry>()) {
+                modelContext.delete(entry)
+            }
+            for retrospective in try modelContext.fetch(FetchDescriptor<DailyRetro>()) {
+                modelContext.delete(retrospective)
+            }
+            try modelContext.save()
+
+            progress.reset()
+            DailyQuoteNotifier.cancelSchedule()
+            RetroReminder.cancelSchedule()
+            dailyLineEnabled = false
+            dailyLineMinutes = DailyQuoteNotifier.defaultMinutes
+            retroReminderEnabled = false
+            retroReminderMinutes = RetroReminder.defaultMinutes
+            haptics.play(.success)
+        } catch {
+            showingDeleteError = true
+            haptics.play(.warning)
+        }
+    }
+
+    private func refreshNotificationAuthorization() {
+        Task { @MainActor in
+            notificationAuthorization = await NotificationPermission.status()
+        }
+    }
+
+    private func refreshNotificationPreferences() {
+        let dailyEnabled = dailyLineEnabled
+        let retroEnabled = retroReminderEnabled
+        Task { @MainActor in
+            if dailyEnabled {
+                await DailyQuoteNotifier.refreshScheduleAsync()
+            } else {
+                DailyQuoteNotifier.cancelSchedule()
+            }
+
+            if retroEnabled {
+                await RetroReminder.refreshScheduleAsync()
+            } else {
+                RetroReminder.cancelSchedule()
+            }
+
+            notificationAuthorization = await NotificationPermission.status()
+        }
+    }
+
+    private func openAppSettings() {
+        guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+        openURL(url)
     }
 
     private func sectionHeader(_ title: LocalizedStringKey) -> some View {
@@ -383,5 +580,5 @@ private struct AdaptiveSwitchToggleStyle: ToggleStyle {
 #Preview {
     ProfileView()
         .environment(ProgressStore())
-        .modelContainer(for: JournalEntry.self, inMemory: true)
+        .modelContainer(for: [JournalEntry.self, DailyRetro.self], inMemory: true)
 }

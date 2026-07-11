@@ -64,6 +64,11 @@ struct ThinkApp: App {
             .preferredColorScheme(appearance.colorScheme)
             .animation(.easeInOut(duration: 0.3), value: completedOnboarding)
             .onReceive(NotificationCenter.default.publisher(for: NSLocale.currentLocaleDidChangeNotification)) { _ in
+                DailyQuoteNotifier.refreshSchedule()
+                RetroReminder.refreshSchedule()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .NSSystemTimeZoneDidChange)) { _ in
+                DailyQuoteNotifier.refreshSchedule()
                 RetroReminder.refreshSchedule()
             }
         }

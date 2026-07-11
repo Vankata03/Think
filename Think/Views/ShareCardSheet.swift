@@ -5,12 +5,15 @@
 
 import Photos
 import SwiftUI
+import UIKit
 
 struct ShareCardSheet: View {
     let quote: Quote
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
     @Environment(\.haptics) private var haptics
+    @Environment(\.openURL) private var openURL
+    @Environment(\.scenePhase) private var scenePhase
 
     @State private var style: CardStyle = .paper
     @State private var photoSaveState = PhotoSaveState.idle
@@ -42,6 +45,13 @@ struct ShareCardSheet: View {
             .accessibilityIdentifier("ShareCardSheet")
         }
         .presentationDetents([.large])
+        .onChange(of: scenePhase) { _, phase in
+            guard phase == .active, photoSaveState == .denied else { return }
+            let status = PHPhotoLibrary.authorizationStatus(for: .addOnly)
+            if status == .authorized || status == .limited {
+                photoSaveState = .idle
+            }
+        }
     }
 
     private var cardPreview: some View {
@@ -113,7 +123,11 @@ struct ShareCardSheet: View {
             })
 
             Button {
-                saveToPhotos()
+                if photoSaveState == .denied {
+                    openAppSettings()
+                } else {
+                    saveToPhotos()
+                }
             } label: {
                 Label(photoSaveState.label, systemImage: photoSaveState.systemImage)
                     .frame(maxWidth: .infinity)
@@ -145,7 +159,7 @@ struct ShareCardSheet: View {
         PHPhotoLibrary.requestAuthorization(for: .addOnly) { status in
             guard status == .authorized || status == .limited else {
                 Task { @MainActor in
-                    photoSaveState = .failed
+                    photoSaveState = .denied
                     haptics.play(.warning)
                 }
                 return
@@ -160,6 +174,11 @@ struct ShareCardSheet: View {
                 }
             }
         }
+    }
+
+    private func openAppSettings() {
+        guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+        openURL(url)
     }
 }
 

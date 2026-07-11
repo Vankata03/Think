@@ -6885,6 +6885,193 @@
           }
         }
       }
+    },
+    "Delete Everything": {
+      "localizations": {
+        "bg": { "stringUnit": { "state": "translated", "value": "Изтрий всичко" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Alles löschen" } },
+        "en": { "stringUnit": { "state": "translated", "value": "Delete Everything" } },
+        "es": { "stringUnit": { "state": "translated", "value": "Eliminar todo" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Tout supprimer" } },
+        "it": { "stringUnit": { "state": "translated", "value": "Elimina tutto" } },
+        "pt-BR": { "stringUnit": { "state": "translated", "value": "Apagar tudo" } }
+      }
+    },
+    "Delete all data?": {
+      "localizations": {
+        "bg": { "stringUnit": { "state": "translated", "value": "Да се изтрият ли всички данни?" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Alle Daten löschen?" } },
+        "en": { "stringUnit": { "state": "translated", "value": "Delete all data?" } },
+        "es": { "stringUnit": { "state": "translated", "value": "¿Eliminar todos los datos?" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Supprimer toutes les données ?" } },
+        "it": { "stringUnit": { "state": "translated", "value": "Eliminare tutti i dati?" } },
+        "pt-BR": { "stringUnit": { "state": "translated", "value": "Apagar todos os dados?" } }
+      }
+    },
+    "Delete failed": {
+      "localizations": {
+        "bg": { "stringUnit": { "state": "translated", "value": "Изтриването не бе успешно" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Löschen fehlgeschlagen" } },
+        "en": { "stringUnit": { "state": "translated", "value": "Delete failed" } },
+        "es": { "stringUnit": { "state": "translated", "value": "No se pudo eliminar" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Suppression impossible" } },
+        "it": { "stringUnit": { "state": "translated", "value": "Eliminazione non riuscita" } },
+        "pt-BR": { "stringUnit": { "state": "translated", "value": "Não foi possível apagar" } }
+      }
+    },
+    "Export failed": {
+      "localizations": {
+        "bg": { "stringUnit": { "state": "translated", "value": "Експортът не бе създаден" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Export fehlgeschlagen" } },
+        "en": { "stringUnit": { "state": "translated", "value": "Export failed" } },
+        "es": { "stringUnit": { "state": "translated", "value": "No se pudo exportar" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Export impossible" } },
+        "it": { "stringUnit": { "state": "translated", "value": "Esportazione non riuscita" } },
+        "pt-BR": { "stringUnit": { "state": "translated", "value": "Não foi possível exportar" } }
+      }
+    },
+    "Export journal": {
+      "localizations": {
+        "bg": { "stringUnit": { "state": "translated", "value": "Експортирай дневника" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Journal exportieren" } },
+        "en": { "stringUnit": { "state": "translated", "value": "Export journal" } },
+        "es": { "stringUnit": { "state": "translated", "value": "Exportar diario" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Exporter le journal" } },
+        "it": { "stringUnit": { "state": "translated", "value": "Esporta diario" } },
+        "pt-BR": { "stringUnit": { "state": "translated", "value": "Exportar diário" } }
+      }
+    },
+    "Notifications are off": {
+      "localizations": {
+        "bg": { "stringUnit": { "state": "translated", "value": "Известията са изключени" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Mitteilungen sind deaktiviert" } },
+        "en": { "stringUnit": { "state": "translated", "value": "Notifications are off" } },
+        "es": { "stringUnit": { "state": "translated", "value": "Las notificaciones están desactivadas" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Notifications désactivées" } },
+        "it": { "stringUnit": { "state": "translated", "value": "Le notifiche sono disattivate" } },
+        "pt-BR": { "stringUnit": { "state": "translated", "value": "As notificações estão desativadas" } }
+      }
+    },
+    "OK": {
+      "localizations": {
+        "bg": { "stringUnit": { "state": "translated", "value": "ОК" } },
+        "de": { "stringUnit": { "state": "translated", "value": "OK" } },
+        "en": { "stringUnit": { "state": "translated", "value": "OK" } },
+        "es": { "stringUnit": { "state": "translated", "value": "OK" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "OK" } },
+        "it": { "stringUnit": { "state": "translated", "value": "OK" } },
+        "pt-BR": { "stringUnit": { "state": "translated", "value": "OK" } }
+      }
+    },
+    "Open Settings": {
+      "localizations": {
+        "bg": { "stringUnit": { "state": "translated", "value": "Отвори Настройки" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Einstellungen öffnen" } },
+        "en": { "stringUnit": { "state": "translated", "value": "Open Settings" } },
+        "es": { "stringUnit": { "state": "translated", "value": "Abrir Ajustes" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Ouvrir les réglages" } },
+        "it": { "stringUnit": { "state": "translated", "value": "Apri Impostazioni" } },
+        "pt-BR": { "stringUnit": { "state": "translated", "value": "Abrir Ajustes" } }
+      }
+    },
+    "Privacy": {
+      "localizations": {
+        "bg": { "stringUnit": { "state": "translated", "value": "Поверителност" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Datenschutz" } },
+        "en": { "stringUnit": { "state": "translated", "value": "Privacy" } },
+        "es": { "stringUnit": { "state": "translated", "value": "Privacidad" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Confidentialité" } },
+        "it": { "stringUnit": { "state": "translated", "value": "Privacy" } },
+        "pt-BR": { "stringUnit": { "state": "translated", "value": "Privacidade" } }
+      }
+    },
+    "Share export": {
+      "localizations": {
+        "bg": { "stringUnit": { "state": "translated", "value": "Сподели експорта" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Export teilen" } },
+        "en": { "stringUnit": { "state": "translated", "value": "Share export" } },
+        "es": { "stringUnit": { "state": "translated", "value": "Compartir exportación" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Partager l’export" } },
+        "it": { "stringUnit": { "state": "translated", "value": "Condividi esportazione" } },
+        "pt-BR": { "stringUnit": { "state": "translated", "value": "Compartilhar exportação" } }
+      }
+    },
+    "The reminder switches can stay on, but Think cannot schedule reminders until notifications are allowed in Settings.": {
+      "localizations": {
+        "bg": { "stringUnit": { "state": "translated", "value": "Превключвателите за напомнянията могат да останат включени, но Think не може да ги насрочи, докато не разрешиш известията в Настройки." } },
+        "de": { "stringUnit": { "state": "translated", "value": "Die Erinnerungsschalter können aktiviert bleiben, aber Think kann keine Erinnerungen planen, solange Mitteilungen in den Einstellungen nicht erlaubt sind." } },
+        "en": { "stringUnit": { "state": "translated", "value": "The reminder switches can stay on, but Think cannot schedule reminders until notifications are allowed in Settings." } },
+        "es": { "stringUnit": { "state": "translated", "value": "Los interruptores de recordatorios pueden permanecer activados, pero Think no puede programar recordatorios hasta que permitas las notificaciones en Ajustes." } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Les boutons de rappel peuvent rester activés, mais Think ne peut pas programmer de rappels tant que les notifications ne sont pas autorisées dans Réglages." } },
+        "it": { "stringUnit": { "state": "translated", "value": "I pulsanti dei promemoria possono restare attivi, ma Think non può programmare promemoria finché non abiliti le notifiche nelle Impostazioni." } },
+        "pt-BR": { "stringUnit": { "state": "translated", "value": "Os controles de lembrete podem continuar ativados, mas o Think não pode agendar lembretes até que você permita notificações nos Ajustes." } }
+      }
+    },
+    "Think could not create the journal export. Try again.": {
+      "localizations": {
+        "bg": { "stringUnit": { "state": "translated", "value": "Think не можа да създаде експорта на дневника. Опитай отново." } },
+        "de": { "stringUnit": { "state": "translated", "value": "Think konnte den Journal-Export nicht erstellen. Versuche es erneut." } },
+        "en": { "stringUnit": { "state": "translated", "value": "Think could not create the journal export. Try again." } },
+        "es": { "stringUnit": { "state": "translated", "value": "Think no pudo crear la exportación del diario. Inténtalo de nuevo." } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Think n’a pas pu créer l’export du journal. Réessaie." } },
+        "it": { "stringUnit": { "state": "translated", "value": "Think non ha potuto creare l’esportazione del diario. Riprova." } },
+        "pt-BR": { "stringUnit": { "state": "translated", "value": "O Think não conseguiu criar a exportação do diário. Tente novamente." } }
+      }
+    },
+    "Think could not delete every local record. Try again.": {
+      "localizations": {
+        "bg": { "stringUnit": { "state": "translated", "value": "Think не можа да изтрие всички локални записи. Опитай отново." } },
+        "de": { "stringUnit": { "state": "translated", "value": "Think konnte nicht alle lokalen Einträge löschen. Versuche es erneut." } },
+        "en": { "stringUnit": { "state": "translated", "value": "Think could not delete every local record. Try again." } },
+        "es": { "stringUnit": { "state": "translated", "value": "Think no pudo eliminar todos los registros locales. Inténtalo de nuevo." } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Think n’a pas pu supprimer tous les enregistrements locaux. Réessaie." } },
+        "it": { "stringUnit": { "state": "translated", "value": "Think non ha potuto eliminare tutti i dati locali. Riprova." } },
+        "pt-BR": { "stringUnit": { "state": "translated", "value": "O Think não conseguiu apagar todos os registros locais. Tente novamente." } }
+      }
+    },
+    "Think created a readable JSON file containing your journal entries and evening retrospectives. Share or save it somewhere private.": {
+      "localizations": {
+        "bg": { "stringUnit": { "state": "translated", "value": "Think създаде четим JSON файл с твоите записи в дневника и вечерните ретроспекции. Сподели го или го запази на сигурно място." } },
+        "de": { "stringUnit": { "state": "translated", "value": "Think hat eine lesbare JSON-Datei mit deinen Journaleinträgen und Abend-Retrospektiven erstellt. Teile sie oder speichere sie an einem privaten Ort." } },
+        "en": { "stringUnit": { "state": "translated", "value": "Think created a readable JSON file containing your journal entries and evening retrospectives. Share or save it somewhere private." } },
+        "es": { "stringUnit": { "state": "translated", "value": "Think creó un archivo JSON legible con tus entradas del diario y retrospectivas nocturnas. Compártelo o guárdalo en un lugar privado." } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Think a créé un fichier JSON lisible contenant tes entrées de journal et tes rétrospectives du soir. Partage-le ou conserve-le dans un endroit privé." } },
+        "it": { "stringUnit": { "state": "translated", "value": "Think ha creato un file JSON leggibile con le tue voci di diario e le retrospettive serali. Condividilo o salvalo in un luogo privato." } },
+        "pt-BR": { "stringUnit": { "state": "translated", "value": "O Think criou um arquivo JSON legível com suas entradas do diário e retrospectivas noturnas. Compartilhe-o ou salve-o em um local privado." } }
+      }
+    },
+    "Think journal": {
+      "localizations": {
+        "bg": { "stringUnit": { "state": "translated", "value": "Дневник на Think" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Think-Journal" } },
+        "en": { "stringUnit": { "state": "translated", "value": "Think journal" } },
+        "es": { "stringUnit": { "state": "translated", "value": "Diario de Think" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Journal Think" } },
+        "it": { "stringUnit": { "state": "translated", "value": "Diario Think" } },
+        "pt-BR": { "stringUnit": { "state": "translated", "value": "Diário do Think" } }
+      }
+    },
+    "This removes journal entries, retrospectives, streaks, and focus history from this device. This cannot be undone.": {
+      "localizations": {
+        "bg": { "stringUnit": { "state": "translated", "value": "Това премахва записите в дневника, ретроспекциите, поредиците и историята на фокус сесиите от това устройство. Действието не може да бъде отменено." } },
+        "de": { "stringUnit": { "state": "translated", "value": "Das entfernt Journaleinträge, Retrospektiven, Streaks und den Fokusverlauf von diesem Gerät. Das lässt sich nicht rückgängig machen." } },
+        "en": { "stringUnit": { "state": "translated", "value": "This removes journal entries, retrospectives, streaks, and focus history from this device. This cannot be undone." } },
+        "es": { "stringUnit": { "state": "translated", "value": "Esto elimina las entradas del diario, las retrospectivas, las rachas y el historial de sesiones de concentración de este dispositivo. No se puede deshacer." } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Cette action supprime les entrées du journal, les rétrospectives, les séries et l’historique des sessions de concentration de cet appareil. Elle est irréversible." } },
+        "it": { "stringUnit": { "state": "translated", "value": "Questa operazione rimuove da questo dispositivo le voci del diario, le retrospettive, le serie e la cronologia delle sessioni di concentrazione. Non può essere annullata." } },
+        "pt-BR": { "stringUnit": { "state": "translated", "value": "Isso remove deste dispositivo as entradas do diário, retrospectivas, sequências e o histórico de sessões de foco. Essa ação não pode ser desfeita." } }
+      }
+    },
+    "Your journal export is ready.": {
+      "localizations": {
+        "bg": { "stringUnit": { "state": "translated", "value": "Експортът на дневника е готов." } },
+        "de": { "stringUnit": { "state": "translated", "value": "Dein Journal-Export ist bereit." } },
+        "en": { "stringUnit": { "state": "translated", "value": "Your journal export is ready." } },
+        "es": { "stringUnit": { "state": "translated", "value": "Tu exportación del diario está lista." } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Ton export du journal est prêt." } },
+        "it": { "stringUnit": { "state": "translated", "value": "La tua esportazione del diario è pronta." } },
+        "pt-BR": { "stringUnit": { "state": "translated", "value": "Sua exportação do diário está pronta." } }
+      }
     }
   },
   "version": "1.3"
