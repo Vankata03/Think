@@ -188,4 +188,21 @@ final class ProgressStore {
         defaults.set(totalFocusSessions, forKey: Key.totalFocusSessions)
         markTodayComplete()
     }
+
+    func reset() {
+        for key in Self.persistedKeys {
+            defaults.removeObject(forKey: key)
+        }
+
+        streak = 0
+        lastCompletedDay = nil
+        pathCompletedDays = 0
+        lastPathCompletionDay = nil
+        totalFocusSessions = 0
+        focusSessionDay = nil
+        focusSessionDayCount = 0
+        completedDays = []
+        lastOpenDay = nil
+        defaults.set([], forKey: Key.completedDays)
+    }
 }

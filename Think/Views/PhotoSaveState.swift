@@ -11,6 +11,7 @@ enum PhotoSaveState: Equatable {
     case saving
     case saved
     case failed
+    case denied
 
     var label: String {
         switch self {
@@ -18,6 +19,7 @@ enum PhotoSaveState: Equatable {
         case .saving: String(localized: "Saving")
         case .saved: String(localized: "Saved")
         case .failed: String(localized: "Retry")
+        case .denied: String(localized: "Open Settings")
         }
     }
 
@@ -26,6 +28,7 @@ enum PhotoSaveState: Equatable {
         case .idle, .failed: "square.and.arrow.down"
         case .saving: "hourglass"
         case .saved: "checkmark"
+        case .denied: "gear"
         }
     }
 }

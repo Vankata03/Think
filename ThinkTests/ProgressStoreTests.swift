@@ -187,6 +187,29 @@ struct ProgressStoreTests {
         #expect(ProgressStore.storedDisplayedStreak(in: defaults, now: inTwoDays) == 0)
     }
 
+    @Test func resetClearsProgressAndPersistedHistory() {
+        let defaults = makeDefaults()
+        let store = ProgressStore(defaults: defaults)
+
+        store.recordFocusSession()
+        store.completePathStep()
+        #expect(store.totalFocusSessions == 1)
+        #expect(store.pathCompletedDays == 1)
+
+        store.reset()
+
+        #expect(store.displayedStreak == 0)
+        #expect(store.totalFocusSessions == 0)
+        #expect(store.pathCompletedDays == 0)
+        #expect(store.completedDays.isEmpty)
+        #expect(!store.openedToday)
+
+        let reloaded = ProgressStore(defaults: defaults)
+        #expect(reloaded.totalFocusSessions == 0)
+        #expect(reloaded.pathCompletedDays == 0)
+        #expect(reloaded.completedDays.isEmpty)
+    }
+
     @Test func migrationCopiesLegacyProgress() {
         let source = makeDefaults()
         let destination = makeDefaults()

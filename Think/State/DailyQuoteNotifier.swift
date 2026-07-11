@@ -48,22 +48,27 @@ enum DailyQuoteNotifier {
     }
 
     static func refreshSchedule() {
+        Task {
+            await refreshScheduleAsync()
+        }
+    }
+
+    static func refreshScheduleAsync() async {
         let defaults = UserDefaults.standard
-        let center = UNUserNotificationCenter.current()
-        center.removePendingNotificationRequests(withIdentifiers: identifiers)
+        cancelSchedule()
         guard defaults.bool(forKey: enabledKey) else { return }
+        guard await NotificationPermission.requestAuthorizationIfNeeded() else { return }
 
         let minutes = defaults.object(forKey: minutesKey) as? Int ?? defaultMinutes
-
-        Task {
-            let granted = (try? await center.requestAuthorization(options: [.alert, .sound])) ?? false
-            guard granted else { return }
-
-            let calendar = Calendar.current
-            let requests = scheduledRequests(startingAt: .now, minutes: minutes, calendar: calendar)
-            for request in requests {
-                try? await center.add(request)
-            }
+        let requests = scheduledRequests(startingAt: .now, minutes: minutes, calendar: .current)
+        let center = UNUserNotificationCenter.current()
+        for request in requests {
+            try? await center.add(request)
         }
+    }
+
+    static func cancelSchedule() {
+        UNUserNotificationCenter.current()
+            .removePendingNotificationRequests(withIdentifiers: identifiers)
     }
 }
