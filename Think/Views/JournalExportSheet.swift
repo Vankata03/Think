@@ -9,6 +9,11 @@ struct JournalExportSheet: View {
     let fileURL: URL
 
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var prominentButtonForeground: Color {
+        .prominentButtonForeground(for: colorScheme)
+    }
 
     var body: some View {
         NavigationStack {
@@ -28,6 +33,7 @@ struct JournalExportSheet: View {
 
                 ShareLink(item: fileURL, preview: SharePreview("Think journal")) {
                     Label("Share export", systemImage: "square.and.arrow.up")
+                        .foregroundStyle(prominentButtonForeground)
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)

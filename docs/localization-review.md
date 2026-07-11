@@ -43,6 +43,16 @@ review columns are complete.
 Run `ruby scripts/validate_localizations.rb bg` before shipping Bulgarian.
 The validator requires every catalog entry and checks printf placeholders.
 
+## Post-review additions
+
+Strings added after a locale's sign-off are drafts until re-reviewed:
+
+- 2026-07-11 (PR #8): four Pomodoro phase-end notification strings ("Session
+  complete", "Nice work. Time for a break.", "Break over", "Ready for the next
+  session?") in `Think/Localizable.xcstrings`. Machine-drafted for all six
+  non-English locales, matched to existing catalog tone and terminology
+  (Sitzung/sesión/session/sessione/sessão); pending native sign-off.
+
 ## Efficient workflow
 
 Do not use a general-purpose chat model to translate the full catalog. The
