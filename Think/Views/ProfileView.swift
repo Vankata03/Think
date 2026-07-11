@@ -28,6 +28,11 @@ private enum Feedback {
     }
 }
 
+private struct ExportItem: Identifiable {
+    let id = UUID()
+    let url: URL
+}
+
 struct ProfileView: View {
     @Environment(ProgressStore.self) private var progress
     @Environment(\.modelContext) private var modelContext
@@ -44,8 +49,7 @@ struct ProfileView: View {
     @Query(sort: \DailyRetro.date, order: .reverse) private var retrospectives: [DailyRetro]
 
     @State private var notificationAuthorization = UNAuthorizationStatus.notDetermined
-    @State private var exportURL: URL?
-    @State private var showingExportSheet = false
+    @State private var exportItem: ExportItem?
     @State private var showingExportError = false
     @State private var showingDeleteConfirmation = false
     @State private var showingDeleteError = false
@@ -65,9 +69,9 @@ struct ProfileView: View {
                     header
                     progressPanel
                     journalPanel
-                    privacyPanel
                     settingsPanel
                     feedbackPanel
+                    privacyPanel
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 12)
@@ -88,10 +92,8 @@ struct ProfileView: View {
                 guard phase == .active else { return }
                 refreshNotificationAuthorization()
             }
-            .sheet(isPresented: $showingExportSheet, onDismiss: removeTemporaryExport) {
-                if let exportURL {
-                    JournalExportSheet(fileURL: exportURL)
-                }
+            .sheet(item: $exportItem, onDismiss: removeTemporaryExport) { item in
+                JournalExportSheet(fileURL: item.url)
             }
             .alert("Export failed", isPresented: $showingExportError) {
                 Button("OK", role: .cancel) { }
@@ -452,8 +454,7 @@ struct ProfileView: View {
     private func exportJournal() {
         do {
             let export = JournalExport(entries: journalEntries, retrospectives: retrospectives)
-            exportURL = try export.writeToTemporaryFile()
-            showingExportSheet = true
+            exportItem = ExportItem(url: try export.writeToTemporaryFile())
             haptics.play(.success)
         } catch {
             showingExportError = true
@@ -462,10 +463,10 @@ struct ProfileView: View {
     }
 
     private func removeTemporaryExport() {
-        if let exportURL {
-            try? FileManager.default.removeItem(at: exportURL)
+        if let url = exportItem?.url {
+            try? FileManager.default.removeItem(at: url)
         }
-        exportURL = nil
+        exportItem = nil
     }
 
     private func deleteAllData() {

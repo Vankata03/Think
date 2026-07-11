@@ -157,7 +157,9 @@ struct FocusView: View {
         HStack(spacing: 16) {
             Button {
                 haptics.play(.reset)
-                timer.reset()
+                var transaction = Transaction()
+                transaction.disablesAnimations = true
+                withTransaction(transaction) { timer.reset() }
             } label: {
                 Image(systemName: "arrow.counterclockwise")
                     .frame(width: 24, height: 24)
