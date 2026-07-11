@@ -13,7 +13,7 @@ Nothing. Think has no accounts, no analytics, no advertising, no tracking, and n
 Everything you create in Think is stored locally on your device:
 
 - **Journal entries and daily answers** are stored in a local database on your device. They are never transmitted anywhere.
-- **Progress data** (streak, focus sessions, path progress) is stored in local app storage. It is shared between the Think app, its widgets, and the Apple Watch app on your own devices through Apple's App Group mechanism — it never leaves your devices.
+- **Progress data** (streak, focus sessions, path progress) is stored in local app storage. Progress on iPhone and Apple Watch is tracked separately. On each device, it is shared between the Think app and that device's widgets or complications through Apple's App Group mechanism. This data is not transmitted to us or to third parties, but it may be included in Apple device backups depending on your settings.
 - **Settings** (appearance, notification preferences) are stored locally.
 
 If you delete the app, this data is deleted with it. We have no copy.
