@@ -15,6 +15,9 @@ The product direction is captured in [PLAN.md](PLAN.md).
 - `ThinkWidgetsTests/` - widget extension unit tests using Swift Testing.
 - `ThinkUITests/` - UI tests using XCTest.
 - `Think.xctestplan` - shared test plan for app, widget, and UI tests.
+- `docs/` - localization review status, content audit, hosted legal page sources, and implementation plans (`docs/superpowers/plans/`).
+- `scripts/` - localization tooling (`validate_localizations.rb`, catalog sync/bootstrap) and App Store screenshot resizing (`resize_marketing.sh`).
+- `Screenshots/` - seeded marketing screenshot sources for iPhone and Apple Watch.
 
 ## Requirements
 
@@ -64,6 +67,25 @@ xcodebuild test \
 ```
 
 Coverage is enabled in the shared test plan. In Xcode, open the Report navigator after a test run and select `Coverage` to inspect line coverage by target and file.
+
+## Localization
+
+The app ships seven locales (`en`, `bg`, `de`, `es`, `fr`, `it`, `pt-BR`) via native String Catalogs. Review status and policy live in [docs/localization-review.md](docs/localization-review.md). Before shipping, validate every catalog:
+
+```sh
+ruby scripts/validate_localizations.rb bg de es fr it pt-BR
+```
+
+## App Store
+
+Release preparation is tracked in [docs/release-checklist-1.0.md](docs/release-checklist-1.0.md). One archive of the `Think` scheme contains the watch app and all widget extensions; there is a single App Store Connect record. Marketing screenshots resize to exact App Store slot sizes with:
+
+```sh
+scripts/resize_marketing.sh Screenshots/MarketingSeeded            # 1242x2688 (6.5")
+scripts/resize_marketing.sh -s 410x502 Screenshots/WatchMarketing  # Apple Watch
+```
+
+Legal pages (privacy policy, support) are hosted at <https://vankata03.github.io/think-legal/>; their sources live in `docs/legal/`.
 
 ## Repository Notes
 

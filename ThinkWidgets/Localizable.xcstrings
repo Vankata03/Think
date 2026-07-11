@@ -1,326 +1,338 @@
 {
-  "sourceLanguage": "en",
-  "strings": {
-    "%lld percent": {
-      "localizations": {
-        "bg": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld%"
+  "sourceLanguage" : "en",
+  "strings" : {
+    "%lld percent" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld%"
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld Prozent"
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld Prozent"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld por ciento"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld por ciento"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld pour cent"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld pour cent"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld percento"
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld percento"
           }
         },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld por cento"
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld por cento"
           }
         }
       }
     },
-    "Break": {
-      "localizations": {
-        "bg": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Почивка"
+    "break" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "почивка"
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pause"
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pause"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pausa"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "descanso"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pause"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "pause"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pausa"
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "pausa"
           }
         },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pausa"
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "pausa"
           }
         }
       }
     },
-    "Daily line": {
-      "localizations": {
-        "bg": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Дневна мисъл"
+    "Break" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Почивка"
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tageszeile"
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pause"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Frase del día"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausa"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Citation du jour"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pause"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Frase del giorno"
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausa"
           }
         },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Frase do dia"
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausa"
           }
         }
       }
     },
-    "Deep work": {
-      "localizations": {
-        "bg": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Дълбока работа"
+    "Break over" : {
+
+    },
+    "Daily line" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Дневна мисъл"
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Deep Work"
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tageszeile"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Trabajo profundo"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frase del día"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Travail en profondeur"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Citation du jour"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lavoro profondo"
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frase del giorno"
           }
         },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Trabalho profundo"
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frase do dia"
           }
         }
       }
     },
-    "Pomodoro progress": {
-      "localizations": {
-        "bg": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Напредък на сесията"
+    "deep work" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "дълбока работа"
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pomodoro-Fortschritt"
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deep Work"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Progreso del método Pomodoro"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "trabajo profundo"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Progression Pomodoro"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "travail en profondeur"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Progressi con il metodo Pomodoro"
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "lavoro profondo"
           }
         },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Progresso do Pomodoro"
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "trabalho profundo"
           }
         }
       }
     },
-    "Today's line from Think, on your home and lock screen.": {
-      "localizations": {
-        "bg": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Днешната мисъл от Think, на началния и заключения екран."
+    "Deep work" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Дълбока работа"
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Die heutige Think-Zeile auf deinem Start- und Sperrbildschirm."
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deep Work"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La frase de hoy de Think, en tu pantalla de inicio y de bloqueo."
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trabajo profundo"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La citation du jour de Think, sur ton écran d'accueil et ton écran de verrouillage."
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Travail en profondeur"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La frase del giorno di Think, sulla schermata iniziale e su quella di blocco."
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lavoro profondo"
           }
         },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "A frase de hoje do Think, na sua tela inicial e na tela de bloqueio."
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trabalho profundo"
           }
         }
       }
     },
-    "break": {
-      "localizations": {
-        "bg": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "почивка"
+    "Nice work. Time for a break." : {
+
+    },
+    "Pomodoro progress" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Напредък на сесията"
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pause"
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pomodoro-Fortschritt"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "descanso"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Progreso del método Pomodoro"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "pause"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Progression Pomodoro"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "pausa"
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Progressi con il metodo Pomodoro"
           }
         },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "pausa"
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Progresso do Pomodoro"
           }
         }
       }
     },
-    "deep work": {
-      "localizations": {
-        "bg": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "дълбока работа"
+    "Ready for the next session?" : {
+
+    },
+    "Session complete" : {
+
+    },
+    "Today's line from Think, on your home and lock screen." : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Днешната мисъл от Think, на началния и заключения екран."
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Deep Work"
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die heutige Think-Zeile auf deinem Start- und Sperrbildschirm."
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "trabajo profundo"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La frase de hoy de Think, en tu pantalla de inicio y de bloqueo."
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "travail en profondeur"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La citation du jour de Think, sur ton écran d'accueil et ton écran de verrouillage."
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "lavoro profondo"
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La frase del giorno di Think, sulla schermata iniziale e su quella di blocco."
           }
         },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "trabalho profundo"
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A frase de hoje do Think, na sua tela inicial e na tela de bloqueio."
           }
         }
       }
     }
   },
-  "version": "1.3"
+  "version" : "1.3"
 }
