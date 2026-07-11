@@ -140,17 +140,18 @@ struct PathsView: View {
         .contentShape(Rectangle())
         .opacity(path.isAvailable ? 1 : 0.68)
         .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("Path.\(path.id)")
     }
 
     private func subtitle(for path: ThinkingPath) -> String {
         guard path.isAvailable else { return path.tagline }
         let done = progress.pathCompletedDays
         if done == 0 { return path.tagline }
-        if done >= path.steps.count { return "Completed" }
-        return "Day \(done + 1) of \(path.steps.count)"
+        if done >= path.steps.count { return String(localized: "Completed") }
+        return String(localized: "Day \(done + 1) of \(path.steps.count)")
     }
 
-    private func sectionHeader(_ title: String, detail: String? = nil) -> some View {
+    private func sectionHeader(_ title: LocalizedStringKey, detail: LocalizedStringKey? = nil) -> some View {
         HStack(alignment: .lastTextBaseline) {
             Text(title)
                 .font(.caption.weight(.semibold))

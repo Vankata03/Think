@@ -32,9 +32,14 @@ struct ThinkingPath: Identifiable, Codable, Hashable {
 
 enum PathLibrary {
 
+    static let deepFocus = localized(sourceDeepFocus)
+    static let clearThinking = localized(sourceClearThinking)
+    static let discipline = localized(sourceDiscipline)
+    static let learningMachine = localized(sourceLearningMachine)
+
     static let all: [ThinkingPath] = [deepFocus, clearThinking, discipline, learningMachine]
 
-    static let deepFocus = ThinkingPath(
+    private static let sourceDeepFocus = ThinkingPath(
         id: "deep-focus",
         name: "Deep focus",
         tagline: "21 days to a longer attention span",
@@ -107,21 +112,45 @@ enum PathLibrary {
         ]
     )
 
-    static let clearThinking = ThinkingPath(
+    private static let sourceClearThinking = ThinkingPath(
         id: "clear-thinking", name: "Clear thinking",
         tagline: "Mental models, biases, judgment",
         icon: "lightbulb", isAvailable: false, steps: []
     )
 
-    static let discipline = ThinkingPath(
+    private static let sourceDiscipline = ThinkingPath(
         id: "discipline", name: "Discipline",
         tagline: "Habits, consistency, showing up",
         icon: "figure.strengthtraining.traditional", isAvailable: false, steps: []
     )
 
-    static let learningMachine = ThinkingPath(
+    private static let sourceLearningMachine = ThinkingPath(
         id: "learning-machine", name: "Learning machine",
         tagline: "Reading, retention, curiosity",
         icon: "book", isAvailable: false, steps: []
     )
+
+    private static func localized(_ source: ThinkingPath) -> ThinkingPath {
+        let base = "path.\(source.id)"
+        return ThinkingPath(
+            id: source.id,
+            name: localizedContent("\(base).name", fallback: source.name),
+            tagline: localizedContent("\(base).tagline", fallback: source.tagline),
+            icon: source.icon,
+            isAvailable: source.isAvailable,
+            steps: source.steps.map { step in
+                let stepBase = "\(base).step.\(step.id)"
+                return PathStep(
+                    id: step.id,
+                    title: localizedContent("\(stepBase).title", fallback: step.title),
+                    lesson: localizedContent("\(stepBase).lesson", fallback: step.lesson),
+                    task: localizedContent("\(stepBase).task", fallback: step.task)
+                )
+            }
+        )
+    }
+
+    private static func localizedContent(_ key: String, fallback: String) -> String {
+        Bundle.main.localizedString(forKey: key, value: fallback, table: "Content")
+    }
 }

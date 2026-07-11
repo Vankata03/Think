@@ -33,8 +33,8 @@ enum DailyQuoteNotifier {
 
             let quote = ContentLibrary.dailyQuote(for: day)
             let content = UNMutableNotificationContent()
-            content.title = "Today's line"
-            content.body = "\(quote.text) — \(quote.author)"
+            content.title = String(localized: "Today's line")
+            content.body = quote.notificationText
             content.sound = .default
 
             let components = calendar.dateComponents(

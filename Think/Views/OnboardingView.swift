@@ -64,7 +64,9 @@ struct OnboardingView: View {
             Button {
                 advance()
             } label: {
-                Text(page < 2 ? "Continue" : "Begin practice")
+                Text(page < 2
+                     ? String(localized: "Continue")
+                     : String(localized: "Begin practice"))
                     .font(.headline)
                     .foregroundStyle(Color.prominentButtonForeground(for: colorScheme))
                     .frame(maxWidth: .infinity)
@@ -128,7 +130,7 @@ struct OnboardingView: View {
         .padding(.horizontal, 24)
     }
 
-    private func practiceRow(icon: String, title: String, detail: String) -> some View {
+    private func practiceRow(icon: String, title: LocalizedStringKey, detail: LocalizedStringKey) -> some View {
         HStack(alignment: .top, spacing: 14) {
             Image(systemName: icon)
                 .font(.headline)
@@ -227,7 +229,7 @@ struct OnboardingView: View {
             VStack(alignment: .leading, spacing: 10) {
                 Text("Start with \(PathLibrary.deepFocus.name)")
                     .font(.largeTitle.bold())
-                Text(PathLibrary.deepFocus.tagline + ". One short lesson and one concrete task per day, ten minutes at most.")
+                Text("\(PathLibrary.deepFocus.tagline). One short lesson and one concrete task per day, ten minutes at most.")
                     .font(.body)
                     .foregroundStyle(.secondary)
             }
@@ -257,7 +259,7 @@ struct OnboardingView: View {
         .padding(.horizontal, 24)
     }
 
-    private func onboardingLabel(_ title: String, systemImage: String) -> some View {
+    private func onboardingLabel(_ title: LocalizedStringKey, systemImage: String) -> some View {
         Label {
             Text(title)
                 .foregroundStyle(.primary)

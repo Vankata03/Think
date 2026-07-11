@@ -61,5 +61,5 @@ Motivational app for young ambitious people. Not a quote-wallpaper app: every da
 - [x] First-launch onboarding (practice intro, notification opt-in, first path)
 - [x] Zero-state polish (no-guilt streak copy, path "Not started")
 - [x] Watch face streak complication (accessory families via watch widget extension)
-- [x] Release content pass: 66 public-domain quotes, 40 daily questions, house lines unattributed on cards
+- [x] Release content audit: 100 deliberately paired line → question → action practices; attributed lines carry exact public-domain edition provenance, house lines remain unattributed on cards
 - [ ] App Store 1.0 release prep: signing, screenshots, metadata, final branch/tag flow

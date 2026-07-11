@@ -49,14 +49,16 @@ struct WatchFocusView: View {
                     .font(.system(size: 34, weight: .semibold, design: .rounded))
                     .monospacedDigit()
                     .minimumScaleFactor(0.72)
-                Text(timer.phase.rawValue)
+                Text(timer.phase.label)
                     .font(.caption2.weight(.semibold))
                     .foregroundStyle(.secondary)
             }
         }
         .frame(width: 132, height: 132)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel(timer.phase == .work ? "Deep work timer" : "Break timer")
+        .accessibilityLabel(timer.phase == .work
+                            ? String(localized: "Deep work timer")
+                            : String(localized: "Break timer"))
         .accessibilityValue(timer.remainingLabel)
     }
 
@@ -65,7 +67,10 @@ struct WatchFocusView: View {
             Button {
                 timer.toggle()
             } label: {
-                Label(timer.isRunning ? "Pause" : "Start", systemImage: timer.isRunning ? "pause.fill" : "play.fill")
+                Label(
+                    timer.isRunning ? String(localized: "Pause") : String(localized: "Start"),
+                    systemImage: timer.isRunning ? "pause.fill" : "play.fill"
+                )
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
@@ -88,7 +93,9 @@ struct WatchFocusView: View {
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
-                .accessibilityLabel(timer.phase == .work ? "Skip to break" : "Skip to work")
+                .accessibilityLabel(timer.phase == .work
+                                    ? String(localized: "Skip to break")
+                                    : String(localized: "Skip to work"))
             }
         }
     }

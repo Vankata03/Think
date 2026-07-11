@@ -14,10 +14,10 @@ enum PhotoSaveState: Equatable {
 
     var label: String {
         switch self {
-        case .idle: "Save"
-        case .saving: "Saving"
-        case .saved: "Saved"
-        case .failed: "Retry"
+        case .idle: String(localized: "Save")
+        case .saving: String(localized: "Saving")
+        case .saved: String(localized: "Saved")
+        case .failed: String(localized: "Retry")
         }
     }
 

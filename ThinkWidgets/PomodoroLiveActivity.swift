@@ -18,7 +18,7 @@ private enum LiveActivityStyle {
 
 nonisolated enum PomodoroLiveActivityPresentation {
     static func title(for state: PomodoroActivityAttributes.ContentState) -> String {
-        state.phase == .work ? "Deep work" : "Break"
+        state.phase == .work ? String(localized: "Deep work") : String(localized: "Break")
     }
 
     static func symbol(for state: PomodoroActivityAttributes.ContentState) -> String {
@@ -94,7 +94,7 @@ struct PomodoroLiveActivity: Widget {
             accent: LiveActivityStyle.accent(for: state)
         )
         .accessibilityLabel("Pomodoro progress")
-        .accessibilityValue("\(Int((state.progress() * 100).rounded())) percent")
+        .accessibilityValue(String(localized: "\(Int((state.progress() * 100).rounded())) percent"))
     }
 }
 

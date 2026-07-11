@@ -13,6 +13,14 @@ struct JournalView: View {
         case retros = "Retros"
 
         var id: String { rawValue }
+
+        var label: String {
+            switch self {
+            case .notes: String(localized: "Notes")
+            case .questions: String(localized: "Questions")
+            case .retros: String(localized: "Retros")
+            }
+        }
     }
 
     @Query(sort: \JournalEntry.date, order: .reverse) private var entries: [JournalEntry]
@@ -32,7 +40,7 @@ struct JournalView: View {
             SwiftUI.Section {
                 Picker("Entries", selection: $section) {
                     ForEach(Section.allCases) { section in
-                        Text(section.rawValue).tag(section)
+                        Text(section.label).tag(section)
                     }
                 }
                 .pickerStyle(.segmented)
@@ -44,8 +52,8 @@ struct JournalView: View {
             case .notes, .questions:
                 if filtered.isEmpty {
                     Text(section == .notes
-                         ? "Write anything on your mind. Tap + to start."
-                         : "Your answers to the daily question will appear here.")
+                         ? String(localized: "Write anything on your mind. Tap + to start.")
+                         : String(localized: "Your answers to the daily question will appear here."))
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(filtered) { entry in
@@ -75,7 +83,9 @@ struct JournalView: View {
                 } label: {
                     Image(systemName: "plus")
                 }
-                .accessibilityLabel(section == .retros ? "New retrospective" : "New note")
+                .accessibilityLabel(section == .retros
+                                    ? String(localized: "New retrospective")
+                                    : String(localized: "New note"))
             }
         }
         .sheet(isPresented: $composingNote) {
@@ -115,7 +125,7 @@ struct JournalView: View {
     }
 
     @ViewBuilder
-    private func retroSection(_ title: String, systemImage: String, text: String) -> some View {
+    private func retroSection(_ title: LocalizedStringKey, systemImage: String, text: String) -> some View {
         if !text.isEmpty {
             VStack(alignment: .leading, spacing: 2) {
                 Label(title, systemImage: systemImage)

@@ -16,8 +16,8 @@ enum StreakCardKind: String, CaseIterable, Identifiable {
 
     var name: String {
         switch self {
-        case .streak: "Streak"
-        case .calendar: "Calendar"
+        case .streak: String(localized: "Streak")
+        case .calendar: String(localized: "Calendar")
         }
     }
 }
@@ -58,7 +58,9 @@ struct StreakCardView: View {
                 .monospacedDigit()
                 .foregroundStyle(style.text)
 
-            Text(streak == 1 ? "day of deliberate thinking" : "days of deliberate thinking")
+            Text(streak == 1
+                 ? String(localized: "day of deliberate thinking")
+                 : String(localized: "days of deliberate thinking"))
                 .font(.system(size: 56, weight: .medium, design: .serif))
                 .foregroundStyle(style.text)
                 .multilineTextAlignment(.center)
@@ -108,7 +110,7 @@ struct StreakCardView: View {
                 }
             }
 
-            Text(streak == 1 ? "1 day streak" : "\(streak) day streak")
+            Text(String(localized: "\(streak) day streak"))
                 .font(.system(size: 48, design: .serif))
                 .italic()
                 .foregroundStyle(style.accent)

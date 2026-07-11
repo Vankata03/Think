@@ -26,7 +26,7 @@ struct DailyQuoteNotifierTests {
         #expect(requests.last?.identifier == "daily-quote-7")
         #expect(requests.first?.content.title == "Today's line")
         let quote = ContentLibrary.dailyQuote(for: now)
-        #expect(requests.first?.content.body == "\(quote.text) — \(quote.author)")
+        #expect(requests.first?.content.body == quote.notificationText)
         let trigger = try #require(requests.first?.trigger as? UNCalendarNotificationTrigger)
         #expect(trigger.dateComponents.year == 2026)
         #expect(trigger.dateComponents.month == 7)
@@ -83,7 +83,7 @@ struct DailyQuoteNotifierTests {
         for (offset, request) in requests.enumerated() {
             let day = try #require(calendar.date(byAdding: .day, value: offset, to: calendar.startOfDay(for: now)))
             let quote = ContentLibrary.dailyQuote(for: day)
-            #expect(request.content.body == "\(quote.text) — \(quote.author)")
+            #expect(request.content.body == quote.notificationText)
         }
     }
 

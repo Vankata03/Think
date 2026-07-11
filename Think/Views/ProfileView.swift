@@ -119,6 +119,7 @@ struct ProfileView: View {
                     .stroke(.separator.opacity(0.6), lineWidth: 1)
             }
         }
+        .accessibilityIdentifier("ProfileProgress")
     }
 
     private var journalPanel: some View {
@@ -154,7 +155,7 @@ struct ProfileView: View {
         .accessibilityIdentifier("Journal")
     }
 
-    private func profileMetric(value: String, label: String, systemImage: String) -> some View {
+    private func profileMetric(value: String, label: LocalizedStringKey, systemImage: String) -> some View {
         HStack(spacing: 10) {
             Image(systemName: systemImage)
                 .font(.headline)
@@ -258,11 +259,11 @@ struct ProfileView: View {
             sectionHeader("Feedback")
             VStack(spacing: 0) {
                 feedbackButton("Share an idea", systemImage: "lightbulb") {
-                    sendMail(subject: "Think — idea")
+                    sendMail(subject: String(localized: "Think — idea"))
                 }
                 Divider()
                 feedbackButton("Report a problem", systemImage: "exclamationmark.bubble") {
-                    sendMail(subject: "Think — problem")
+                    sendMail(subject: String(localized: "Think — problem"))
                 }
                 Divider()
                 feedbackButton("Rate Think", systemImage: "star") {
@@ -290,7 +291,7 @@ struct ProfileView: View {
         }
     }
 
-    private func settingsLabel(_ title: String, systemImage: String) -> some View {
+    private func settingsLabel(_ title: LocalizedStringKey, systemImage: String) -> some View {
         Label {
             Text(title)
                 .foregroundStyle(.primary)
@@ -301,7 +302,7 @@ struct ProfileView: View {
         .font(.subheadline)
     }
 
-    private func feedbackButton(_ title: String, systemImage: String, action: @escaping () -> Void) -> some View {
+    private func feedbackButton(_ title: LocalizedStringKey, systemImage: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack(spacing: 12) {
                 Image(systemName: systemImage)
@@ -325,7 +326,7 @@ struct ProfileView: View {
         }
     }
 
-    private func sectionHeader(_ title: String) -> some View {
+    private func sectionHeader(_ title: LocalizedStringKey) -> some View {
         Text(title)
             .font(.caption.weight(.semibold))
             .textCase(.uppercase)
@@ -351,7 +352,9 @@ private struct AdaptiveSwitchToggleStyle: ToggleStyle {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityValue(configuration.isOn ? "On" : "Off")
+        .accessibilityValue(configuration.isOn
+                            ? String(localized: "On")
+                            : String(localized: "Off"))
     }
 
     private func switchBody(isOn: Bool) -> some View {

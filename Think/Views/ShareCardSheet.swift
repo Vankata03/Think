@@ -129,6 +129,7 @@ struct ShareCardSheet: View {
         let renderer = ImageRenderer(content: QuoteCardView(quote: quote, style: style))
         renderer.proposedSize = ProposedViewSize(QuoteCardView.designSize)
         renderer.scale = 1
+        renderer.isOpaque = true
         return renderer.uiImage ?? UIImage()
     }
 

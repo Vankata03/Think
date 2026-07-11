@@ -33,8 +33,8 @@ enum RetroReminder {
             components.minute = minutes % 60
 
             let content = UNMutableNotificationContent()
-            content.title = "Evening retrospective"
-            content.body = "Close the day. Two honest minutes."
+            content.title = String(localized: "Evening retrospective")
+            content.body = String(localized: "Close the day. Two honest minutes.")
             content.sound = .default
 
             let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
