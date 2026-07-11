@@ -11,8 +11,8 @@ import UserNotifications
 
 private enum Feedback {
     static let address = "ivanterziev93@gmail.com"
-    static let privacyPolicyURL = URL(string: "https://vankata03.github.io/think-legal/privacy-policy.html")
-    static let supportURL = URL(string: "https://vankata03.github.io/think-legal/support.html")
+    static let privacyPolicyURL = URL(string: "https://thinkapp.tech/privacy.html")
+    static let supportURL = URL(string: "https://thinkapp.tech/support.html")
 
     static func mailURL(subject: String) -> URL? {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
