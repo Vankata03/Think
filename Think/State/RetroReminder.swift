@@ -17,29 +17,34 @@ enum RetroReminder {
     private static let identifier = "daily-retro"
 
     static func refreshSchedule() {
+        Task {
+            await refreshScheduleAsync()
+        }
+    }
+
+    static func refreshScheduleAsync() async {
         let defaults = UserDefaults.standard
-        let center = UNUserNotificationCenter.current()
-        center.removePendingNotificationRequests(withIdentifiers: [identifier])
+        cancelSchedule()
         guard defaults.bool(forKey: enabledKey) else { return }
+        guard await NotificationPermission.requestAuthorizationIfNeeded() else { return }
 
         let minutes = defaults.object(forKey: minutesKey) as? Int ?? defaultMinutes
+        var components = DateComponents()
+        components.hour = minutes / 60
+        components.minute = minutes % 60
 
-        Task {
-            let granted = (try? await center.requestAuthorization(options: [.alert, .sound])) ?? false
-            guard granted else { return }
+        let content = UNMutableNotificationContent()
+        content.title = String(localized: "Evening retrospective")
+        content.body = String(localized: "Close the day. Two honest minutes.")
+        content.sound = .default
 
-            var components = DateComponents()
-            components.hour = minutes / 60
-            components.minute = minutes % 60
+        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
+        let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
+        try? await UNUserNotificationCenter.current().add(request)
+    }
 
-            let content = UNMutableNotificationContent()
-            content.title = String(localized: "Evening retrospective")
-            content.body = String(localized: "Close the day. Two honest minutes.")
-            content.sound = .default
-
-            let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
-            let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
-            try? await center.add(request)
-        }
+    static func cancelSchedule() {
+        UNUserNotificationCenter.current()
+            .removePendingNotificationRequests(withIdentifiers: [identifier])
     }
 }

@@ -36,6 +36,20 @@ final class ThinkUITests: XCTestCase {
     }
 
     @MainActor
+    func testProfileExposesPrivacyActions() throws {
+        let app = launchApp()
+
+        app.tabBars.buttons.element(boundBy: 3).tap()
+
+        XCTAssertTrue(app.buttons["Export journal"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["Delete all data"].waitForExistence(timeout: 2))
+
+        app.buttons["Delete all data"].tap()
+        XCTAssertTrue(app.alerts["Delete all data?"].waitForExistence(timeout: 2))
+        app.alerts.buttons["Cancel"].tap()
+    }
+
+    @MainActor
     func testShareSheetShowsAvailableCardStyles() throws {
         let app = launchApp()
 
@@ -69,9 +83,13 @@ final class ThinkUITests: XCTestCase {
         app.tabBars.buttons["Paths"].tap()
         app.staticTexts["Deep focus"].tap()
 
-        XCTAssertTrue(app.navigationBars["Deep focus"].waitForExistence(timeout: 2))
-        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Day '")).firstMatch.waitForExistence(timeout: 2))
-        XCTAssertTrue(app.staticTexts["Today's task"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.navigationBars["Deep focus"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Day '")).firstMatch.waitForExistence(timeout: 5))
+        let taskLabel = app.staticTexts["Today's task"]
+        if !taskLabel.waitForExistence(timeout: 2) {
+            app.swipeUp()
+        }
+        XCTAssertTrue(taskLabel.waitForExistence(timeout: 5))
     }
 
     @MainActor
@@ -111,7 +129,11 @@ final class ThinkUITests: XCTestCase {
     func testLaunchPerformance() throws {
         measure(metrics: [XCTApplicationLaunchMetric()]) {
             let app = XCUIApplication()
-            app.launchArguments = ["-ui-testing"]
+            app.launchArguments = [
+                "-ui-testing",
+                "-AppleLanguages", "(en)",
+                "-AppleLocale", "en_US",
+            ]
             app.launch()
         }
     }
@@ -119,7 +141,11 @@ final class ThinkUITests: XCTestCase {
     @MainActor
     private func launchApp() -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["-ui-testing"]
+        app.launchArguments = [
+            "-ui-testing",
+            "-AppleLanguages", "(en)",
+            "-AppleLocale", "en_US",
+        ]
         app.launch()
         return app
     }

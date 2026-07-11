@@ -24,7 +24,7 @@ struct DailyQuoteNotifierTests {
         #expect(requests.count == 8)
         #expect(requests.first?.identifier == "daily-quote-0")
         #expect(requests.last?.identifier == "daily-quote-7")
-        #expect(requests.first?.content.title == "Today's line")
+        #expect(requests.first?.content.title == String(localized: "Today's line"))
         let quote = ContentLibrary.dailyQuote(for: now)
         #expect(requests.first?.content.body == quote.notificationText)
         let trigger = try #require(requests.first?.trigger as? UNCalendarNotificationTrigger)
@@ -99,6 +99,44 @@ struct DailyQuoteNotifierTests {
 
         #expect(requests.count == 7)
         #expect(requests.map(\.identifier) == (1..<8).map { "daily-quote-\($0)" })
+    }
+
+    @Test func scheduledRequestsUseTheConfiguredTimeZone() throws {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = try #require(TimeZone(identifier: "Asia/Tokyo"))
+        let now = try date(year: 2026, month: 7, day: 4, hour: 7, minute: 30, calendar: calendar)
+
+        let requests = DailyQuoteNotifier.scheduledRequests(
+            startingAt: now,
+            minutes: 8 * 60,
+            calendar: calendar
+        )
+
+        let trigger = try #require(requests.first?.trigger as? UNCalendarNotificationTrigger)
+        #expect(trigger.dateComponents.year == 2026)
+        #expect(trigger.dateComponents.month == 7)
+        #expect(trigger.dateComponents.day == 4)
+        #expect(trigger.dateComponents.hour == 8)
+        #expect(trigger.dateComponents.minute == 0)
+    }
+
+    @Test func scheduledRequestsRollPastMidnightInTheCurrentTimeZone() throws {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = try #require(TimeZone(identifier: "America/New_York"))
+        let now = try date(year: 2026, month: 7, day: 4, hour: 23, minute: 59, calendar: calendar)
+
+        let requests = DailyQuoteNotifier.scheduledRequests(
+            startingAt: now,
+            minutes: 0,
+            calendar: calendar
+        )
+
+        #expect(requests.count == 7)
+        #expect(requests.first?.identifier == "daily-quote-1")
+        let trigger = try #require(requests.first?.trigger as? UNCalendarNotificationTrigger)
+        #expect(trigger.dateComponents.day == 5)
+        #expect(trigger.dateComponents.hour == 0)
+        #expect(trigger.dateComponents.minute == 0)
     }
 
     private func utcCalendar() -> Calendar {
