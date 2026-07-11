@@ -324,11 +324,11 @@ final class PomodoroTimer {
         let content = UNMutableNotificationContent()
         switch phase {
         case .work:
-            content.title = "Session complete"
-            content.body = "Nice work. Time for a break."
+            content.title = String(localized: "Session complete")
+            content.body = String(localized: "Nice work. Time for a break.")
         case .rest:
-            content.title = "Break over"
-            content.body = "Ready for the next session?"
+            content.title = String(localized: "Break over")
+            content.body = String(localized: "Ready for the next session?")
         }
         content.sound = .default
 
