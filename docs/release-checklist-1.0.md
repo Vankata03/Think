@@ -18,7 +18,7 @@ State as of 2026-07-11, from the full pre-launch review. Update checkboxes as it
 - [x] Seven locales localized and validated (`ruby scripts/validate_localizations.rb bg de es fr it pt-BR`).
 - [x] Pomodoro phase-end notifications localized (PR #8; previously hardcoded English).
 - [x] iPhone-only device family (PR #8).
-- [x] Legal pages hosted: <https://vankata03.github.io/think-legal/privacy-policy.html> and `support.html`.
+- [x] Legal pages hosted: <https://thinkapp.tech/privacy.html> and <https://thinkapp.tech/support.html> (thinkapp.tech marketing site; sources in `Projects/think-site`, repo `Vankata03/think-site`).
 - [x] Screenshot resize tooling: `scripts/resize_marketing.sh` (default 1242×2688; `-s WxH` for other slots).
 - [x] CI builds and tests every PR (`.github/workflows/ci.yml`).
 
@@ -37,8 +37,8 @@ State as of 2026-07-11, from the full pre-launch review. Update checkboxes as it
 ## App Store Connect setup
 
 - [ ] Create the app record (bundle ID `com.ivanterziev.Think`).
-- [ ] Privacy Policy URL: `https://vankata03.github.io/think-legal/privacy-policy.html`.
-- [ ] Support URL: `https://vankata03.github.io/think-legal/support.html`.
+- [x] Privacy Policy URL: `https://thinkapp.tech/privacy.html` (entered in App Store Connect 2026-07-11).
+- [x] Support URL: `https://thinkapp.tech/support.html` (entered in App Store Connect 2026-07-11).
 - [ ] Privacy Nutrition Label: **Data Not Collected** (matches the policy — no accounts, analytics, tracking, or network requests).
 - [ ] iPhone screenshots: 6.9" slot (1290×2796 or 1320×2868) is primary in current ASC; 6.5" (1242×2688) also accepted. Generate with `scripts/resize_marketing.sh -s <WxH> <dir>`.
 - [ ] Apple Watch screenshots: 410×502, from `Screenshots/WatchMarketing` via `scripts/resize_marketing.sh -s 410x502`.

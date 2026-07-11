@@ -85,7 +85,7 @@ scripts/resize_marketing.sh Screenshots/MarketingSeeded            # 1242x2688 (
 scripts/resize_marketing.sh -s 410x502 Screenshots/WatchMarketing  # Apple Watch
 ```
 
-Legal pages (privacy policy, support) are hosted at <https://vankata03.github.io/think-legal/>; their sources live in `docs/legal/`.
+Legal pages (privacy policy, support) are hosted at <https://thinkapp.tech/privacy.html> and <https://thinkapp.tech/support.html> (site repo: `Vankata03/think-site`); their markdown sources live in `docs/legal/`.
 
 ## Repository Notes
 
