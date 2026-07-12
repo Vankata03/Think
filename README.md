@@ -15,16 +15,16 @@ The product direction is captured in [PLAN.md](PLAN.md).
 - `ThinkWidgetsTests/` - widget extension unit tests using Swift Testing.
 - `ThinkUITests/` - UI tests using XCTest.
 - `Think.xctestplan` - shared test plan for app, widget, and UI tests.
-- `docs/` - localization review status, content audit, hosted legal page sources, and implementation plans (`docs/superpowers/plans/`).
-- `scripts/` - localization tooling (`validate_localizations.rb`, catalog sync/bootstrap) and App Store screenshot resizing (`resize_marketing.sh`).
-- `Screenshots/` - seeded marketing screenshot sources for iPhone and Apple Watch.
+- `docs/` - local design and implementation notes; this directory is intentionally excluded from the repository.
 
 ## Requirements
 
 - macOS with Xcode installed.
 - iOS Simulator runtime compatible with the project target.
 
-The app currently targets modern SwiftUI, WidgetKit, ActivityKit, and Swift Testing APIs.
+The app currently targets modern SwiftUI, WidgetKit, ActivityKit, and Swift Testing APIs. The iOS and watchOS apps run independently; cross-device timer and progress sync remains planned.
+
+Journal data stays on-device. Profile includes journal export, delete-all-data, and explicit notification-permission status when notifications are denied.
 
 ## Build
 
@@ -70,22 +70,13 @@ Coverage is enabled in the shared test plan. In Xcode, open the Report navigator
 
 ## Localization
 
-The app ships seven locales (`en`, `bg`, `de`, `es`, `fr`, `it`, `pt-BR`) via native String Catalogs. Review status and policy live in [docs/localization-review.md](docs/localization-review.md). Before shipping, validate every catalog:
-
-```sh
-ruby scripts/validate_localizations.rb bg de es fr it pt-BR
-```
+The app ships seven locales (`en`, `bg`, `de`, `es`, `fr`, `it`, `pt-BR`) via native String Catalogs. The localization review and validation scripts are maintained outside this repository.
 
 ## App Store
 
-Release preparation is tracked in [docs/release-checklist-1.0.md](docs/release-checklist-1.0.md). One archive of the `Think` scheme contains the watch app and all widget extensions; there is a single App Store Connect record. Marketing screenshots resize to exact App Store slot sizes with:
+Release preparation is maintained outside this repository. One archive of the `Think` scheme contains the watch app and all widget extensions; there is a single App Store Connect record.
 
-```sh
-scripts/resize_marketing.sh Screenshots/MarketingSeeded            # 1242x2688 (6.5")
-scripts/resize_marketing.sh -s 410x502 Screenshots/WatchMarketing  # Apple Watch
-```
-
-Legal pages (privacy policy, support) are hosted at <https://thinkapp.tech/privacy.html> and <https://thinkapp.tech/support.html> (site repo: `Vankata03/think-site`); their markdown sources live in `docs/legal/`.
+Legal pages (privacy policy, support) are hosted at <https://thinkapp.tech/privacy.html> and <https://thinkapp.tech/support.html> in the separate `Vankata03/think-site` repository.
 
 ## Repository Notes
 
