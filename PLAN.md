@@ -12,7 +12,7 @@ Motivational app for young ambitious people. Not a quote-wallpaper app: every da
 - **Daily line** — curated, themed rotation. Public-domain sources (Marcus Aurelius, Seneca, Epictetus, proverbs) + original lines. No modern-author quotes (licensing).
 - **Question of the day** — private journal answer, stored on device only (privacy is a selling point, no backend cost).
 - **Paths** — 21-day tracks: Deep focus, Discipline, Clear thinking, Learning machine (later: Money mindset, Social courage). Each day: ≤200-word lesson + one concrete task. Duolingo structure, Stoic content.
-- **Pomodoro (Focus tab)** — 25/5 and 50/10 presets free; custom durations, stats history, ambient sounds = Pro later. Quote shown under the timer. Sessions feed streak and path tasks. Live Activity + Dynamic Island are implemented.
+- **Pomodoro (Focus tab)** — 25/5 and 50/10 presets free; custom durations, stats history, ambient sounds = Pro later. Quote shown under the timer. Sessions feed streak and path tasks. Live Activity + Dynamic Island are implemented, including recovery of an existing activity after relaunch.
 - **Streak** — gentle, no guilt. Missed day → "Begin again," not shame.
 - **Share cards / wallpapers** — same render engine. Quote + template → Instagram story or wallpaper resolution. Weekly wallpaper drop: 2 free, rest Pro. Generator (any quote + style + color) beats static gallery.
 - **Feedback** — Profile section: "Share an idea" / "Report a problem" (prefilled mail, app + iOS version in footer) and "Rate Think" (StoreKit review prompt). In-app feedback form once the server exists.
@@ -62,5 +62,5 @@ Motivational app for young ambitious people. Not a quote-wallpaper app: every da
 - [x] Zero-state polish (no-guilt streak copy, path "Not started")
 - [x] Watch face streak complication (accessory families via watch widget extension)
 - [x] Release content audit: 100 deliberately paired line → question → action practices; attributed lines carry exact public-domain edition provenance, house lines remain unattributed on cards
-- [ ] App Store 1.0 release prep: signing, screenshots, metadata, final branch/tag flow — in progress, tracked in [docs/release-checklist-1.0.md](docs/release-checklist-1.0.md). Done so far: iPhone-only device family + localized timer notifications (PR #8), screenshot resize tooling (`scripts/resize_marketing.sh`), legal pages live at https://thinkapp.tech/privacy.html and https://thinkapp.tech/support.html. Open: free-vs-paywall decision, recut `release/1.0`, App Store Connect setup.
-- [ ] CI/release pipeline upgrade (post-1.0): PR gates now, Xcode Cloud TestFlight lane after launch, fastlane screenshots/metadata before first update — plan in `docs/superpowers/plans/2026-07-11-ci-pipeline-upgrade.md`
+- [ ] App Store 1.0 release prep: signing, screenshots, metadata, final branch/tag flow — in progress. Done so far: iPhone-only device family + localized timer notifications (PR #8), legal pages live at https://thinkapp.tech/privacy.html and https://thinkapp.tech/support.html. Open: free-vs-paywall decision, recut `release/1.0`, App Store Connect setup.
+- [ ] CI/release pipeline upgrade (post-1.0): PR gates now, Xcode Cloud TestFlight lane after launch, fastlane screenshots/metadata before first update. Detailed implementation notes are maintained outside this repository.

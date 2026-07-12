@@ -263,13 +263,11 @@ final class PomodoroTimer {
             endDate: endDate
         )
         let content = ActivityContent(state: state, staleDate: endDate)
-        if let id = liveActivityID {
-            Task.detached {
-                await Activity<PomodoroActivityAttributes>.activities
-                    .first { $0.id == id }?
-                    .update(content)
-            }
-        } else if let existingActivity = Activity<PomodoroActivityAttributes>.activities.first {
+        let existingActivity = Activity<PomodoroActivityAttributes>.activities.first { activity in
+            activity.id == liveActivityID
+        } ?? Activity<PomodoroActivityAttributes>.activities.first
+
+        if let existingActivity {
             // ActivityKit keeps the activity alive across app termination, but
             // the in-memory ID does not survive. Reconnect before creating a
             // new activity.
