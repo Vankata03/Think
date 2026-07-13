@@ -104,6 +104,7 @@ final class ProgressStore {
     ) {
         let storedStreak = defaults.integer(forKey: Key.streak)
         let storedLastCompletedDay = defaults.object(forKey: Key.lastCompletedDay) as? Date
+        let hasStoredMilestoneAwards = defaults.object(forKey: Key.earnedStreakMilestones) != nil
 
         self.defaults = defaults
         self.calendar = calendar
@@ -148,6 +149,18 @@ final class ProgressStore {
             }
             completedDays = backfilled
             defaults.set(Array(backfilled), forKey: Key.completedDays)
+        }
+        if !hasStoredMilestoneAwards {
+            let longestHistoricalRun = Self.maximumContiguousStreak(
+                in: completedDays,
+                calendar: calendar
+            )
+            let longestKnownRun = max(storedStreak, longestHistoricalRun)
+            earnedStreakMilestones.formUnion(
+                StreakMilestone.allCases.filter { $0.rawValue <= longestKnownRun }
+            )
+            // Persist even an empty result so this history migration is one-time.
+            defaults.set(earnedStreakMilestones.map(\.rawValue), forKey: Key.earnedStreakMilestones)
         }
         pruneFocusHistory(relativeTo: now())
         persistFocusHistory()
@@ -419,6 +432,32 @@ final class ProgressStore {
         guard !reached.isSubset(of: earnedStreakMilestones) else { return }
         earnedStreakMilestones.formUnion(reached)
         defaults.set(earnedStreakMilestones.map(\.rawValue), forKey: Key.earnedStreakMilestones)
+    }
+
+    private static func maximumContiguousStreak(
+        in completedDays: Set<Date>,
+        calendar: Calendar
+    ) -> Int {
+        let days = Set(completedDays.map(calendar.startOfDay(for:)))
+        var longest = 0
+
+        for day in days {
+            if let previous = calendar.date(byAdding: .day, value: -1, to: day),
+               days.contains(previous) {
+                continue
+            }
+
+            var runLength = 1
+            var cursor = day
+            while let next = calendar.date(byAdding: .day, value: 1, to: cursor),
+                  days.contains(next) {
+                runLength += 1
+                cursor = next
+            }
+            longest = max(longest, runLength)
+        }
+
+        return longest
     }
 
     private func recomputeStreak() {

@@ -68,6 +68,50 @@ struct ProgressStoreTests {
         #expect(ProgressStore(defaults: defaults).hasEarned(.seven))
     }
 
+    @Test(arguments: [StreakMilestone.seven, .twentyOne])
+    func existingCompletedHistoryBackfillsAchievements(_ milestone: StreakMilestone) {
+        let defaults = makeDefaults()
+        let calendar = Calendar.current
+        let history = (0..<milestone.rawValue).compactMap {
+            calendar.date(byAdding: .day, value: -$0, to: .now)
+        }
+        defaults.set(history, forKey: "completedDays")
+        defaults.set(milestone.rawValue, forKey: "streak")
+        defaults.set(history.first, forKey: "lastCompletedDay")
+
+        let store = ProgressStore(defaults: defaults)
+
+        let expected = Set(StreakMilestone.allCases.filter { $0.rawValue <= milestone.rawValue })
+        #expect(store.earnedStreakMilestones == expected)
+        #expect(defaults.object(forKey: "earnedStreakMilestones") != nil)
+    }
+
+    @Test func lapsedHistoricalRunStillBackfillsAchievement() {
+        let defaults = makeDefaults()
+        let calendar = Calendar.current
+        let oldRun = (0..<7).compactMap { offset in
+            calendar.date(byAdding: .day, value: -(offset + 10), to: .now)
+        }
+        defaults.set(oldRun + [Date.now], forKey: "completedDays")
+        defaults.set(1, forKey: "streak")
+        defaults.set(Date.now, forKey: "lastCompletedDay")
+
+        let store = ProgressStore(defaults: defaults)
+
+        #expect(store.hasEarned(.seven))
+        #expect(!store.hasEarned(.twentyOne))
+    }
+
+    @Test func storedStreakBackfillsWhenCompletedHistoryIsUnavailable() {
+        let defaults = makeDefaults()
+        defaults.set([], forKey: "completedDays")
+        defaults.set(7, forKey: "streak")
+
+        let store = ProgressStore(defaults: defaults)
+
+        #expect(store.hasEarned(.seven))
+    }
+
     @Test func resetClearsEarnedAchievements() {
         let defaults = makeDefaults()
         let store = makeStoreApproaching(.seven, defaults: defaults)
@@ -77,6 +121,7 @@ struct ProgressStoreTests {
 
         #expect(store.earnedStreakMilestones.isEmpty)
         #expect(defaults.object(forKey: "earnedStreakMilestones") == nil)
+        #expect(ProgressStore(defaults: defaults).earnedStreakMilestones.isEmpty)
     }
 
     @Test func nonMilestoneStreakDoesNotEarnAchievement() {
