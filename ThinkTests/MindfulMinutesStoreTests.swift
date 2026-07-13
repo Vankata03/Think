@@ -110,6 +110,7 @@ struct MindfulMinutesStoreTests {
 
         #expect(!store.isEnabled)
         #expect(store.pendingSessionCount == 0)
+        #expect(!defaults.bool(forKey: MindfulMinutesStore.enabledKey))
     }
 
     @Test func disablingDuringSuspendedSaveDoesNotCrashOrRestoreQueue() async {
@@ -121,10 +122,7 @@ struct MindfulMinutesStoreTests {
         store.enqueueCompletedSession(endedAt: .now, durationMinutes: 25)
 
         let drain = Task { await store.drainPendingSessions() }
-        for _ in 0..<10 {
-            if client.isSaveSuspended { break }
-            await Task.yield()
-        }
+        await client.waitUntilSaveIsSuspended()
         #expect(client.isSaveSuspended)
 
         await store.setEnabled(false)
@@ -170,6 +168,7 @@ private final class MockMindfulHealthClient: MindfulHealthClient {
     var saveError: Error?
     var shouldSuspendSave = false
     private var saveContinuation: CheckedContinuation<Void, Never>?
+    private var suspensionWaiters: [CheckedContinuation<Void, Never>] = []
     var isSaveSuspended: Bool { saveContinuation != nil }
 
     init(authorization: MindfulMinutesAuthorization) {
@@ -188,6 +187,9 @@ private final class MockMindfulHealthClient: MindfulHealthClient {
         if shouldSuspendSave {
             await withCheckedContinuation { continuation in
                 saveContinuation = continuation
+                let waiters = suspensionWaiters
+                suspensionWaiters.removeAll()
+                waiters.forEach { $0.resume() }
             }
         }
         if let saveError {
@@ -200,6 +202,17 @@ private final class MockMindfulHealthClient: MindfulHealthClient {
         shouldSuspendSave = false
         saveContinuation?.resume()
         saveContinuation = nil
+    }
+
+    func waitUntilSaveIsSuspended() async {
+        if isSaveSuspended { return }
+        await withCheckedContinuation { continuation in
+            if isSaveSuspended {
+                continuation.resume()
+            } else {
+                suspensionWaiters.append(continuation)
+            }
+        }
     }
 }
 
