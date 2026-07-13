@@ -87,8 +87,27 @@ struct ProgressSyncTests {
         #expect(store.lastPathCompletionDay == nil)
         #expect(store.totalFocusSessions == 0)
         #expect(store.completedDays.isEmpty)
+        #expect(store.focusHistory.isEmpty)
         #expect(!store.openedToday)
         #expect(ProgressStore(defaults: defaults).lastCompletedDay == nil)
+    }
+
+    @Test func snapshotKeepsFocusHistoryPhoneLocal() throws {
+        let now = Date.now
+        let source = ProgressStore(defaults: makeDefaults(), now: { now })
+        source.recordFocusSession(at: now, durationMinutes: 25, eventID: "session")
+        let snapshot = source.snapshot(publishedAt: now)
+        let destination = ProgressStore(defaults: makeDefaults(), now: { now })
+
+        destination.apply(snapshot)
+
+        let encoded = try #require(
+            JSONSerialization.jsonObject(with: SyncCodec.encode(snapshot)) as? [String: Any]
+        )
+        #expect(encoded["focusHistory"] == nil)
+        #expect(source.focusHistory.map(\.durationMinutes) == [25])
+        #expect(destination.focusHistory.isEmpty)
+        #expect(destination.totalFocusSessions == 1)
     }
 
     @Test func mutationCallbackFiresOnlyForSuccessfulLocalMutations() {

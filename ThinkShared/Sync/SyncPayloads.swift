@@ -101,14 +101,22 @@ nonisolated struct TimerSyncState: Codable, Equatable, Sendable {
 nonisolated struct FocusSessionEvent: Codable, Equatable, Sendable {
     let id: String
     let completedAt: Date
+    /// Additive in schema v1. Older queued events decode as nil and still
+    /// update aggregate progress, but cannot create fabricated history.
+    let durationMinutes: Int?
 
-    init(id: String, completedAt: Date) {
+    init(id: String, completedAt: Date, durationMinutes: Int? = nil) {
         self.id = id
         self.completedAt = completedAt
+        self.durationMinutes = durationMinutes
     }
 
-    init(endDate: Date) {
-        self.init(id: Self.id(for: endDate), completedAt: endDate)
+    init(endDate: Date, durationMinutes: Int? = nil) {
+        self.init(
+            id: Self.id(for: endDate),
+            completedAt: endDate,
+            durationMinutes: durationMinutes
+        )
     }
 
     static func id(for endDate: Date) -> String {
@@ -120,10 +128,26 @@ nonisolated struct FocusSessionEvent: Codable, Equatable, Sendable {
     private enum CodingKeys: String, CodingKey {
         case id
         case completedAt
+        case durationMinutes
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        completedAt = try container.decode(Date.self, forKey: .completedAt)
+        durationMinutes = try container.decodeIfPresent(Int.self, forKey: .durationMinutes)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(completedAt, forKey: .completedAt)
+        try container.encodeIfPresent(durationMinutes, forKey: .durationMinutes)
     }
 }
 
-/// Phone-owned progress, replicated to the watch.
+/// Phone-owned scalar progress, replicated to the watch. Focus-duration
+/// history stays phone-local; watch completions carry duration in their event.
 nonisolated struct ProgressSnapshot: Codable, Equatable, Sendable {
     let streak: Int
     let lastCompletedDay: Date?

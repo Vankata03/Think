@@ -161,6 +161,326 @@
         }
       }
     },
+      "Sessions by day": {
+        "localizations": {
+          "bg": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Сесии по дни"
+            }
+          },
+          "de": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Sitzungen nach Tag"
+            }
+          },
+          "es": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Sesiones por día"
+            }
+          },
+          "fr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Sessions par jour"
+            }
+          },
+          "it": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Sessioni per giorno"
+            }
+          },
+          "pt-BR": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Sessões por dia"
+            }
+          }
+        }
+      },
+      "Day": {
+        "localizations": {
+          "bg": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Ден"
+            }
+          },
+          "de": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Tag"
+            }
+          },
+          "es": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Día"
+            }
+          },
+          "fr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Jour"
+            }
+          },
+          "it": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Giorno"
+            }
+          },
+          "pt-BR": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Dia"
+            }
+          }
+        }
+      },
+      "Finish a work session to see it here.": {
+        "localizations": {
+          "bg": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Завърши работна сесия, за да я видиш тук."
+            }
+          },
+          "de": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Schließe eine Arbeitssitzung ab, um sie hier zu sehen."
+            }
+          },
+          "es": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Completa una sesión de trabajo para verla aquí."
+            }
+          },
+          "fr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Terminez une session de travail pour la voir ici."
+            }
+          },
+          "it": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Completa una sessione di lavoro per vederla qui."
+            }
+          },
+          "pt-BR": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Conclua uma sessão de trabalho para vê-la aqui."
+            }
+          }
+        }
+      },
+      "Focus minutes": {
+        "localizations": {
+          "bg": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Минути фокусиране"
+            }
+          },
+          "de": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Fokusminuten"
+            }
+          },
+          "es": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Minutos de concentración"
+            }
+          },
+          "fr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Minutes de concentration"
+            }
+          },
+          "it": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Minuti di concentrazione"
+            }
+          },
+          "pt-BR": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Minutos de foco"
+            }
+          }
+        }
+      },
+      "Focus stats": {
+        "localizations": {
+          "bg": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Статистика за фокуса"
+            }
+          },
+          "de": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Fokusstatistik"
+            }
+          },
+          "es": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Estadísticas de concentración"
+            }
+          },
+          "fr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Statistiques de concentration"
+            }
+          },
+          "it": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Statistiche di concentrazione"
+            }
+          },
+          "pt-BR": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Estatísticas de foco"
+            }
+          }
+        }
+      },
+      "No completed focus sessions this week.": {
+        "localizations": {
+          "bg": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Няма завършени фокус сесии тази седмица."
+            }
+          },
+          "de": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Diese Woche wurden noch keine Fokus-Sitzungen abgeschlossen."
+            }
+          },
+          "es": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "No hay sesiones de concentración completadas esta semana."
+            }
+          },
+          "fr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Aucune session de concentration terminée cette semaine."
+            }
+          },
+          "it": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Nessuna sessione di concentrazione completata questa settimana."
+            }
+          },
+          "pt-BR": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Nenhuma sessão de foco concluída nesta semana."
+            }
+          }
+        }
+      },
+      "Sessions": {
+        "localizations": {
+          "bg": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Сесии"
+            }
+          },
+          "de": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Sitzungen"
+            }
+          },
+          "es": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Sesiones"
+            }
+          },
+          "fr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Sessions"
+            }
+          },
+          "it": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Sessioni"
+            }
+          },
+          "pt-BR": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Sessões"
+            }
+          }
+        }
+      },
+      "This week": {
+        "localizations": {
+          "bg": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Тази седмица"
+            }
+          },
+          "de": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Diese Woche"
+            }
+          },
+          "es": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Esta semana"
+            }
+          },
+          "fr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Cette semaine"
+            }
+          },
+          "it": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Questa settimana"
+            }
+          },
+          "pt-BR": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Esta semana"
+            }
+          }
+        }
+      },
     "“": {
       "localizations": {
         "bg": {

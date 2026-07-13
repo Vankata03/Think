@@ -144,18 +144,23 @@ final class SyncCoordinator: NSObject, SyncTransportDelegate {
     }
 
     private func handleWorkSessionCompletion(at endDate: Date) {
-        let event = FocusSessionEvent(endDate: endDate)
+        let duration = timer.preset.workMinutes > 0 ? timer.preset.workMinutes : nil
+        let event = FocusSessionEvent(endDate: endDate, durationMinutes: duration)
 
         switch role {
         case .phone:
             guard ledger.recordApplied(event.id) else { return }
-            progress.recordFocusSession(at: event.completedAt)
+            progress.recordFocusSession(
+                at: event.completedAt,
+                durationMinutes: event.durationMinutes,
+                eventID: event.id
+            )
             completionSideEffect()
 
         case .watch:
             guard ledger.addPending(event) else { return }
             // Keep the watch UI useful while the phone is away. The phone
-            // remains the canonical writer once the event arrives.
+            // remains the canonical writer and owns duration history.
             progress.recordFocusSession(at: event.completedAt)
             queue(event)
         }
@@ -169,7 +174,11 @@ final class SyncCoordinator: NSObject, SyncTransportDelegate {
 
         // Record the ID before mutating progress so the mutation-triggered
         // snapshot already acknowledges the event.
-        progress.recordFocusSession(at: event.completedAt)
+        progress.recordFocusSession(
+            at: event.completedAt,
+            durationMinutes: event.durationMinutes,
+            eventID: event.id
+        )
     }
 
     private func applyProgressSnapshot(_ snapshot: ProgressSnapshot) {

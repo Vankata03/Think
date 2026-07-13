@@ -6,6 +6,17 @@
 import Foundation
 import Observation
 
+nonisolated struct FocusSessionRecord: Codable, Equatable, Identifiable, Sendable {
+    let id: String
+    let completedAt: Date
+    let durationMinutes: Int
+}
+
+nonisolated struct FocusHistoryDay: Codable, Equatable, Sendable {
+    let day: Date
+    let sessions: [FocusSessionRecord]
+}
+
 enum ProgressMutation: Sendable {
     case markTodayComplete
     case recordAppOpen
@@ -28,6 +39,7 @@ final class ProgressStore {
         static let totalFocusSessions = "totalFocusSessions"
         static let focusSessionDay = "focusSessionDay"
         static let focusSessionDayCount = "focusSessionDayCount"
+        static let focusHistory = "focusHistory"
         static let completedDays = "completedDays"
         static let lastOpenDay = "lastOpenDay"
     }
@@ -41,12 +53,15 @@ final class ProgressStore {
         Key.totalFocusSessions,
         Key.focusSessionDay,
         Key.focusSessionDayCount,
+        Key.focusHistory,
         Key.completedDays,
         Key.lastOpenDay,
     ]
 
     private let defaults: UserDefaults
     private let calendar: Calendar
+    private let now: () -> Date
+    private static let focusHistoryRetentionDays = 365
 
     private(set) var streak: Int
     private(set) var lastCompletedDay: Date?
@@ -55,6 +70,9 @@ final class ProgressStore {
     private(set) var totalFocusSessions: Int
     private var focusSessionDay: Date?
     private var focusSessionDayCount: Int
+    /// Completed focus phases grouped by their local calendar day. History is
+    /// intentionally bounded; existing aggregate counters remain all-time.
+    private(set) var focusHistoryByDay: [Date: [FocusSessionRecord]]
     /// Start-of-day dates for every completed practice day, for the
     /// streak calendar. Grows one entry per day at most.
     private(set) var completedDays: Set<Date>
@@ -64,12 +82,17 @@ final class ProgressStore {
     /// not invoke this callback.
     var onMutation: (@MainActor (ProgressMutation) -> Void)?
 
-    init(defaults: UserDefaults = .standard, calendar: Calendar = .current) {
+    init(
+        defaults: UserDefaults = .standard,
+        calendar: Calendar = .current,
+        now: @escaping () -> Date = { .now }
+    ) {
         let storedStreak = defaults.integer(forKey: Key.streak)
         let storedLastCompletedDay = defaults.object(forKey: Key.lastCompletedDay) as? Date
 
         self.defaults = defaults
         self.calendar = calendar
+        self.now = now
         streak = storedStreak
         lastCompletedDay = storedLastCompletedDay
         pathCompletedDays = defaults.integer(forKey: Key.pathCompletedDays)
@@ -77,6 +100,16 @@ final class ProgressStore {
         totalFocusSessions = defaults.integer(forKey: Key.totalFocusSessions)
         focusSessionDay = defaults.object(forKey: Key.focusSessionDay) as? Date
         focusSessionDayCount = defaults.integer(forKey: Key.focusSessionDayCount)
+        if let data = defaults.data(forKey: Key.focusHistory),
+           let days = try? SyncCodec.decode([FocusHistoryDay].self, from: data) {
+            focusHistoryByDay = Dictionary(grouping: days.flatMap(\.sessions)) { session in
+                calendar.startOfDay(for: session.completedAt)
+            }
+        } else {
+            // Focus-duration history did not exist before Think 1.1. Starting
+            // empty is deliberate: aggregate counters cannot reveal duration.
+            focusHistoryByDay = [:]
+        }
         lastOpenDay = defaults.object(forKey: Key.lastOpenDay) as? Date
         if let stored = defaults.array(forKey: Key.completedDays) as? [Date] {
             completedDays = Set(stored.map { calendar.startOfDay(for: $0) })
@@ -96,6 +129,8 @@ final class ProgressStore {
             completedDays = backfilled
             defaults.set(Array(backfilled), forKey: Key.completedDays)
         }
+        pruneFocusHistory(relativeTo: now())
+        persistFocusHistory()
     }
 
     /// Same rule as `displayedStreak`, computed straight from stored
@@ -126,6 +161,32 @@ final class ProgressStore {
     var focusSessionsToday: Int {
         guard let focusSessionDay, calendar.isDateInToday(focusSessionDay) else { return 0 }
         return focusSessionDayCount
+    }
+
+    var focusHistory: [FocusSessionRecord] {
+        focusHistoryByDay.values
+            .flatMap { $0 }
+            .sorted {
+                if $0.completedAt != $1.completedAt {
+                    return $0.completedAt < $1.completedAt
+                }
+                return $0.id < $1.id
+            }
+    }
+
+    func focusSessions(in interval: DateInterval) -> [FocusSessionRecord] {
+        let firstDay = calendar.startOfDay(for: interval.start)
+        return focusHistoryByDay
+            .filter { day, _ in day >= firstDay && day < interval.end }
+            .values
+            .flatMap { $0 }
+            .filter { $0.completedAt >= interval.start && $0.completedAt < interval.end }
+            .sorted {
+                if $0.completedAt != $1.completedAt {
+                    return $0.completedAt < $1.completedAt
+                }
+                return $0.id < $1.id
+            }
     }
 
     var completedTaskToday: Bool {
@@ -180,7 +241,11 @@ final class ProgressStore {
 
     /// Records a completed focus phase on the calendar day it actually
     /// finished. Delayed events therefore cannot become today's sessions.
-    func recordFocusSession(at date: Date = .now) {
+    func recordFocusSession(
+        at date: Date = .now,
+        durationMinutes: Int? = nil,
+        eventID: String? = nil
+    ) {
         let day = calendar.startOfDay(for: date)
         if let existingFocusSessionDay = focusSessionDay {
             let existingDay = calendar.startOfDay(for: existingFocusSessionDay)
@@ -198,6 +263,13 @@ final class ProgressStore {
         defaults.set(focusSessionDay, forKey: Key.focusSessionDay)
         defaults.set(focusSessionDayCount, forKey: Key.focusSessionDayCount)
         defaults.set(totalFocusSessions, forKey: Key.totalFocusSessions)
+        if let durationMinutes, (1...120).contains(durationMinutes) {
+            recordFocusHistory(
+                at: date,
+                durationMinutes: durationMinutes,
+                eventID: eventID ?? UUID().uuidString
+            )
+        }
         _ = completeDay(at: day)
         emit(.recordFocusSession)
     }
@@ -214,9 +286,11 @@ final class ProgressStore {
         totalFocusSessions = 0
         focusSessionDay = nil
         focusSessionDayCount = 0
+        focusHistoryByDay = [:]
         completedDays = []
         lastOpenDay = nil
         defaults.set([], forKey: Key.completedDays)
+        persistFocusHistory()
         emit(.reset)
     }
 
@@ -290,6 +364,7 @@ final class ProgressStore {
         defaults.set(totalFocusSessions, forKey: Key.totalFocusSessions)
         setOptional(focusSessionDay, forKey: Key.focusSessionDay)
         defaults.set(focusSessionDayCount, forKey: Key.focusSessionDayCount)
+        persistFocusHistory()
         defaults.set(Array(completedDays), forKey: Key.completedDays)
         setOptional(lastOpenDay, forKey: Key.lastOpenDay)
     }
@@ -300,6 +375,58 @@ final class ProgressStore {
         } else {
             defaults.removeObject(forKey: key)
         }
+    }
+
+    private var focusHistoryDays: [FocusHistoryDay] {
+        focusHistoryByDay
+            .map { day, sessions in
+                FocusHistoryDay(
+                    day: day,
+                    sessions: sessions.sorted {
+                        if $0.completedAt != $1.completedAt {
+                            return $0.completedAt < $1.completedAt
+                        }
+                        return $0.id < $1.id
+                    }
+                )
+            }
+            .sorted { $0.day < $1.day }
+    }
+
+    private func recordFocusHistory(at date: Date, durationMinutes: Int, eventID: String) {
+        pruneFocusHistory(relativeTo: now())
+        let day = calendar.startOfDay(for: date)
+        guard let cutoff = calendar.date(
+            byAdding: .day,
+            value: -(Self.focusHistoryRetentionDays - 1),
+            to: calendar.startOfDay(for: now())
+        ), day >= cutoff else { return }
+
+        var sessions = focusHistoryByDay[day, default: []]
+        guard !sessions.contains(where: { $0.id == eventID }) else { return }
+        sessions.append(
+            FocusSessionRecord(
+                id: eventID,
+                completedAt: date,
+                durationMinutes: durationMinutes
+            )
+        )
+        focusHistoryByDay[day] = sessions
+        persistFocusHistory()
+    }
+
+    private func pruneFocusHistory(relativeTo date: Date) {
+        guard let cutoff = calendar.date(
+            byAdding: .day,
+            value: -(Self.focusHistoryRetentionDays - 1),
+            to: calendar.startOfDay(for: date)
+        ) else { return }
+        focusHistoryByDay = focusHistoryByDay.filter { $0.key >= cutoff }
+    }
+
+    private func persistFocusHistory() {
+        guard let data = try? SyncCodec.encode(focusHistoryDays) else { return }
+        defaults.set(data, forKey: Key.focusHistory)
     }
 
     private func emit(_ mutation: ProgressMutation) {
