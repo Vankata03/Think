@@ -34,7 +34,7 @@ struct PomodoroTimerTests {
     @Test func skippingWorkMovesToRestWithoutRecordingSession() {
         let timer = PomodoroTimer(systemSideEffectsEnabled: false)
         var completedWorkSessions = 0
-        timer.onWorkSessionComplete = { completedWorkSessions += 1 }
+        timer.onWorkSessionComplete = { _ in completedWorkSessions += 1 }
 
         timer.skipPhase()
 
@@ -143,7 +143,7 @@ struct PomodoroTimerTests {
         let timer = PomodoroTimer(systemSideEffectsEnabled: false)
         let preset = PomodoroTimer.Preset(workMinutes: 0, restMinutes: 5)
         var completedWorkSessions = 0
-        timer.onWorkSessionComplete = { completedWorkSessions += 1 }
+        timer.onWorkSessionComplete = { _ in completedWorkSessions += 1 }
 
         timer.select(preset)
         timer.start()
@@ -204,7 +204,7 @@ struct PomodoroTimerTests {
         let timer = PomodoroTimer(systemSideEffectsEnabled: false)
         let preset = PomodoroTimer.Preset(workMinutes: 0, restMinutes: 0)
         var completedWorkSessions = 0
-        timer.onWorkSessionComplete = { completedWorkSessions += 1 }
+        timer.onWorkSessionComplete = { _ in completedWorkSessions += 1 }
 
         timer.select(preset)
         timer.start()

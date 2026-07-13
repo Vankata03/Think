@@ -8,7 +8,7 @@ import SwiftUI
 struct WatchFocusView: View {
     @Environment(ProgressStore.self) private var progress
     @Environment(\.scenePhase) private var scenePhase
-    @State private var timer = PomodoroTimer(systemSideEffectsEnabled: false)
+    @Environment(PomodoroTimer.self) private var timer
 
     var body: some View {
         ScrollView {
@@ -24,9 +24,7 @@ struct WatchFocusView: View {
         }
         .navigationTitle("Focus")
         .onAppear {
-            timer.onWorkSessionComplete = {
-                progress.recordFocusSession()
-            }
+            timer.resync()
         }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
@@ -122,5 +120,6 @@ struct WatchFocusView: View {
     NavigationStack {
         WatchFocusView()
             .environment(ProgressStore(defaults: .standard))
+            .environment(PomodoroTimer(systemSideEffectsEnabled: false))
     }
 }

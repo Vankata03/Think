@@ -1,0 +1,20 @@
+{
+  "appliedEventIDs" : [
+    "2026-07-10T10:25:30.123Z",
+    "2026-07-12T10:25:30.123Z"
+  ],
+  "completedDays" : [
+    "2026-07-10T00:00:00.000Z",
+    "2026-07-11T00:00:00.000Z",
+    "2026-07-12T00:00:00.000Z"
+  ],
+  "focusSessionDay" : "2026-07-12T00:00:00.000Z",
+  "focusSessionDayCount" : 2,
+  "lastCompletedDay" : "2026-07-12T00:00:00.000Z",
+  "lastOpenDay" : "2026-07-12T00:00:00.000Z",
+  "lastPathCompletionDay" : "2026-07-11T00:00:00.000Z",
+  "pathCompletedDays" : 4,
+  "publishedAt" : "2026-07-12T10:26:00.000Z",
+  "streak" : 3,
+  "totalFocusSessions" : 12
+}

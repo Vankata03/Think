@@ -33,5 +33,6 @@ struct RootTabView: View {
 #Preview {
     RootTabView()
         .environment(ProgressStore())
+        .environment(PomodoroTimer())
         .modelContainer(for: [JournalEntry.self, DailyRetro.self], inMemory: true)
 }

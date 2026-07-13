@@ -10,7 +10,7 @@ struct FocusView: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.haptics) private var haptics
     @Environment(\.scenePhase) private var scenePhase
-    @State private var timer = PomodoroTimer()
+    @Environment(PomodoroTimer.self) private var timer
     @State private var showingFocusTip = false
     @State private var appeared = false
 
@@ -57,10 +57,6 @@ struct FocusView: View {
                 FocusTipSheet()
             }
             .onAppear {
-                timer.onWorkSessionComplete = {
-                    progress.recordFocusSession()
-                    haptics.play(.success)
-                }
                 timer.resync()
                 withAnimation(.easeOut(duration: 0.45)) {
                     appeared = true
@@ -287,4 +283,5 @@ private struct FocusTipSheet: View {
 #Preview {
     FocusView()
         .environment(ProgressStore())
+        .environment(PomodoroTimer())
 }
