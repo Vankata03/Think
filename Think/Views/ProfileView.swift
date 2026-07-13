@@ -311,7 +311,7 @@ struct ProfileView: View {
                         settingsLabel("Time", systemImage: "clock")
                     }
                     .tint(.accentColor)
-                    .padding(.top, 10)
+                    .padding(.vertical, 10)
                 }
 
                 if notificationAuthorization == .denied {
@@ -326,7 +326,7 @@ struct ProfileView: View {
                 }
                 .toggleStyle(AdaptiveSwitchToggleStyle())
                 .disabled(mindfulMinutes.authorization == .unavailable)
-                .padding(.vertical, 10)
+                .padding(.top, 10)
                 .accessibilityIdentifier("HealthMindfulMinutes")
 
                 if mindfulMinutes.authorization == .denied {
@@ -334,13 +334,13 @@ struct ProfileView: View {
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
-                        .padding(.bottom, 10)
+                        .padding(.top, 10)
                 } else if mindfulMinutes.authorization == .unavailable {
                     Text("Health logging is unavailable on this device.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
-                        .padding(.bottom, 10)
+                        .padding(.top, 10)
                 }
             }
             .padding(18)
