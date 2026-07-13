@@ -116,4 +116,8 @@ struct ThinkWidgetsBundleTests {
     @Test func widgetBundleBodyBuilds() {
         _ = ThinkWidgetsBundle().body
     }
+
+    @Test func startFocusControlConfigurationBuilds() {
+        _ = StartFocusControl().body
+    }
 }

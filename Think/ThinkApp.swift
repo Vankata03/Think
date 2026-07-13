@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 import Foundation
+import AppIntents
 
 @main
 struct ThinkApp: App {
@@ -69,6 +70,7 @@ struct ThinkApp: App {
         _progress = State(initialValue: progressStore)
         _timer = State(initialValue: timer)
         _syncCoordinator = State(initialValue: coordinator)
+        AppDependencyManager.shared.add(dependency: FocusSessionIntentHandler(timer: timer))
         coordinator.activate()
     }
 
@@ -98,6 +100,7 @@ struct ThinkApp: App {
             .environment(progress)
             .environment(timer)
             .environment(syncCoordinator)
+            .environment(AppIntentRouter.shared)
             .environment(\.haptics, .live)
             .preferredColorScheme(appearance.colorScheme)
             .animation(.easeInOut(duration: 0.3), value: completedOnboarding)

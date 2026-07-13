@@ -11,5 +11,6 @@ struct ThinkWidgetsBundle: WidgetBundle {
     var body: some Widget {
         DailyQuoteWidget()
         PomodoroLiveActivity()
+        StartFocusControl()
     }
 }

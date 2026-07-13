@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import AppIntents
 
 struct FocusView: View {
     @Environment(ProgressStore.self) private var progress
@@ -166,8 +167,15 @@ struct FocusView: View {
             .accessibilityLabel("Reset timer")
 
             Button {
-                haptics.play(timer.isRunning ? .pause : .start)
+                let isManualStart = !timer.isRunning
+                let donatedPreset = FocusSessionPreset(timer.preset)
+                haptics.play(isManualStart ? .start : .pause)
                 timer.toggle()
+                if isManualStart {
+                    Task {
+                        try? await StartFocusSessionIntent(preset: donatedPreset).donate()
+                    }
+                }
             } label: {
                 Label(timer.isRunning ? String(localized: "Pause") : String(localized: "Start"),
                       systemImage: timer.isRunning ? "pause.fill" : "play.fill")
