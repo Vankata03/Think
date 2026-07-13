@@ -8,9 +8,6 @@ import SwiftData
 
 struct RootTabView: View {
     @Environment(AppIntentRouter.self) private var appIntentRouter
-    @Environment(ProgressStore.self) private var progress
-    @Environment(\.scenePhase) private var scenePhase
-    @State private var milestoneOffer: StreakMilestone?
 
     var body: some View {
         @Bindable var appIntentRouter = appIntentRouter
@@ -34,26 +31,6 @@ struct RootTabView: View {
             .accessibilityIdentifier("Tab.Profile")
         }
         .tint(.accentColor)
-        .onAppear(perform: presentPendingMilestone)
-        .onChange(of: progress.pendingStreakMilestone) {
-            presentPendingMilestone()
-        }
-        .onChange(of: scenePhase) { _, phase in
-            if phase == .active {
-                presentPendingMilestone()
-            }
-        }
-        .sheet(item: $milestoneOffer, onDismiss: presentPendingMilestone) { milestone in
-            StreakShareSheet(month: .now, milestone: milestone)
-                .onAppear {
-                    progress.markStreakMilestoneHandled(milestone)
-                }
-        }
-    }
-
-    private func presentPendingMilestone() {
-        guard milestoneOffer == nil else { return }
-        milestoneOffer = progress.pendingStreakMilestone
     }
 }
 
