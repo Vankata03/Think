@@ -160,12 +160,8 @@ final class SyncCoordinator: NSObject, SyncTransportDelegate {
         case .watch:
             guard ledger.addPending(event) else { return }
             // Keep the watch UI useful while the phone is away. The phone
-            // remains the canonical writer once the event arrives.
-            progress.recordFocusSession(
-                at: event.completedAt,
-                durationMinutes: event.durationMinutes,
-                eventID: event.id
-            )
+            // remains the canonical writer and owns duration history.
+            progress.recordFocusSession(at: event.completedAt)
             queue(event)
         }
     }
@@ -196,11 +192,7 @@ final class SyncCoordinator: NSObject, SyncTransportDelegate {
         // Replay watch-local events that the snapshot has not acknowledged.
         // This path intentionally does not send user-info again.
         for event in ledger.pendingEvents {
-            progress.recordFocusSession(
-                at: event.completedAt,
-                durationMinutes: event.durationMinutes,
-                eventID: event.id
-            )
+            progress.recordFocusSession(at: event.completedAt)
         }
         reloadComplication()
     }

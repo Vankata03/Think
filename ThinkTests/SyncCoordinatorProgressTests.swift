@@ -88,35 +88,42 @@ struct SyncCoordinatorProgressTests {
         #expect(snapshot.appliedEventIDs == [event.id])
     }
 
-    @Test func watchOriginatedDurationLandsInPhoneAndWatchHistory() throws {
-        let completionDate = Date(timeIntervalSince1970: 23_000)
+    @Test func watchOriginatedDurationLandsOnlyInPhoneHistory() {
+        var now = Date(timeIntervalSince1970: 23_000)
         let (phoneTransport, watchTransport) = MockSyncTransport.paired()
-        let phoneProgress = ProgressStore(defaults: makeDefaults(), now: { completionDate })
-        let watchProgress = ProgressStore(defaults: makeDefaults(), now: { completionDate })
+        let phoneProgress = ProgressStore(defaults: makeDefaults(), now: { now })
+        let watchProgress = ProgressStore(defaults: makeDefaults(), now: { now })
+        let phoneTimer = makeTimer("11111111-1111-1111-1111-111111111111", now: now)
+        let watchTimer = PomodoroTimer(
+            systemSideEffectsEnabled: false,
+            deviceID: UUID(uuidString: "22222222-2222-2222-2222-222222222222")!,
+            now: { now }
+        )
         let phone = makeCoordinator(
             role: .phone,
-            timer: makeTimer("11111111-1111-1111-1111-111111111111", now: completionDate),
+            timer: phoneTimer,
             progress: phoneProgress,
             transport: phoneTransport
         )
         let watch = makeCoordinator(
             role: .watch,
-            timer: makeTimer("22222222-2222-2222-2222-222222222222", now: completionDate),
+            timer: watchTimer,
             progress: watchProgress,
             transport: watchTransport
         )
         phone.activate()
         watch.activate()
-        let event = FocusSessionEvent(endDate: completionDate, durationMinutes: 50)
 
-        watchTransport.transferUserInfo(
-            SyncTransportPayload(focusSessionEvent: try SyncCodec.encode(event))
-        )
+        watchTimer.select(.long)
+        watchTimer.start()
+        now = now.addingTimeInterval(50 * 60)
+        watchTimer.resync()
 
         #expect(phoneProgress.focusHistory.map(\.durationMinutes) == [50])
-        #expect(watchProgress.focusHistory.map(\.durationMinutes) == [50])
-        #expect(phoneProgress.focusHistory.first?.completedAt == completionDate)
-        #expect(watchProgress.focusHistory.first?.id == event.id)
+        #expect(watchProgress.focusHistory.isEmpty)
+        #expect(phoneProgress.focusHistory.first?.completedAt == now)
+        #expect(phoneProgress.totalFocusSessions == 1)
+        #expect(watchProgress.totalFocusSessions == 1)
     }
 
     @Test func watchSnapshotReplaceThenReplayPreservesUnacknowledgedEvent() throws {

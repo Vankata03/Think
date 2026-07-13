@@ -108,6 +108,20 @@ struct ProgressStoreTests {
         #expect(reloaded.focusHistory.map(\.id) == ["retained"])
     }
 
+    @Test func focusSessionQueriesUseHalfOpenIntervals() throws {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = try #require(TimeZone(secondsFromGMT: 0))
+        let day = try #require(SyncDateCoding.date(from: "2026-07-12T00:00:00.000Z"))
+        let nextDay = try #require(calendar.date(byAdding: .day, value: 1, to: day))
+        let store = ProgressStore(defaults: makeDefaults(), calendar: calendar, now: { nextDay })
+        store.recordFocusSession(at: day, durationMinutes: 25, eventID: "start")
+        store.recordFocusSession(at: nextDay, durationMinutes: 50, eventID: "end")
+
+        let sessions = store.focusSessions(in: DateInterval(start: day, end: nextDay))
+
+        #expect(sessions.map(\.id) == ["start"])
+    }
+
     @Test func unknownDurationUpdatesCountersWithoutInventingHistory() {
         let store = ProgressStore(defaults: makeDefaults())
 

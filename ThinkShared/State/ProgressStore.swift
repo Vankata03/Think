@@ -175,7 +175,9 @@ final class ProgressStore {
     }
 
     func focusSessions(in interval: DateInterval) -> [FocusSessionRecord] {
-        focusHistory.filter { interval.contains($0.completedAt) }
+        focusHistory.filter {
+            $0.completedAt >= interval.start && $0.completedAt < interval.end
+        }
     }
 
     var completedTaskToday: Bool {
@@ -297,7 +299,6 @@ final class ProgressStore {
             focusSessionDay: focusSessionDay,
             focusSessionDayCount: focusSessionDayCount,
             lastOpenDay: lastOpenDay,
-            focusHistory: focusHistoryDays,
             appliedEventIDs: appliedEventIDs,
             publishedAt: publishedAt
         )
@@ -314,10 +315,6 @@ final class ProgressStore {
         totalFocusSessions = snapshot.totalFocusSessions
         focusSessionDay = snapshot.focusSessionDay.map(calendar.startOfDay(for:))
         focusSessionDayCount = snapshot.focusSessionDayCount
-        focusHistoryByDay = Dictionary(grouping: snapshot.focusHistory.flatMap(\.sessions)) { session in
-            calendar.startOfDay(for: session.completedAt)
-        }
-        pruneFocusHistory(relativeTo: now())
         lastOpenDay = snapshot.lastOpenDay.map(calendar.startOfDay(for:))
         persistAllFields()
     }
