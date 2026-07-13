@@ -71,6 +71,12 @@ struct AppIntentTests {
         #expect(FocusSessionPreset.long.workMinutes == PomodoroTimer.Preset.long.workMinutes)
     }
 
+    @Test func customPresetIsNotEligibleForFixedPresetDonation() {
+        let custom = PomodoroTimer.Preset.custom(workMinutes: 73, restMinutes: 17)
+
+        #expect(FocusSessionPreset(custom) == nil)
+    }
+
     @Test func currentStreakReadsStoredProgressWithoutCreatingAStore() throws {
         let suiteName = "ThinkTests.AppIntentStreak.\(UUID().uuidString)"
         let defaults = try #require(UserDefaults(suiteName: suiteName))

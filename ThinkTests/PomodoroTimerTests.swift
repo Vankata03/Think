@@ -61,6 +61,45 @@ struct PomodoroTimerTests {
         #expect(preset.label == "90 / 20")
     }
 
+    @Test func customPresetPersistsAcrossTimerReconstruction() {
+        let suiteName = "ThinkTests.PomodoroCustomPreset.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let firstTimer = PomodoroTimer(systemSideEffectsEnabled: false, defaults: defaults)
+
+        #expect(firstTimer.selectCustom(workMinutes: 73, restMinutes: 17))
+        firstTimer.select(.classic)
+
+        let restoredTimer = PomodoroTimer(systemSideEffectsEnabled: false, defaults: defaults)
+
+        #expect(restoredTimer.customPreset.workMinutes == 73)
+        #expect(restoredTimer.customPreset.restMinutes == 17)
+        #expect(restoredTimer.preset == .classic)
+    }
+
+    @Test func activeCustomPresetMatchingClassicPersistsAcrossTimerReconstruction() {
+        let suiteName = "ThinkTests.PomodoroCustomPresetKind.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let firstTimer = PomodoroTimer(systemSideEffectsEnabled: false, defaults: defaults)
+
+        #expect(firstTimer.selectCustom(workMinutes: 25, restMinutes: 5))
+
+        let restoredTimer = PomodoroTimer(systemSideEffectsEnabled: false, defaults: defaults)
+
+        #expect(restoredTimer.preset.isCustom)
+        #expect(restoredTimer.customPreset.workMinutes == 25)
+        #expect(restoredTimer.customPreset.restMinutes == 5)
+    }
+
+    @Test func customPresetRejectsDurationsOutsideSupportedRanges() {
+        let timer = PomodoroTimer(systemSideEffectsEnabled: false)
+
+        #expect(!timer.selectCustom(workMinutes: 4, restMinutes: 5))
+        #expect(!timer.selectCustom(workMinutes: 25, restMinutes: 31))
+        #expect(timer.preset == .classic)
+    }
+
     @Test func startAndPausePreserveRemainingWorkTime() {
         let timer = PomodoroTimer(systemSideEffectsEnabled: false)
 

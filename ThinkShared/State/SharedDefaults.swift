@@ -8,6 +8,8 @@ import Foundation
 nonisolated enum SharedDefaults {
     static let appGroupSuiteName = "group.com.ivanterziev.Think"
     static let pomodoroTimerStateKey = "pomodoro.timer.state"
+    static let pomodoroCustomWorkMinutesKey = "pomodoro.custom.workMinutes"
+    static let pomodoroCustomRestMinutesKey = "pomodoro.custom.restMinutes"
     static let syncDeviceIDKey = "sync.deviceID"
 
     static func appGroup() -> UserDefaults {

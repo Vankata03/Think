@@ -22,24 +22,28 @@ struct FocusView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                focusHeader
-                    .padding(.horizontal, 22)
-                    .padding(.top, 18)
+            ScrollView {
+                VStack(spacing: 0) {
+                    focusHeader
+                        .padding(.horizontal, 22)
+                        .padding(.top, 18)
 
-                Spacer(minLength: 42)
+                    Spacer(minLength: 42)
 
-                VStack(spacing: 28) {
-                    ring
-                    focusCue
-                    controls
-                    presets
+                    VStack(spacing: 28) {
+                        ring
+                        focusCue
+                        controls
+                        presets
+                    }
+                    .opacity(appeared ? 1 : 0)
+                    .scaleEffect(appeared ? 1 : 0.97)
+
+                    Spacer(minLength: 64)
                 }
-                .opacity(appeared ? 1 : 0)
-                .scaleEffect(appeared ? 1 : 0.97)
-
-                Spacer(minLength: 64)
+                .frame(maxWidth: .infinity)
             }
+            .scrollBounceBehavior(.basedOnSize)
             .navigationTitle("Focus")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(.hidden, for: .navigationBar)
@@ -172,7 +176,7 @@ struct FocusView: View {
                 let donatedPreset = FocusSessionPreset(timer.preset)
                 haptics.play(isManualStart ? .start : .pause)
                 timer.toggle()
-                if isManualWorkStart {
+                if isManualWorkStart, let donatedPreset {
                     Task {
                         try? await StartFocusSessionIntent(preset: donatedPreset).donate()
                     }
@@ -205,29 +209,98 @@ struct FocusView: View {
     }
 
     private var presets: some View {
-        HStack(spacing: 10) {
-            ForEach(PomodoroTimer.Preset.all, id: \.workMinutes) { preset in
-                Button(preset.label) {
-                    if preset != timer.preset {
-                        haptics.play(.selection)
+        VStack(spacing: 10) {
+            HStack(spacing: 10) {
+                ForEach(PomodoroTimer.Preset.all, id: \.self) { preset in
+                    Button(preset.label) {
+                        if preset != timer.preset {
+                            haptics.play(.selection)
+                        }
+                        timer.select(preset)
                     }
-                    timer.select(preset)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(presetForeground(for: preset))
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(presetBackground(for: preset), in: Capsule())
+                    .overlay {
+                        Capsule()
+                            .stroke(presetStroke(for: preset), lineWidth: 1)
+                    }
+                    .contentShape(Capsule())
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(preset.label)
+                    .accessibilityIdentifier("FocusPreset.\(preset.workMinutes)")
                 }
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(presetForeground(for: preset))
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(presetBackground(for: preset), in: Capsule())
-                .overlay {
-                    Capsule()
-                        .stroke(presetStroke(for: preset), lineWidth: 1)
+            }
+
+            VStack(spacing: 4) {
+                Text("Custom")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(timer.preset.isCustom ? Color.accentColor : .secondary)
+
+                HStack(spacing: 10) {
+                    customDurationPicker(
+                        title: "Work duration",
+                        selection: customWorkMinutes,
+                        range: PomodoroTimer.Preset.customWorkMinutesRange,
+                        identifier: "FocusCustomWork"
+                    )
+                    customDurationPicker(
+                        title: "Break duration",
+                        selection: customRestMinutes,
+                        range: PomodoroTimer.Preset.customRestMinutesRange,
+                        identifier: "FocusCustomRest"
+                    )
                 }
-                .contentShape(Capsule())
-                .buttonStyle(.plain)
-                .accessibilityLabel(preset.label)
-                .accessibilityIdentifier("FocusPreset.\(preset.workMinutes)")
             }
         }
+    }
+
+    private var customWorkMinutes: Binding<Int> {
+        Binding(
+            get: { timer.customPreset.workMinutes },
+            set: { selectCustom(workMinutes: $0, restMinutes: timer.customPreset.restMinutes) }
+        )
+    }
+
+    private var customRestMinutes: Binding<Int> {
+        Binding(
+            get: { timer.customPreset.restMinutes },
+            set: { selectCustom(workMinutes: timer.customPreset.workMinutes, restMinutes: $0) }
+        )
+    }
+
+    private func customDurationPicker(
+        title: LocalizedStringKey,
+        selection: Binding<Int>,
+        range: ClosedRange<Int>,
+        identifier: String
+    ) -> some View {
+        Picker(title, selection: selection) {
+            ForEach(range, id: \.self) { minutes in
+                Text("\(minutes) min").tag(minutes)
+            }
+        }
+        .pickerStyle(.menu)
+        .font(.subheadline.weight(.semibold))
+        .padding(.horizontal, 10)
+        .padding(.vertical, 5)
+        .background(Color(.secondarySystemGroupedBackground), in: Capsule())
+        .overlay {
+            Capsule()
+                .stroke(Color(.separator).opacity(0.6), lineWidth: 1)
+        }
+        .accessibilityIdentifier(identifier)
+    }
+
+    private func selectCustom(workMinutes: Int, restMinutes: Int) {
+        if !timer.preset.isCustom
+            || timer.preset.workMinutes != workMinutes
+            || timer.preset.restMinutes != restMinutes {
+            haptics.play(.selection)
+        }
+        timer.selectCustom(workMinutes: workMinutes, restMinutes: restMinutes)
     }
 
     private func presetForeground(for preset: PomodoroTimer.Preset) -> Color {

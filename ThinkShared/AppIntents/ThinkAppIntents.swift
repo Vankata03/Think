@@ -27,7 +27,8 @@ enum FocusSessionPreset: String, AppEnum {
     ]
 
     @MainActor
-    init(_ preset: PomodoroTimer.Preset) {
+    init?(_ preset: PomodoroTimer.Preset) {
+        guard !preset.isCustom else { return nil }
         self = preset == .long ? .long : .classic
     }
 
