@@ -31,6 +31,8 @@ struct FocusStatsView: View {
                         )
                         .foregroundStyle(Color.accentColor.gradient)
                         .cornerRadius(5)
+                        .accessibilityLabel(day.date.formatted(.dateTime.weekday(.wide)))
+                        .accessibilityValue(day.sessions.formatted())
                     }
                     .chartXAxis {
                         AxisMarks(values: weekdays.map(\.date)) { _ in

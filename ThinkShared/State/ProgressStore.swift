@@ -175,9 +175,18 @@ final class ProgressStore {
     }
 
     func focusSessions(in interval: DateInterval) -> [FocusSessionRecord] {
-        focusHistory.filter {
-            $0.completedAt >= interval.start && $0.completedAt < interval.end
-        }
+        let firstDay = calendar.startOfDay(for: interval.start)
+        return focusHistoryByDay
+            .filter { day, _ in day >= firstDay && day < interval.end }
+            .values
+            .flatMap { $0 }
+            .filter { $0.completedAt >= interval.start && $0.completedAt < interval.end }
+            .sorted {
+                if $0.completedAt != $1.completedAt {
+                    return $0.completedAt < $1.completedAt
+                }
+                return $0.id < $1.id
+            }
     }
 
     var completedTaskToday: Bool {
