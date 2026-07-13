@@ -39,11 +39,9 @@ enum FocusSessionPreset: String, AppEnum {
         }
     }
 
-    nonisolated var workMinutes: Int {
-        switch self {
-        case .classic: 25
-        case .long: 50
-        }
+    @MainActor
+    var workMinutes: Int {
+        timerPreset.workMinutes
     }
 }
 
@@ -100,7 +98,7 @@ struct StartFocusSessionIntent: LiveActivityIntent {
     func perform() async throws -> some IntentResult & ProvidesDialog {
         switch await handler.start(preset: preset) {
         case .started:
-            let minutes = preset.workMinutes
+            let minutes = await preset.workMinutes
             return .result(
                 dialog: IntentDialog(
                     LocalizedStringResource(
@@ -134,7 +132,7 @@ final class AppIntentRouter {
 
     var selectedTab: ThinkAppTab = .today
 
-    private init() { }
+    init() { }
 
     func showDailyLine() {
         selectedTab = .today
@@ -148,8 +146,13 @@ struct ShowDailyLineIntent: AppIntent {
     )
     static let supportedModes: IntentModes = .foreground(.immediate)
 
+    @Dependency
+    private var router: AppIntentRouter
+
+    init() { }
+
     func perform() async throws -> some IntentResult {
-        await AppIntentRouter.shared.showDailyLine()
+        await router.showDailyLine()
         return .result()
     }
 }
@@ -163,26 +166,23 @@ struct CheckStreakIntent: AppIntent {
 
     func perform() async throws -> some IntentResult & ProvidesDialog & ShowsSnippetView {
         let streak = Self.currentStreak(in: SharedDefaults.appGroup())
-        let dialog: IntentDialog
-        switch streak {
-        case 0:
-            dialog = IntentDialog(
-                LocalizedStringResource("Your streak is ready to begin.", table: "AppIntents")
-            )
-        case 1:
-            dialog = IntentDialog(
-                LocalizedStringResource("Your current streak is 1 day.", table: "AppIntents")
-            )
-        default:
-            dialog = IntentDialog(
-                LocalizedStringResource(
-                    "Your current streak is \(streak) days.",
-                    table: "AppIntents"
-                )
-            )
-        }
+        let dialog = IntentDialog(Self.dialogResource(for: streak))
 
         return .result(dialog: dialog, view: StreakIntentSnippetView(streak: streak))
+    }
+
+    nonisolated static func dialogResource(for streak: Int) -> LocalizedStringResource {
+        switch streak {
+        case 0:
+            LocalizedStringResource("Your streak is ready to begin.", table: "AppIntents")
+        case 1:
+            LocalizedStringResource("Your current streak is 1 day.", table: "AppIntents")
+        default:
+            LocalizedStringResource(
+                "Your current streak is \(streak) days.",
+                table: "AppIntents"
+            )
+        }
     }
 
     nonisolated static func currentStreak(

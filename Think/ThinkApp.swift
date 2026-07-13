@@ -70,7 +70,9 @@ struct ThinkApp: App {
         _progress = State(initialValue: progressStore)
         _timer = State(initialValue: timer)
         _syncCoordinator = State(initialValue: coordinator)
+        let appIntentRouter = AppIntentRouter.shared
         AppDependencyManager.shared.add(dependency: FocusSessionIntentHandler(timer: timer))
+        AppDependencyManager.shared.add(dependency: appIntentRouter)
         coordinator.activate()
     }
 

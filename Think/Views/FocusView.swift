@@ -168,10 +168,11 @@ struct FocusView: View {
 
             Button {
                 let isManualStart = !timer.isRunning
+                let isManualWorkStart = isManualStart && timer.phase == .work
                 let donatedPreset = FocusSessionPreset(timer.preset)
                 haptics.play(isManualStart ? .start : .pause)
                 timer.toggle()
-                if isManualStart {
+                if isManualWorkStart {
                     Task {
                         try? await StartFocusSessionIntent(preset: donatedPreset).donate()
                     }

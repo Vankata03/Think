@@ -58,12 +58,17 @@ struct AppIntentTests {
     }
 
     @Test func showDailyLineRouterSelectsToday() {
-        let router = AppIntentRouter.shared
+        let router = AppIntentRouter()
         router.selectedTab = .focus
 
         router.showDailyLine()
 
         #expect(router.selectedTab == .today)
+    }
+
+    @Test func focusPresetMinutesComeFromTimerPresets() {
+        #expect(FocusSessionPreset.classic.workMinutes == PomodoroTimer.Preset.classic.workMinutes)
+        #expect(FocusSessionPreset.long.workMinutes == PomodoroTimer.Preset.long.workMinutes)
     }
 
     @Test func currentStreakReadsStoredProgressWithoutCreatingAStore() throws {
@@ -85,6 +90,21 @@ struct AppIntentTests {
         let streak = CheckStreakIntent.currentStreak(in: defaults, calendar: calendar, now: now)
 
         #expect(streak == 7)
+    }
+
+    @Test func streakDialogCoversZeroOneAndMultipleDays() {
+        #expect(
+            String(localized: CheckStreakIntent.dialogResource(for: 0))
+                == "Your streak is ready to begin."
+        )
+        #expect(
+            String(localized: CheckStreakIntent.dialogResource(for: 1))
+                == "Your current streak is 1 day."
+        )
+        #expect(
+            String(localized: CheckStreakIntent.dialogResource(for: 7))
+                == "Your current streak is 7 days."
+        )
     }
 
     @Test func appShortcutsExposeAllThreeActions() {
