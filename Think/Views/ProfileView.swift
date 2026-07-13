@@ -121,7 +121,7 @@ struct ProfileView: View {
                 }
                 Button("Cancel", role: .cancel) { }
             } message: {
-                Text("This removes journal entries, retrospectives, streaks, and focus history from this device. This cannot be undone.")
+                Text("This removes journal entries, retrospectives, streaks, and focus history from this device. Mindful minutes already saved to Health stay in Health and can be deleted there. This cannot be undone.")
             }
             .alert("Delete failed", isPresented: $showingDeleteError) {
                 Button("OK", role: .cancel) { }
@@ -623,6 +623,6 @@ private struct AdaptiveSwitchToggleStyle: ToggleStyle {
 #Preview {
     ProfileView()
         .environment(ProgressStore())
-        .environment(MindfulMinutesStore())
+        .environment(MindfulMinutesStore(client: UnavailableMindfulHealthClient()))
         .modelContainer(for: [JournalEntry.self, DailyRetro.self], inMemory: true)
 }

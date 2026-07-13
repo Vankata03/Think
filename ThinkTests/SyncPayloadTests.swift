@@ -87,6 +87,13 @@ struct SyncPayloadTests {
         #expect(oldEvent.durationMinutes == nil)
     }
 
+    @Test func legacyFocusEventDecodesWithoutDuration() throws {
+        let data = Data(#"{"id":"legacy","completedAt":"2026-07-12T10:25:30.123Z"}"#.utf8)
+        let event = try SyncCodec.decode(FocusSessionEvent.self, from: data)
+
+        #expect(event.durationMinutes == nil)
+    }
+
     private func fixture(_ name: String) throws -> Data {
         let url = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()

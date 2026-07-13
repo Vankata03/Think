@@ -159,7 +159,9 @@ final class SyncCoordinator: NSObject, SyncTransportDelegate {
                 eventID: event.id
             )
             completionSideEffect()
-            focusSessionSideEffect(event.completedAt, timer.preset.workMinutes)
+            if let durationMinutes = event.durationMinutes {
+                focusSessionSideEffect(event.completedAt, durationMinutes)
+            }
 
         case .watch:
             guard ledger.addPending(event) else { return }
@@ -183,6 +185,9 @@ final class SyncCoordinator: NSObject, SyncTransportDelegate {
             durationMinutes: event.durationMinutes,
             eventID: event.id
         )
+        if let durationMinutes = event.durationMinutes, durationMinutes > 0 {
+            focusSessionSideEffect(event.completedAt, durationMinutes)
+        }
     }
 
     private func applyProgressSnapshot(_ snapshot: ProgressSnapshot) {

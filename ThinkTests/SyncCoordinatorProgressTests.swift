@@ -96,11 +96,14 @@ struct SyncCoordinatorProgressTests {
         let (phoneTransport, watchTransport) = MockSyncTransport.paired()
         let phoneProgress = ProgressStore(defaults: makeDefaults())
         let watchProgress = ProgressStore(defaults: makeDefaults())
-        let phone = makeCoordinator(
+        var sideEffects: [(Date, Int)] = []
+        let phone = SyncCoordinator(
             role: .phone,
             timer: makeTimer("11111111-1111-1111-1111-111111111111", now: completionDate),
             progress: phoneProgress,
-            transport: phoneTransport
+            ledger: FocusEventLedger(defaults: makeDefaults()),
+            transport: phoneTransport,
+            focusSessionSideEffect: { sideEffects.append(($0, $1)) }
         )
         let watch = makeCoordinator(
             role: .watch,
@@ -110,7 +113,7 @@ struct SyncCoordinatorProgressTests {
         )
         phone.activate()
         watch.activate()
-        let event = FocusSessionEvent(endDate: completionDate)
+        let event = FocusSessionEvent(endDate: completionDate, durationMinutes: 50)
         let eventData = try SyncCodec.encode(event)
 
         watchTransport.transferUserInfo(SyncTransportPayload(focusSessionEvent: eventData))
@@ -118,6 +121,9 @@ struct SyncCoordinatorProgressTests {
 
         #expect(phoneProgress.totalFocusSessions == 1)
         #expect(phone.ledger.appliedEventIDs == [event.id])
+        #expect(sideEffects.count == 1)
+        #expect(sideEffects.first?.0 == completionDate)
+        #expect(sideEffects.first?.1 == 50)
         let lastPhoneContext = try #require(
             watchTransport.receivedEnvelopes.last(where: { $0.progressSnapshot != nil })?.progressSnapshot
         )

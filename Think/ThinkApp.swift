@@ -46,7 +46,13 @@ struct ThinkApp: App {
         )
         let ledgerDefaults = isUITesting ? progressDefaults : appGroupDefaults
         let ledger = FocusEventLedger(defaults: ledgerDefaults)
-        let mindfulMinutes = MindfulMinutesStore(defaults: UserDefaults.standard)
+        let mindfulHealthClient: any MindfulHealthClient = isUITesting
+            ? UnavailableMindfulHealthClient()
+            : HealthKitMindfulHealthClient()
+        let mindfulMinutes = MindfulMinutesStore(
+            defaults: UserDefaults.standard,
+            client: mindfulHealthClient
+        )
         let transport: any SyncTransport
         if isUITesting {
             transport = NoopSyncTransport()
@@ -69,11 +75,12 @@ struct ThinkApp: App {
             transport: transport,
             completionSideEffect: completionSideEffect,
             focusSessionSideEffect: { endDate, durationMinutes in
+                mindfulMinutes.enqueueCompletedSession(
+                    endedAt: endDate,
+                    durationMinutes: durationMinutes
+                )
                 Task {
-                    await mindfulMinutes.logCompletedSession(
-                        endedAt: endDate,
-                        durationMinutes: durationMinutes
-                    )
+                    await mindfulMinutes.drainPendingSessions()
                 }
             }
         )
@@ -85,6 +92,9 @@ struct ThinkApp: App {
         AppDependencyManager.shared.add(dependency: FocusSessionIntentHandler(timer: timer))
         AppDependencyManager.shared.add(dependency: appIntentRouter)
         coordinator.activate()
+        Task {
+            await mindfulMinutes.drainPendingSessions()
+        }
     }
 
     private static func prepareApplicationSupportDirectory() {
@@ -134,6 +144,9 @@ struct ThinkApp: App {
                 progress.recordAppOpen()
                 // Slide the scheduled notification window forward.
                 DailyQuoteNotifier.refreshSchedule()
+                Task {
+                    await mindfulMinutes.drainPendingSessions()
+                }
             }
         }
     }

@@ -7724,15 +7724,15 @@
         "pt-BR": { "stringUnit": { "state": "translated", "value": "Diário do Think" } }
       }
     },
-    "This removes journal entries, retrospectives, streaks, and focus history from this device. This cannot be undone.": {
+    "This removes journal entries, retrospectives, streaks, and focus history from this device. Mindful minutes already saved to Health stay in Health and can be deleted there. This cannot be undone.": {
       "localizations": {
-        "bg": { "stringUnit": { "state": "translated", "value": "Това премахва записите в дневника, ретроспекциите, поредиците и историята на фокус сесиите от това устройство. Действието не може да бъде отменено." } },
-        "de": { "stringUnit": { "state": "translated", "value": "Das entfernt Journaleinträge, Retrospektiven, Streaks und den Fokusverlauf von diesem Gerät. Das lässt sich nicht rückgängig machen." } },
-        "en": { "stringUnit": { "state": "translated", "value": "This removes journal entries, retrospectives, streaks, and focus history from this device. This cannot be undone." } },
-        "es": { "stringUnit": { "state": "translated", "value": "Esto elimina las entradas del diario, las retrospectivas, las rachas y el historial de sesiones de concentración de este dispositivo. No se puede deshacer." } },
-        "fr": { "stringUnit": { "state": "translated", "value": "Cette action supprime les entrées du journal, les rétrospectives, les séries et l’historique des sessions de concentration de cet appareil. Elle est irréversible." } },
-        "it": { "stringUnit": { "state": "translated", "value": "Questa operazione rimuove da questo dispositivo le voci del diario, le retrospettive, le serie e la cronologia delle sessioni di concentrazione. Non può essere annullata." } },
-        "pt-BR": { "stringUnit": { "state": "translated", "value": "Isso remove deste dispositivo as entradas do diário, retrospectivas, sequências e o histórico de sessões de foco. Essa ação não pode ser desfeita." } }
+        "bg": { "stringUnit": { "state": "translated", "value": "Това премахва записите в дневника, ретроспекциите, поредиците и историята на фокус сесиите от това устройство. Минутите за осъзнатост, вече запазени в Здраве, остават там и могат да бъдат изтрити от приложението. Действието не може да бъде отменено." } },
+        "de": { "stringUnit": { "state": "translated", "value": "Das entfernt Journaleinträge, Retrospektiven, Streaks und den Fokusverlauf von diesem Gerät. Bereits in Health gespeicherte Achtsamkeitsminuten bleiben dort und können dort gelöscht werden. Das lässt sich nicht rückgängig machen." } },
+        "en": { "stringUnit": { "state": "translated", "value": "This removes journal entries, retrospectives, streaks, and focus history from this device. Mindful minutes already saved to Health stay in Health and can be deleted there. This cannot be undone." } },
+        "es": { "stringUnit": { "state": "translated", "value": "Esto elimina las entradas del diario, las retrospectivas, las rachas y el historial de sesiones de concentración de este dispositivo. Los minutos de atención plena ya guardados en Salud permanecen allí y se pueden eliminar desde la app. No se puede deshacer." } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Cette action supprime les entrées du journal, les rétrospectives, les séries et l’historique des sessions de concentration de cet appareil. Les minutes de pleine conscience déjà enregistrées dans Santé y restent et peuvent y être supprimées. Elle est irréversible." } },
+        "it": { "stringUnit": { "state": "translated", "value": "Questa operazione rimuove da questo dispositivo le voci del diario, le retrospettive, le serie e la cronologia delle sessioni di concentrazione. I minuti di mindfulness già salvati in Salute restano lì e possono essere eliminati dall’app. Non può essere annullata." } },
+        "pt-BR": { "stringUnit": { "state": "translated", "value": "Isso remove deste dispositivo as entradas do diário, retrospectivas, sequências e o histórico de sessões de foco. Os minutos de atenção plena já salvos no app Saúde permanecem lá e podem ser apagados pelo app. Essa ação não pode ser desfeita." } }
       }
     },
     "Your journal export is ready.": {
