@@ -49,6 +49,53 @@
         }
       }
     },
+    "NSHealthUpdateUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "bg": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think записва завършените фокус сесии като минути за осъзнатост в приложението Здраве, когато дадеш съгласие."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think logs completed focus sessions as mindful minutes in Apple Health when you opt in."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think protokolliert abgeschlossene Fokussitzungen als Achtsamkeitsminuten in Apple Health, wenn du zustimmst."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think registra las sesiones de concentración completadas como minutos de atención plena en Apple Salud cuando das tu consentimiento."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think enregistre les sessions de concentration terminées comme minutes de pleine conscience dans Apple Santé lorsque tu l’autorises."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think registra le sessioni di concentrazione completate come minuti di mindfulness in Apple Salute quando dai il consenso."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Think registra sessões de foco concluídas como minutos de atenção plena no app Saúde quando você autoriza."
+          }
+        }
+      }
+    },
     "NSPhotoLibraryAddUsageDescription": {
       "extractionState": "manual",
       "localizations": {

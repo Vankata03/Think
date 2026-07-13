@@ -35,6 +35,7 @@ private struct ExportItem: Identifiable {
 
 struct ProfileView: View {
     @Environment(ProgressStore.self) private var progress
+    @Environment(MindfulMinutesStore.self) private var mindfulMinutes
     @Environment(\.modelContext) private var modelContext
     @Environment(\.haptics) private var haptics
     @Environment(\.openURL) private var openURL
@@ -62,6 +63,18 @@ struct ProfileView: View {
         $retroReminderMinutes.timeOfDay
     }
 
+    private var mindfulMinutesEnabled: Binding<Bool> {
+        Binding(
+            get: { mindfulMinutes.isEnabled },
+            set: { enabled in
+                haptics.play(.selection)
+                Task {
+                    await mindfulMinutes.setEnabled(enabled)
+                }
+            }
+        )
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -87,10 +100,12 @@ struct ProfileView: View {
             }
             .task {
                 refreshNotificationAuthorization()
+                mindfulMinutes.refreshAuthorization()
             }
             .onChange(of: scenePhase) { _, phase in
                 guard phase == .active else { return }
                 refreshNotificationAuthorization()
+                mindfulMinutes.refreshAuthorization()
             }
             .sheet(item: $exportItem, onDismiss: removeTemporaryExport) { item in
                 JournalExportSheet(fileURL: item.url)
@@ -106,7 +121,7 @@ struct ProfileView: View {
                 }
                 Button("Cancel", role: .cancel) { }
             } message: {
-                Text("This removes journal entries, retrospectives, streaks, and focus history from this device. This cannot be undone.")
+                Text("This removes journal entries, retrospectives, streaks, and focus history from this device. Mindful minutes already saved to Health stay in Health and can be deleted there. This cannot be undone.")
             }
             .alert("Delete failed", isPresented: $showingDeleteError) {
                 Button("OK", role: .cancel) { }
@@ -303,6 +318,30 @@ struct ProfileView: View {
                     Divider()
                     notificationDeniedNotice
                 }
+
+                Divider()
+
+                Toggle(isOn: mindfulMinutesEnabled) {
+                    settingsLabel("Log focus sessions to Health", systemImage: "heart.text.clipboard")
+                }
+                .toggleStyle(AdaptiveSwitchToggleStyle())
+                .disabled(mindfulMinutes.authorization == .unavailable)
+                .padding(.vertical, 10)
+                .accessibilityIdentifier("HealthMindfulMinutes")
+
+                if mindfulMinutes.authorization == .denied {
+                    Text("Health access is off. Allow Think to write mindful minutes in the Health app to use this setting.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.bottom, 10)
+                } else if mindfulMinutes.authorization == .unavailable {
+                    Text("Health logging is unavailable on this device.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.bottom, 10)
+                }
             }
             .padding(18)
             .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
@@ -486,6 +525,9 @@ struct ProfileView: View {
             dailyLineMinutes = DailyQuoteNotifier.defaultMinutes
             retroReminderEnabled = false
             retroReminderMinutes = RetroReminder.defaultMinutes
+            Task {
+                await mindfulMinutes.setEnabled(false)
+            }
             haptics.play(.success)
         } catch {
             showingDeleteError = true
@@ -581,5 +623,6 @@ private struct AdaptiveSwitchToggleStyle: ToggleStyle {
 #Preview {
     ProfileView()
         .environment(ProgressStore())
+        .environment(MindfulMinutesStore(client: UnavailableMindfulHealthClient()))
         .modelContainer(for: [JournalEntry.self, DailyRetro.self], inMemory: true)
 }

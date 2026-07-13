@@ -16,6 +16,7 @@ struct ThinkApp: App {
     @State private var progress: ProgressStore
     @State private var timer: PomodoroTimer
     @State private var syncCoordinator: SyncCoordinator
+    @State private var mindfulMinutes: MindfulMinutesStore
     @AppStorage(Appearance.storageKey) private var appearance = Appearance.dark
     @AppStorage(Onboarding.completedKey) private var completedOnboarding = false
     private let isUITesting: Bool
@@ -45,6 +46,13 @@ struct ThinkApp: App {
         )
         let ledgerDefaults = isUITesting ? progressDefaults : appGroupDefaults
         let ledger = FocusEventLedger(defaults: ledgerDefaults)
+        let mindfulHealthClient: any MindfulHealthClient = isUITesting
+            ? UnavailableMindfulHealthClient()
+            : HealthKitMindfulHealthClient()
+        let mindfulMinutes = MindfulMinutesStore(
+            defaults: UserDefaults.standard,
+            client: mindfulHealthClient
+        )
         let transport: any SyncTransport
         if isUITesting {
             transport = NoopSyncTransport()
@@ -65,15 +73,28 @@ struct ThinkApp: App {
             progress: progressStore,
             ledger: ledger,
             transport: transport,
-            completionSideEffect: completionSideEffect
+            completionSideEffect: completionSideEffect,
+            focusSessionSideEffect: { endDate, durationMinutes in
+                mindfulMinutes.enqueueCompletedSession(
+                    endedAt: endDate,
+                    durationMinutes: durationMinutes
+                )
+                Task {
+                    await mindfulMinutes.drainPendingSessions()
+                }
+            }
         )
         _progress = State(initialValue: progressStore)
         _timer = State(initialValue: timer)
         _syncCoordinator = State(initialValue: coordinator)
+        _mindfulMinutes = State(initialValue: mindfulMinutes)
         let appIntentRouter = AppIntentRouter.shared
         AppDependencyManager.shared.add(dependency: FocusSessionIntentHandler(timer: timer))
         AppDependencyManager.shared.add(dependency: appIntentRouter)
         coordinator.activate()
+        Task {
+            await mindfulMinutes.drainPendingSessions()
+        }
     }
 
     private static func prepareApplicationSupportDirectory() {
@@ -103,6 +124,7 @@ struct ThinkApp: App {
             .environment(timer)
             .environment(syncCoordinator)
             .environment(AppIntentRouter.shared)
+            .environment(mindfulMinutes)
             .environment(\.haptics, .live)
             .preferredColorScheme(appearance.colorScheme)
             .animation(.easeInOut(duration: 0.3), value: completedOnboarding)
@@ -122,6 +144,9 @@ struct ThinkApp: App {
                 progress.recordAppOpen()
                 // Slide the scheduled notification window forward.
                 DailyQuoteNotifier.refreshSchedule()
+                Task {
+                    await mindfulMinutes.drainPendingSessions()
+                }
             }
         }
     }
