@@ -29,11 +29,13 @@ struct FocusEventLedgerTests {
         let defaults = makeDefaults()
         let first = FocusSessionEvent(
             id: "first",
-            completedAt: Date(timeIntervalSince1970: 2)
+            completedAt: Date(timeIntervalSince1970: 2),
+            durationMinutes: 25
         )
         let second = FocusSessionEvent(
             id: "second",
-            completedAt: Date(timeIntervalSince1970: 1)
+            completedAt: Date(timeIntervalSince1970: 1),
+            durationMinutes: 50
         )
         let ledger = FocusEventLedger(defaults: defaults)
 
@@ -44,6 +46,7 @@ struct FocusEventLedgerTests {
 
         let restored = FocusEventLedger(defaults: defaults)
         #expect(restored.pendingEvents.map(\.id) == ["second", "first"])
+        #expect(restored.pendingEvents.map(\.durationMinutes) == [50, 25])
         #expect(restored.acknowledgePending(["second"]))
         #expect(restored.pendingEvents.map(\.id) == ["first"])
         #expect(!restored.acknowledgePending(["missing"]))

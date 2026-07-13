@@ -62,6 +62,61 @@ struct ProgressStoreTests {
         #expect(store.displayedStreak == 1)
     }
 
+    @Test func focusHistoryStartsEmptyWithoutFabricatingFromAggregateCounters() {
+        let defaults = makeDefaults()
+        defaults.set(42, forKey: "totalFocusSessions")
+        defaults.set(3, forKey: "focusSessionDayCount")
+
+        let store = ProgressStore(defaults: defaults)
+
+        #expect(store.focusHistory.isEmpty)
+        #expect(store.focusHistoryByDay.isEmpty)
+        #expect(defaults.data(forKey: "focusHistory") != nil)
+    }
+
+    @Test func focusHistoryStoresDateAndDurationInCalendarDayBuckets() throws {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = try #require(TimeZone(secondsFromGMT: 0))
+        let now = try #require(SyncDateCoding.date(from: "2026-07-13T12:00:00.000Z"))
+        let first = try #require(SyncDateCoding.date(from: "2026-07-12T09:00:00.000Z"))
+        let second = try #require(SyncDateCoding.date(from: "2026-07-12T14:00:00.000Z"))
+        let store = ProgressStore(defaults: makeDefaults(), calendar: calendar, now: { now })
+
+        store.recordFocusSession(at: first, durationMinutes: 25, eventID: "first")
+        store.recordFocusSession(at: second, durationMinutes: 50, eventID: "second")
+
+        let day = calendar.startOfDay(for: first)
+        #expect(store.focusHistoryByDay[day]?.map(\.durationMinutes) == [25, 50])
+        #expect(store.focusHistory.map(\.completedAt) == [first, second])
+        #expect(store.focusHistory.map(\.durationMinutes) == [25, 50])
+    }
+
+    @Test func focusHistoryPersistsAndDropsEntriesOutsideRollingYear() throws {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = try #require(TimeZone(secondsFromGMT: 0))
+        let defaults = makeDefaults()
+        let now = try #require(SyncDateCoding.date(from: "2026-07-13T12:00:00.000Z"))
+        let retained = try #require(calendar.date(byAdding: .day, value: -364, to: now))
+        let expired = try #require(calendar.date(byAdding: .day, value: -365, to: now))
+        let store = ProgressStore(defaults: defaults, calendar: calendar, now: { now })
+
+        store.recordFocusSession(at: retained, durationMinutes: 25, eventID: "retained")
+        store.recordFocusSession(at: expired, durationMinutes: 50, eventID: "expired")
+
+        #expect(store.focusHistory.map(\.id) == ["retained"])
+        let reloaded = ProgressStore(defaults: defaults, calendar: calendar, now: { now })
+        #expect(reloaded.focusHistory.map(\.id) == ["retained"])
+    }
+
+    @Test func unknownDurationUpdatesCountersWithoutInventingHistory() {
+        let store = ProgressStore(defaults: makeDefaults())
+
+        store.recordFocusSession(durationMinutes: nil, eventID: "legacy")
+
+        #expect(store.totalFocusSessions == 1)
+        #expect(store.focusHistory.isEmpty)
+    }
+
     @Test func pathStepCanOnlyBeCompletedOncePerDay() {
         let store = ProgressStore(defaults: makeDefaults())
 
@@ -202,12 +257,14 @@ struct ProgressStoreTests {
         #expect(store.totalFocusSessions == 0)
         #expect(store.pathCompletedDays == 0)
         #expect(store.completedDays.isEmpty)
+        #expect(store.focusHistory.isEmpty)
         #expect(!store.openedToday)
 
         let reloaded = ProgressStore(defaults: defaults)
         #expect(reloaded.totalFocusSessions == 0)
         #expect(reloaded.pathCompletedDays == 0)
         #expect(reloaded.completedDays.isEmpty)
+        #expect(reloaded.focusHistory.isEmpty)
     }
 
     @Test func migrationCopiesLegacyProgress() {

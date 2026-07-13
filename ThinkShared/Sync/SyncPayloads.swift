@@ -101,14 +101,22 @@ nonisolated struct TimerSyncState: Codable, Equatable, Sendable {
 nonisolated struct FocusSessionEvent: Codable, Equatable, Sendable {
     let id: String
     let completedAt: Date
+    /// Additive in schema v1. Older queued events decode as nil and still
+    /// update aggregate progress, but cannot create fabricated history.
+    let durationMinutes: Int?
 
-    init(id: String, completedAt: Date) {
+    init(id: String, completedAt: Date, durationMinutes: Int? = nil) {
         self.id = id
         self.completedAt = completedAt
+        self.durationMinutes = durationMinutes
     }
 
-    init(endDate: Date) {
-        self.init(id: Self.id(for: endDate), completedAt: endDate)
+    init(endDate: Date, durationMinutes: Int? = nil) {
+        self.init(
+            id: Self.id(for: endDate),
+            completedAt: endDate,
+            durationMinutes: durationMinutes
+        )
     }
 
     static func id(for endDate: Date) -> String {
@@ -120,6 +128,21 @@ nonisolated struct FocusSessionEvent: Codable, Equatable, Sendable {
     private enum CodingKeys: String, CodingKey {
         case id
         case completedAt
+        case durationMinutes
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        completedAt = try container.decode(Date.self, forKey: .completedAt)
+        durationMinutes = try container.decodeIfPresent(Int.self, forKey: .durationMinutes)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(completedAt, forKey: .completedAt)
+        try container.encodeIfPresent(durationMinutes, forKey: .durationMinutes)
     }
 }
 
@@ -134,8 +157,39 @@ nonisolated struct ProgressSnapshot: Codable, Equatable, Sendable {
     let focusSessionDay: Date?
     let focusSessionDayCount: Int
     let lastOpenDay: Date?
+    /// Additive in schema v1. Omitted when empty so existing golden payloads
+    /// remain byte-for-field compatible.
+    let focusHistory: [FocusHistoryDay]
     let appliedEventIDs: [String]
     let publishedAt: Date
+
+    init(
+        streak: Int,
+        lastCompletedDay: Date?,
+        completedDays: [Date],
+        pathCompletedDays: Int,
+        lastPathCompletionDay: Date?,
+        totalFocusSessions: Int,
+        focusSessionDay: Date?,
+        focusSessionDayCount: Int,
+        lastOpenDay: Date?,
+        focusHistory: [FocusHistoryDay] = [],
+        appliedEventIDs: [String],
+        publishedAt: Date
+    ) {
+        self.streak = streak
+        self.lastCompletedDay = lastCompletedDay
+        self.completedDays = completedDays
+        self.pathCompletedDays = pathCompletedDays
+        self.lastPathCompletionDay = lastPathCompletionDay
+        self.totalFocusSessions = totalFocusSessions
+        self.focusSessionDay = focusSessionDay
+        self.focusSessionDayCount = focusSessionDayCount
+        self.lastOpenDay = lastOpenDay
+        self.focusHistory = focusHistory
+        self.appliedEventIDs = appliedEventIDs
+        self.publishedAt = publishedAt
+    }
 
     private enum CodingKeys: String, CodingKey {
         case streak
@@ -147,8 +201,43 @@ nonisolated struct ProgressSnapshot: Codable, Equatable, Sendable {
         case focusSessionDay
         case focusSessionDayCount
         case lastOpenDay
+        case focusHistory
         case appliedEventIDs
         case publishedAt
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        streak = try container.decode(Int.self, forKey: .streak)
+        lastCompletedDay = try container.decodeIfPresent(Date.self, forKey: .lastCompletedDay)
+        completedDays = try container.decode([Date].self, forKey: .completedDays)
+        pathCompletedDays = try container.decode(Int.self, forKey: .pathCompletedDays)
+        lastPathCompletionDay = try container.decodeIfPresent(Date.self, forKey: .lastPathCompletionDay)
+        totalFocusSessions = try container.decode(Int.self, forKey: .totalFocusSessions)
+        focusSessionDay = try container.decodeIfPresent(Date.self, forKey: .focusSessionDay)
+        focusSessionDayCount = try container.decode(Int.self, forKey: .focusSessionDayCount)
+        lastOpenDay = try container.decodeIfPresent(Date.self, forKey: .lastOpenDay)
+        focusHistory = try container.decodeIfPresent([FocusHistoryDay].self, forKey: .focusHistory) ?? []
+        appliedEventIDs = try container.decode([String].self, forKey: .appliedEventIDs)
+        publishedAt = try container.decode(Date.self, forKey: .publishedAt)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(streak, forKey: .streak)
+        try container.encodeIfPresent(lastCompletedDay, forKey: .lastCompletedDay)
+        try container.encode(completedDays, forKey: .completedDays)
+        try container.encode(pathCompletedDays, forKey: .pathCompletedDays)
+        try container.encodeIfPresent(lastPathCompletionDay, forKey: .lastPathCompletionDay)
+        try container.encode(totalFocusSessions, forKey: .totalFocusSessions)
+        try container.encodeIfPresent(focusSessionDay, forKey: .focusSessionDay)
+        try container.encode(focusSessionDayCount, forKey: .focusSessionDayCount)
+        try container.encodeIfPresent(lastOpenDay, forKey: .lastOpenDay)
+        if !focusHistory.isEmpty {
+            try container.encode(focusHistory, forKey: .focusHistory)
+        }
+        try container.encode(appliedEventIDs, forKey: .appliedEventIDs)
+        try container.encode(publishedAt, forKey: .publishedAt)
     }
 }
 

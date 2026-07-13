@@ -88,6 +88,37 @@ struct SyncCoordinatorProgressTests {
         #expect(snapshot.appliedEventIDs == [event.id])
     }
 
+    @Test func watchOriginatedDurationLandsInPhoneAndWatchHistory() throws {
+        let completionDate = Date(timeIntervalSince1970: 23_000)
+        let (phoneTransport, watchTransport) = MockSyncTransport.paired()
+        let phoneProgress = ProgressStore(defaults: makeDefaults(), now: { completionDate })
+        let watchProgress = ProgressStore(defaults: makeDefaults(), now: { completionDate })
+        let phone = makeCoordinator(
+            role: .phone,
+            timer: makeTimer("11111111-1111-1111-1111-111111111111", now: completionDate),
+            progress: phoneProgress,
+            transport: phoneTransport
+        )
+        let watch = makeCoordinator(
+            role: .watch,
+            timer: makeTimer("22222222-2222-2222-2222-222222222222", now: completionDate),
+            progress: watchProgress,
+            transport: watchTransport
+        )
+        phone.activate()
+        watch.activate()
+        let event = FocusSessionEvent(endDate: completionDate, durationMinutes: 50)
+
+        watchTransport.transferUserInfo(
+            SyncTransportPayload(focusSessionEvent: try SyncCodec.encode(event))
+        )
+
+        #expect(phoneProgress.focusHistory.map(\.durationMinutes) == [50])
+        #expect(watchProgress.focusHistory.map(\.durationMinutes) == [50])
+        #expect(phoneProgress.focusHistory.first?.completedAt == completionDate)
+        #expect(watchProgress.focusHistory.first?.id == event.id)
+    }
+
     @Test func watchSnapshotReplaceThenReplayPreservesUnacknowledgedEvent() throws {
         let (transport, _) = MockSyncTransport.paired()
         let defaults = makeDefaults()

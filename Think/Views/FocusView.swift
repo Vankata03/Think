@@ -56,6 +56,15 @@ struct FocusView: View {
                     }
                     .accessibilityLabel("Tip: silence distractions")
                 }
+                ToolbarItem(placement: .topBarTrailing) {
+                    NavigationLink {
+                        FocusStatsView()
+                    } label: {
+                        Image(systemName: "chart.bar.xaxis")
+                    }
+                    .accessibilityLabel("Focus stats")
+                    .accessibilityIdentifier("FocusStats")
+                }
             }
             .background(Color(.systemGroupedBackground).ignoresSafeArea())
             .sheet(isPresented: $showingFocusTip) {

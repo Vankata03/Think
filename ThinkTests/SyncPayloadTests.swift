@@ -71,6 +71,20 @@ struct SyncPayloadTests {
 
         #expect(event.id == "event")
         #expect(event.completedAt == SyncDateCoding.date(from: "2026-07-12T10:25:30.123Z"))
+        #expect(event.durationMinutes == nil)
+    }
+
+    @Test func additiveFocusHistoryFieldsRoundTripWithoutBreakingV1Fixtures() throws {
+        let completedAt = try #require(SyncDateCoding.date(from: "2026-07-12T10:25:30.123Z"))
+        let event = FocusSessionEvent(endDate: completedAt, durationMinutes: 50)
+        let decodedEvent = try SyncCodec.decode(
+            FocusSessionEvent.self,
+            from: SyncCodec.encode(event)
+        )
+        #expect(decodedEvent.durationMinutes == 50)
+
+        let oldSnapshot = try SyncCodec.decode(ProgressSnapshot.self, from: fixture("progress-v1.json"))
+        #expect(oldSnapshot.focusHistory.isEmpty)
     }
 
     private func fixture(_ name: String) throws -> Data {

@@ -63,6 +63,7 @@ Motivational app for young ambitious people. Not a quote-wallpaper app: every da
 - [x] First-launch onboarding (practice intro, notification opt-in, first path)
 - [x] Zero-state polish (no-guilt streak copy, path "Not started")
 - [x] Watch face streak complication (accessory families via watch widget extension)
+- [x] Think 1.1 focus stats: rolling completed-session history, weekly chart, and totals (history begins empty; aggregate counters are not backfilled)
 - [x] Release content audit: 100 deliberately paired line → question → action practices; attributed lines carry exact public-domain edition provenance, house lines remain unattributed on cards
 - [ ] App Store 1.0 release prep: signing, screenshots, metadata, final branch/tag flow — in progress. Done so far: iPhone-only device family + localized timer notifications (PR #8), legal pages live at https://thinkapp.tech/privacy.html and https://thinkapp.tech/support.html. Open: free-vs-paywall decision, recut `release/1.0`, App Store Connect setup.
 - [ ] CI/release pipeline upgrade (post-1.0): PR gates now, Xcode Cloud TestFlight lane after launch, fastlane screenshots/metadata before first update. Detailed implementation notes are maintained outside this repository.
