@@ -49,6 +49,7 @@ Motivational app for young ambitious people. Not a quote-wallpaper app: every da
 - WidgetKit and ActivityKit are part of the current app surface.
 
 ## Build order / progress
+- [x] Think 1.1 App Intents foundation: Siri/Shortcuts actions for focus, daily line, and streak; manual-start donation; Control Center focus control
 - [x] Concept, design mockups, monetization plan (2026-07-04)
 - [x] MVP: Today tab (line + question + journal save), streak, Deep focus path, basic pomodoro, Profile
 - [x] Share cards / wallpaper renderer (QuoteCardView + ImageRenderer, 4 styles, share + save to Photos)
