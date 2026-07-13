@@ -17,14 +17,6 @@ struct WatchTodayView: View {
         progress.pathCompletedDays >= PathLibrary.deepFocus.steps.count
     }
 
-    private var dailyProgressCount: Int {
-        var completed = 0
-        if progress.completedTaskToday { completed += 1 }
-        if progress.focusSessionsToday > 0 { completed += 1 }
-        if progress.completedPathStepToday { completed += 1 }
-        return completed
-    }
-
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
@@ -80,14 +72,14 @@ struct WatchTodayView: View {
                     .textCase(.uppercase)
                     .foregroundStyle(.secondary)
                 Spacer()
-                Text("\(dailyProgressCount)/3")
+                Text("\(progress.dailyPracticeProgressCount)/3")
                     .font(.caption.monospacedDigit().weight(.semibold))
                     .foregroundStyle(.yellow)
             }
-            ProgressView(value: Double(dailyProgressCount), total: 3)
+            ProgressView(value: Double(progress.dailyPracticeProgressCount), total: 3)
                 .tint(.yellow)
                 .accessibilityLabel("Daily progress")
-                .accessibilityValue(String(localized: "\(dailyProgressCount) of 3"))
+                .accessibilityValue(String(localized: "\(progress.dailyPracticeProgressCount) of 3"))
         }
         .padding(10)
         .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))

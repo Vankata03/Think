@@ -27,6 +27,7 @@ final class SyncCoordinator: NSObject, SyncTransportDelegate {
     let transport: any SyncTransport
 
     private let reloadComplication: @MainActor () -> Void
+    private let progressMutationSideEffect: @MainActor () -> Void
     private let completionSideEffect: @MainActor () -> Void
     private let focusSessionSideEffect: @MainActor (Date, Int) -> Void
     private var isActivated = false
@@ -41,6 +42,7 @@ final class SyncCoordinator: NSObject, SyncTransportDelegate {
         ledger: FocusEventLedger,
         transport: any SyncTransport,
         reloadComplication: @escaping @MainActor () -> Void = {},
+        progressMutationSideEffect: @escaping @MainActor () -> Void = {},
         completionSideEffect: @escaping @MainActor () -> Void = {},
         focusSessionSideEffect: @escaping @MainActor (Date, Int) -> Void = { _, _ in }
     ) {
@@ -50,6 +52,7 @@ final class SyncCoordinator: NSObject, SyncTransportDelegate {
         self.ledger = ledger
         self.transport = transport
         self.reloadComplication = reloadComplication
+        self.progressMutationSideEffect = progressMutationSideEffect
         self.completionSideEffect = completionSideEffect
         self.focusSessionSideEffect = focusSessionSideEffect
         super.init()
@@ -114,6 +117,7 @@ final class SyncCoordinator: NSObject, SyncTransportDelegate {
     }
 
     private func handleProgressMutation() {
+        progressMutationSideEffect()
         guard role == .phone else { return }
         publishProgressSnapshot()
     }

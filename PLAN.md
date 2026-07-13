@@ -51,6 +51,7 @@ Motivational app for young ambitious people. Not a quote-wallpaper app: every da
 ## Build order / progress
 - [x] Think 1.1 App Intents foundation: Siri/Shortcuts actions for focus, daily line, and streak; manual-start donation; Control Center focus control
 - [x] Think 1.1: opt-in HealthKit mindful-minute logging for completed iPhone focus sessions (2026-07-13)
+- [x] Think 1.1 streak widgets: daily-practice ring, streak status, and interactive focus start
 - [x] Concept, design mockups, monetization plan (2026-07-04)
 - [x] MVP: Today tab (line + question + journal save), streak, Deep focus path, basic pomodoro, Profile
 - [x] Share cards / wallpaper renderer (QuoteCardView + ImageRenderer, 4 styles, share + save to Photos)

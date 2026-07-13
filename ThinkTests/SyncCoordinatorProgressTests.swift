@@ -47,6 +47,27 @@ struct SyncCoordinatorProgressTests {
         #expect(sideEffects.first?.1 == 25)
     }
 
+    @Test func phoneProgressMutationsReloadStreakWidgetTimelines() {
+        let progress = ProgressStore(defaults: makeDefaults())
+        let (transport, _) = MockSyncTransport.paired()
+        var reloads = 0
+        let coordinator = SyncCoordinator(
+            role: .phone,
+            timer: makeTimer("11111111-1111-1111-1111-111111111111", now: .now),
+            progress: progress,
+            ledger: FocusEventLedger(defaults: makeDefaults()),
+            transport: transport,
+            progressMutationSideEffect: { reloads += 1 }
+        )
+        coordinator.activate()
+
+        progress.recordAppOpen()
+        progress.recordAppOpen()
+        progress.markTodayComplete()
+
+        #expect(reloads == 2)
+    }
+
     @Test func watchOfflineCompletionReachesPhoneAndCanonicalSnapshotReturns() {
         let completionDate = Date(timeIntervalSince1970: 20_000)
         let (phoneTransport, watchTransport) = MockSyncTransport.paired()

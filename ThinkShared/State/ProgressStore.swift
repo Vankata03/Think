@@ -148,6 +148,27 @@ final class ProgressStore {
         return 0
     }
 
+    /// The three progress signals available in the shared App Group:
+    /// any completed practice, a focus session, and a path step.
+    nonisolated static func storedDailyPracticeProgressCount(
+        in defaults: UserDefaults,
+        calendar: Calendar = .current,
+        now: Date = .now
+    ) -> Int {
+        var completed = 0
+        if storedDate(forKey: Key.lastCompletedDay, in: defaults, isSameDayAs: now, calendar: calendar) {
+            completed += 1
+        }
+        if defaults.integer(forKey: Key.focusSessionDayCount) > 0,
+           storedDate(forKey: Key.focusSessionDay, in: defaults, isSameDayAs: now, calendar: calendar) {
+            completed += 1
+        }
+        if storedDate(forKey: Key.lastPathCompletionDay, in: defaults, isSameDayAs: now, calendar: calendar) {
+            completed += 1
+        }
+        return completed
+    }
+
     /// Streak shown to the user: still alive if the last completed day
     /// is today or yesterday, otherwise back to zero.
     var displayedStreak: Int {
@@ -197,6 +218,14 @@ final class ProgressStore {
     var completedPathStepToday: Bool {
         guard let lastPathCompletionDay else { return false }
         return calendar.isDateInToday(lastPathCompletionDay)
+    }
+
+    var dailyPracticeProgressCount: Int {
+        var completed = 0
+        if completedTaskToday { completed += 1 }
+        if focusSessionsToday > 0 { completed += 1 }
+        if completedPathStepToday { completed += 1 }
+        return completed
     }
 
     var canCompletePathStepToday: Bool {
@@ -427,6 +456,16 @@ final class ProgressStore {
     private func persistFocusHistory() {
         guard let data = try? SyncCodec.encode(focusHistoryDays) else { return }
         defaults.set(data, forKey: Key.focusHistory)
+    }
+
+    private nonisolated static func storedDate(
+        forKey key: String,
+        in defaults: UserDefaults,
+        isSameDayAs date: Date,
+        calendar: Calendar
+    ) -> Bool {
+        guard let stored = defaults.object(forKey: key) as? Date else { return false }
+        return calendar.isDate(stored, inSameDayAs: date)
     }
 
     private func emit(_ mutation: ProgressMutation) {

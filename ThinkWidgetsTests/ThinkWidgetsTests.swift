@@ -65,6 +65,100 @@ struct DailyQuoteTimelineTests {
 }
 
 @MainActor
+struct StreakWidgetTests {
+
+    @Test func storedPresentationReadsStreakAndDailyPracticeProgress() throws {
+        let defaults = makeDefaults()
+        let calendar = utcCalendar()
+        let now = try date(year: 2026, month: 7, day: 13, hour: 12, calendar: calendar)
+        defaults.set(7, forKey: "streak")
+        defaults.set(now, forKey: "lastCompletedDay")
+        defaults.set(now, forKey: "focusSessionDay")
+        defaults.set(1, forKey: "focusSessionDayCount")
+
+        let presentation = StreakPresentation.stored(
+            in: defaults,
+            calendar: calendar,
+            now: now
+        )
+
+        #expect(presentation.streak == 7)
+        #expect(presentation.completedPracticeCount == 2)
+        #expect(presentation.practiceProgress == 2.0 / 3.0)
+        #expect(!presentation.isTodayComplete)
+    }
+
+    @Test func timelineCoversNowAndNextTwoMidnights() throws {
+        let defaults = makeDefaults()
+        let calendar = utcCalendar()
+        let now = try date(year: 2026, month: 7, day: 13, hour: 12, calendar: calendar)
+        defaults.set(3, forKey: "streak")
+        defaults.set(now, forKey: "lastCompletedDay")
+
+        let entries = StreakWidgetTimelineFactory.entries(
+            startingAt: now,
+            calendar: calendar,
+            defaults: defaults
+        )
+
+        #expect(entries.count == 3)
+        #expect(entries[0].date == now)
+        #expect(entries[0].presentation.streak == 3)
+        #expect(entries[1].presentation.streak == 3)
+        #expect(entries[2].presentation.streak == 0)
+        #expect(entries.dropFirst().allSatisfy { $0.presentation.completedPracticeCount == 0 })
+    }
+
+    @Test func presentationCopyCoversFreshActiveAndCompleteStates() {
+        #expect(StreakPresentation(streak: 0, completedPracticeCount: 0).streakText == "Begin today")
+        #expect(StreakPresentation(streak: 1, completedPracticeCount: 1).streakText == "1-day streak")
+        #expect(StreakPresentation(streak: 7, completedPracticeCount: 2).streakText == "7-day streak")
+        #expect(StreakPresentation(streak: 7, completedPracticeCount: 3).todayText == "Today complete")
+    }
+
+    @Test func viewBuildsForEverySupportedFamily() {
+        let entry = StreakWidgetEntry(date: .now, presentation: .placeholder)
+
+        _ = StreakWidgetView(entry: entry, familyOverride: .accessoryCircular).body
+        _ = StreakWidgetView(entry: entry, familyOverride: .accessoryRectangular).body
+        _ = StreakWidgetView(entry: entry, familyOverride: .systemSmall).body
+    }
+
+    @Test func configurationBuilds() {
+        _ = StreakWidget().body
+    }
+
+    private func makeDefaults() -> UserDefaults {
+        let suiteName = "ThinkWidgetsTests.Streak.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        return defaults
+    }
+
+    private func utcCalendar() -> Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        return calendar
+    }
+
+    private func date(
+        year: Int,
+        month: Int,
+        day: Int,
+        hour: Int,
+        calendar: Calendar
+    ) throws -> Date {
+        try #require(calendar.date(from: DateComponents(
+            timeZone: calendar.timeZone,
+            year: year,
+            month: month,
+            day: day,
+            hour: hour
+        )))
+    }
+}
+
+@MainActor
 struct PomodoroLiveActivityPresentationTests {
 
     @Test func workPhaseUsesDeepWorkPresentation() {
@@ -120,4 +214,5 @@ struct ThinkWidgetsBundleTests {
     @Test func startFocusControlConfigurationBuilds() {
         _ = StartFocusControl().body
     }
+
 }

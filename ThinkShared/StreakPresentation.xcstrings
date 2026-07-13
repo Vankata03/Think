@@ -1,0 +1,56 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "%lld-day streak": {
+      "localizations": {
+        "bg": { "stringUnit": { "state": "translated", "value": "%lld дни поред" } },
+        "de": { "stringUnit": { "state": "translated", "value": "%lld Tage in Folge" } },
+        "es": { "stringUnit": { "state": "translated", "value": "%lld días seguidos" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "%lld jours d’affilée" } },
+        "it": { "stringUnit": { "state": "translated", "value": "%lld giorni consecutivi" } },
+        "pt-BR": { "stringUnit": { "state": "translated", "value": "%lld dias seguidos" } }
+      }
+    },
+    "%lld/3 today": {
+      "localizations": {
+        "bg": { "stringUnit": { "state": "translated", "value": "%lld/3 днес" } },
+        "de": { "stringUnit": { "state": "translated", "value": "%lld/3 heute" } },
+        "es": { "stringUnit": { "state": "translated", "value": "%lld/3 hoy" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "%lld/3 aujourd’hui" } },
+        "it": { "stringUnit": { "state": "translated", "value": "%lld/3 oggi" } },
+        "pt-BR": { "stringUnit": { "state": "translated", "value": "%lld/3 hoje" } }
+      }
+    },
+    "1-day streak": {
+      "localizations": {
+        "bg": { "stringUnit": { "state": "translated", "value": "1 ден поред" } },
+        "de": { "stringUnit": { "state": "translated", "value": "1 Tag in Folge" } },
+        "es": { "stringUnit": { "state": "translated", "value": "1 día seguido" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "1 jour d’affilée" } },
+        "it": { "stringUnit": { "state": "translated", "value": "1 giorno consecutivo" } },
+        "pt-BR": { "stringUnit": { "state": "translated", "value": "1 dia seguido" } }
+      }
+    },
+    "Begin today": {
+      "localizations": {
+        "bg": { "stringUnit": { "state": "translated", "value": "Започни днес" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Fang heute an" } },
+        "es": { "stringUnit": { "state": "translated", "value": "Empieza hoy" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Commence aujourd’hui" } },
+        "it": { "stringUnit": { "state": "translated", "value": "Inizia oggi" } },
+        "pt-BR": { "stringUnit": { "state": "translated", "value": "Comece hoje" } }
+      }
+    },
+    "Today complete": {
+      "localizations": {
+        "bg": { "stringUnit": { "state": "translated", "value": "Готово за днес" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Heute abgeschlossen" } },
+        "es": { "stringUnit": { "state": "translated", "value": "Completado hoy" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Terminé pour aujourd’hui" } },
+        "it": { "stringUnit": { "state": "translated", "value": "Completato oggi" } },
+        "pt-BR": { "stringUnit": { "state": "translated", "value": "Concluído hoje" } }
+      }
+    }
+  },
+  "version": "1.0"
+}
