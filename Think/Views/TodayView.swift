@@ -85,6 +85,7 @@ struct TodayView: View {
             .scrollDismissesKeyboard(.interactively)
             .dismissKeyboardOnTap()
             .onAppear {
+                synchronizeDailyQuestionProgress()
                 withAnimation(.easeOut(duration: 0.45)) {
                     appeared = true
                 }
@@ -142,12 +143,7 @@ struct TodayView: View {
     }
 
     private var dailyProgressCount: Int {
-        var completed = 0
-        if progress.openedToday { completed += 1 }
-        if todaysEntry != nil { completed += 1 }
-        if progress.focusSessionsToday > 0 { completed += 1 }
-        if progress.completedPathStepToday { completed += 1 }
-        return completed
+        progress.dailyPracticeProgressCount
     }
 
     private var dailyProgress: Double {
@@ -437,13 +433,18 @@ struct TodayView: View {
         let text = answer.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
         modelContext.insert(JournalEntry(prompt: question, text: text, kind: JournalEntry.kindQuestion))
-        progress.markTodayComplete()
+        progress.recordDailyQuestionAnswer()
         haptics.play(.success)
         answer = ""
         savedPulse = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.22) {
             savedPulse = false
         }
+    }
+
+    private func synchronizeDailyQuestionProgress() {
+        guard let todaysEntry else { return }
+        progress.recordDailyQuestionAnswer(at: todaysEntry.date)
     }
 }
 

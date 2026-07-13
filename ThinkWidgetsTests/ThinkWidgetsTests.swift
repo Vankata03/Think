@@ -73,6 +73,29 @@ struct StreakWidgetTests {
         let now = try date(year: 2026, month: 7, day: 13, hour: 12, calendar: calendar)
         defaults.set(7, forKey: "streak")
         defaults.set(now, forKey: "lastCompletedDay")
+        defaults.set(now, forKey: "lastOpenDay")
+        defaults.set(now, forKey: "lastQuestionAnswerDay")
+        defaults.set(now, forKey: "focusSessionDay")
+        defaults.set(1, forKey: "focusSessionDayCount")
+        defaults.set(now, forKey: "lastPathCompletionDay")
+
+        let presentation = StreakPresentation.stored(
+            in: defaults,
+            calendar: calendar,
+            now: now
+        )
+
+        #expect(presentation.streak == 7)
+        #expect(presentation.completedPracticeCount == 4)
+        #expect(presentation.practiceProgress == 1)
+        #expect(presentation.isTodayComplete)
+    }
+
+    @Test func focusOnlyCountsAsOneDailyPracticeSignal() throws {
+        let defaults = makeDefaults()
+        let calendar = utcCalendar()
+        let now = try date(year: 2026, month: 7, day: 13, hour: 12, calendar: calendar)
+        defaults.set(now, forKey: "lastCompletedDay")
         defaults.set(now, forKey: "focusSessionDay")
         defaults.set(1, forKey: "focusSessionDayCount")
 
@@ -82,10 +105,8 @@ struct StreakWidgetTests {
             now: now
         )
 
-        #expect(presentation.streak == 7)
-        #expect(presentation.completedPracticeCount == 2)
-        #expect(presentation.practiceProgress == 2.0 / 3.0)
-        #expect(!presentation.isTodayComplete)
+        #expect(presentation.completedPracticeCount == 1)
+        #expect(presentation.practiceProgress == 0.25)
     }
 
     @Test func timelineCoversNowAndNextTwoMidnights() throws {
@@ -113,7 +134,8 @@ struct StreakWidgetTests {
         #expect(StreakPresentation(streak: 0, completedPracticeCount: 0).streakText == "Begin today")
         #expect(StreakPresentation(streak: 1, completedPracticeCount: 1).streakText == "1-day streak")
         #expect(StreakPresentation(streak: 7, completedPracticeCount: 2).streakText == "7-day streak")
-        #expect(StreakPresentation(streak: 7, completedPracticeCount: 3).todayText == "Today complete")
+        #expect(StreakPresentation(streak: 7, completedPracticeCount: 3).todayText == "3/4 today")
+        #expect(StreakPresentation(streak: 7, completedPracticeCount: 4).todayText == "Today complete")
     }
 
     @Test func viewBuildsForEverySupportedFamily() {

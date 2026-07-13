@@ -11,14 +11,14 @@
         "pt-BR": { "stringUnit": { "state": "translated", "value": "%lld dias seguidos" } }
       }
     },
-    "%lld/3 today": {
+    "%lld/4 today": {
       "localizations": {
-        "bg": { "stringUnit": { "state": "translated", "value": "%lld/3 днес" } },
-        "de": { "stringUnit": { "state": "translated", "value": "%lld/3 heute" } },
-        "es": { "stringUnit": { "state": "translated", "value": "%lld/3 hoy" } },
-        "fr": { "stringUnit": { "state": "translated", "value": "%lld/3 aujourd’hui" } },
-        "it": { "stringUnit": { "state": "translated", "value": "%lld/3 oggi" } },
-        "pt-BR": { "stringUnit": { "state": "translated", "value": "%lld/3 hoje" } }
+        "bg": { "stringUnit": { "state": "translated", "value": "%lld/4 днес" } },
+        "de": { "stringUnit": { "state": "translated", "value": "%lld/4 heute" } },
+        "es": { "stringUnit": { "state": "translated", "value": "%lld/4 hoy" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "%lld/4 aujourd’hui" } },
+        "it": { "stringUnit": { "state": "translated", "value": "%lld/4 oggi" } },
+        "pt-BR": { "stringUnit": { "state": "translated", "value": "%lld/4 hoje" } }
       }
     },
     "1-day streak": {

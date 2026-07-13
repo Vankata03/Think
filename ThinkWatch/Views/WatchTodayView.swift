@@ -72,14 +72,14 @@ struct WatchTodayView: View {
                     .textCase(.uppercase)
                     .foregroundStyle(.secondary)
                 Spacer()
-                Text("\(progress.dailyPracticeProgressCount)/3")
+                Text("\(progress.dailyPracticeProgressCount)/4")
                     .font(.caption.monospacedDigit().weight(.semibold))
                     .foregroundStyle(.yellow)
             }
-            ProgressView(value: Double(progress.dailyPracticeProgressCount), total: 3)
+            ProgressView(value: Double(progress.dailyPracticeProgressCount), total: 4)
                 .tint(.yellow)
                 .accessibilityLabel("Daily progress")
-                .accessibilityValue(String(localized: "\(progress.dailyPracticeProgressCount) of 3"))
+                .accessibilityValue(String(localized: "\(progress.dailyPracticeProgressCount) of 4"))
         }
         .padding(10)
         .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))

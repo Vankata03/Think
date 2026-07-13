@@ -211,6 +211,36 @@ struct ProgressStoreTests {
         #expect(reloaded.openedToday)
     }
 
+    @Test func dailyPracticeProgressCountsFourIndependentSignals() {
+        let defaults = makeDefaults()
+        let store = ProgressStore(defaults: defaults)
+
+        store.recordAppOpen()
+        #expect(store.dailyPracticeProgressCount == 1)
+
+        store.recordDailyQuestionAnswer()
+        #expect(store.dailyPracticeProgressCount == 2)
+        #expect(store.answeredDailyQuestionToday)
+
+        store.recordFocusSession()
+        #expect(store.dailyPracticeProgressCount == 3)
+
+        store.completePathStep()
+        #expect(store.dailyPracticeProgressCount == 4)
+        #expect(ProgressStore.storedDailyPracticeProgressCount(in: defaults) == 4)
+    }
+
+    @Test func focusSessionDoesNotDoubleCountGenericDayCompletion() {
+        let defaults = makeDefaults()
+        let store = ProgressStore(defaults: defaults)
+
+        store.recordFocusSession()
+
+        #expect(store.completedTaskToday)
+        #expect(store.dailyPracticeProgressCount == 1)
+        #expect(ProgressStore.storedDailyPracticeProgressCount(in: defaults) == 1)
+    }
+
     @Test func appOpenFromAnEarlierDayDoesNotCountToday() {
         let defaults = makeDefaults()
         defaults.set(Calendar.current.date(byAdding: .day, value: -1, to: Date.now), forKey: "lastOpenDay")
@@ -262,6 +292,7 @@ struct ProgressStoreTests {
 
         store.recordFocusSession()
         store.completePathStep()
+        store.recordDailyQuestionAnswer()
         #expect(store.totalFocusSessions == 1)
         #expect(store.pathCompletedDays == 1)
 
@@ -273,6 +304,7 @@ struct ProgressStoreTests {
         #expect(store.completedDays.isEmpty)
         #expect(store.focusHistory.isEmpty)
         #expect(!store.openedToday)
+        #expect(!store.answeredDailyQuestionToday)
 
         let reloaded = ProgressStore(defaults: defaults)
         #expect(reloaded.totalFocusSessions == 0)

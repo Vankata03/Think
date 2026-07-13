@@ -7,7 +7,7 @@ import Foundation
 
 nonisolated struct StreakPresentation: Equatable, Sendable {
     static let widgetKind = "StreakWidget"
-    static let dailyPracticeTotal = 3
+    static let dailyPracticeTotal = 4
 
     let streak: Int
     let completedPracticeCount: Int
@@ -44,7 +44,7 @@ nonisolated struct StreakPresentation: Equatable, Sendable {
         }
         return String(
             localized: LocalizedStringResource(
-                "\(completedPracticeCount)/3 today",
+                "\(completedPracticeCount)/4 today",
                 table: "StreakPresentation"
             )
         )
