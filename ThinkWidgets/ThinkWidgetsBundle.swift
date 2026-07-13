@@ -10,6 +10,7 @@ import WidgetKit
 struct ThinkWidgetsBundle: WidgetBundle {
     var body: some Widget {
         DailyQuoteWidget()
+        StreakWidget()
         PomodoroLiveActivity()
         StartFocusControl()
     }

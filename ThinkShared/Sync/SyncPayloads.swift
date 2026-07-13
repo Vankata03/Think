@@ -158,8 +158,37 @@ nonisolated struct ProgressSnapshot: Codable, Equatable, Sendable {
     let focusSessionDay: Date?
     let focusSessionDayCount: Int
     let lastOpenDay: Date?
+    let lastQuestionAnswerDay: Date?
     let appliedEventIDs: [String]
     let publishedAt: Date
+
+    init(
+        streak: Int,
+        lastCompletedDay: Date?,
+        completedDays: [Date],
+        pathCompletedDays: Int,
+        lastPathCompletionDay: Date?,
+        totalFocusSessions: Int,
+        focusSessionDay: Date?,
+        focusSessionDayCount: Int,
+        lastOpenDay: Date?,
+        lastQuestionAnswerDay: Date? = nil,
+        appliedEventIDs: [String],
+        publishedAt: Date
+    ) {
+        self.streak = streak
+        self.lastCompletedDay = lastCompletedDay
+        self.completedDays = completedDays
+        self.pathCompletedDays = pathCompletedDays
+        self.lastPathCompletionDay = lastPathCompletionDay
+        self.totalFocusSessions = totalFocusSessions
+        self.focusSessionDay = focusSessionDay
+        self.focusSessionDayCount = focusSessionDayCount
+        self.lastOpenDay = lastOpenDay
+        self.lastQuestionAnswerDay = lastQuestionAnswerDay
+        self.appliedEventIDs = appliedEventIDs
+        self.publishedAt = publishedAt
+    }
 
     private enum CodingKeys: String, CodingKey {
         case streak
@@ -171,6 +200,7 @@ nonisolated struct ProgressSnapshot: Codable, Equatable, Sendable {
         case focusSessionDay
         case focusSessionDayCount
         case lastOpenDay
+        case lastQuestionAnswerDay
         case appliedEventIDs
         case publishedAt
     }

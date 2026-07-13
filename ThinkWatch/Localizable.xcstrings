@@ -281,42 +281,42 @@
         }
       }
     },
-    "%lld of 3": {
+    "%lld of 4": {
       "localizations": {
         "bg": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld от 3"
+            "value": "%lld от 4"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld von 3"
+            "value": "%lld von 4"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld de 3"
+            "value": "%lld de 4"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld sur 3"
+            "value": "%lld sur 4"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld di 3"
+            "value": "%lld di 4"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld de 3"
+            "value": "%lld de 4"
           }
         }
       }
@@ -361,42 +361,42 @@
         }
       }
     },
-    "%lld/3": {
+    "%lld/4": {
       "localizations": {
         "bg": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld/3"
+            "value": "%lld/4"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld/3"
+            "value": "%lld/4"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld/3"
+            "value": "%lld/4"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld/3"
+            "value": "%lld/4"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld/3"
+            "value": "%lld/4"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld/3"
+            "value": "%lld/4"
           }
         }
       }

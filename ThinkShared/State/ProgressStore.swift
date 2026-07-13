@@ -20,6 +20,7 @@ nonisolated struct FocusHistoryDay: Codable, Equatable, Sendable {
 enum ProgressMutation: Sendable {
     case markTodayComplete
     case recordAppOpen
+    case recordDailyQuestionAnswer
     case completePathStep
     case recordFocusSession
     case reset
@@ -42,6 +43,7 @@ final class ProgressStore {
         static let focusHistory = "focusHistory"
         static let completedDays = "completedDays"
         static let lastOpenDay = "lastOpenDay"
+        static let lastQuestionAnswerDay = "lastQuestionAnswerDay"
     }
 
     /// Every key this store persists, for migrating between defaults suites.
@@ -56,6 +58,7 @@ final class ProgressStore {
         Key.focusHistory,
         Key.completedDays,
         Key.lastOpenDay,
+        Key.lastQuestionAnswerDay,
     ]
 
     private let defaults: UserDefaults
@@ -77,6 +80,7 @@ final class ProgressStore {
     /// streak calendar. Grows one entry per day at most.
     private(set) var completedDays: Set<Date>
     private var lastOpenDay: Date?
+    private(set) var lastQuestionAnswerDay: Date?
 
     /// Called after a successful local mutation. Snapshot application does
     /// not invoke this callback.
@@ -111,6 +115,7 @@ final class ProgressStore {
             focusHistoryByDay = [:]
         }
         lastOpenDay = defaults.object(forKey: Key.lastOpenDay) as? Date
+        lastQuestionAnswerDay = defaults.object(forKey: Key.lastQuestionAnswerDay) as? Date
         if let stored = defaults.array(forKey: Key.completedDays) as? [Date] {
             completedDays = Set(stored.map { calendar.startOfDay(for: $0) })
         } else {
@@ -146,6 +151,30 @@ final class ProgressStore {
             return defaults.integer(forKey: Key.streak)
         }
         return 0
+    }
+
+    /// The four independent daily-practice signals available in the shared
+    /// App Group: app open, daily answer, focus session, and path step.
+    nonisolated static func storedDailyPracticeProgressCount(
+        in defaults: UserDefaults,
+        calendar: Calendar = .current,
+        now: Date = .now
+    ) -> Int {
+        var completed = 0
+        if storedDate(forKey: Key.lastOpenDay, in: defaults, isSameDayAs: now, calendar: calendar) {
+            completed += 1
+        }
+        if storedDate(forKey: Key.lastQuestionAnswerDay, in: defaults, isSameDayAs: now, calendar: calendar) {
+            completed += 1
+        }
+        if defaults.integer(forKey: Key.focusSessionDayCount) > 0,
+           storedDate(forKey: Key.focusSessionDay, in: defaults, isSameDayAs: now, calendar: calendar) {
+            completed += 1
+        }
+        if storedDate(forKey: Key.lastPathCompletionDay, in: defaults, isSameDayAs: now, calendar: calendar) {
+            completed += 1
+        }
+        return completed
     }
 
     /// Streak shown to the user: still alive if the last completed day
@@ -199,6 +228,20 @@ final class ProgressStore {
         return calendar.isDateInToday(lastPathCompletionDay)
     }
 
+    var answeredDailyQuestionToday: Bool {
+        guard let lastQuestionAnswerDay else { return false }
+        return calendar.isDateInToday(lastQuestionAnswerDay)
+    }
+
+    var dailyPracticeProgressCount: Int {
+        var completed = 0
+        if openedToday { completed += 1 }
+        if answeredDailyQuestionToday { completed += 1 }
+        if focusSessionsToday > 0 { completed += 1 }
+        if completedPathStepToday { completed += 1 }
+        return completed
+    }
+
     var canCompletePathStepToday: Bool {
         guard pathCompletedDays < PathLibrary.deepFocus.steps.count else { return false }
         guard let lastPathCompletionDay else { return true }
@@ -226,6 +269,15 @@ final class ProgressStore {
         lastOpenDay = calendar.startOfDay(for: .now)
         defaults.set(lastOpenDay, forKey: Key.lastOpenDay)
         emit(.recordAppOpen)
+    }
+
+    func recordDailyQuestionAnswer(at date: Date = .now) {
+        let day = calendar.startOfDay(for: date)
+        guard lastQuestionAnswerDay.map({ !calendar.isDate($0, inSameDayAs: day) }) ?? true else { return }
+        lastQuestionAnswerDay = day
+        defaults.set(day, forKey: Key.lastQuestionAnswerDay)
+        _ = completeDay(at: day)
+        emit(.recordDailyQuestionAnswer)
     }
 
     func completePathStep() {
@@ -289,6 +341,7 @@ final class ProgressStore {
         focusHistoryByDay = [:]
         completedDays = []
         lastOpenDay = nil
+        lastQuestionAnswerDay = nil
         defaults.set([], forKey: Key.completedDays)
         persistFocusHistory()
         emit(.reset)
@@ -308,6 +361,7 @@ final class ProgressStore {
             focusSessionDay: focusSessionDay,
             focusSessionDayCount: focusSessionDayCount,
             lastOpenDay: lastOpenDay,
+            lastQuestionAnswerDay: lastQuestionAnswerDay,
             appliedEventIDs: appliedEventIDs,
             publishedAt: publishedAt
         )
@@ -325,6 +379,7 @@ final class ProgressStore {
         focusSessionDay = snapshot.focusSessionDay.map(calendar.startOfDay(for:))
         focusSessionDayCount = snapshot.focusSessionDayCount
         lastOpenDay = snapshot.lastOpenDay.map(calendar.startOfDay(for:))
+        lastQuestionAnswerDay = snapshot.lastQuestionAnswerDay.map(calendar.startOfDay(for:))
         persistAllFields()
     }
 
@@ -367,6 +422,7 @@ final class ProgressStore {
         persistFocusHistory()
         defaults.set(Array(completedDays), forKey: Key.completedDays)
         setOptional(lastOpenDay, forKey: Key.lastOpenDay)
+        setOptional(lastQuestionAnswerDay, forKey: Key.lastQuestionAnswerDay)
     }
 
     private func setOptional(_ value: Date?, forKey key: String) {
@@ -427,6 +483,16 @@ final class ProgressStore {
     private func persistFocusHistory() {
         guard let data = try? SyncCodec.encode(focusHistoryDays) else { return }
         defaults.set(data, forKey: Key.focusHistory)
+    }
+
+    private nonisolated static func storedDate(
+        forKey key: String,
+        in defaults: UserDefaults,
+        isSameDayAs date: Date,
+        calendar: Calendar
+    ) -> Bool {
+        guard let stored = defaults.object(forKey: key) as? Date else { return false }
+        return calendar.isDate(stored, inSameDayAs: date)
     }
 
     private func emit(_ mutation: ProgressMutation) {

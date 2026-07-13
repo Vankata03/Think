@@ -47,6 +47,7 @@ struct ProgressSyncTests {
         store.recordFocusSession(at: Date(timeIntervalSince1970: 100_000))
         store.completePathStep()
         store.recordAppOpen()
+        store.recordDailyQuestionAnswer()
         let snapshot = store.snapshot(
             appliedEventIDs: ["first", "second"],
             publishedAt: Date(timeIntervalSince1970: 7_000)
@@ -58,6 +59,7 @@ struct ProgressSyncTests {
         #expect(snapshot.totalFocusSessions == 3)
         #expect(snapshot.pathCompletedDays == 1)
         #expect(snapshot.focusSessionDayCount == 1)
+        #expect(snapshot.lastQuestionAnswerDay != nil)
         #expect(snapshot.publishedAt == Date(timeIntervalSince1970: 7_000))
     }
 
@@ -67,6 +69,7 @@ struct ProgressSyncTests {
         store.recordFocusSession()
         store.completePathStep()
         store.recordAppOpen()
+        store.recordDailyQuestionAnswer()
 
         let empty = ProgressSnapshot(
             streak: 0,
@@ -89,6 +92,7 @@ struct ProgressSyncTests {
         #expect(store.completedDays.isEmpty)
         #expect(store.focusHistory.isEmpty)
         #expect(!store.openedToday)
+        #expect(!store.answeredDailyQuestionToday)
         #expect(ProgressStore(defaults: defaults).lastCompletedDay == nil)
     }
 
@@ -119,12 +123,14 @@ struct ProgressSyncTests {
         store.markTodayComplete()
         store.recordAppOpen()
         store.recordAppOpen()
+        store.recordDailyQuestionAnswer()
+        store.recordDailyQuestionAnswer()
         store.completePathStep()
         store.completePathStep()
         store.recordFocusSession()
         store.reset()
 
-        #expect(mutations.count == 5)
+        #expect(mutations.count == 6)
     }
 
     private func makeDefaults() -> UserDefaults {

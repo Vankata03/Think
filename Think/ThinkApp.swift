@@ -9,6 +9,7 @@ import SwiftUI
 import SwiftData
 import Foundation
 import AppIntents
+import WidgetKit
 
 @main
 struct ThinkApp: App {
@@ -73,6 +74,9 @@ struct ThinkApp: App {
             progress: progressStore,
             ledger: ledger,
             transport: transport,
+            progressMutationSideEffect: {
+                WidgetCenter.shared.reloadTimelines(ofKind: StreakPresentation.widgetKind)
+            },
             completionSideEffect: completionSideEffect,
             focusSessionSideEffect: { endDate, durationMinutes in
                 mindfulMinutes.enqueueCompletedSession(

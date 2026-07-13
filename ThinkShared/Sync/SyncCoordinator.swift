@@ -27,12 +27,14 @@ final class SyncCoordinator: NSObject, SyncTransportDelegate {
     let transport: any SyncTransport
 
     private let reloadComplication: @MainActor () -> Void
+    private let progressMutationSideEffect: @MainActor () -> Void
     private let completionSideEffect: @MainActor () -> Void
     private let focusSessionSideEffect: @MainActor (Date, Int) -> Void
     private var isActivated = false
     private var latestTimerData: Data?
     private var latestProgressData: Data?
     private var latestAppliedProgressDate = Date.distantPast
+    private var isApplyingProgressSnapshot = false
 
     init(
         role: Role,
@@ -41,6 +43,7 @@ final class SyncCoordinator: NSObject, SyncTransportDelegate {
         ledger: FocusEventLedger,
         transport: any SyncTransport,
         reloadComplication: @escaping @MainActor () -> Void = {},
+        progressMutationSideEffect: @escaping @MainActor () -> Void = {},
         completionSideEffect: @escaping @MainActor () -> Void = {},
         focusSessionSideEffect: @escaping @MainActor (Date, Int) -> Void = { _, _ in }
     ) {
@@ -50,6 +53,7 @@ final class SyncCoordinator: NSObject, SyncTransportDelegate {
         self.ledger = ledger
         self.transport = transport
         self.reloadComplication = reloadComplication
+        self.progressMutationSideEffect = progressMutationSideEffect
         self.completionSideEffect = completionSideEffect
         self.focusSessionSideEffect = focusSessionSideEffect
         super.init()
@@ -114,8 +118,14 @@ final class SyncCoordinator: NSObject, SyncTransportDelegate {
     }
 
     private func handleProgressMutation() {
-        guard role == .phone else { return }
-        publishProgressSnapshot()
+        guard !isApplyingProgressSnapshot else { return }
+        progressMutationSideEffect()
+        switch role {
+        case .phone:
+            publishProgressSnapshot()
+        case .watch:
+            reloadComplication()
+        }
     }
 
     private func publishProgressSnapshot() {
@@ -195,6 +205,12 @@ final class SyncCoordinator: NSObject, SyncTransportDelegate {
               snapshot.publishedAt > latestAppliedProgressDate else { return }
         latestAppliedProgressDate = snapshot.publishedAt
 
+        isApplyingProgressSnapshot = true
+        defer {
+            isApplyingProgressSnapshot = false
+            reloadComplication()
+        }
+
         progress.apply(snapshot)
         _ = ledger.acknowledgePending(Set(snapshot.appliedEventIDs))
 
@@ -203,7 +219,6 @@ final class SyncCoordinator: NSObject, SyncTransportDelegate {
         for event in ledger.pendingEvents {
             progress.recordFocusSession(at: event.completedAt)
         }
-        reloadComplication()
     }
 
     private func queue(_ event: FocusSessionEvent) {

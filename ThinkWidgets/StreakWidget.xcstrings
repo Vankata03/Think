@@ -1,0 +1,36 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "Daily practice": {
+      "localizations": {
+        "bg": { "stringUnit": { "state": "translated", "value": "Ежедневна практика" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Tägliche Übung" } },
+        "es": { "stringUnit": { "state": "translated", "value": "Práctica diaria" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Pratique quotidienne" } },
+        "it": { "stringUnit": { "state": "translated", "value": "Pratica quotidiana" } },
+        "pt-BR": { "stringUnit": { "state": "translated", "value": "Prática diária" } }
+      }
+    },
+    "Streak": {
+      "localizations": {
+        "bg": { "stringUnit": { "state": "translated", "value": "Серия" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Serie" } },
+        "es": { "stringUnit": { "state": "translated", "value": "Racha" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Série" } },
+        "it": { "stringUnit": { "state": "translated", "value": "Serie" } },
+        "pt-BR": { "stringUnit": { "state": "translated", "value": "Sequência" } }
+      }
+    },
+    "Your Think streak and today's practice progress.": {
+      "localizations": {
+        "bg": { "stringUnit": { "state": "translated", "value": "Серията ти в Think и напредъкът на днешната практика." } },
+        "de": { "stringUnit": { "state": "translated", "value": "Deine Think-Serie und der Fortschritt deiner heutigen Übung." } },
+        "es": { "stringUnit": { "state": "translated", "value": "Tu racha de Think y el progreso de la práctica de hoy." } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Ta série Think et la progression de ta pratique du jour." } },
+        "it": { "stringUnit": { "state": "translated", "value": "La tua serie Think e i progressi della pratica di oggi." } },
+        "pt-BR": { "stringUnit": { "state": "translated", "value": "Sua sequência no Think e o progresso da prática de hoje." } }
+      }
+    }
+  },
+  "version": "1.0"
+}

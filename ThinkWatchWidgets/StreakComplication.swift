@@ -8,16 +8,16 @@ import WidgetKit
 
 nonisolated struct StreakEntry: TimelineEntry {
     let date: Date
-    let streak: Int
+    let presentation: StreakPresentation
 }
 
 nonisolated struct StreakProvider: TimelineProvider {
     func placeholder(in context: Context) -> StreakEntry {
-        StreakEntry(date: .now, streak: 5)
+        StreakEntry(date: .now, presentation: .placeholder)
     }
 
     func getSnapshot(in context: Context, completion: @escaping (StreakEntry) -> Void) {
-        completion(StreakEntry(date: .now, streak: currentStreak(at: .now)))
+        completion(StreakEntry(date: .now, presentation: currentPresentation(at: .now)))
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<StreakEntry>) -> Void) {
@@ -25,17 +25,17 @@ nonisolated struct StreakProvider: TimelineProvider {
         // yesterday), so one entry now plus the next two midnights is enough.
         let calendar = Calendar.current
         let now = Date.now
-        var entries = [StreakEntry(date: now, streak: currentStreak(at: now))]
+        var entries = [StreakEntry(date: now, presentation: currentPresentation(at: now))]
         for offset in 1...2 {
             if let midnight = calendar.date(byAdding: .day, value: offset, to: calendar.startOfDay(for: now)) {
-                entries.append(StreakEntry(date: midnight, streak: currentStreak(at: midnight)))
+                entries.append(StreakEntry(date: midnight, presentation: currentPresentation(at: midnight)))
             }
         }
         completion(Timeline(entries: entries, policy: .atEnd))
     }
 
-    private func currentStreak(at date: Date) -> Int {
-        ProgressStore.storedDisplayedStreak(in: SharedDefaults.appGroup(), now: date)
+    private func currentPresentation(at date: Date) -> StreakPresentation {
+        .stored(in: SharedDefaults.appGroup(), now: date)
     }
 }
 
@@ -57,13 +57,15 @@ struct StreakComplicationView: View {
             Label(inlineText, systemImage: "flame.fill")
 
         case .accessoryCorner:
-            Text("\(entry.streak)")
+            Text("\(entry.presentation.streak)")
                 .font(.title.bold())
                 .monospacedDigit()
-                .foregroundStyle(entry.streak > 0 ? brandYellow : .secondary)
+                .foregroundStyle(entry.presentation.streak > 0 ? brandYellow : .secondary)
                 .widgetLabel {
                     Label(
-                        entry.streak == 1 ? String(localized: "day streak") : String(localized: "days streak"),
+                        entry.presentation.streak == 1
+                            ? String(localized: "day streak")
+                            : String(localized: "days streak"),
                         systemImage: "flame.fill"
                     )
                 }
@@ -73,7 +75,7 @@ struct StreakComplicationView: View {
                 Label("Think", systemImage: "flame.fill")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(brandYellow)
-                Text(rectangularText)
+                Text(entry.presentation.streakText)
                     .font(.headline)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -82,23 +84,15 @@ struct StreakComplicationView: View {
             VStack(spacing: 0) {
                 Image(systemName: "flame.fill")
                     .font(.caption2)
-                    .foregroundStyle(entry.streak > 0 ? brandYellow : .secondary)
-                Text("\(entry.streak)")
+                    .foregroundStyle(entry.presentation.streak > 0 ? brandYellow : .secondary)
+                Text("\(entry.presentation.streak)")
                     .font(.title3.bold())
                     .monospacedDigit()
             }
         }
     }
 
-    private var inlineText: String {
-        if entry.streak == 1 { return String(localized: "1-day streak") }
-        if entry.streak > 1 { return String(localized: "\(entry.streak)-day streak") }
-        return String(localized: "Begin today")
-    }
-
-    private var rectangularText: String {
-        inlineText
-    }
+    private var inlineText: String { entry.presentation.streakText }
 }
 
 struct StreakComplication: Widget {
@@ -115,6 +109,6 @@ struct StreakComplication: Widget {
 #Preview("Circular", as: .accessoryCircular) {
     StreakComplication()
 } timeline: {
-    StreakEntry(date: .now, streak: 5)
-    StreakEntry(date: .now, streak: 0)
+    StreakEntry(date: .now, presentation: .placeholder)
+    StreakEntry(date: .now, presentation: StreakPresentation(streak: 0, completedPracticeCount: 0))
 }
