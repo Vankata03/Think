@@ -3846,6 +3846,46 @@
         }
       }
     },
+    "Milestone": {
+      "localizations": {
+        "bg": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Важен момент"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meilenstein"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hito"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Étape importante"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Traguardo"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marco"
+          }
+        }
+      }
+    },
     "New note": {
       "localizations": {
         "bg": {
@@ -7724,15 +7764,81 @@
         "pt-BR": { "stringUnit": { "state": "translated", "value": "Diário do Think" } }
       }
     },
-    "This removes journal entries, retrospectives, streaks, and focus history from this device. Mindful minutes already saved to Health stay in Health and can be deleted there. This cannot be undone.": {
+    "This removes journal entries, retrospectives, streaks, achievements, and focus history from this device. Mindful minutes already saved to Health stay in Health and can be deleted there. This cannot be undone.": {
       "localizations": {
-        "bg": { "stringUnit": { "state": "translated", "value": "Това премахва записите в дневника, ретроспекциите, поредиците и историята на фокус сесиите от това устройство. Минутите за осъзнатост, вече запазени в Здраве, остават там и могат да бъдат изтрити от приложението. Действието не може да бъде отменено." } },
-        "de": { "stringUnit": { "state": "translated", "value": "Das entfernt Journaleinträge, Retrospektiven, Streaks und den Fokusverlauf von diesem Gerät. Bereits in Health gespeicherte Achtsamkeitsminuten bleiben dort und können dort gelöscht werden. Das lässt sich nicht rückgängig machen." } },
-        "en": { "stringUnit": { "state": "translated", "value": "This removes journal entries, retrospectives, streaks, and focus history from this device. Mindful minutes already saved to Health stay in Health and can be deleted there. This cannot be undone." } },
-        "es": { "stringUnit": { "state": "translated", "value": "Esto elimina las entradas del diario, las retrospectivas, las rachas y el historial de sesiones de concentración de este dispositivo. Los minutos de atención plena ya guardados en Salud permanecen allí y se pueden eliminar desde la app. No se puede deshacer." } },
-        "fr": { "stringUnit": { "state": "translated", "value": "Cette action supprime les entrées du journal, les rétrospectives, les séries et l’historique des sessions de concentration de cet appareil. Les minutes de pleine conscience déjà enregistrées dans Santé y restent et peuvent y être supprimées. Elle est irréversible." } },
-        "it": { "stringUnit": { "state": "translated", "value": "Questa operazione rimuove da questo dispositivo le voci del diario, le retrospettive, le serie e la cronologia delle sessioni di concentrazione. I minuti di mindfulness già salvati in Salute restano lì e possono essere eliminati dall’app. Non può essere annullata." } },
-        "pt-BR": { "stringUnit": { "state": "translated", "value": "Isso remove deste dispositivo as entradas do diário, retrospectivas, sequências e o histórico de sessões de foco. Os minutos de atenção plena já salvos no app Saúde permanecem lá e podem ser apagados pelo app. Essa ação não pode ser desfeita." } }
+        "bg": { "stringUnit": { "state": "translated", "value": "Това премахва записите в дневника, ретроспекциите, поредиците, постиженията и историята на фокус сесиите от това устройство. Минутите за осъзнатост, вече запазени в Здраве, остават там и могат да бъдат изтрити от приложението. Действието не може да бъде отменено." } },
+        "de": { "stringUnit": { "state": "translated", "value": "Das entfernt Journaleinträge, Retrospektiven, Streaks, Erfolge und den Fokusverlauf von diesem Gerät. Bereits in Health gespeicherte Achtsamkeitsminuten bleiben dort und können dort gelöscht werden. Das lässt sich nicht rückgängig machen." } },
+        "en": { "stringUnit": { "state": "translated", "value": "This removes journal entries, retrospectives, streaks, achievements, and focus history from this device. Mindful minutes already saved to Health stay in Health and can be deleted there. This cannot be undone." } },
+        "es": { "stringUnit": { "state": "translated", "value": "Esto elimina las entradas del diario, las retrospectivas, las rachas, los logros y el historial de sesiones de concentración de este dispositivo. Los minutos de atención plena ya guardados en Salud permanecen allí y se pueden eliminar desde la app. No se puede deshacer." } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Cette action supprime les entrées du journal, les rétrospectives, les séries, les réussites et l’historique des sessions de concentration de cet appareil. Les minutes de pleine conscience déjà enregistrées dans Santé y restent et peuvent y être supprimées. Elle est irréversible." } },
+        "it": { "stringUnit": { "state": "translated", "value": "Questa operazione rimuove da questo dispositivo le voci del diario, le retrospettive, le serie, i traguardi e la cronologia delle sessioni di concentrazione. I minuti di mindfulness già salvati in Salute restano lì e possono essere eliminati dall’app. Non può essere annullata." } },
+        "pt-BR": { "stringUnit": { "state": "translated", "value": "Isso remove deste dispositivo as entradas do diário, retrospectivas, sequências, conquistas e o histórico de sessões de foco. Os minutos de atenção plena já salvos no app Saúde permanecem lá e podem ser apagados pelo app. Essa ação não pode ser desfeita." } }
+      }
+    },
+    "Achievements": {
+      "localizations": {
+        "bg": { "stringUnit": { "state": "translated", "value": "Постижения" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Erfolge" } },
+        "en": { "stringUnit": { "state": "translated", "value": "Achievements" } },
+        "es": { "stringUnit": { "state": "translated", "value": "Logros" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Réussites" } },
+        "it": { "stringUnit": { "state": "translated", "value": "Traguardi" } },
+        "pt-BR": { "stringUnit": { "state": "translated", "value": "Conquistas" } }
+      }
+    },
+    "Earned": {
+      "localizations": {
+        "bg": { "stringUnit": { "state": "translated", "value": "Спечелено" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Erreicht" } },
+        "en": { "stringUnit": { "state": "translated", "value": "Earned" } },
+        "es": { "stringUnit": { "state": "translated", "value": "Conseguido" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Obtenu" } },
+        "it": { "stringUnit": { "state": "translated", "value": "Ottenuto" } },
+        "pt-BR": { "stringUnit": { "state": "translated", "value": "Conquistado" } }
+      }
+    },
+    "Locked": {
+      "localizations": {
+        "bg": { "stringUnit": { "state": "translated", "value": "Заключено" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Gesperrt" } },
+        "en": { "stringUnit": { "state": "translated", "value": "Locked" } },
+        "es": { "stringUnit": { "state": "translated", "value": "Bloqueado" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Verrouillé" } },
+        "it": { "stringUnit": { "state": "translated", "value": "Bloccato" } },
+        "pt-BR": { "stringUnit": { "state": "translated", "value": "Bloqueado" } }
+      }
+    },
+    "Milestones stay here after you earn them.": {
+      "localizations": {
+        "bg": { "stringUnit": { "state": "translated", "value": "Важните моменти остават тук, след като ги постигнеш." } },
+        "de": { "stringUnit": { "state": "translated", "value": "Meilensteine bleiben hier, nachdem du sie erreicht hast." } },
+        "en": { "stringUnit": { "state": "translated", "value": "Milestones stay here after you earn them." } },
+        "es": { "stringUnit": { "state": "translated", "value": "Los hitos permanecen aquí después de conseguirlos." } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Les étapes importantes restent ici une fois obtenues." } },
+        "it": { "stringUnit": { "state": "translated", "value": "I traguardi restano qui dopo averli raggiunti." } },
+        "pt-BR": { "stringUnit": { "state": "translated", "value": "Os marcos ficam aqui depois que você os conquista." } }
+      }
+    },
+    "Opens milestone share card": {
+      "localizations": {
+        "bg": { "stringUnit": { "state": "translated", "value": "Отваря карта за споделяне на постижението" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Öffnet die Meilenstein-Karte zum Teilen" } },
+        "en": { "stringUnit": { "state": "translated", "value": "Opens milestone share card" } },
+        "es": { "stringUnit": { "state": "translated", "value": "Abre la tarjeta del hito para compartir" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Ouvre la carte d’étape à partager" } },
+        "it": { "stringUnit": { "state": "translated", "value": "Apre la scheda del traguardo da condividere" } },
+        "pt-BR": { "stringUnit": { "state": "translated", "value": "Abre o cartão do marco para compartilhar" } }
+      }
+    },
+    "Reach a %lld-day streak to unlock": {
+      "localizations": {
+        "bg": { "stringUnit": { "state": "translated", "value": "Постигни %lld-дневна серия, за да отключиш" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Erreiche eine %lld-Tage-Serie zum Freischalten" } },
+        "en": { "stringUnit": { "state": "translated", "value": "Reach a %lld-day streak to unlock" } },
+        "es": { "stringUnit": { "state": "translated", "value": "Alcanza una racha de %lld días para desbloquear" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Atteins une série de %lld jours pour déverrouiller" } },
+        "it": { "stringUnit": { "state": "translated", "value": "Raggiungi una serie di %lld giorni per sbloccare" } },
+        "pt-BR": { "stringUnit": { "state": "translated", "value": "Alcance uma sequência de %lld dias para desbloquear" } }
       }
     },
     "Your journal export is ready.": {

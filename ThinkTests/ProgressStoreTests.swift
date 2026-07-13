@@ -41,6 +41,104 @@ struct ProgressStoreTests {
         #expect(store.displayedStreak == 4)
     }
 
+    @Test(arguments: StreakMilestone.allCases)
+    func reachingMilestonePermanentlyEarnsAchievement(_ milestone: StreakMilestone) {
+        let defaults = makeDefaults()
+        let store = makeStoreApproaching(milestone, defaults: defaults)
+
+        store.markTodayComplete()
+        store.markTodayComplete()
+
+        let expected = Set(StreakMilestone.allCases.filter { $0.rawValue <= milestone.rawValue })
+        #expect(store.hasEarned(milestone))
+        #expect(store.earnedStreakMilestones == expected)
+        #expect(ProgressStore(defaults: defaults).hasEarned(milestone))
+    }
+
+    @Test func earnedAchievementSurvivesAStreakBreakAndRelaunch() {
+        let defaults = makeDefaults()
+        let store = makeStoreApproaching(.seven, defaults: defaults)
+        store.markTodayComplete()
+        let dateAfterGap = Calendar.current.date(byAdding: .day, value: 2, to: .now)!
+
+        store.recordDailyQuestionAnswer(at: dateAfterGap)
+
+        #expect(store.streak == 1)
+        #expect(store.hasEarned(.seven))
+        #expect(ProgressStore(defaults: defaults).hasEarned(.seven))
+    }
+
+    @Test(arguments: [StreakMilestone.seven, .twentyOne])
+    func existingCompletedHistoryBackfillsAchievements(_ milestone: StreakMilestone) {
+        let defaults = makeDefaults()
+        let calendar = Calendar.current
+        let history = (0..<milestone.rawValue).compactMap {
+            calendar.date(byAdding: .day, value: -$0, to: .now)
+        }
+        defaults.set(history, forKey: "completedDays")
+        defaults.set(milestone.rawValue, forKey: "streak")
+        defaults.set(history.first, forKey: "lastCompletedDay")
+
+        let store = ProgressStore(defaults: defaults)
+
+        let expected = Set(StreakMilestone.allCases.filter { $0.rawValue <= milestone.rawValue })
+        #expect(store.earnedStreakMilestones == expected)
+        #expect(defaults.object(forKey: "earnedStreakMilestones") != nil)
+    }
+
+    @Test func lapsedHistoricalRunStillBackfillsAchievement() {
+        let defaults = makeDefaults()
+        let calendar = Calendar.current
+        let oldRun = (0..<7).compactMap { offset in
+            calendar.date(byAdding: .day, value: -(offset + 10), to: .now)
+        }
+        defaults.set(oldRun + [Date.now], forKey: "completedDays")
+        defaults.set(1, forKey: "streak")
+        defaults.set(Date.now, forKey: "lastCompletedDay")
+
+        let store = ProgressStore(defaults: defaults)
+
+        #expect(store.hasEarned(.seven))
+        #expect(!store.hasEarned(.twentyOne))
+    }
+
+    @Test func storedStreakBackfillsWhenCompletedHistoryIsUnavailable() {
+        let defaults = makeDefaults()
+        defaults.set([], forKey: "completedDays")
+        defaults.set(7, forKey: "streak")
+
+        let store = ProgressStore(defaults: defaults)
+
+        #expect(store.hasEarned(.seven))
+    }
+
+    @Test func resetClearsEarnedAchievements() {
+        let defaults = makeDefaults()
+        let store = makeStoreApproaching(.seven, defaults: defaults)
+        store.markTodayComplete()
+
+        store.reset()
+
+        #expect(store.earnedStreakMilestones.isEmpty)
+        #expect(defaults.object(forKey: "earnedStreakMilestones") == nil)
+        #expect(ProgressStore(defaults: defaults).earnedStreakMilestones.isEmpty)
+    }
+
+    @Test func nonMilestoneStreakDoesNotEarnAchievement() {
+        let defaults = makeDefaults()
+        let calendar = Calendar.current
+        defaults.set(
+            (1...4).compactMap { calendar.date(byAdding: .day, value: -$0, to: .now) },
+            forKey: "completedDays"
+        )
+        let store = ProgressStore(defaults: defaults)
+
+        store.markTodayComplete()
+
+        #expect(store.displayedStreak == 5)
+        #expect(store.earnedStreakMilestones.isEmpty)
+    }
+
     @Test func oldCompletionDoesNotDisplayAsActiveStreak() {
         let defaults = makeDefaults()
         defaults.set(7, forKey: "streak")
@@ -293,6 +391,7 @@ struct ProgressStoreTests {
         store.recordFocusSession()
         store.completePathStep()
         store.recordDailyQuestionAnswer()
+        defaults.set([7], forKey: "earnedStreakMilestones")
         #expect(store.totalFocusSessions == 1)
         #expect(store.pathCompletedDays == 1)
 
@@ -305,6 +404,7 @@ struct ProgressStoreTests {
         #expect(store.focusHistory.isEmpty)
         #expect(!store.openedToday)
         #expect(!store.answeredDailyQuestionToday)
+        #expect(defaults.object(forKey: "earnedStreakMilestones") == nil)
 
         let reloaded = ProgressStore(defaults: defaults)
         #expect(reloaded.totalFocusSessions == 0)
@@ -318,11 +418,13 @@ struct ProgressStoreTests {
         let destination = makeDefaults()
         source.set(7, forKey: "pathCompletedDays")
         source.set(3, forKey: "streak")
+        source.set([7], forKey: "earnedStreakMilestones")
 
         SharedDefaults.migrateProgressIfNeeded(from: source, to: destination)
 
         #expect(destination.integer(forKey: "pathCompletedDays") == 7)
         #expect(destination.integer(forKey: "streak") == 3)
+        #expect(ProgressStore(defaults: destination).hasEarned(.seven))
 
         // A repeated migration must not clobber newer destination values.
         source.set(1, forKey: "pathCompletedDays")
@@ -387,5 +489,19 @@ struct ProgressStoreTests {
         let defaults = UserDefaults(suiteName: suiteName)!
         defaults.removePersistentDomain(forName: suiteName)
         return defaults
+    }
+
+    private func makeStoreApproaching(
+        _ milestone: StreakMilestone,
+        defaults: UserDefaults
+    ) -> ProgressStore {
+        let calendar = Calendar.current
+        let completedDays = (1..<milestone.rawValue).compactMap {
+            calendar.date(byAdding: .day, value: -$0, to: .now)
+        }
+        defaults.set(completedDays, forKey: "completedDays")
+        defaults.set(milestone.rawValue - 1, forKey: "streak")
+        defaults.set(completedDays.first, forKey: "lastCompletedDay")
+        return ProgressStore(defaults: defaults)
     }
 }

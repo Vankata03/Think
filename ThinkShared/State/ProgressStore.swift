@@ -17,6 +17,14 @@ nonisolated struct FocusHistoryDay: Codable, Equatable, Sendable {
     let sessions: [FocusSessionRecord]
 }
 
+nonisolated enum StreakMilestone: Int, CaseIterable, Identifiable, Sendable {
+    case seven = 7
+    case twentyOne = 21
+    case oneHundred = 100
+
+    var id: Int { rawValue }
+}
+
 enum ProgressMutation: Sendable {
     case markTodayComplete
     case recordAppOpen
@@ -44,6 +52,7 @@ final class ProgressStore {
         static let completedDays = "completedDays"
         static let lastOpenDay = "lastOpenDay"
         static let lastQuestionAnswerDay = "lastQuestionAnswerDay"
+        static let earnedStreakMilestones = "earnedStreakMilestones"
     }
 
     /// Every key this store persists, for migrating between defaults suites.
@@ -59,6 +68,7 @@ final class ProgressStore {
         Key.completedDays,
         Key.lastOpenDay,
         Key.lastQuestionAnswerDay,
+        Key.earnedStreakMilestones,
     ]
 
     private let defaults: UserDefaults
@@ -81,6 +91,7 @@ final class ProgressStore {
     private(set) var completedDays: Set<Date>
     private var lastOpenDay: Date?
     private(set) var lastQuestionAnswerDay: Date?
+    private(set) var earnedStreakMilestones: Set<StreakMilestone>
 
     /// Called after a successful local mutation. Snapshot application does
     /// not invoke this callback.
@@ -93,6 +104,7 @@ final class ProgressStore {
     ) {
         let storedStreak = defaults.integer(forKey: Key.streak)
         let storedLastCompletedDay = defaults.object(forKey: Key.lastCompletedDay) as? Date
+        let hasStoredMilestoneAwards = defaults.object(forKey: Key.earnedStreakMilestones) != nil
 
         self.defaults = defaults
         self.calendar = calendar
@@ -116,6 +128,10 @@ final class ProgressStore {
         }
         lastOpenDay = defaults.object(forKey: Key.lastOpenDay) as? Date
         lastQuestionAnswerDay = defaults.object(forKey: Key.lastQuestionAnswerDay) as? Date
+        earnedStreakMilestones = Set(
+            (defaults.array(forKey: Key.earnedStreakMilestones) as? [Int] ?? [])
+                .compactMap(StreakMilestone.init(rawValue:))
+        )
         if let stored = defaults.array(forKey: Key.completedDays) as? [Date] {
             completedDays = Set(stored.map { calendar.startOfDay(for: $0) })
         } else {
@@ -133,6 +149,18 @@ final class ProgressStore {
             }
             completedDays = backfilled
             defaults.set(Array(backfilled), forKey: Key.completedDays)
+        }
+        if !hasStoredMilestoneAwards {
+            let longestHistoricalRun = Self.maximumContiguousStreak(
+                in: completedDays,
+                calendar: calendar
+            )
+            let longestKnownRun = max(storedStreak, longestHistoricalRun)
+            earnedStreakMilestones.formUnion(
+                StreakMilestone.allCases.filter { $0.rawValue <= longestKnownRun }
+            )
+            // Persist even an empty result so this history migration is one-time.
+            defaults.set(earnedStreakMilestones.map(\.rawValue), forKey: Key.earnedStreakMilestones)
         }
         pruneFocusHistory(relativeTo: now())
         persistFocusHistory()
@@ -253,6 +281,10 @@ final class ProgressStore {
         emit(.markTodayComplete)
     }
 
+    func hasEarned(_ milestone: StreakMilestone) -> Bool {
+        earnedStreakMilestones.contains(milestone)
+    }
+
     func hasCompleted(_ date: Date) -> Bool {
         completedDays.contains(calendar.startOfDay(for: date))
     }
@@ -342,6 +374,7 @@ final class ProgressStore {
         completedDays = []
         lastOpenDay = nil
         lastQuestionAnswerDay = nil
+        earnedStreakMilestones = []
         defaults.set([], forKey: Key.completedDays)
         persistFocusHistory()
         emit(.reset)
@@ -387,10 +420,44 @@ final class ProgressStore {
         let day = calendar.startOfDay(for: date)
         guard completedDays.insert(day).inserted else { return false }
         recomputeStreak()
+        awardMilestonesIfNeeded()
         defaults.set(streak, forKey: Key.streak)
         setOptional(lastCompletedDay, forKey: Key.lastCompletedDay)
         defaults.set(Array(completedDays), forKey: Key.completedDays)
         return true
+    }
+
+    private func awardMilestonesIfNeeded() {
+        let reached = Set(StreakMilestone.allCases.filter { $0.rawValue <= streak })
+        guard !reached.isSubset(of: earnedStreakMilestones) else { return }
+        earnedStreakMilestones.formUnion(reached)
+        defaults.set(earnedStreakMilestones.map(\.rawValue), forKey: Key.earnedStreakMilestones)
+    }
+
+    private static func maximumContiguousStreak(
+        in completedDays: Set<Date>,
+        calendar: Calendar
+    ) -> Int {
+        let days = Set(completedDays.map(calendar.startOfDay(for:)))
+        var longest = 0
+
+        for day in days {
+            if let previous = calendar.date(byAdding: .day, value: -1, to: day),
+               days.contains(previous) {
+                continue
+            }
+
+            var runLength = 1
+            var cursor = day
+            while let next = calendar.date(byAdding: .day, value: 1, to: cursor),
+                  days.contains(next) {
+                runLength += 1
+                cursor = next
+            }
+            longest = max(longest, runLength)
+        }
+
+        return longest
     }
 
     private func recomputeStreak() {

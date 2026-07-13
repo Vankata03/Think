@@ -33,6 +33,12 @@ private struct ExportItem: Identifiable {
     let url: URL
 }
 
+private enum ProfileSheetDestination: String, Identifiable {
+    case achievements
+
+    var id: String { rawValue }
+}
+
 struct ProfileView: View {
     @Environment(ProgressStore.self) private var progress
     @Environment(MindfulMinutesStore.self) private var mindfulMinutes
@@ -51,6 +57,7 @@ struct ProfileView: View {
 
     @State private var notificationAuthorization = UNAuthorizationStatus.notDetermined
     @State private var exportItem: ExportItem?
+    @State private var sheetDestination: ProfileSheetDestination?
     @State private var showingExportError = false
     @State private var showingDeleteConfirmation = false
     @State private var showingDeleteError = false
@@ -92,6 +99,18 @@ struct ProfileView: View {
             }
             .navigationTitle("Profile")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        haptics.play(.selection)
+                        sheetDestination = .achievements
+                    } label: {
+                        Image(systemName: "medal.fill")
+                    }
+                    .accessibilityLabel("Achievements")
+                    .accessibilityIdentifier("Achievements")
+                }
+            }
             .toolbarBackground(.hidden, for: .navigationBar)
             .background(Color(.systemGroupedBackground).ignoresSafeArea())
             .scrollContentBackground(.hidden)
@@ -110,6 +129,12 @@ struct ProfileView: View {
             .sheet(item: $exportItem, onDismiss: removeTemporaryExport) { item in
                 JournalExportSheet(fileURL: item.url)
             }
+            .sheet(item: $sheetDestination) { destination in
+                switch destination {
+                case .achievements:
+                    StreakAchievementsSheet()
+                }
+            }
             .alert("Export failed", isPresented: $showingExportError) {
                 Button("OK", role: .cancel) { }
             } message: {
@@ -121,7 +146,7 @@ struct ProfileView: View {
                 }
                 Button("Cancel", role: .cancel) { }
             } message: {
-                Text("This removes journal entries, retrospectives, streaks, and focus history from this device. Mindful minutes already saved to Health stay in Health and can be deleted there. This cannot be undone.")
+                Text("This removes journal entries, retrospectives, streaks, achievements, and focus history from this device. Mindful minutes already saved to Health stay in Health and can be deleted there. This cannot be undone.")
             }
             .alert("Delete failed", isPresented: $showingDeleteError) {
                 Button("OK", role: .cancel) { }
