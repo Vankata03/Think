@@ -311,12 +311,11 @@ final class PomodoroTimer {
         defer { applyingRemoteState = false }
 
         stopRunningWithoutPublishing()
-        preset = resolvedPreset(
+        applyResolvedPreset(
             workMinutes: remote.workMinutes,
             restMinutes: remote.restMinutes,
             isCustom: remote.isCustomPreset
         )
-        adoptCustomPresetIfNeeded(preset)
         phase = Phase(rawValue: remote.phase)!
         currentRevision = remote.revision
         remainingSeconds = remote.remainingSeconds
@@ -395,12 +394,11 @@ final class PomodoroTimer {
             return
         }
 
-        preset = resolvedPreset(
+        applyResolvedPreset(
             workMinutes: state.workMinutes,
             restMinutes: state.restMinutes,
             isCustom: state.isCustomPreset
         )
-        adoptCustomPresetIfNeeded(preset)
         phase = restoredPhase
         remainingSeconds = max(0, state.remainingSeconds)
         if let revision = state.revision {
@@ -420,6 +418,19 @@ final class PomodoroTimer {
             // new activity.
             syncLiveActivity()
         }
+    }
+
+    private func applyResolvedPreset(
+        workMinutes: Int,
+        restMinutes: Int,
+        isCustom: Bool?
+    ) {
+        preset = resolvedPreset(
+            workMinutes: workMinutes,
+            restMinutes: restMinutes,
+            isCustom: isCustom
+        )
+        adoptCustomPresetIfNeeded(preset)
     }
 
     private func persistState() {

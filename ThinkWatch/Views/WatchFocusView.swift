@@ -126,13 +126,15 @@ struct WatchFocusView: View {
                 customDurationPicker(
                     title: "Work duration",
                     selection: customWorkMinutes,
-                    range: PomodoroTimer.Preset.customWorkMinutesRange
+                    range: PomodoroTimer.Preset.customWorkMinutesRange,
+                    identifier: "FocusCustomWork"
                 )
 
                 customDurationPicker(
                     title: "Break duration",
                     selection: customRestMinutes,
-                    range: PomodoroTimer.Preset.customRestMinutesRange
+                    range: PomodoroTimer.Preset.customRestMinutesRange,
+                    identifier: "FocusCustomRest"
                 )
             }
         }
@@ -165,7 +167,8 @@ struct WatchFocusView: View {
     private func customDurationPicker(
         title: LocalizedStringKey,
         selection: Binding<Int>,
-        range: ClosedRange<Int>
+        range: ClosedRange<Int>,
+        identifier: String
     ) -> some View {
         Picker(title, selection: selection) {
             ForEach(range, id: \.self) { value in
@@ -173,6 +176,7 @@ struct WatchFocusView: View {
             }
         }
         .pickerStyle(.navigationLink)
+        .accessibilityIdentifier(identifier)
     }
 }
 
