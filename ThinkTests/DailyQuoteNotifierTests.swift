@@ -214,6 +214,33 @@ struct DailyQuoteNotifierTests {
         #expect(addedRequests.filter { $0.content.attachments.isEmpty }.count == 1)
     }
 
+    @Test func canceledRefreshRemovesRequestAddedAfterSuspension() async throws {
+        let scheduledLine = try #require(try scheduledLineFixture())
+        let adder = SuspendedNotificationAdder()
+        var isCurrent = true
+
+        let schedulingTask = Task {
+            await DailyQuoteNotifier.schedule(
+                [scheduledLine],
+                isCurrent: { isCurrent },
+                addRequest: { request in
+                    await adder.add(request)
+                },
+                removeRequests: { identifiers in
+                    adder.removeRequests(withIdentifiers: identifiers)
+                }
+            )
+        }
+
+        await adder.waitUntilSuspended()
+        isCurrent = false
+        adder.resumeAdd()
+        await schedulingTask.value
+
+        #expect(adder.pendingIdentifiers.isEmpty)
+        #expect(adder.removedIdentifiers == [scheduledLine.identifier])
+    }
+
     private func scheduledLineFixture() throws -> DailyQuoteNotifier.ScheduledDailyLine? {
         let calendar = utcCalendar()
         let now = try date(year: 2026, month: 7, day: 4, hour: 7, minute: 30, calendar: calendar)
@@ -246,5 +273,44 @@ struct DailyQuoteNotifierTests {
             hour: hour,
             minute: minute
         )))
+    }
+}
+
+@MainActor
+private final class SuspendedNotificationAdder {
+    private(set) var pendingIdentifiers: Set<String> = []
+    private(set) var removedIdentifiers: [String] = []
+    private var addContinuation: CheckedContinuation<Void, Never>?
+    private var suspensionWaiters: [CheckedContinuation<Void, Never>] = []
+
+    func add(_ request: UNNotificationRequest) async {
+        await withCheckedContinuation { continuation in
+            addContinuation = continuation
+            let waiters = suspensionWaiters
+            suspensionWaiters.removeAll()
+            waiters.forEach { $0.resume() }
+        }
+        pendingIdentifiers.insert(request.identifier)
+    }
+
+    func waitUntilSuspended() async {
+        if addContinuation != nil { return }
+        await withCheckedContinuation { continuation in
+            if addContinuation != nil {
+                continuation.resume()
+            } else {
+                suspensionWaiters.append(continuation)
+            }
+        }
+    }
+
+    func resumeAdd() {
+        addContinuation?.resume()
+        addContinuation = nil
+    }
+
+    func removeRequests(withIdentifiers identifiers: [String]) {
+        pendingIdentifiers.subtract(identifiers)
+        removedIdentifiers.append(contentsOf: identifiers)
     }
 }

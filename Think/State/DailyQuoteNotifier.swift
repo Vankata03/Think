@@ -22,6 +22,7 @@ enum DailyQuoteNotifier {
     private static let attachmentRenderScale = 0.5
     private static let attachmentJPEGQuality = 0.86
     private static var refreshGeneration = 0
+    private static var activeRefreshTask: Task<Void, Never>?
     private static var identifiers: [String] {
         (0..<dayCount).map { "daily-quote-\($0)" }
     }
@@ -100,14 +101,28 @@ enum DailyQuoteNotifier {
     }
 
     static func refreshSchedule() {
-        Task {
-            await refreshScheduleAsync()
-        }
+        startRefresh()
     }
 
     static func refreshScheduleAsync() async {
+        await startRefresh().value
+    }
+
+    @discardableResult
+    private static func startRefresh() -> Task<Void, Never> {
         refreshGeneration += 1
         let generation = refreshGeneration
+        let previousTask = activeRefreshTask
+        let task = Task { @MainActor in
+            await previousTask?.value
+            guard generation == refreshGeneration else { return }
+            await performRefresh(generation: generation)
+        }
+        activeRefreshTask = task
+        return task
+    }
+
+    private static func performRefresh(generation: Int) async {
         let defaults = UserDefaults.standard
         removePendingRequests()
         guard defaults.bool(forKey: enabledKey) else { return }
@@ -127,6 +142,9 @@ enum DailyQuoteNotifier {
             isCurrent: { generation == refreshGeneration },
             addRequest: { request in
                 try await center.add(request)
+            },
+            removeRequests: { requestIdentifiers in
+                center.removePendingNotificationRequests(withIdentifiers: requestIdentifiers)
             }
         )
     }
@@ -135,14 +153,20 @@ enum DailyQuoteNotifier {
         _ scheduledLines: [ScheduledDailyLine],
         isCurrent: @MainActor () -> Bool,
         addRequest: @MainActor (UNNotificationRequest) async throws -> Void,
+        removeRequests: @MainActor ([String]) -> Void = { _ in },
         richRequestBuilder: (@MainActor (ScheduledDailyLine) async -> PreparedNotificationRequest)? = nil
     ) async {
 
         // Establish the complete window immediately. Rich versions replace
         // these requests one by one without delaying the text-only fallback.
         for scheduledLine in scheduledLines {
-            guard isCurrent() else { return }
-            try? await addRequest(notificationRequest(for: scheduledLine))
+            let result = await add(
+                notificationRequest(for: scheduledLine),
+                isCurrent: isCurrent,
+                addRequest: addRequest,
+                removeRequests: removeRequests
+            )
+            if result == .stale { return }
         }
 
         for scheduledLine in scheduledLines {
@@ -161,16 +185,65 @@ enum DailyQuoteNotifier {
             guard !preparedRequest.request.content.attachments.isEmpty else {
                 // The initial text-only add may also have failed. Retry the
                 // prepared fallback instead of assuming it was accepted.
-                try? await addRequest(preparedRequest.request)
+                let result = await add(
+                    preparedRequest.request,
+                    isCurrent: isCurrent,
+                    addRequest: addRequest,
+                    removeRequests: removeRequests
+                )
+                if result == .stale { return }
                 continue
             }
-            do {
-                try await addRequest(preparedRequest.request)
-            } catch {
+            let richResult = await add(
+                preparedRequest.request,
+                isCurrent: isCurrent,
+                addRequest: addRequest,
+                removeRequests: removeRequests
+            )
+            switch richResult {
+            case .added:
+                break
+            case .stale:
+                return
+            case .failed:
                 // A rejected attachment must not remove the useful reminder.
-                guard isCurrent() else { return }
-                try? await addRequest(notificationRequest(for: scheduledLine))
+                let fallbackResult = await add(
+                    notificationRequest(for: scheduledLine),
+                    isCurrent: isCurrent,
+                    addRequest: addRequest,
+                    removeRequests: removeRequests
+                )
+                if fallbackResult == .stale { return }
             }
+        }
+    }
+
+    private enum AddResult {
+        case added
+        case failed
+        case stale
+    }
+
+    private static func add(
+        _ request: UNNotificationRequest,
+        isCurrent: @MainActor () -> Bool,
+        addRequest: @MainActor (UNNotificationRequest) async throws -> Void,
+        removeRequests: @MainActor ([String]) -> Void
+    ) async -> AddResult {
+        guard isCurrent() else { return .stale }
+        do {
+            try await addRequest(request)
+            guard isCurrent() else {
+                removeRequests([request.identifier])
+                return .stale
+            }
+            return .added
+        } catch {
+            guard isCurrent() else {
+                removeRequests([request.identifier])
+                return .stale
+            }
+            return .failed
         }
     }
 
@@ -253,7 +326,15 @@ enum DailyQuoteNotifier {
 
     static func cancelSchedule() {
         refreshGeneration += 1
+        let generation = refreshGeneration
         removePendingRequests()
+        let previousTask = activeRefreshTask
+        let cleanupTask = Task { @MainActor in
+            await previousTask?.value
+            guard generation == refreshGeneration else { return }
+            removePendingRequests()
+        }
+        activeRefreshTask = cleanupTask
     }
 
     private static func removePendingRequests() {
