@@ -13,9 +13,9 @@ import UserNotifications
 #endif
 
 /// Wall-clock based pomodoro: while running, the source of truth is
-/// `endDate`, not tick counting — so the timer stays correct across
-/// app suspension. A local notification fires at phase end when the
-/// app is in the background.
+/// `endDate`, not tick counting — so the timer stays correct across app
+/// suspension. A local notification fires at phase end when the app is in
+/// the background.
 @MainActor
 @Observable
 final class PomodoroTimer {
@@ -53,15 +53,31 @@ final class PomodoroTimer {
         let remainingSeconds: Int
         let isRunning: Bool
         let endDate: Date?
+        let revision: Revision?
+
+        private enum CodingKeys: String, CodingKey {
+            case workMinutes
+            case restMinutes
+            case phase
+            case remainingSeconds
+            case isRunning
+            case endDate
+            case revision
+        }
     }
 
     private(set) var preset: Preset = .classic
     private(set) var phase: Phase = .work
     private(set) var remainingSeconds: Int = Preset.classic.workMinutes * 60
     private(set) var isRunning = false
+    private(set) var currentRevision: Revision
 
-    /// Called when a work phase runs to completion.
-    var onWorkSessionComplete: (() -> Void)?
+    /// Called when a work phase runs to completion. The date is the original
+    /// work-phase end date, not the newly-created break end date.
+    var onWorkSessionComplete: ((Date) -> Void)?
+
+    /// Called after each local semantic mutation. Tick-only updates are silent.
+    var onStateChange: ((TimerSyncState) -> Void)?
 
     private var endDate: Date?
     private var tickTask: Task<Void, Never>?
@@ -69,10 +85,21 @@ final class PomodoroTimer {
     private var liveActivityID: String?
     private let systemSideEffectsEnabled: Bool
     private let defaults: UserDefaults?
+    private let deviceID: UUID
+    private let now: () -> Date
+    private var applyingRemoteState = false
 
-    init(systemSideEffectsEnabled: Bool = true, defaults: UserDefaults? = nil) {
+    init(
+        systemSideEffectsEnabled: Bool = true,
+        defaults: UserDefaults? = nil,
+        deviceID: UUID = SharedDefaults.syncDeviceID(),
+        now: @escaping () -> Date = { .now }
+    ) {
         self.systemSideEffectsEnabled = systemSideEffectsEnabled
         self.defaults = defaults ?? (systemSideEffectsEnabled ? SharedDefaults.appGroup() : nil)
+        self.deviceID = deviceID
+        self.now = now
+        self.currentRevision = Revision(date: .distantPast, deviceID: deviceID)
         restorePersistedState()
     }
 
@@ -89,12 +116,24 @@ final class PomodoroTimer {
         String(format: "%02d:%02d", remainingSeconds / 60, remainingSeconds % 60)
     }
 
+    var syncState: TimerSyncState {
+        TimerSyncState(
+            workMinutes: preset.workMinutes,
+            restMinutes: preset.restMinutes,
+            phase: phase.rawValue,
+            isRunning: isRunning,
+            endDate: isRunning ? endDate : nil,
+            remainingSeconds: remainingSeconds,
+            revision: currentRevision
+        )
+    }
+
     func select(_ preset: Preset) {
-        stopRunning()
+        stopRunningWithoutPublishing()
         self.preset = preset
         phase = .work
         remainingSeconds = preset.workMinutes * 60
-        persistState()
+        finishLocalMutation()
     }
 
     func toggle() {
@@ -106,9 +145,13 @@ final class PomodoroTimer {
         if systemSideEffectsEnabled {
             requestAuthorizationIfNeeded()
         }
+        beginRunning()
+        finishLocalMutation()
+    }
+
+    private func beginRunning() {
         isRunning = true
-        endDate = .now.addingTimeInterval(TimeInterval(remainingSeconds))
-        persistState()
+        endDate = now().addingTimeInterval(TimeInterval(remainingSeconds))
         if systemSideEffectsEnabled {
             schedulePhaseEndNotification()
             syncLiveActivity()
@@ -129,73 +172,131 @@ final class PomodoroTimer {
     }
 
     func pause() {
-        if let end = endDate {
-            remainingSeconds = max(0, Int(end.timeIntervalSinceNow.rounded(.up)))
+        guard isRunning else { return }
+        if let endDate {
+            remainingSeconds = max(0, Int(endDate.timeIntervalSince(now()).rounded(.up)))
         }
-        stopRunning()
+        stopRunningWithoutPublishing()
+        finishLocalMutation()
     }
 
     func reset() {
-        stopRunning()
+        stopRunningWithoutPublishing()
         phase = .work
         remainingSeconds = preset.workMinutes * 60
-        persistState()
+        finishLocalMutation()
     }
 
     func skipPhase() {
         let wasRunning = isRunning
-        stopRunning()
+        stopRunningWithoutPublishing()
+
         // Skipping never counts the session.
         if phase == .work {
             phase = .rest
             remainingSeconds = phaseTotalSeconds
-            if wasRunning {
-                start()
-            } else {
-                persistState()
-            }
         } else {
             phase = .work
             remainingSeconds = phaseTotalSeconds
-            persistState()
         }
+
+        if wasRunning {
+            beginRunning()
+        }
+        finishLocalMutation()
     }
 
-    /// Re-derives state from the wall clock. Runs every tick while
-    /// active, and should also be called when the app returns to the
-    /// foreground so a suspended timer catches up immediately.
+    /// Re-derives state from the wall clock. Runs every tick while active,
+    /// and should also be called when the app returns to the foreground so a
+    /// suspended timer catches up immediately.
     func resync() {
-        guard isRunning, let end = endDate else { return }
-        let remaining = Int(end.timeIntervalSinceNow.rounded(.up))
+        guard isRunning, let endDate else { return }
+        let currentDate = now()
+        let remaining = Int(endDate.timeIntervalSince(currentDate).rounded(.up))
         if remaining > 0 {
             remainingSeconds = remaining
             return
         }
 
         if phase == .work {
-            onWorkSessionComplete?()
+            onWorkSessionComplete?(endDate)
             phase = .rest
-            let restEnd = end.addingTimeInterval(TimeInterval(preset.restMinutes * 60))
-            if restEnd > .now {
-                endDate = restEnd
-                remainingSeconds = Int(restEnd.timeIntervalSinceNow.rounded(.up))
-                persistState()
+            let restEnd = endDate.addingTimeInterval(TimeInterval(preset.restMinutes * 60))
+            if restEnd > currentDate {
+                self.endDate = restEnd
+                remainingSeconds = Int(restEnd.timeIntervalSince(currentDate).rounded(.up))
                 if systemSideEffectsEnabled {
                     schedulePhaseEndNotification()
                     syncLiveActivity()
                 }
+                finishLocalMutation()
                 return
             }
             // Work and break both elapsed while suspended.
         }
+
         // Break finished: stop at the start of a fresh work phase.
-        stopRunning()
+        stopRunningWithoutPublishing()
         phase = .work
         remainingSeconds = preset.workMinutes * 60
-        persistState()
+        finishLocalMutation()
     }
 
-    private func stopRunning() {
+    /// Applies a newer remote state without publishing it back. Local side
+    /// effects are rebuilt from the adopted wall-clock state.
+    @discardableResult
+    func apply(_ remote: TimerSyncState) -> Bool {
+        guard remote.revision > currentRevision,
+              isValid(remote) else { return false }
+
+        applyingRemoteState = true
+        defer { applyingRemoteState = false }
+
+        stopRunningWithoutPublishing()
+        preset = Preset(workMinutes: remote.workMinutes, restMinutes: remote.restMinutes)
+        phase = Phase(rawValue: remote.phase)!
+        currentRevision = remote.revision
+        remainingSeconds = remote.remainingSeconds
+
+        if remote.isRunning, let remoteEndDate = remote.endDate {
+            if systemSideEffectsEnabled {
+                requestAuthorizationIfNeeded()
+            }
+            isRunning = true
+            endDate = remoteEndDate
+            remainingSeconds = max(0, Int(remoteEndDate.timeIntervalSince(now()).rounded(.up)))
+            if remoteEndDate > now() {
+                if systemSideEffectsEnabled {
+                    schedulePhaseEndNotification()
+                    syncLiveActivity()
+                }
+                startTicking()
+                persistState()
+            } else {
+                // Catch up locally, but suppress the echo publication. The
+                // completion callback still attributes a finished work phase.
+                resync()
+            }
+        } else {
+            persistState()
+        }
+
+        return true
+    }
+
+    private func isValid(_ remote: TimerSyncState) -> Bool {
+        guard remote.workMinutes >= 0,
+              remote.restMinutes >= 0,
+              Phase(rawValue: remote.phase) != nil,
+              remote.remainingSeconds >= 0 else { return false }
+
+        if remote.isRunning {
+            return remote.endDate != nil
+        }
+        return remote.endDate == nil
+    }
+
+    private func stopRunningWithoutPublishing() {
         isRunning = false
         endDate = nil
         tickTask?.cancel()
@@ -207,7 +308,18 @@ final class PomodoroTimer {
             #endif
             endLiveActivity()
         }
+    }
+
+    private func finishLocalMutation() {
+        if !applyingRemoteState {
+            let candidateDate = now()
+            let nextDate = max(candidateDate, currentRevision.date.addingTimeInterval(0.001))
+            currentRevision = Revision(date: nextDate, deviceID: deviceID)
+        }
         persistState()
+        if !applyingRemoteState {
+            onStateChange?(syncState)
+        }
     }
 
     private func restorePersistedState() {
@@ -223,15 +335,18 @@ final class PomodoroTimer {
         preset = Preset(workMinutes: state.workMinutes, restMinutes: state.restMinutes)
         phase = restoredPhase
         remainingSeconds = max(0, state.remainingSeconds)
+        if let revision = state.revision {
+            currentRevision = revision
+        }
 
         guard state.isRunning, let restoredEndDate = state.endDate else { return }
 
         isRunning = true
         endDate = restoredEndDate
-        remainingSeconds = max(0, Int(restoredEndDate.timeIntervalSinceNow.rounded(.up)))
+        remainingSeconds = max(0, Int(restoredEndDate.timeIntervalSince(now()).rounded(.up)))
         startTicking()
 
-        if systemSideEffectsEnabled, restoredEndDate > .now {
+        if systemSideEffectsEnabled, restoredEndDate > now() {
             // ActivityKit keeps the activity alive across app termination, but
             // the in-memory ID does not survive. Reconnect before creating a
             // new activity.
@@ -247,7 +362,8 @@ final class PomodoroTimer {
             phase: phase.rawValue,
             remainingSeconds: remainingSeconds,
             isRunning: isRunning,
-            endDate: isRunning ? endDate : nil
+            endDate: isRunning ? endDate : nil,
+            revision: currentRevision
         )
         guard let data = try? JSONEncoder().encode(state) else { return }
         defaults.set(data, forKey: Self.persistedStateKey)
@@ -311,12 +427,12 @@ final class PomodoroTimer {
 
     private func schedulePhaseEndNotification() {
         #if os(iOS) && canImport(ActivityKit) && canImport(UserNotifications)
-        // The Live Activity already shows the countdown on the lock
-        // screen; the notification is only the fallback when the user
-        // has Live Activities disabled.
+        // The Live Activity already shows the countdown on the lock screen;
+        // the notification is only the fallback when the user has Live
+        // Activities disabled.
         guard !ActivityAuthorizationInfo().areActivitiesEnabled else { return }
         guard let endDate else { return }
-        let interval = endDate.timeIntervalSinceNow
+        let interval = endDate.timeIntervalSince(now())
         guard interval > 1 else { return }
 
         let content = UNMutableNotificationContent()

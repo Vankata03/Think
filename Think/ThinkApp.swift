@@ -13,6 +13,8 @@ import Foundation
 struct ThinkApp: App {
     @Environment(\.scenePhase) private var scenePhase
     @State private var progress: ProgressStore
+    @State private var timer: PomodoroTimer
+    @State private var syncCoordinator: SyncCoordinator
     @AppStorage(Appearance.storageKey) private var appearance = Appearance.dark
     @AppStorage(Onboarding.completedKey) private var completedOnboarding = false
     private let isUITesting: Bool
@@ -20,9 +22,10 @@ struct ThinkApp: App {
     init() {
         isUITesting = ProcessInfo.processInfo.arguments.contains("-ui-testing")
         Self.prepareApplicationSupportDirectory()
+        let appGroupDefaults = SharedDefaults.appGroup()
         if isUITesting, let bundleIdentifier = Bundle.main.bundleIdentifier {
             UserDefaults.standard.removePersistentDomain(forName: bundleIdentifier)
-            SharedDefaults.appGroup().removeObject(forKey: SharedDefaults.pomodoroTimerStateKey)
+            appGroupDefaults.removeObject(forKey: SharedDefaults.pomodoroTimerStateKey)
         }
         let progressDefaults: UserDefaults
         if isUITesting, let bundleIdentifier = Bundle.main.bundleIdentifier {
@@ -31,9 +34,42 @@ struct ThinkApp: App {
             defaults.removePersistentDomain(forName: suiteName)
             progressDefaults = defaults
         } else {
-            progressDefaults = SharedDefaults.appGroup()
+            progressDefaults = appGroupDefaults
         }
-        _progress = State(initialValue: ProgressStore(defaults: progressDefaults))
+        let progressStore = ProgressStore(defaults: progressDefaults)
+        let timer = PomodoroTimer(
+            systemSideEffectsEnabled: !isUITesting,
+            defaults: isUITesting ? nil : appGroupDefaults,
+            deviceID: isUITesting ? UUID() : SharedDefaults.syncDeviceID(in: appGroupDefaults)
+        )
+        let ledgerDefaults = isUITesting ? progressDefaults : appGroupDefaults
+        let ledger = FocusEventLedger(defaults: ledgerDefaults)
+        let transport: any SyncTransport
+        if isUITesting {
+            transport = NoopSyncTransport()
+        } else {
+            transport = WCSessionTransport()
+        }
+        let completionSideEffect: @MainActor @Sendable () -> Void
+        if isUITesting {
+            completionSideEffect = { @MainActor @Sendable in }
+        } else {
+            completionSideEffect = { @MainActor @Sendable in
+                Haptics.live.play(.success)
+            }
+        }
+        let coordinator = SyncCoordinator(
+            role: .phone,
+            timer: timer,
+            progress: progressStore,
+            ledger: ledger,
+            transport: transport,
+            completionSideEffect: completionSideEffect
+        )
+        _progress = State(initialValue: progressStore)
+        _timer = State(initialValue: timer)
+        _syncCoordinator = State(initialValue: coordinator)
+        coordinator.activate()
     }
 
     private static func prepareApplicationSupportDirectory() {
@@ -60,6 +96,8 @@ struct ThinkApp: App {
                 }
             }
             .environment(progress)
+            .environment(timer)
+            .environment(syncCoordinator)
             .environment(\.haptics, .live)
             .preferredColorScheme(appearance.colorScheme)
             .animation(.easeInOut(duration: 0.3), value: completedOnboarding)
@@ -75,6 +113,7 @@ struct ThinkApp: App {
         .modelContainer(for: [JournalEntry.self, DailyRetro.self], inMemory: isUITesting)
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
+                timer.resync()
                 progress.recordAppOpen()
                 // Slide the scheduled notification window forward.
                 DailyQuoteNotifier.refreshSchedule()

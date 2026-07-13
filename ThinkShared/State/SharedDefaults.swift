@@ -8,6 +8,7 @@ import Foundation
 nonisolated enum SharedDefaults {
     static let appGroupSuiteName = "group.com.ivanterziev.Think"
     static let pomodoroTimerStateKey = "pomodoro.timer.state"
+    static let syncDeviceIDKey = "sync.deviceID"
 
     static func appGroup() -> UserDefaults {
         let defaults = make(suiteName: appGroupSuiteName, fallback: .standard)
@@ -34,5 +35,17 @@ nonisolated enum SharedDefaults {
             return fallback
         }
         return defaults
+    }
+
+    static func syncDeviceID(in defaults: UserDefaults? = nil) -> UUID {
+        let defaults = defaults ?? appGroup()
+        if let stored = defaults.string(forKey: syncDeviceIDKey),
+           let deviceID = UUID(uuidString: stored) {
+            return deviceID
+        }
+
+        let deviceID = UUID()
+        defaults.set(deviceID.uuidString, forKey: syncDeviceIDKey)
+        return deviceID
     }
 }
