@@ -122,27 +122,54 @@ enum DailyQuoteNotifier {
         )
         let center = UNUserNotificationCenter.current()
 
+        await schedule(
+            scheduledLines,
+            isCurrent: { generation == refreshGeneration },
+            addRequest: { request in
+                try await center.add(request)
+            }
+        )
+    }
+
+    static func schedule(
+        _ scheduledLines: [ScheduledDailyLine],
+        isCurrent: @MainActor () -> Bool,
+        addRequest: @MainActor (UNNotificationRequest) async throws -> Void,
+        richRequestBuilder: (@MainActor (ScheduledDailyLine) async -> PreparedNotificationRequest)? = nil
+    ) async {
+
         // Establish the complete window immediately. Rich versions replace
         // these requests one by one without delaying the text-only fallback.
         for scheduledLine in scheduledLines {
-            guard generation == refreshGeneration else { return }
-            try? await center.add(notificationRequest(for: scheduledLine))
+            guard isCurrent() else { return }
+            try? await addRequest(notificationRequest(for: scheduledLine))
         }
 
         for scheduledLine in scheduledLines {
-            guard generation == refreshGeneration else { return }
-            let preparedRequest = await prepareRichRequest(for: scheduledLine)
+            guard isCurrent() else { return }
+            let preparedRequest: PreparedNotificationRequest
+            if let richRequestBuilder {
+                preparedRequest = await richRequestBuilder(scheduledLine)
+            } else {
+                preparedRequest = await prepareRichRequest(for: scheduledLine)
+            }
             // Keep app-owned scratch storage until notification-center
             // acceptance; its attachment data store owns the media afterward.
             defer { preparedRequest.removeTemporaryFiles() }
 
-            guard generation == refreshGeneration else { return }
-            guard !preparedRequest.request.content.attachments.isEmpty else { continue }
+            guard isCurrent() else { return }
+            guard !preparedRequest.request.content.attachments.isEmpty else {
+                // The initial text-only add may also have failed. Retry the
+                // prepared fallback instead of assuming it was accepted.
+                try? await addRequest(preparedRequest.request)
+                continue
+            }
             do {
-                try await center.add(preparedRequest.request)
+                try await addRequest(preparedRequest.request)
             } catch {
                 // A rejected attachment must not remove the useful reminder.
-                try? await center.add(notificationRequest(for: scheduledLine))
+                guard isCurrent() else { return }
+                try? await addRequest(notificationRequest(for: scheduledLine))
             }
         }
     }

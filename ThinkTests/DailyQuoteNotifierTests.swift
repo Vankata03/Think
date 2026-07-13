@@ -164,6 +164,56 @@ struct DailyQuoteNotifierTests {
         #expect(preparedRequest.request.content.body == scheduledLine.quote.notificationText)
     }
 
+    @Test func renderFailureRetriesTextFallbackAfterInitialAddFailure() async throws {
+        enum TestError: Error { case failed }
+        let scheduledLine = try #require(try scheduledLineFixture())
+        var addAttempts = 0
+
+        await DailyQuoteNotifier.schedule(
+            [scheduledLine],
+            isCurrent: { true },
+            addRequest: { request in
+                addAttempts += 1
+                #expect(request.content.attachments.isEmpty)
+                if addAttempts == 1 {
+                    throw TestError.failed
+                }
+            },
+            richRequestBuilder: { scheduledLine in
+                DailyQuoteNotifier.PreparedNotificationRequest(
+                    request: DailyQuoteNotifier.notificationRequest(for: scheduledLine)
+                )
+            }
+        )
+
+        #expect(addAttempts == 2)
+    }
+
+    @Test func canceledRefreshDoesNotReAddFallbackAfterRichAddFailure() async throws {
+        enum TestError: Error { case failed }
+        let scheduledLine = try #require(try scheduledLineFixture())
+        let preparedRequest = await DailyQuoteNotifier.prepareRichRequest(for: scheduledLine)
+        _ = try #require(preparedRequest.request.content.attachments.first)
+        var isCurrent = true
+        var addedRequests: [UNNotificationRequest] = []
+
+        await DailyQuoteNotifier.schedule(
+            [scheduledLine],
+            isCurrent: { isCurrent },
+            addRequest: { request in
+                addedRequests.append(request)
+                if !request.content.attachments.isEmpty {
+                    isCurrent = false
+                    throw TestError.failed
+                }
+            },
+            richRequestBuilder: { _ in preparedRequest }
+        )
+
+        #expect(addedRequests.count == 2)
+        #expect(addedRequests.filter { $0.content.attachments.isEmpty }.count == 1)
+    }
+
     private func scheduledLineFixture() throws -> DailyQuoteNotifier.ScheduledDailyLine? {
         let calendar = utcCalendar()
         let now = try date(year: 2026, month: 7, day: 4, hour: 7, minute: 30, calendar: calendar)
