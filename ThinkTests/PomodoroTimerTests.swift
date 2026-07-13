@@ -77,6 +77,21 @@ struct PomodoroTimerTests {
         #expect(restoredTimer.preset == .classic)
     }
 
+    @Test func activeCustomPresetMatchingClassicPersistsAcrossTimerReconstruction() {
+        let suiteName = "ThinkTests.PomodoroCustomPresetKind.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let firstTimer = PomodoroTimer(systemSideEffectsEnabled: false, defaults: defaults)
+
+        #expect(firstTimer.selectCustom(workMinutes: 25, restMinutes: 5))
+
+        let restoredTimer = PomodoroTimer(systemSideEffectsEnabled: false, defaults: defaults)
+
+        #expect(restoredTimer.preset.isCustom)
+        #expect(restoredTimer.customPreset.workMinutes == 25)
+        #expect(restoredTimer.customPreset.restMinutes == 5)
+    }
+
     @Test func customPresetRejectsDurationsOutsideSupportedRanges() {
         let timer = PomodoroTimer(systemSideEffectsEnabled: false)
 

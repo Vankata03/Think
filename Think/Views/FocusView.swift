@@ -22,24 +22,28 @@ struct FocusView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                focusHeader
-                    .padding(.horizontal, 22)
-                    .padding(.top, 18)
+            ScrollView {
+                VStack(spacing: 0) {
+                    focusHeader
+                        .padding(.horizontal, 22)
+                        .padding(.top, 18)
 
-                Spacer(minLength: 42)
+                    Spacer(minLength: 42)
 
-                VStack(spacing: 28) {
-                    ring
-                    focusCue
-                    controls
-                    presets
+                    VStack(spacing: 28) {
+                        ring
+                        focusCue
+                        controls
+                        presets
+                    }
+                    .opacity(appeared ? 1 : 0)
+                    .scaleEffect(appeared ? 1 : 0.97)
+
+                    Spacer(minLength: 64)
                 }
-                .opacity(appeared ? 1 : 0)
-                .scaleEffect(appeared ? 1 : 0.97)
-
-                Spacer(minLength: 64)
+                .frame(maxWidth: .infinity)
             }
+            .scrollBounceBehavior(.basedOnSize)
             .navigationTitle("Focus")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(.hidden, for: .navigationBar)
@@ -172,7 +176,7 @@ struct FocusView: View {
                 let donatedPreset = FocusSessionPreset(timer.preset)
                 haptics.play(isManualStart ? .start : .pause)
                 timer.toggle()
-                if isManualWorkStart {
+                if isManualWorkStart, let donatedPreset {
                     Task {
                         try? await StartFocusSessionIntent(preset: donatedPreset).donate()
                     }

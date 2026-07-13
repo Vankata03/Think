@@ -110,6 +110,39 @@ struct SyncCoordinatorTimerTests {
         #expect(phoneTimer.syncState.restMinutes == 17)
     }
 
+    @Test func customPresetMatchingClassicRoundTripsThroughWatchAsCustom() {
+        let now = Date(timeIntervalSince1970: 11_750)
+        let (phoneTransport, watchTransport) = MockSyncTransport.paired()
+        let phoneTimer = timer(deviceID: "11111111-1111-1111-1111-111111111111", now: now)
+        let watchTimer = timer(deviceID: "22222222-2222-2222-2222-222222222222", now: now)
+        let phone = coordinator(
+            role: .phone,
+            timer: phoneTimer,
+            progress: ProgressStore(defaults: makeDefaults()),
+            transport: phoneTransport
+        )
+        let watch = coordinator(
+            role: .watch,
+            timer: watchTimer,
+            progress: ProgressStore(defaults: makeDefaults()),
+            transport: watchTransport
+        )
+        phone.activate()
+        watch.activate()
+
+        #expect(phoneTimer.selectCustom(workMinutes: 25, restMinutes: 5))
+
+        #expect(phoneTimer.preset.isCustom)
+        #expect(watchTimer.preset.isCustom)
+        #expect(watchTimer.customPreset.workMinutes == 25)
+        #expect(watchTimer.customPreset.restMinutes == 5)
+
+        watchTimer.start()
+
+        #expect(phoneTimer.preset.isCustom)
+        #expect(phoneTimer.syncState.isCustomPreset == true)
+    }
+
     @Test func duplicateMessageAndContextApplyOnlyTheNewRevision() throws {
         let now = Date(timeIntervalSince1970: 12_000)
         let (phoneTransport, watchTransport) = MockSyncTransport.paired()

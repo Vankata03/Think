@@ -89,6 +89,7 @@ final class PomodoroTimer {
     private struct PersistedState: Codable {
         let workMinutes: Int
         let restMinutes: Int
+        let isCustomPreset: Bool?
         let phase: String
         let remainingSeconds: Int
         let isRunning: Bool
@@ -98,6 +99,7 @@ final class PomodoroTimer {
         private enum CodingKeys: String, CodingKey {
             case workMinutes
             case restMinutes
+            case isCustomPreset
             case phase
             case remainingSeconds
             case isRunning
@@ -163,6 +165,7 @@ final class PomodoroTimer {
         TimerSyncState(
             workMinutes: preset.workMinutes,
             restMinutes: preset.restMinutes,
+            isCustomPreset: preset.isCustom,
             phase: phase.rawValue,
             isRunning: isRunning,
             endDate: isRunning ? endDate : nil,
@@ -308,7 +311,11 @@ final class PomodoroTimer {
         defer { applyingRemoteState = false }
 
         stopRunningWithoutPublishing()
-        preset = Preset(workMinutes: remote.workMinutes, restMinutes: remote.restMinutes)
+        preset = resolvedPreset(
+            workMinutes: remote.workMinutes,
+            restMinutes: remote.restMinutes,
+            isCustom: remote.isCustomPreset
+        )
         adoptCustomPresetIfNeeded(preset)
         phase = Phase(rawValue: remote.phase)!
         currentRevision = remote.revision
@@ -388,7 +395,11 @@ final class PomodoroTimer {
             return
         }
 
-        preset = Preset(workMinutes: state.workMinutes, restMinutes: state.restMinutes)
+        preset = resolvedPreset(
+            workMinutes: state.workMinutes,
+            restMinutes: state.restMinutes,
+            isCustom: state.isCustomPreset
+        )
         adoptCustomPresetIfNeeded(preset)
         phase = restoredPhase
         remainingSeconds = max(0, state.remainingSeconds)
@@ -416,6 +427,7 @@ final class PomodoroTimer {
         let state = PersistedState(
             workMinutes: preset.workMinutes,
             restMinutes: preset.restMinutes,
+            isCustomPreset: preset.isCustom,
             phase: phase.rawValue,
             remainingSeconds: remainingSeconds,
             isRunning: isRunning,
@@ -441,6 +453,18 @@ final class PomodoroTimer {
         ) else { return .defaultCustom }
 
         return .custom(workMinutes: workMinutes, restMinutes: restMinutes)
+    }
+
+    private func resolvedPreset(
+        workMinutes: Int,
+        restMinutes: Int,
+        isCustom: Bool?
+    ) -> Preset {
+        if isCustom == true,
+           Preset.isValidCustom(workMinutes: workMinutes, restMinutes: restMinutes) {
+            return .custom(workMinutes: workMinutes, restMinutes: restMinutes)
+        }
+        return Preset(workMinutes: workMinutes, restMinutes: restMinutes)
     }
 
     private func adoptCustomPresetIfNeeded(_ preset: Preset) {

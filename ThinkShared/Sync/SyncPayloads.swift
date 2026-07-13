@@ -58,15 +58,37 @@ nonisolated struct Revision: Codable, Comparable, Equatable, Sendable {
 nonisolated struct TimerSyncState: Codable, Equatable, Sendable {
     let workMinutes: Int
     let restMinutes: Int
+    let isCustomPreset: Bool?
     let phase: String
     let isRunning: Bool
     let endDate: Date?
     let remainingSeconds: Int
     let revision: Revision
 
+    init(
+        workMinutes: Int,
+        restMinutes: Int,
+        isCustomPreset: Bool? = nil,
+        phase: String,
+        isRunning: Bool,
+        endDate: Date?,
+        remainingSeconds: Int,
+        revision: Revision
+    ) {
+        self.workMinutes = workMinutes
+        self.restMinutes = restMinutes
+        self.isCustomPreset = isCustomPreset
+        self.phase = phase
+        self.isRunning = isRunning
+        self.endDate = endDate
+        self.remainingSeconds = remainingSeconds
+        self.revision = revision
+    }
+
     private enum CodingKeys: String, CodingKey {
         case workMinutes
         case restMinutes
+        case isCustomPreset
         case phase
         case isRunning
         case endDate

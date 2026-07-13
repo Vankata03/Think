@@ -91,6 +91,22 @@ struct PomodoroTimerSyncTests {
         #expect(!timer.apply(remote))
     }
 
+    @Test func timerSyncStateDecodesLegacyPayloadWithoutCustomMarker() throws {
+        let timer = PomodoroTimer(systemSideEffectsEnabled: false)
+        let encoded = try SyncCodec.encode(timer.syncState)
+        var object = try #require(
+            JSONSerialization.jsonObject(with: encoded) as? [String: Any]
+        )
+        object.removeValue(forKey: "isCustomPreset")
+        let legacyData = try JSONSerialization.data(withJSONObject: object)
+
+        let decoded = try SyncCodec.decode(TimerSyncState.self, from: legacyData)
+
+        #expect(decoded.isCustomPreset == nil)
+        #expect(decoded.workMinutes == PomodoroTimer.Preset.classic.workMinutes)
+        #expect(decoded.restMinutes == PomodoroTimer.Preset.classic.restMinutes)
+    }
+
     @Test func staleRemoteStateIsRejected() {
         let date = Date(timeIntervalSince1970: 3_000)
         let deviceID = UUID(uuidString: "11111111-1111-1111-1111-111111111111")!
