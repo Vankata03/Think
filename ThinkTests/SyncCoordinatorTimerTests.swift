@@ -112,8 +112,16 @@ struct SyncCoordinatorTimerTests {
     @Test func workRolloverPublishesOneCompletionAcrossBothDevices() {
         var now = Date(timeIntervalSince1970: 13_000)
         let (phoneTransport, watchTransport) = MockSyncTransport.paired()
-        let phoneTimer = timer(deviceID: "11111111-1111-1111-1111-111111111111", now: now)
-        let watchTimer = timer(deviceID: "22222222-2222-2222-2222-222222222222", now: now)
+        let phoneTimer = PomodoroTimer(
+            systemSideEffectsEnabled: false,
+            deviceID: UUID(uuidString: "11111111-1111-1111-1111-111111111111")!,
+            now: { now }
+        )
+        let watchTimer = PomodoroTimer(
+            systemSideEffectsEnabled: false,
+            deviceID: UUID(uuidString: "22222222-2222-2222-2222-222222222222")!,
+            now: { now }
+        )
         let phoneProgress = ProgressStore(defaults: makeDefaults())
         let watchProgress = ProgressStore(defaults: makeDefaults())
         let phone = coordinator(

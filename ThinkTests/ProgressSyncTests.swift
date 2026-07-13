@@ -43,6 +43,8 @@ struct ProgressSyncTests {
     @Test func snapshotSortsDaysAndRoundTripsEveryField() {
         let store = ProgressStore(defaults: makeDefaults())
         store.recordFocusSession()
+        store.recordFocusSession(at: Date(timeIntervalSince1970: 500_000))
+        store.recordFocusSession(at: Date(timeIntervalSince1970: 100_000))
         store.completePathStep()
         store.recordAppOpen()
         let snapshot = store.snapshot(
@@ -51,8 +53,9 @@ struct ProgressSyncTests {
         )
 
         #expect(snapshot.completedDays == snapshot.completedDays.sorted())
+        #expect(snapshot.completedDays.count == 3)
         #expect(snapshot.appliedEventIDs == ["first", "second"])
-        #expect(snapshot.totalFocusSessions == 1)
+        #expect(snapshot.totalFocusSessions == 3)
         #expect(snapshot.pathCompletedDays == 1)
         #expect(snapshot.focusSessionDayCount == 1)
         #expect(snapshot.publishedAt == Date(timeIntervalSince1970: 7_000))

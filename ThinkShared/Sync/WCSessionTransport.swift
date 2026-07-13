@@ -67,6 +67,7 @@ final class WCSessionTransport: NSObject, SyncTransport, WCSessionDelegate {
         activationDidCompleteWith activationState: WCSessionActivationState,
         error: Error?
     ) {
+        guard error == nil, activationState == .activated else { return }
         Task { @MainActor [weak self] in
             guard let self, let delegate = self.delegate else { return }
             delegate.syncTransportDidActivate(self)
