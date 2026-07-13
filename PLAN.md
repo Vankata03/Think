@@ -54,6 +54,7 @@ Motivational app for young ambitious people. Not a quote-wallpaper app: every da
 - [x] Concept, design mockups, monetization plan (2026-07-04)
 - [x] MVP: Today tab (line + question + journal save), streak, Deep focus path, basic pomodoro, Profile
 - [x] Share cards / wallpaper renderer (QuoteCardView + ImageRenderer, 4 styles, share + save to Photos)
+- [x] Think 1.1 rich daily-line notifications (local QuoteCardView image attachments with text-only fallback)
 - [ ] StoreKit 2 paywall
 - [x] Live Activity + Dynamic Island for pomodoro (ThinkWidgets extension target)
 - [x] Home-screen / lock-screen quote widgets (DailyQuoteWidget: systemSmall/Medium + accessoryInline/Rectangular, 7-day timeline, flips at midnight)

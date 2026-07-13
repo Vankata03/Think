@@ -139,6 +139,41 @@ struct DailyQuoteNotifierTests {
         #expect(trigger.dateComponents.minute == 0)
     }
 
+    @Test func richRequestIncludesRenderedAttachment() async throws {
+        let scheduledLine = try #require(try scheduledLineFixture())
+        let preparedRequest = await DailyQuoteNotifier.prepareRichRequest(for: scheduledLine)
+        defer { preparedRequest.removeTemporaryFiles() }
+
+        let attachment = try #require(preparedRequest.request.content.attachments.first)
+        #expect(attachment.identifier == "daily-quote-0-card")
+        #expect(attachment.type == "public.jpeg")
+        #expect(preparedRequest.request.content.body == scheduledLine.quote.notificationText)
+    }
+
+    @Test func attachmentFailureFallsBackToTextOnlyRequest() async throws {
+        enum TestError: Error { case failed }
+        let scheduledLine = try #require(try scheduledLineFixture())
+
+        let preparedRequest = await DailyQuoteNotifier.prepareRichRequest(
+            for: scheduledLine,
+            attachmentBuilder: { _, _ in throw TestError.failed }
+        )
+
+        #expect(preparedRequest.request.content.attachments.isEmpty)
+        #expect(preparedRequest.request.content.title == String(localized: "Today's line"))
+        #expect(preparedRequest.request.content.body == scheduledLine.quote.notificationText)
+    }
+
+    private func scheduledLineFixture() throws -> DailyQuoteNotifier.ScheduledDailyLine? {
+        let calendar = utcCalendar()
+        let now = try date(year: 2026, month: 7, day: 4, hour: 7, minute: 30, calendar: calendar)
+        return DailyQuoteNotifier.scheduledDailyLines(
+            startingAt: now,
+            minutes: 8 * 60,
+            calendar: calendar
+        ).first
+    }
+
     private func utcCalendar() -> Calendar {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(secondsFromGMT: 0)!
