@@ -28,6 +28,7 @@ final class SyncCoordinator: NSObject, SyncTransportDelegate {
 
     private let reloadComplication: @MainActor () -> Void
     private let completionSideEffect: @MainActor () -> Void
+    private let focusSessionSideEffect: @MainActor (Date, Int) -> Void
     private var isActivated = false
     private var latestTimerData: Data?
     private var latestProgressData: Data?
@@ -40,7 +41,8 @@ final class SyncCoordinator: NSObject, SyncTransportDelegate {
         ledger: FocusEventLedger,
         transport: any SyncTransport,
         reloadComplication: @escaping @MainActor () -> Void = {},
-        completionSideEffect: @escaping @MainActor () -> Void = {}
+        completionSideEffect: @escaping @MainActor () -> Void = {},
+        focusSessionSideEffect: @escaping @MainActor (Date, Int) -> Void = { _, _ in }
     ) {
         self.role = role
         self.timer = timer
@@ -49,6 +51,7 @@ final class SyncCoordinator: NSObject, SyncTransportDelegate {
         self.transport = transport
         self.reloadComplication = reloadComplication
         self.completionSideEffect = completionSideEffect
+        self.focusSessionSideEffect = focusSessionSideEffect
         super.init()
     }
 
@@ -156,6 +159,7 @@ final class SyncCoordinator: NSObject, SyncTransportDelegate {
                 eventID: event.id
             )
             completionSideEffect()
+            focusSessionSideEffect(event.completedAt, timer.preset.workMinutes)
 
         case .watch:
             guard ledger.addPending(event) else { return }

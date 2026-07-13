@@ -766,6 +766,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Think logs completed focus sessions as mindful minutes in Apple Health when you opt in.";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Think saves quote cards and wallpapers to your photo library.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -804,6 +805,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Think logs completed focus sessions as mindful minutes in Apple Health when you opt in.";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Think saves quote cards and wallpapers to your photo library.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;

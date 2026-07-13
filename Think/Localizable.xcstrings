@@ -7647,6 +7647,39 @@
         "pt-BR": { "stringUnit": { "state": "translated", "value": "Os controles de lembrete podem continuar ativados, mas o Think não pode agendar lembretes até que você permita notificações nos Ajustes." } }
       }
     },
+    "Health access is off. Allow Think to write mindful minutes in the Health app to use this setting.": {
+      "localizations": {
+        "bg": { "stringUnit": { "state": "translated", "value": "Достъпът до Здраве е изключен. Разреши на Think да записва минути за осъзнатост в приложението Здраве, за да използваш тази настройка." } },
+        "de": { "stringUnit": { "state": "translated", "value": "Der Health-Zugriff ist deaktiviert. Erlaube Think in der Health-App, Achtsamkeitsminuten zu schreiben, um diese Einstellung zu verwenden." } },
+        "en": { "stringUnit": { "state": "translated", "value": "Health access is off. Allow Think to write mindful minutes in the Health app to use this setting." } },
+        "es": { "stringUnit": { "state": "translated", "value": "El acceso a Salud está desactivado. Permite que Think registre minutos de atención plena en la app Salud para usar este ajuste." } },
+        "fr": { "stringUnit": { "state": "translated", "value": "L’accès à Santé est désactivé. Autorise Think à enregistrer des minutes de pleine conscience dans l’app Santé pour utiliser ce réglage." } },
+        "it": { "stringUnit": { "state": "translated", "value": "L’accesso a Salute è disattivato. Consenti a Think di registrare minuti di mindfulness nell’app Salute per usare questa impostazione." } },
+        "pt-BR": { "stringUnit": { "state": "translated", "value": "O acesso ao app Saúde está desativado. Permita que o Think registre minutos de atenção plena no app Saúde para usar este ajuste." } }
+      }
+    },
+    "Health logging is unavailable on this device.": {
+      "localizations": {
+        "bg": { "stringUnit": { "state": "translated", "value": "Записването в Здраве не е достъпно на това устройство." } },
+        "de": { "stringUnit": { "state": "translated", "value": "Die Health-Protokollierung ist auf diesem Gerät nicht verfügbar." } },
+        "en": { "stringUnit": { "state": "translated", "value": "Health logging is unavailable on this device." } },
+        "es": { "stringUnit": { "state": "translated", "value": "El registro en Salud no está disponible en este dispositivo." } },
+        "fr": { "stringUnit": { "state": "translated", "value": "L’enregistrement dans Santé n’est pas disponible sur cet appareil." } },
+        "it": { "stringUnit": { "state": "translated", "value": "La registrazione in Salute non è disponibile su questo dispositivo." } },
+        "pt-BR": { "stringUnit": { "state": "translated", "value": "O registro no app Saúde não está disponível neste dispositivo." } }
+      }
+    },
+    "Log focus sessions to Health": {
+      "localizations": {
+        "bg": { "stringUnit": { "state": "translated", "value": "Записвай фокус сесиите в Здраве" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Fokussitzungen in Health protokollieren" } },
+        "en": { "stringUnit": { "state": "translated", "value": "Log focus sessions to Health" } },
+        "es": { "stringUnit": { "state": "translated", "value": "Registrar sesiones de concentración en Salud" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Enregistrer les sessions de concentration dans Santé" } },
+        "it": { "stringUnit": { "state": "translated", "value": "Registra le sessioni di concentrazione in Salute" } },
+        "pt-BR": { "stringUnit": { "state": "translated", "value": "Registrar sessões de foco no app Saúde" } }
+      }
+    },
     "Think could not create the journal export. Try again.": {
       "localizations": {
         "bg": { "stringUnit": { "state": "translated", "value": "Think не можа да създаде експорта на дневника. Опитай отново." } },
