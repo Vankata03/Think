@@ -33,14 +33,54 @@ final class PomodoroTimer {
     }
 
     struct Preset: Hashable {
+        private enum Kind: Hashable {
+            case classic
+            case long
+            case custom
+        }
+
+        private let kind: Kind
         let workMinutes: Int
         let restMinutes: Int
 
         var label: String { "\(workMinutes) / \(restMinutes)" }
+        var isCustom: Bool { kind == .custom }
 
-        static let classic = Preset(workMinutes: 25, restMinutes: 5)
-        static let long = Preset(workMinutes: 50, restMinutes: 10)
+        init(workMinutes: Int, restMinutes: Int) {
+            self.workMinutes = workMinutes
+            self.restMinutes = restMinutes
+            if workMinutes == Self.classic.workMinutes,
+               restMinutes == Self.classic.restMinutes {
+                kind = .classic
+            } else if workMinutes == Self.long.workMinutes,
+                      restMinutes == Self.long.restMinutes {
+                kind = .long
+            } else {
+                kind = .custom
+            }
+        }
+
+        private init(kind: Kind, workMinutes: Int, restMinutes: Int) {
+            self.kind = kind
+            self.workMinutes = workMinutes
+            self.restMinutes = restMinutes
+        }
+
+        static let classic = Preset(kind: .classic, workMinutes: 25, restMinutes: 5)
+        static let long = Preset(kind: .long, workMinutes: 50, restMinutes: 10)
         static let all: [Preset] = [.classic, .long]
+        static let customWorkMinutesRange = 5...120
+        static let customRestMinutesRange = 1...30
+        static let defaultCustom = Preset(kind: .custom, workMinutes: 30, restMinutes: 5)
+
+        static func custom(workMinutes: Int, restMinutes: Int) -> Preset {
+            Preset(kind: .custom, workMinutes: workMinutes, restMinutes: restMinutes)
+        }
+
+        static func isValidCustom(workMinutes: Int, restMinutes: Int) -> Bool {
+            customWorkMinutesRange.contains(workMinutes)
+                && customRestMinutesRange.contains(restMinutes)
+        }
     }
 
     private static let notificationID = "pomodoro-phase-end"
@@ -71,6 +111,7 @@ final class PomodoroTimer {
     private(set) var remainingSeconds: Int = Preset.classic.workMinutes * 60
     private(set) var isRunning = false
     private(set) var currentRevision: Revision
+    private(set) var customPreset: Preset
 
     /// Called when a work phase runs to completion. The date is the original
     /// work-phase end date, not the newly-created break end date.
@@ -95,11 +136,13 @@ final class PomodoroTimer {
         deviceID: UUID = SharedDefaults.syncDeviceID(),
         now: @escaping () -> Date = { .now }
     ) {
+        let resolvedDefaults = defaults ?? (systemSideEffectsEnabled ? SharedDefaults.appGroup() : nil)
         self.systemSideEffectsEnabled = systemSideEffectsEnabled
-        self.defaults = defaults ?? (systemSideEffectsEnabled ? SharedDefaults.appGroup() : nil)
+        self.defaults = resolvedDefaults
         self.deviceID = deviceID
         self.now = now
         self.currentRevision = Revision(date: .distantPast, deviceID: deviceID)
+        self.customPreset = Self.loadCustomPreset(from: resolvedDefaults)
         restorePersistedState()
     }
 
@@ -131,9 +174,21 @@ final class PomodoroTimer {
     func select(_ preset: Preset) {
         stopRunningWithoutPublishing()
         self.preset = preset
+        adoptCustomPresetIfNeeded(preset)
         phase = .work
         remainingSeconds = preset.workMinutes * 60
         finishLocalMutation()
+    }
+
+    @discardableResult
+    func selectCustom(workMinutes: Int, restMinutes: Int) -> Bool {
+        guard Preset.isValidCustom(
+            workMinutes: workMinutes,
+            restMinutes: restMinutes
+        ) else { return false }
+
+        select(.custom(workMinutes: workMinutes, restMinutes: restMinutes))
+        return true
     }
 
     func toggle() {
@@ -254,6 +309,7 @@ final class PomodoroTimer {
 
         stopRunningWithoutPublishing()
         preset = Preset(workMinutes: remote.workMinutes, restMinutes: remote.restMinutes)
+        adoptCustomPresetIfNeeded(preset)
         phase = Phase(rawValue: remote.phase)!
         currentRevision = remote.revision
         remainingSeconds = remote.remainingSeconds
@@ -333,6 +389,7 @@ final class PomodoroTimer {
         }
 
         preset = Preset(workMinutes: state.workMinutes, restMinutes: state.restMinutes)
+        adoptCustomPresetIfNeeded(preset)
         phase = restoredPhase
         remainingSeconds = max(0, state.remainingSeconds)
         if let revision = state.revision {
@@ -367,6 +424,41 @@ final class PomodoroTimer {
         )
         guard let data = try? JSONEncoder().encode(state) else { return }
         defaults.set(data, forKey: Self.persistedStateKey)
+    }
+
+    private static func loadCustomPreset(from defaults: UserDefaults?) -> Preset {
+        guard let defaults,
+              defaults.object(forKey: SharedDefaults.pomodoroCustomWorkMinutesKey) != nil,
+              defaults.object(forKey: SharedDefaults.pomodoroCustomRestMinutesKey) != nil else {
+            return .defaultCustom
+        }
+
+        let workMinutes = defaults.integer(forKey: SharedDefaults.pomodoroCustomWorkMinutesKey)
+        let restMinutes = defaults.integer(forKey: SharedDefaults.pomodoroCustomRestMinutesKey)
+        guard Preset.isValidCustom(
+            workMinutes: workMinutes,
+            restMinutes: restMinutes
+        ) else { return .defaultCustom }
+
+        return .custom(workMinutes: workMinutes, restMinutes: restMinutes)
+    }
+
+    private func adoptCustomPresetIfNeeded(_ preset: Preset) {
+        guard preset.isCustom,
+              Preset.isValidCustom(
+                workMinutes: preset.workMinutes,
+                restMinutes: preset.restMinutes
+              ) else { return }
+
+        customPreset = preset
+        defaults?.set(
+            preset.workMinutes,
+            forKey: SharedDefaults.pomodoroCustomWorkMinutesKey
+        )
+        defaults?.set(
+            preset.restMinutes,
+            forKey: SharedDefaults.pomodoroCustomRestMinutesKey
+        )
     }
 
     private func syncLiveActivity() {

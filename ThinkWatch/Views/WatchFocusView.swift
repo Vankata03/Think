@@ -16,6 +16,7 @@ struct WatchFocusView: View {
                 ring
                 controls
                 presets
+                customDurationControls
                 Text("\(progress.focusSessionsToday) today")
                     .font(.caption2.monospacedDigit())
                     .foregroundStyle(.secondary)
@@ -100,7 +101,7 @@ struct WatchFocusView: View {
 
     private var presets: some View {
         HStack(spacing: 8) {
-            ForEach(PomodoroTimer.Preset.all, id: \.workMinutes) { preset in
+            ForEach(PomodoroTimer.Preset.all, id: \.self) { preset in
                 Button {
                     timer.select(preset)
                 } label: {
@@ -113,6 +114,65 @@ struct WatchFocusView: View {
             }
         }
         .accessibilityLabel("Focus preset")
+    }
+
+    private var customDurationControls: some View {
+        VStack(spacing: 6) {
+            Text("Custom")
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(timer.preset.isCustom ? .yellow : .secondary)
+
+            HStack(spacing: 8) {
+                customDurationPicker(
+                    title: "Work duration",
+                    selection: customWorkMinutes,
+                    range: PomodoroTimer.Preset.customWorkMinutesRange
+                )
+
+                customDurationPicker(
+                    title: "Break duration",
+                    selection: customRestMinutes,
+                    range: PomodoroTimer.Preset.customRestMinutesRange
+                )
+            }
+        }
+    }
+
+    private var customWorkMinutes: Binding<Int> {
+        Binding(
+            get: { timer.customPreset.workMinutes },
+            set: {
+                timer.selectCustom(
+                    workMinutes: $0,
+                    restMinutes: timer.customPreset.restMinutes
+                )
+            }
+        )
+    }
+
+    private var customRestMinutes: Binding<Int> {
+        Binding(
+            get: { timer.customPreset.restMinutes },
+            set: {
+                timer.selectCustom(
+                    workMinutes: timer.customPreset.workMinutes,
+                    restMinutes: $0
+                )
+            }
+        )
+    }
+
+    private func customDurationPicker(
+        title: LocalizedStringKey,
+        selection: Binding<Int>,
+        range: ClosedRange<Int>
+    ) -> some View {
+        Picker(title, selection: selection) {
+            ForEach(range, id: \.self) { value in
+                Text("\(value) min").tag(value)
+            }
+        }
+        .pickerStyle(.navigationLink)
     }
 }
 
