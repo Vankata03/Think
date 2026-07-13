@@ -9,6 +9,7 @@ import UIKit
 
 struct StreakShareSheet: View {
     let month: Date
+    var milestone: StreakMilestone? = nil
     @Environment(ProgressStore.self) private var progress
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
@@ -33,14 +34,16 @@ struct StreakShareSheet: View {
         NavigationStack {
             VStack(spacing: 24) {
                 cardPreview
-                kindPicker
+                if milestone == nil {
+                    kindPicker
+                }
                 stylePicker
                 actions
                 Spacer()
             }
             .padding()
             .background(Color(.systemGroupedBackground).ignoresSafeArea())
-            .navigationTitle("Share streak")
+            .navigationTitle(navigationTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -50,7 +53,11 @@ struct StreakShareSheet: View {
         }
         .presentationDetents([.large])
         .task(id: renderKey) {
-            renderedImage = (renderKey, renderUIImage())
+            if let image = renderUIImage() {
+                renderedImage = (renderKey, image)
+            } else {
+                renderedImage = nil
+            }
         }
         .onChange(of: scenePhase) { _, phase in
             guard phase == .active, photoSaveState == .denied else { return }
@@ -64,7 +71,7 @@ struct StreakShareSheet: View {
     /// Everything the card draws from: card kind, theme, month, and the
     /// progress values baked into the image.
     private var renderKey: String {
-        "\(kind.id)|\(style.id)|\(month.timeIntervalSinceReferenceDate)|\(progress.displayedStreak)|\(progress.completedDays.hashValue)"
+        "\(kind.id)|\(style.id)|\(month.timeIntervalSinceReferenceDate)|\(cardStreak)|\(progress.completedDays.hashValue)"
     }
 
     private var currentRenderedImage: UIImage? {
@@ -75,7 +82,7 @@ struct StreakShareSheet: View {
     private var card: StreakCardView {
         StreakCardView(
             kind: kind,
-            streak: progress.displayedStreak,
+            streak: cardStreak,
             month: month,
             completedDays: progress.completedDays,
             style: style
@@ -84,9 +91,18 @@ struct StreakShareSheet: View {
 
     /// Caption attached to the share so the image travels with a hook.
     private var shareMessage: String {
-        let days = progress.displayedStreak
+        let days = cardStreak
         let run = String(localized: "\(days) days")
         return String(localized: "\(run) of deliberate thinking with Think — one honest question a day.")
+    }
+
+    private var cardStreak: Int {
+        milestone?.rawValue ?? progress.displayedStreak
+    }
+
+    private var navigationTitle: String {
+        guard milestone != nil else { return String(localized: "Share streak") }
+        return String(localized: "Milestone")
     }
 
     private var cardPreview: some View {
@@ -189,17 +205,21 @@ struct StreakShareSheet: View {
         }
     }
 
-    private func renderUIImage() -> UIImage {
+    private func renderUIImage() -> UIImage? {
         let renderer = ImageRenderer(content: card)
         renderer.proposedSize = ProposedViewSize(StreakCardView.designSize)
         renderer.scale = 1
         renderer.isOpaque = true
-        return renderer.uiImage ?? UIImage()
+        return renderer.uiImage
     }
 
     private func saveToPhotos() {
         photoSaveState = .saving
-        let image = currentRenderedImage ?? renderUIImage()
+        guard let image = currentRenderedImage ?? renderUIImage() else {
+            photoSaveState = .failed
+            haptics.play(.warning)
+            return
+        }
 
         PHPhotoLibrary.requestAuthorization(for: .addOnly) { status in
             guard status == .authorized || status == .limited else {

@@ -17,6 +17,14 @@ nonisolated struct FocusHistoryDay: Codable, Equatable, Sendable {
     let sessions: [FocusSessionRecord]
 }
 
+nonisolated enum StreakMilestone: Int, CaseIterable, Identifiable, Sendable {
+    case seven = 7
+    case twentyOne = 21
+    case oneHundred = 100
+
+    var id: Int { rawValue }
+}
+
 enum ProgressMutation: Sendable {
     case markTodayComplete
     case recordAppOpen
@@ -44,6 +52,8 @@ final class ProgressStore {
         static let completedDays = "completedDays"
         static let lastOpenDay = "lastOpenDay"
         static let lastQuestionAnswerDay = "lastQuestionAnswerDay"
+        static let pendingStreakMilestones = "pendingStreakMilestones"
+        static let handledStreakMilestones = "handledStreakMilestones"
     }
 
     /// Every key this store persists, for migrating between defaults suites.
@@ -59,6 +69,8 @@ final class ProgressStore {
         Key.completedDays,
         Key.lastOpenDay,
         Key.lastQuestionAnswerDay,
+        Key.pendingStreakMilestones,
+        Key.handledStreakMilestones,
     ]
 
     private let defaults: UserDefaults
@@ -81,6 +93,12 @@ final class ProgressStore {
     private(set) var completedDays: Set<Date>
     private var lastOpenDay: Date?
     private(set) var lastQuestionAnswerDay: Date?
+    private var pendingStreakMilestones: [StreakMilestone]
+    private var handledStreakMilestones: Set<StreakMilestone>
+
+    var pendingStreakMilestone: StreakMilestone? {
+        pendingStreakMilestones.first
+    }
 
     /// Called after a successful local mutation. Snapshot application does
     /// not invoke this callback.
@@ -116,6 +134,14 @@ final class ProgressStore {
         }
         lastOpenDay = defaults.object(forKey: Key.lastOpenDay) as? Date
         lastQuestionAnswerDay = defaults.object(forKey: Key.lastQuestionAnswerDay) as? Date
+        let storedHandledMilestones = Set(
+            (defaults.array(forKey: Key.handledStreakMilestones) as? [Int] ?? [])
+                .compactMap(StreakMilestone.init(rawValue:))
+        )
+        handledStreakMilestones = storedHandledMilestones
+        pendingStreakMilestones = (defaults.array(forKey: Key.pendingStreakMilestones) as? [Int] ?? [])
+            .compactMap(StreakMilestone.init(rawValue:))
+            .filter { !storedHandledMilestones.contains($0) }
         if let stored = defaults.array(forKey: Key.completedDays) as? [Date] {
             completedDays = Set(stored.map { calendar.startOfDay(for: $0) })
         } else {
@@ -253,6 +279,16 @@ final class ProgressStore {
         emit(.markTodayComplete)
     }
 
+    /// Acknowledges the milestone offer after its sheet was actually shown.
+    /// Sharing is optional; dismissing the offer still keeps it one-time.
+    func markStreakMilestoneHandled(_ milestone: StreakMilestone) {
+        guard pendingStreakMilestone == milestone else { return }
+        handledStreakMilestones.insert(milestone)
+        pendingStreakMilestones.removeFirst()
+        defaults.set(handledStreakMilestones.map(\.rawValue), forKey: Key.handledStreakMilestones)
+        persistPendingStreakMilestones()
+    }
+
     func hasCompleted(_ date: Date) -> Bool {
         completedDays.contains(calendar.startOfDay(for: date))
     }
@@ -342,6 +378,8 @@ final class ProgressStore {
         completedDays = []
         lastOpenDay = nil
         lastQuestionAnswerDay = nil
+        pendingStreakMilestones = []
+        handledStreakMilestones = []
         defaults.set([], forKey: Key.completedDays)
         persistFocusHistory()
         emit(.reset)
@@ -387,10 +425,27 @@ final class ProgressStore {
         let day = calendar.startOfDay(for: date)
         guard completedDays.insert(day).inserted else { return false }
         recomputeStreak()
+        offerMilestoneIfNeeded()
         defaults.set(streak, forKey: Key.streak)
         setOptional(lastCompletedDay, forKey: Key.lastCompletedDay)
         defaults.set(Array(completedDays), forKey: Key.completedDays)
         return true
+    }
+
+    private func offerMilestoneIfNeeded() {
+        guard let milestone = StreakMilestone(rawValue: streak),
+              !handledStreakMilestones.contains(milestone),
+              !pendingStreakMilestones.contains(milestone) else { return }
+        pendingStreakMilestones.append(milestone)
+        persistPendingStreakMilestones()
+    }
+
+    private func persistPendingStreakMilestones() {
+        if pendingStreakMilestones.isEmpty {
+            defaults.removeObject(forKey: Key.pendingStreakMilestones)
+        } else {
+            defaults.set(pendingStreakMilestones.map(\.rawValue), forKey: Key.pendingStreakMilestones)
+        }
     }
 
     private func recomputeStreak() {

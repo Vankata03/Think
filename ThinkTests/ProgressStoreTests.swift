@@ -41,6 +41,89 @@ struct ProgressStoreTests {
         #expect(store.displayedStreak == 4)
     }
 
+    @Test(arguments: StreakMilestone.allCases)
+    func reachingMilestonePersistsOnePendingOffer(_ milestone: StreakMilestone) {
+        let defaults = makeDefaults()
+        let store = makeStoreApproaching(milestone, defaults: defaults)
+
+        store.markTodayComplete()
+        store.markTodayComplete()
+
+        #expect(store.pendingStreakMilestone == milestone)
+        #expect(ProgressStore(defaults: defaults).pendingStreakMilestone == milestone)
+    }
+
+    @Test func dismissingMilestoneMarksItHandledAcrossRelaunch() {
+        let defaults = makeDefaults()
+        let store = makeStoreApproaching(.seven, defaults: defaults)
+        store.markTodayComplete()
+
+        store.markStreakMilestoneHandled(.seven)
+
+        #expect(store.pendingStreakMilestone == nil)
+        #expect(ProgressStore(defaults: defaults).pendingStreakMilestone == nil)
+    }
+
+    @Test func reloadedHandledMilestoneDoesNotQueueAgain() {
+        let defaults = makeDefaults()
+        defaults.set([StreakMilestone.seven.rawValue], forKey: "handledStreakMilestones")
+        let store = makeStoreApproaching(.seven, defaults: defaults)
+
+        store.markTodayComplete()
+
+        #expect(store.pendingStreakMilestone == nil)
+        #expect(ProgressStore(defaults: defaults).pendingStreakMilestone == nil)
+    }
+
+    @Test func handlingOlderPendingOfferSurfacesNewExactMilestone() {
+        let defaults = makeDefaults()
+        let store = makeStoreApproaching(.seven, defaults: defaults)
+        store.markTodayComplete()
+        let calendar = Calendar.current
+
+        for offset in 1...14 {
+            let date = calendar.date(byAdding: .day, value: offset, to: .now)!
+            store.recordDailyQuestionAnswer(at: date)
+        }
+
+        #expect(store.streak == 21)
+        #expect(store.pendingStreakMilestone == .seven)
+        #expect(ProgressStore(defaults: defaults).pendingStreakMilestone == .seven)
+
+        store.markStreakMilestoneHandled(.seven)
+
+        #expect(store.pendingStreakMilestone == .twentyOne)
+        #expect(ProgressStore(defaults: defaults).pendingStreakMilestone == .twentyOne)
+    }
+
+    @Test func resetClearsPendingAndHandledMilestoneState() {
+        let defaults = makeDefaults()
+        let store = makeStoreApproaching(.seven, defaults: defaults)
+        store.markTodayComplete()
+        store.markStreakMilestoneHandled(.seven)
+
+        store.reset()
+
+        #expect(store.pendingStreakMilestone == nil)
+        #expect(defaults.object(forKey: "pendingStreakMilestones") == nil)
+        #expect(defaults.object(forKey: "handledStreakMilestones") == nil)
+    }
+
+    @Test func nonMilestoneStreakDoesNotCreateOffer() {
+        let defaults = makeDefaults()
+        let calendar = Calendar.current
+        defaults.set(
+            (1...4).compactMap { calendar.date(byAdding: .day, value: -$0, to: .now) },
+            forKey: "completedDays"
+        )
+        let store = ProgressStore(defaults: defaults)
+
+        store.markTodayComplete()
+
+        #expect(store.displayedStreak == 5)
+        #expect(store.pendingStreakMilestone == nil)
+    }
+
     @Test func oldCompletionDoesNotDisplayAsActiveStreak() {
         let defaults = makeDefaults()
         defaults.set(7, forKey: "streak")
@@ -293,6 +376,8 @@ struct ProgressStoreTests {
         store.recordFocusSession()
         store.completePathStep()
         store.recordDailyQuestionAnswer()
+        defaults.set([7], forKey: "pendingStreakMilestones")
+        defaults.set([7], forKey: "handledStreakMilestones")
         #expect(store.totalFocusSessions == 1)
         #expect(store.pathCompletedDays == 1)
 
@@ -305,6 +390,8 @@ struct ProgressStoreTests {
         #expect(store.focusHistory.isEmpty)
         #expect(!store.openedToday)
         #expect(!store.answeredDailyQuestionToday)
+        #expect(defaults.object(forKey: "pendingStreakMilestones") == nil)
+        #expect(defaults.object(forKey: "handledStreakMilestones") == nil)
 
         let reloaded = ProgressStore(defaults: defaults)
         #expect(reloaded.totalFocusSessions == 0)
@@ -387,5 +474,19 @@ struct ProgressStoreTests {
         let defaults = UserDefaults(suiteName: suiteName)!
         defaults.removePersistentDomain(forName: suiteName)
         return defaults
+    }
+
+    private func makeStoreApproaching(
+        _ milestone: StreakMilestone,
+        defaults: UserDefaults
+    ) -> ProgressStore {
+        let calendar = Calendar.current
+        let completedDays = (1..<milestone.rawValue).compactMap {
+            calendar.date(byAdding: .day, value: -$0, to: .now)
+        }
+        defaults.set(completedDays, forKey: "completedDays")
+        defaults.set(milestone.rawValue - 1, forKey: "streak")
+        defaults.set(completedDays.first, forKey: "lastCompletedDay")
+        return ProgressStore(defaults: defaults)
     }
 }
