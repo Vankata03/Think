@@ -116,6 +116,7 @@ final class PomodoroTimer {
     private(set) var isRunning = false
     private(set) var currentRevision: Revision
     private(set) var customPreset: Preset
+    private(set) var automaticTransitionCount = 0
 
     /// Called when a work phase runs to completion. The date is the original
     /// work-phase end date, not the newly-created break end date.
@@ -281,6 +282,7 @@ final class PomodoroTimer {
         if phase == .work {
             onWorkSessionComplete?(endDate)
             phase = .rest
+            automaticTransitionCount += 1
             let restEnd = endDate.addingTimeInterval(TimeInterval(preset.restMinutes * 60))
             if restEnd > currentDate {
                 self.endDate = restEnd
@@ -299,6 +301,7 @@ final class PomodoroTimer {
         stopRunningWithoutPublishing()
         phase = .work
         remainingSeconds = preset.workMinutes * 60
+        automaticTransitionCount += 1
         finishLocalMutation()
     }
 
