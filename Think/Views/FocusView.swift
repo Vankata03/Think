@@ -349,27 +349,21 @@ private struct FocusDurationSheet: View {
                 }
 
                 Section("Custom") {
-                    Picker("Focus duration", selection: $customFocusMinutes) {
+                    Picker("Focus duration", selection: customFocusSelection) {
                         ForEach(PomodoroTimer.Preset.customWorkMinutesRange, id: \.self) { minutes in
                             Text("\(minutes) min").tag(minutes)
                         }
                     }
                     .pickerStyle(.navigationLink)
                     .accessibilityIdentifier("FocusCustomWork")
-                    .onChange(of: customFocusMinutes) {
-                        applyCustomDuration()
-                    }
 
-                    Picker("Break duration", selection: $customBreakMinutes) {
+                    Picker("Break duration", selection: customBreakSelection) {
                         ForEach(PomodoroTimer.Preset.customRestMinutesRange, id: \.self) { minutes in
                             Text("\(minutes) min").tag(minutes)
                         }
                     }
                     .pickerStyle(.navigationLink)
                     .accessibilityIdentifier("FocusCustomRest")
-                    .onChange(of: customBreakMinutes) {
-                        applyCustomDuration()
-                    }
                 }
             }
             .navigationTitle("Session duration")
@@ -420,15 +414,41 @@ private struct FocusDurationSheet: View {
         .accessibilityIdentifier("FocusPreset.\(preset.workMinutes)")
     }
 
-    private func applyCustomDuration() {
+    private var customFocusSelection: Binding<Int> {
+        Binding(
+            get: { customFocusMinutes },
+            set: { minutes in
+                customFocusMinutes = minutes
+                applyCustomDuration(
+                    focusMinutes: minutes,
+                    breakMinutes: timer.customPreset.restMinutes
+                )
+            }
+        )
+    }
+
+    private var customBreakSelection: Binding<Int> {
+        Binding(
+            get: { customBreakMinutes },
+            set: { minutes in
+                customBreakMinutes = minutes
+                applyCustomDuration(
+                    focusMinutes: timer.customPreset.workMinutes,
+                    breakMinutes: minutes
+                )
+            }
+        )
+    }
+
+    private func applyCustomDuration(focusMinutes: Int, breakMinutes: Int) {
         if !timer.preset.isCustom
-            || timer.preset.workMinutes != customFocusMinutes
-            || timer.preset.restMinutes != customBreakMinutes {
+            || timer.preset.workMinutes != focusMinutes
+            || timer.preset.restMinutes != breakMinutes {
             haptics.play(.selection)
         }
         _ = timer.selectCustom(
-            workMinutes: customFocusMinutes,
-            restMinutes: customBreakMinutes
+            workMinutes: focusMinutes,
+            restMinutes: breakMinutes
         )
     }
 }

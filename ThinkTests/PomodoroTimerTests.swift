@@ -94,6 +94,19 @@ struct PomodoroTimerTests {
         #expect(restoredTimer.customPreset.restMinutes == 5)
     }
 
+    @Test func storedCustomValuesCanBeReappliedAfterSelectingAFixedPreset() {
+        let timer = PomodoroTimer(systemSideEffectsEnabled: false)
+
+        #expect(timer.selectCustom(workMinutes: 40, restMinutes: 10))
+        timer.select(.classic)
+        #expect(timer.selectCustom(workMinutes: 40, restMinutes: 10))
+
+        #expect(timer.preset.isCustom)
+        #expect(timer.preset.workMinutes == 40)
+        #expect(timer.preset.restMinutes == 10)
+        #expect(timer.remainingSeconds == 40 * 60)
+    }
+
     @Test func customPresetRejectsDurationsOutsideSupportedRanges() {
         let timer = PomodoroTimer(systemSideEffectsEnabled: false)
 
