@@ -94,6 +94,9 @@ struct FocusView: View {
                     timer.resync()
                 }
             }
+            .onChange(of: timer.phase) {
+                haptics.play(.success)
+            }
         }
     }
 

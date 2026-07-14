@@ -19,17 +19,20 @@ nonisolated struct PomodoroActivityAttributes: ActivityAttributes {
         var phase: Phase
         var startDate: Date
         var endDate: Date
+        var restEndDate: Date?
 
-        init(phase: Phase, startDate: Date, endDate: Date) {
+        init(phase: Phase, startDate: Date, endDate: Date, restEndDate: Date? = nil) {
             self.phase = phase
             self.startDate = startDate
             self.endDate = endDate
+            self.restEndDate = restEndDate
         }
 
         private enum CodingKeys: String, CodingKey {
             case phase
             case startDate
             case endDate
+            case restEndDate
         }
 
         init(from decoder: Decoder) throws {
@@ -37,6 +40,7 @@ nonisolated struct PomodoroActivityAttributes: ActivityAttributes {
             phase = try container.decode(Phase.self, forKey: .phase)
             endDate = try container.decode(Date.self, forKey: .endDate)
             startDate = try container.decodeIfPresent(Date.self, forKey: .startDate) ?? endDate
+            restEndDate = try container.decodeIfPresent(Date.self, forKey: .restEndDate)
         }
 
         func encode(to encoder: Encoder) throws {
@@ -44,6 +48,20 @@ nonisolated struct PomodoroActivityAttributes: ActivityAttributes {
             try container.encode(phase, forKey: .phase)
             try container.encode(startDate, forKey: .startDate)
             try container.encode(endDate, forKey: .endDate)
+            try container.encodeIfPresent(restEndDate, forKey: .restEndDate)
+        }
+
+        func presentationState(isStale: Bool) -> Self {
+            guard isStale,
+                  phase == .work,
+                  let restEndDate,
+                  restEndDate > endDate else { return self }
+
+            return Self(
+                phase: .rest,
+                startDate: endDate,
+                endDate: restEndDate
+            )
         }
 
         var progressRange: ClosedRange<Date> {
