@@ -353,6 +353,9 @@ private struct FocusDurationSheet: View {
                     }
                     .pickerStyle(.navigationLink)
                     .accessibilityIdentifier("FocusCustomWork")
+                    .onChange(of: customFocusMinutes) {
+                        applyCustomDuration()
+                    }
 
                     Picker("Break duration", selection: $customBreakMinutes) {
                         ForEach(PomodoroTimer.Preset.customRestMinutesRange, id: \.self) { minutes in
@@ -361,19 +364,9 @@ private struct FocusDurationSheet: View {
                     }
                     .pickerStyle(.navigationLink)
                     .accessibilityIdentifier("FocusCustomRest")
-
-                    Button {
+                    .onChange(of: customBreakMinutes) {
                         applyCustomDuration()
-                    } label: {
-                        Label(
-                            "Use custom duration",
-                            systemImage: timer.preset.isCustom
-                                ? "checkmark.circle.fill"
-                                : "slider.horizontal.3"
-                        )
-                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    .accessibilityIdentifier("UseCustomDuration")
                 }
             }
             .navigationTitle("Session duration")
@@ -430,11 +423,10 @@ private struct FocusDurationSheet: View {
             || timer.preset.restMinutes != customBreakMinutes {
             haptics.play(.selection)
         }
-        guard timer.selectCustom(
+        _ = timer.selectCustom(
             workMinutes: customFocusMinutes,
             restMinutes: customBreakMinutes
-        ) else { return }
-        dismiss()
+        )
     }
 }
 
