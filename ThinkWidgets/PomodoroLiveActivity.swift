@@ -29,40 +29,46 @@ nonisolated enum PomodoroLiveActivityPresentation {
 struct PomodoroLiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: PomodoroActivityAttributes.self) { context in
-            lockScreenView(for: context.state)
+            lockScreenView(for: presentationState(for: context))
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
                     Label(
-                        PomodoroLiveActivityPresentation.title(for: context.state),
-                        systemImage: PomodoroLiveActivityPresentation.symbol(for: context.state)
+                        PomodoroLiveActivityPresentation.title(for: presentationState(for: context)),
+                        systemImage: PomodoroLiveActivityPresentation.symbol(for: presentationState(for: context))
                     )
                         .font(.headline)
                         .padding(.leading, 8)
                 }
                 DynamicIslandExpandedRegion(.trailing) {
-                    timerText(for: context.state)
+                    timerText(for: presentationState(for: context))
                         .font(.title2.weight(.medium))
                         .monospacedDigit()
                         .multilineTextAlignment(.trailing)
                         .padding(.trailing, 8)
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    progressBar(for: context.state)
+                    progressBar(for: presentationState(for: context))
                         .padding(.horizontal, 22)
                         .padding(.top, 8)
                         .padding(.bottom, 6)
                 }
             } compactLeading: {
-                Image(systemName: PomodoroLiveActivityPresentation.symbol(for: context.state))
+                Image(systemName: PomodoroLiveActivityPresentation.symbol(for: presentationState(for: context)))
             } compactTrailing: {
-                timerText(for: context.state)
+                timerText(for: presentationState(for: context))
                     .monospacedDigit()
                     .frame(maxWidth: 48)
             } minimal: {
                 Image(systemName: "timer")
             }
         }
+    }
+
+    private func presentationState(
+        for context: ActivityViewContext<PomodoroActivityAttributes>
+    ) -> PomodoroActivityAttributes.ContentState {
+        context.state.presentationState(isStale: context.isStale)
     }
 
     private func lockScreenView(for state: PomodoroActivityAttributes.ContentState) -> some View {

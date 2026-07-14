@@ -83,7 +83,9 @@ final class PomodoroTimer {
         }
     }
 
-    private static let notificationID = "pomodoro-phase-end"
+    private static let workEndNotificationID = "pomodoro-work-end"
+    private static let restEndNotificationID = "pomodoro-rest-end"
+    private static let notificationIDs = [workEndNotificationID, restEndNotificationID]
     private static let persistedStateKey = SharedDefaults.pomodoroTimerStateKey
 
     private struct PersistedState: Codable {
@@ -114,6 +116,7 @@ final class PomodoroTimer {
     private(set) var isRunning = false
     private(set) var currentRevision: Revision
     private(set) var customPreset: Preset
+    private(set) var automaticTransitionCount = 0
 
     /// Called when a work phase runs to completion. The date is the original
     /// work-phase end date, not the newly-created break end date.
@@ -279,6 +282,7 @@ final class PomodoroTimer {
         if phase == .work {
             onWorkSessionComplete?(endDate)
             phase = .rest
+            automaticTransitionCount += 1
             let restEnd = endDate.addingTimeInterval(TimeInterval(preset.restMinutes * 60))
             if restEnd > currentDate {
                 self.endDate = restEnd
@@ -297,6 +301,7 @@ final class PomodoroTimer {
         stopRunningWithoutPublishing()
         phase = .work
         remainingSeconds = preset.workMinutes * 60
+        automaticTransitionCount += 1
         finishLocalMutation()
     }
 
@@ -366,7 +371,7 @@ final class PomodoroTimer {
         if systemSideEffectsEnabled {
             #if canImport(UserNotifications)
             UNUserNotificationCenter.current()
-                .removePendingNotificationRequests(withIdentifiers: [Self.notificationID])
+                .removePendingNotificationRequests(withIdentifiers: Self.notificationIDs)
             #endif
             endLiveActivity()
         }
@@ -503,7 +508,10 @@ final class PomodoroTimer {
         let state = PomodoroActivityAttributes.ContentState(
             phase: phase == .work ? .work : .rest,
             startDate: startDate,
-            endDate: endDate
+            endDate: endDate,
+            restEndDate: phase == .work
+                ? endDate.addingTimeInterval(TimeInterval(preset.restMinutes * 60))
+                : nil
         )
         let content = ActivityContent(state: state, staleDate: endDate)
         let existingActivity = Activity<PomodoroActivityAttributes>.activities.first { activity in
@@ -553,31 +561,60 @@ final class PomodoroTimer {
     }
 
     private func schedulePhaseEndNotification() {
-        #if os(iOS) && canImport(ActivityKit) && canImport(UserNotifications)
-        // The Live Activity already shows the countdown on the lock screen;
-        // the notification is only the fallback when the user has Live
-        // Activities disabled.
-        guard !ActivityAuthorizationInfo().areActivitiesEnabled else { return }
+        #if os(iOS) && canImport(UserNotifications)
         guard let endDate else { return }
-        let interval = endDate.timeIntervalSince(now())
-        guard interval > 1 else { return }
+        let center = UNUserNotificationCenter.current()
+        center.removePendingNotificationRequests(withIdentifiers: Self.notificationIDs)
 
-        let content = UNMutableNotificationContent()
         switch phase {
         case .work:
-            content.title = String(localized: "Session complete")
-            content.body = String(localized: "Nice work. Time for a break.")
+            scheduleNotification(
+                id: Self.workEndNotificationID,
+                title: String(localized: "Session complete"),
+                body: String(localized: "Nice work. Time for a break."),
+                date: endDate,
+                center: center
+            )
+            scheduleNotification(
+                id: Self.restEndNotificationID,
+                title: String(localized: "Break over"),
+                body: String(localized: "Ready for the next session?"),
+                date: endDate.addingTimeInterval(TimeInterval(preset.restMinutes * 60)),
+                center: center
+            )
         case .rest:
-            content.title = String(localized: "Break over")
-            content.body = String(localized: "Ready for the next session?")
-        }
-        content.sound = .default
-
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: interval, repeats: false)
-        let request = UNNotificationRequest(identifier: Self.notificationID, content: content, trigger: trigger)
-        Task {
-            try? await UNUserNotificationCenter.current().add(request)
+            scheduleNotification(
+                id: Self.restEndNotificationID,
+                title: String(localized: "Break over"),
+                body: String(localized: "Ready for the next session?"),
+                date: endDate,
+                center: center
+            )
         }
         #endif
     }
+
+    #if os(iOS) && canImport(UserNotifications)
+    private func scheduleNotification(
+        id: String,
+        title: String,
+        body: String,
+        date: Date,
+        center: UNUserNotificationCenter
+    ) {
+        let interval = date.timeIntervalSince(now())
+        guard interval > 1 else { return }
+
+        let content = UNMutableNotificationContent()
+        content.title = title
+        content.body = body
+        content.sound = .default
+
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: interval, repeats: false)
+        let request = UNNotificationRequest(identifier: id, content: content, trigger: trigger)
+        Task {
+            try? await center.add(request)
+        }
+    }
+    #endif
 }

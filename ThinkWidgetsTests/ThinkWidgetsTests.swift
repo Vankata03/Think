@@ -212,7 +212,8 @@ struct PomodoroLiveActivityPresentationTests {
         let state = PomodoroActivityAttributes.ContentState(
             phase: .work,
             startDate: startDate,
-            endDate: startDate.addingTimeInterval(25 * 60)
+            endDate: startDate.addingTimeInterval(25 * 60),
+            restEndDate: startDate.addingTimeInterval(30 * 60)
         )
 
         let encoded = try JSONEncoder().encode(state)

@@ -41,6 +41,7 @@ struct PomodoroTimerTests {
         #expect(timer.phase == .rest)
         #expect(timer.remainingSeconds == 5 * 60)
         #expect(completedWorkSessions == 0)
+        #expect(timer.automaticTransitionCount == 0)
     }
 
     @Test func resetReturnsToCurrentPresetWorkPhase() {
@@ -53,6 +54,7 @@ struct PomodoroTimerTests {
         #expect(timer.phase == .work)
         #expect(timer.remainingSeconds == 50 * 60)
         #expect(!timer.isRunning)
+        #expect(timer.automaticTransitionCount == 0)
     }
 
     @Test func presetLabelShowsWorkAndRestDurations() {
@@ -193,6 +195,7 @@ struct PomodoroTimerTests {
         #expect(timer.phase == .rest)
         #expect((1...(5 * 60)).contains(timer.remainingSeconds))
         #expect(completedWorkSessions == 1)
+        #expect(timer.automaticTransitionCount == 1)
 
         timer.reset()
     }
@@ -209,6 +212,7 @@ struct PomodoroTimerTests {
         #expect(!timer.isRunning)
         #expect(timer.phase == .work)
         #expect(timer.remainingSeconds == 60)
+        #expect(timer.automaticTransitionCount == 1)
     }
 
     @Test func skippingRunningWorkPhaseStartsBreakTimer() {
