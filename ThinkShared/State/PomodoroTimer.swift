@@ -127,6 +127,9 @@ final class PomodoroTimer {
 
     private var endDate: Date?
     private var tickTask: Task<Void, Never>?
+    #if os(iOS) && canImport(UserNotifications)
+    private var notificationScheduleTask: Task<Void, Never>?
+    #endif
     private var requestedAuthorization = false
     private var liveActivityID: String?
     private let systemSideEffectsEnabled: Bool
@@ -289,7 +292,7 @@ final class PomodoroTimer {
                 remainingSeconds = Int(restEnd.timeIntervalSince(currentDate).rounded(.up))
                 if systemSideEffectsEnabled {
                     schedulePhaseEndNotification()
-                    syncLiveActivity()
+                    syncLiveActivity(alertsTransition: true)
                 }
                 finishLocalMutation()
                 return
@@ -369,9 +372,8 @@ final class PomodoroTimer {
         tickTask?.cancel()
         tickTask = nil
         if systemSideEffectsEnabled {
-            #if canImport(UserNotifications)
-            UNUserNotificationCenter.current()
-                .removePendingNotificationRequests(withIdentifiers: Self.notificationIDs)
+            #if os(iOS) && canImport(UserNotifications)
+            replacePhaseEndNotifications(with: [])
             #endif
             endLiveActivity()
         }
@@ -501,7 +503,7 @@ final class PomodoroTimer {
         )
     }
 
-    private func syncLiveActivity() {
+    private func syncLiveActivity(alertsTransition: Bool = false) {
         #if os(iOS) && canImport(ActivityKit)
         guard let endDate else { return }
         let startDate = endDate.addingTimeInterval(-TimeInterval(max(phaseTotalSeconds, 1)))
@@ -514,6 +516,13 @@ final class PomodoroTimer {
                 : nil
         )
         let content = ActivityContent(state: state, staleDate: endDate)
+        let alertConfiguration = alertsTransition
+            ? AlertConfiguration(
+                title: "Break",
+                body: "Nice work. Time for a break.",
+                sound: .default
+            )
+            : nil
         let existingActivity = Activity<PomodoroActivityAttributes>.activities.first { activity in
             activity.id == liveActivityID
         } ?? Activity<PomodoroActivityAttributes>.activities.first
@@ -527,7 +536,7 @@ final class PomodoroTimer {
             Task.detached {
                 await Activity<PomodoroActivityAttributes>.activities
                     .first { $0.id == id }?
-                    .update(content)
+                    .update(content, alertConfiguration: alertConfiguration)
             }
         } else if ActivityAuthorizationInfo().areActivitiesEnabled {
             let activity = try? Activity.request(attributes: PomodoroActivityAttributes(), content: content)
@@ -563,47 +572,44 @@ final class PomodoroTimer {
     private func schedulePhaseEndNotification() {
         #if os(iOS) && canImport(UserNotifications)
         guard let endDate else { return }
-        let center = UNUserNotificationCenter.current()
-        center.removePendingNotificationRequests(withIdentifiers: Self.notificationIDs)
-
+        let requests: [UNNotificationRequest]
         switch phase {
         case .work:
-            scheduleNotification(
-                id: Self.workEndNotificationID,
-                title: String(localized: "Session complete"),
-                body: String(localized: "Nice work. Time for a break."),
-                date: endDate,
-                center: center
-            )
-            scheduleNotification(
-                id: Self.restEndNotificationID,
-                title: String(localized: "Break over"),
-                body: String(localized: "Ready for the next session?"),
-                date: endDate.addingTimeInterval(TimeInterval(preset.restMinutes * 60)),
-                center: center
-            )
+            requests = [
+                notificationRequest(
+                    id: Self.workEndNotificationID,
+                    title: String(localized: "Session complete"),
+                    body: String(localized: "Nice work. Time for a break."),
+                    date: endDate
+                ),
+                notificationRequest(
+                    id: Self.restEndNotificationID,
+                    title: String(localized: "Break over"),
+                    body: String(localized: "Ready for the next session?"),
+                    date: endDate.addingTimeInterval(TimeInterval(preset.restMinutes * 60))
+                )
+            ].compactMap { $0 }
         case .rest:
-            scheduleNotification(
+            requests = [notificationRequest(
                 id: Self.restEndNotificationID,
                 title: String(localized: "Break over"),
                 body: String(localized: "Ready for the next session?"),
-                date: endDate,
-                center: center
-            )
+                date: endDate
+            )].compactMap { $0 }
         }
+        replacePhaseEndNotifications(with: requests)
         #endif
     }
 
     #if os(iOS) && canImport(UserNotifications)
-    private func scheduleNotification(
+    private func notificationRequest(
         id: String,
         title: String,
         body: String,
-        date: Date,
-        center: UNUserNotificationCenter
-    ) {
+        date: Date
+    ) -> UNNotificationRequest? {
         let interval = date.timeIntervalSince(now())
-        guard interval > 1 else { return }
+        guard interval > 1 else { return nil }
 
         let content = UNMutableNotificationContent()
         content.title = title
@@ -611,9 +617,25 @@ final class PomodoroTimer {
         content.sound = .default
 
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: interval, repeats: false)
-        let request = UNNotificationRequest(identifier: id, content: content, trigger: trigger)
-        Task {
-            try? await center.add(request)
+        return UNNotificationRequest(identifier: id, content: content, trigger: trigger)
+    }
+
+    private func replacePhaseEndNotifications(with requests: [UNNotificationRequest]) {
+        let previousTask = notificationScheduleTask
+        previousTask?.cancel()
+
+        // Serialize removal and registration. A replacement waits for any
+        // in-flight add before removing stale requests and installing its own.
+        notificationScheduleTask = Task {
+            await previousTask?.value
+            guard !Task.isCancelled else { return }
+
+            let center = UNUserNotificationCenter.current()
+            center.removePendingNotificationRequests(withIdentifiers: Self.notificationIDs)
+            for request in requests {
+                guard !Task.isCancelled else { return }
+                try? await center.add(request)
+            }
         }
     }
     #endif
