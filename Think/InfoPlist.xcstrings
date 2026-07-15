@@ -49,6 +49,53 @@
         }
       }
     },
+    "NSHealthShareUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "bg": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think използва достъп до Здраве само за да записва завършените фокус сесии като минути за осъзнатост, когато дадеш съгласие. Think не чете данните ти от Здраве."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think uses Health access to save completed focus sessions as mindful minutes when you opt in. Think does not read your Health data."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think verwendet den Zugriff auf Health nur, um abgeschlossene Fokussitzungen als Achtsamkeitsminuten zu speichern, wenn du zustimmst. Think liest deine Health-Daten nicht."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think usa el acceso a Salud únicamente para guardar las sesiones de concentración completadas como minutos de atención plena cuando das tu consentimiento. Think no lee tus datos de Salud."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think utilise l’accès à Santé uniquement pour enregistrer les sessions de concentration terminées sous forme de minutes de pleine conscience lorsque tu l’autorises. Think ne lit pas tes données Santé."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think usa l’accesso a Salute solo per salvare le sessioni di concentrazione completate come minuti di mindfulness quando dai il consenso. Think non legge i tuoi dati di Salute."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Think usa o acesso ao app Saúde apenas para salvar sessões de foco concluídas como minutos de atenção plena quando você autoriza. O Think não lê seus dados de Saúde."
+          }
+        }
+      }
+    },
     "NSHealthUpdateUsageDescription": {
       "extractionState": "manual",
       "localizations": {
