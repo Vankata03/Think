@@ -53,6 +53,8 @@ jobs:
       - name: Checkout
         if: env.SKIP_ALL_TESTS != 'true'
         uses: actions/checkout@v5
+        with:
+          persist-credentials: false
 
       - name: Show toolchain
         if: env.SKIP_ALL_TESTS != 'true'
