@@ -16,7 +16,10 @@ nonisolated enum DailyQuoteTimelineFactory {
         let today = calendar.startOfDay(for: now)
         return (0..<7).compactMap { offset in
             guard let day = calendar.date(byAdding: .day, value: offset, to: today) else { return nil }
-            return QuoteEntry(date: offset == 0 ? now : day, quote: ContentLibrary.dailyQuote(for: day))
+            return QuoteEntry(
+                date: offset == 0 ? now : day,
+                quote: ContentLibrary.dailyQuote(for: day, calendar: calendar)
+            )
         }
     }
 }

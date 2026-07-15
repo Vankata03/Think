@@ -24,7 +24,7 @@ struct DailyQuoteTimelineTests {
             let day = try #require(calendar.date(byAdding: .day, value: offset, to: calendar.startOfDay(for: now)))
             let expectedDate = offset == 0 ? now : day
             #expect(entry.date == expectedDate)
-            #expect(entry.quote == ContentLibrary.dailyQuote(for: day))
+            #expect(entry.quote == ContentLibrary.dailyQuote(for: day, calendar: calendar))
         }
     }
 

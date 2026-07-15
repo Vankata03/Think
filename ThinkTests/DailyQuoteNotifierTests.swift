@@ -25,7 +25,7 @@ struct DailyQuoteNotifierTests {
         #expect(requests.first?.identifier == "daily-quote-0")
         #expect(requests.last?.identifier == "daily-quote-7")
         #expect(requests.first?.content.title == String(localized: "Today's line"))
-        let quote = ContentLibrary.dailyQuote(for: now)
+        let quote = ContentLibrary.dailyQuote(for: now, calendar: calendar)
         #expect(requests.first?.content.body == quote.notificationText)
         let trigger = try #require(requests.first?.trigger as? UNCalendarNotificationTrigger)
         #expect(trigger.dateComponents.year == 2026)
@@ -82,7 +82,7 @@ struct DailyQuoteNotifierTests {
 
         for (offset, request) in requests.enumerated() {
             let day = try #require(calendar.date(byAdding: .day, value: offset, to: calendar.startOfDay(for: now)))
-            let quote = ContentLibrary.dailyQuote(for: day)
+            let quote = ContentLibrary.dailyQuote(for: day, calendar: calendar)
             #expect(request.content.body == quote.notificationText)
         }
     }
@@ -118,6 +118,32 @@ struct DailyQuoteNotifierTests {
         #expect(trigger.dateComponents.day == 4)
         #expect(trigger.dateComponents.hour == 8)
         #expect(trigger.dateComponents.minute == 0)
+    }
+
+    @Test func scheduledRequestsUseTheConfiguredCalendarAcrossTheDateLine() throws {
+        for timeZoneID in ["Pacific/Kiritimati", "America/Adak"] {
+            var calendar = Calendar(identifier: .gregorian)
+            calendar.timeZone = try #require(TimeZone(identifier: timeZoneID))
+            let now = try date(
+                year: 2026,
+                month: 7,
+                day: 4,
+                hour: 7,
+                minute: 30,
+                calendar: calendar
+            )
+
+            let request = try #require(DailyQuoteNotifier.scheduledRequests(
+                startingAt: now,
+                minutes: 8 * 60,
+                calendar: calendar
+            ).first)
+
+            #expect(
+                request.content.body
+                    == ContentLibrary.dailyQuote(for: now, calendar: calendar).notificationText
+            )
+        }
     }
 
     @Test func scheduledRequestsRollPastMidnightInTheCurrentTimeZone() throws {

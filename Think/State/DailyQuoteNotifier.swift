@@ -68,7 +68,7 @@ enum DailyQuoteNotifier {
                   let fireDate = calendar.date(byAdding: .minute, value: minutes, to: day),
                   fireDate > now else { return nil }
 
-            let quote = ContentLibrary.dailyQuote(for: day)
+            let quote = ContentLibrary.dailyQuote(for: day, calendar: calendar)
             let components = calendar.dateComponents(
                 [.year, .month, .day, .hour, .minute], from: fireDate
             )

@@ -604,20 +604,32 @@ nonisolated enum ContentLibrary {
     static let questions = practices.map(\.question)
     static let actions = practices.map(\.action)
 
-    static func dailyPractice(for date: Date = .now) -> DailyPractice {
-        practices[dayNumber(for: date) % practices.count]
+    static func dailyPractice(
+        for date: Date = .now,
+        calendar: Calendar = .current
+    ) -> DailyPractice {
+        practices[dayNumber(for: date, calendar: calendar) % practices.count]
     }
 
-    static func dailyQuote(for date: Date = .now) -> Quote {
-        dailyPractice(for: date).quote
+    static func dailyQuote(
+        for date: Date = .now,
+        calendar: Calendar = .current
+    ) -> Quote {
+        dailyPractice(for: date, calendar: calendar).quote
     }
 
-    static func dailyQuestion(for date: Date = .now) -> String {
-        dailyPractice(for: date).question
+    static func dailyQuestion(
+        for date: Date = .now,
+        calendar: Calendar = .current
+    ) -> String {
+        dailyPractice(for: date, calendar: calendar).question
     }
 
-    static func dailyAction(for date: Date = .now) -> String {
-        dailyPractice(for: date).action
+    static func dailyAction(
+        for date: Date = .now,
+        calendar: Calendar = .current
+    ) -> String {
+        dailyPractice(for: date, calendar: calendar).action
     }
 
     private static func practice(
@@ -664,8 +676,7 @@ nonisolated enum ContentLibrary {
 
     /// Calendar-based day ordinal. Seconds math repeats or skips local days at
     /// daylight-saving transitions.
-    private static func dayNumber(for date: Date) -> Int {
-        let calendar = Calendar.current
+    private static func dayNumber(for date: Date, calendar: Calendar) -> Int {
         let reference = calendar.startOfDay(for: Date(timeIntervalSince1970: 0))
         let day = calendar.startOfDay(for: date)
         return max(0, calendar.dateComponents([.day], from: reference, to: day).day ?? 0)

@@ -9,6 +9,8 @@ import Testing
 
 struct SyncPayloadTests {
 
+    private final class BundleToken {}
+
     @Test func revisionOrdersByDateThenDeviceID() throws {
         let firstDevice = try #require(UUID(uuidString: "11111111-1111-1111-1111-111111111111"))
         let secondDevice = try #require(UUID(uuidString: "22222222-2222-2222-2222-222222222222"))
@@ -95,10 +97,15 @@ struct SyncPayloadTests {
     }
 
     private func fixture(_ name: String) throws -> Data {
-        let url = URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()
-            .appendingPathComponent("Fixtures/Sync")
-            .appendingPathComponent(name)
+        let parts = name.split(separator: ".", maxSplits: 1).map(String.init)
+        let resource = parts[0]
+        let extensionName = parts.count == 2 ? parts[1] : nil
+        let url = try #require(
+            Bundle(for: BundleToken.self).url(
+                forResource: resource,
+                withExtension: extensionName
+            )
+        )
         return try Data(contentsOf: url)
     }
 
