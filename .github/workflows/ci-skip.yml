@@ -1,0 +1,33 @@
+# Companion to ci.yml. "build-test" is a required status check on protected
+# branches, so changes that ci.yml ignores would otherwise leave PRs stuck
+# on an "Expected" check. This workflow runs a same-named no-op job for
+# exactly those paths and reports success immediately.
+#
+# The paths list must stay in sync with the paths-ignore list in ci.yml.
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - prod
+      - "release/**"
+    paths:
+      - "**.md"
+      - LICENSE
+      - .gitignore
+      - "docs/**"
+      - "Screenshots/**"
+      - "scripts/**"
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    name: build-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: No app code changed
+        run: echo "Only documentation or asset paths changed; build and tests skipped."

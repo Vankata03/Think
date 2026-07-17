@@ -1,0 +1,195 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "CFBundleName": {
+      "comment": "Bundle name",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Think"
+          }
+        },
+        "bg": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think"
+          }
+        }
+      }
+    },
+    "NSHealthShareUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "bg": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think използва достъп до Здраве само за да записва завършените фокус сесии като минути за осъзнатост, когато дадеш съгласие. Think не чете данните ти от Здраве."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think uses Health access to save completed focus sessions as mindful minutes when you opt in. Think does not read your Health data."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think verwendet den Zugriff auf Health nur, um abgeschlossene Fokussitzungen als Achtsamkeitsminuten zu speichern, wenn du zustimmst. Think liest deine Health-Daten nicht."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think usa el acceso a Salud únicamente para guardar las sesiones de concentración completadas como minutos de atención plena cuando das tu consentimiento. Think no lee tus datos de Salud."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think utilise l’accès à Santé uniquement pour enregistrer les sessions de concentration terminées sous forme de minutes de pleine conscience lorsque tu l’autorises. Think ne lit pas tes données Santé."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think usa l’accesso a Salute solo per salvare le sessioni di concentrazione completate come minuti di mindfulness quando dai il consenso. Think non legge i tuoi dati di Salute."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Think usa o acesso ao app Saúde apenas para salvar sessões de foco concluídas como minutos de atenção plena quando você autoriza. O Think não lê seus dados de Saúde."
+          }
+        }
+      }
+    },
+    "NSHealthUpdateUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "bg": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think записва завършените фокус сесии като минути за осъзнатост в приложението Здраве, когато дадеш съгласие."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think logs completed focus sessions as mindful minutes in Apple Health when you opt in."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think protokolliert abgeschlossene Fokussitzungen als Achtsamkeitsminuten in Apple Health, wenn du zustimmst."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think registra las sesiones de concentración completadas como minutos de atención plena en Apple Salud cuando das tu consentimiento."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think enregistre les sessions de concentration terminées comme minutes de pleine conscience dans Apple Santé lorsque tu l’autorises."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think registra le sessioni di concentrazione completate come minuti di mindfulness in Apple Salute quando dai il consenso."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Think registra sessões de foco concluídas como minutos de atenção plena no app Saúde quando você autoriza."
+          }
+        }
+      }
+    },
+    "NSPhotoLibraryAddUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "bg": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think запазва картички с мисли и тапети в библиотеката ти със снимки."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think saves quote cards and wallpapers to your photo library."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think speichert Zitatkarten und Hintergrundbilder in deiner Fotobibliothek."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think guarda tarjetas con citas y fondos de pantalla en tu galería de fotos."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think enregistre des cartes de citations et des fonds d'écran dans ta photothèque."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think salva le schede con le citazioni e gli sfondi nella tua galleria fotografica."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Think salva cartões com citações e papéis de parede na sua galeria de fotos."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

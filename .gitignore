@@ -1,0 +1,51 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Xcode user state
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+
+# Build output
+DerivedData/
+build/
+Build/
+*.xcresult
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Package.resolved
+
+# CocoaPods / Carthage / fastlane generated output
+Pods/
+Carthage/Build/
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output/
+
+# Secrets and local environment
+.env
+.env.*
+*.mobileprovision
+*.p12
+*.cer
+
+# Logs and temporary files
+*.log
+tmp/
+temp/
+.superpowers/
+
+# Local-only: AI-assistant state and internal planning/marketing material
+.codex/
+.claude/
+docs/
+Screenshots/
+scripts/

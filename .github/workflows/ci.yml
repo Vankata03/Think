@@ -1,0 +1,128 @@
+name: CI
+
+# Path filters must stay in sync with ci-skip.yml, which provides the
+# green no-op "build-test" check for changes that only touch these paths.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+    branches:
+      - develop
+      - prod
+      - "release/**"
+    paths-ignore:
+      - "**.md"
+      - LICENSE
+      - .gitignore
+      - "docs/**"
+      - "Screenshots/**"
+      - "scripts/**"
+  push:
+    branches:
+      - develop
+      - prod
+      - "release/**"
+    paths-ignore:
+      - "**.md"
+      - LICENSE
+      - .gitignore
+      - "docs/**"
+      - "Screenshots/**"
+      - "scripts/**"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    name: build-test
+    runs-on: ${{ contains(github.event.pull_request.labels.*.name, 'skip-tests') && 'ubuntu-latest' || 'macos-26' }}
+    timeout-minutes: 45
+    env:
+      SKIP_ALL_TESTS: ${{ contains(github.event.pull_request.labels.*.name, 'skip-tests') }}
+
+    steps:
+      - name: Skip all tests
+        if: env.SKIP_ALL_TESTS == 'true'
+        run: echo "skip-tests label present; build and tests skipped"
+
+      - name: Checkout
+        if: env.SKIP_ALL_TESTS != 'true'
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Show toolchain
+        if: env.SKIP_ALL_TESTS != 'true'
+        run: |
+          xcodebuild -version
+          xcode-select -p
+          xcrun simctl list devices available | grep -E -- '-- iOS|iPhone 17 Pro' || true
+
+      - name: Install CI tools
+        if: env.SKIP_ALL_TESTS != 'true'
+        run: |
+          if ! command -v xcbeautify >/dev/null; then
+            brew install xcbeautify
+          fi
+          xcbeautify --version
+
+      - name: Build for testing
+        if: env.SKIP_ALL_TESTS != 'true'
+        run: |
+          mkdir -p BuildLogs
+          set -o pipefail
+          NSUnbufferedIO=YES xcodebuild build-for-testing \
+            -project Think.xcodeproj \
+            -scheme Think \
+            -testPlan Think \
+            -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=latest' \
+            -derivedDataPath DerivedData \
+            CODE_SIGNING_ALLOWED=NO \
+            2>&1 | tee BuildLogs/build-for-testing.log | xcbeautify --renderer github-actions
+
+      - name: Test
+        if: env.SKIP_ALL_TESTS != 'true'
+        env:
+          # The skip-ui-tests PR label drops the slow XCUITest suite.
+          SKIP_UI_TESTS: ${{ contains(github.event.pull_request.labels.*.name, 'skip-ui-tests') }}
+        run: |
+          mkdir -p BuildLogs TestResults
+          set -o pipefail
+          EXTRA_ARGS=()
+          if [ "$SKIP_UI_TESTS" = "true" ]; then
+            echo "skip-ui-tests label present; skipping ThinkUITests"
+            EXTRA_ARGS+=(-skip-testing:ThinkUITests)
+          fi
+          NSUnbufferedIO=YES xcodebuild test-without-building \
+            -project Think.xcodeproj \
+            -scheme Think \
+            -testPlan Think \
+            -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=latest' \
+            -derivedDataPath DerivedData \
+            -resultBundlePath TestResults/Think.xcresult \
+            CODE_SIGNING_ALLOWED=NO \
+            "${EXTRA_ARGS[@]}" \
+            2>&1 | tee BuildLogs/test.log | xcbeautify --renderer github-actions
+
+      - name: Upload raw xcodebuild logs
+        if: always() && env.SKIP_ALL_TESTS != 'true'
+        uses: actions/upload-artifact@v6
+        with:
+          name: xcodebuild-logs
+          path: BuildLogs
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Upload test result bundle
+        if: always() && env.SKIP_ALL_TESTS != 'true'
+        uses: actions/upload-artifact@v6
+        with:
+          name: Think.xcresult
+          path: TestResults/Think.xcresult
+          if-no-files-found: ignore
+          retention-days: 14
