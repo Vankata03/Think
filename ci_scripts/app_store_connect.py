@@ -196,8 +196,16 @@ class AppStoreConnectClient:
     def find_version(
         self, app_id: str, version: str, platform: str
     ) -> dict[str, Any] | None:
+        query = urllib.parse.urlencode(
+            {
+                "filter[versionString]": version,
+                "filter[platform]": platform,
+                "limit": 2,
+            }
+        )
         response = self._request_json(
-            "GET", f"/apps/{urllib.parse.quote(app_id)}/appStoreVersions?limit=200"
+            "GET",
+            f"/apps/{urllib.parse.quote(app_id)}/appStoreVersions?{query}",
         )
         for item in response.get("data", []):
             attributes = item.get("attributes", {})

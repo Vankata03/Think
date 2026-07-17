@@ -95,6 +95,9 @@ class ClientTests(unittest.TestCase):
         self.assertEqual(version, existing)
         self.assertFalse(created)
         self.assertEqual(len(client.requests), 1)
+        request_path = client.requests[0][1]
+        self.assertIn("filter%5BversionString%5D=1.1.1", request_path)
+        self.assertIn("filter%5Bplatform%5D=IOS", request_path)
 
     def test_missing_version_is_created(self) -> None:
         created_version = {
