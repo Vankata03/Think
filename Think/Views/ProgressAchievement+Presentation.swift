@@ -19,7 +19,7 @@ extension ProgressAchievement {
         case .streak(let milestone):
             String(localized: "\(milestone.rawValue) day streak")
         case .path(let target), .focus(let target):
-            "\(localizedCategory): \(target)"
+            String(localized: "\(localizedCategory): \(target)")
         }
     }
 
@@ -32,6 +32,6 @@ extension ProgressAchievement {
     }
 
     var shareMessage: String {
-        "\(localizedLabel) — \(String(localized: "Earned"))"
+        String(localized: "\(localizedLabel) — Earned")
     }
 }

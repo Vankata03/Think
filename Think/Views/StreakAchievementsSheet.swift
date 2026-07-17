@@ -38,15 +38,14 @@ struct StreakAchievementsSheet: View {
             } action: { _, canScroll in
                 self.canScroll = canScroll
             }
-            .simultaneousGesture(
-                DragGesture(minimumDistance: 8)
-                    .onChanged { value in
-                        guard !hasScrolled, abs(value.translation.height) >= 8 else { return }
-                        withAnimation(.easeOut(duration: 0.18)) {
-                            hasScrolled = true
-                        }
-                    }
-            )
+            .onScrollGeometryChange(for: Bool.self) { geometry in
+                geometry.contentOffset.y + geometry.contentInsets.top > 8
+            } action: { _, didScroll in
+                guard didScroll, !hasScrolled else { return }
+                withAnimation(.easeOut(duration: 0.18)) {
+                    hasScrolled = true
+                }
+            }
             .overlay(alignment: .bottom) {
                 if canScroll, !hasScrolled {
                     Label("Scroll for more", systemImage: "chevron.down")
