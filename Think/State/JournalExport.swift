@@ -5,28 +5,26 @@
 
 import Foundation
 
-struct JournalExport: Codable {
-    struct Entry: Codable {
+struct JournalExport {
+    struct Entry {
         let date: Date
         let prompt: String
         let text: String
         let kind: String
     }
 
-    struct Retrospective: Codable {
+    struct Retrospective {
         let date: Date
         let wentWell: String
         let improve: String
         let tomorrow: String
     }
 
-    let formatVersion: Int
     let exportedAt: Date
     let entries: [Entry]
     let retrospectives: [Retrospective]
 
     init(entries: [JournalEntry], retrospectives: [DailyRetro], exportedAt: Date = .now) {
-        formatVersion = 1
         self.exportedAt = exportedAt
         self.entries = entries.map {
             Entry(date: $0.date, prompt: $0.prompt, text: $0.text, kind: $0.kind)
@@ -41,11 +39,24 @@ struct JournalExport: Codable {
         }
     }
 
-    func encoded() throws -> Data {
-        let encoder = JSONEncoder()
-        encoder.dateEncodingStrategy = .iso8601
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        return try encoder.encode(self)
+    func text(
+        locale: Locale = .current,
+        timeZone: TimeZone = .current
+    ) -> String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.locale = locale
+        dateFormatter.timeZone = timeZone
+        dateFormatter.dateStyle = .long
+        dateFormatter.timeStyle = .short
+
+        var sections = [
+            "Think Journal\nExported: \(dateFormatter.string(from: exportedAt))",
+            journalEntriesText(dateFormatter: dateFormatter),
+            retrospectivesText(dateFormatter: dateFormatter),
+        ]
+
+        sections.append("End of export")
+        return sections.joined(separator: "\n\n========================================\n\n") + "\n"
     }
 
     func writeToTemporaryFile(fileManager: FileManager = .default, now: Date = .now) throws -> URL {
@@ -55,9 +66,55 @@ struct JournalExport: Codable {
         formatter.timeZone = TimeZone(secondsFromGMT: 0)
         formatter.dateFormat = "yyyy-MM-dd"
 
-        let filename = "Think-Journal-\(formatter.string(from: now)).json"
+        let filename = "Think-Journal-\(formatter.string(from: now)).txt"
         let url = fileManager.temporaryDirectory.appendingPathComponent(filename)
-        try encoded().write(to: url, options: .atomic)
+        try Data(text().utf8).write(to: url, options: .atomic)
         return url
+    }
+
+    private func journalEntriesText(dateFormatter: DateFormatter) -> String {
+        var blocks = ["JOURNAL ENTRIES"]
+        let sortedEntries = entries.sorted { $0.date > $1.date }
+
+        guard !sortedEntries.isEmpty else {
+            blocks.append("No journal entries.")
+            return blocks.joined(separator: "\n\n")
+        }
+
+        blocks.append(contentsOf: sortedEntries.map { entry in
+            var lines = [dateFormatter.string(from: entry.date)]
+            if entry.kind == JournalEntry.kindQuestion {
+                if !entry.prompt.isEmpty {
+                    lines.append("Prompt: \(entry.prompt)")
+                }
+                lines.append("Response:\n\(entry.text)")
+            } else {
+                lines.append("Note:\n\(entry.text)")
+            }
+            return lines.joined(separator: "\n")
+        })
+
+        return blocks.joined(separator: "\n\n----------------------------------------\n\n")
+    }
+
+    private func retrospectivesText(dateFormatter: DateFormatter) -> String {
+        var blocks = ["EVENING RETROSPECTIVES"]
+        let sortedRetrospectives = retrospectives.sorted { $0.date > $1.date }
+
+        guard !sortedRetrospectives.isEmpty else {
+            blocks.append("No evening retrospectives.")
+            return blocks.joined(separator: "\n\n")
+        }
+
+        blocks.append(contentsOf: sortedRetrospectives.map { retrospective in
+            [
+                dateFormatter.string(from: retrospective.date),
+                "What went well:\n\(retrospective.wentWell)",
+                "What could improve:\n\(retrospective.improve)",
+                "Tomorrow:\n\(retrospective.tomorrow)",
+            ].joined(separator: "\n\n")
+        })
+
+        return blocks.joined(separator: "\n\n----------------------------------------\n\n")
     }
 }

@@ -7822,15 +7822,15 @@
         "pt-BR": { "stringUnit": { "state": "translated", "value": "O Think não conseguiu apagar todos os registros locais. Tente novamente." } }
       }
     },
-    "Think created a readable JSON file containing your journal entries and evening retrospectives. Share or save it somewhere private.": {
+    "Think created a readable text file containing your journal entries and evening retrospectives. Share or save it somewhere private.": {
       "localizations": {
-        "bg": { "stringUnit": { "state": "translated", "value": "Think създаде четим JSON файл с твоите записи в дневника и вечерните ретроспекции. Сподели го или го запази на сигурно място." } },
-        "de": { "stringUnit": { "state": "translated", "value": "Think hat eine lesbare JSON-Datei mit deinen Journaleinträgen und Abend-Retrospektiven erstellt. Teile sie oder speichere sie an einem privaten Ort." } },
-        "en": { "stringUnit": { "state": "translated", "value": "Think created a readable JSON file containing your journal entries and evening retrospectives. Share or save it somewhere private." } },
-        "es": { "stringUnit": { "state": "translated", "value": "Think creó un archivo JSON legible con tus entradas del diario y retrospectivas nocturnas. Compártelo o guárdalo en un lugar privado." } },
-        "fr": { "stringUnit": { "state": "translated", "value": "Think a créé un fichier JSON lisible contenant tes entrées de journal et tes rétrospectives du soir. Partage-le ou conserve-le dans un endroit privé." } },
-        "it": { "stringUnit": { "state": "translated", "value": "Think ha creato un file JSON leggibile con le tue voci di diario e le retrospettive serali. Condividilo o salvalo in un luogo privato." } },
-        "pt-BR": { "stringUnit": { "state": "translated", "value": "O Think criou um arquivo JSON legível com suas entradas do diário e retrospectivas noturnas. Compartilhe-o ou salve-o em um local privado." } }
+        "bg": { "stringUnit": { "state": "translated", "value": "Think създаде четим текстов файл с твоите записи в дневника и вечерните ретроспекции. Сподели го или го запази на сигурно място." } },
+        "de": { "stringUnit": { "state": "translated", "value": "Think hat eine lesbare Textdatei mit deinen Journaleinträgen und Abend-Retrospektiven erstellt. Teile sie oder speichere sie an einem privaten Ort." } },
+        "en": { "stringUnit": { "state": "translated", "value": "Think created a readable text file containing your journal entries and evening retrospectives. Share or save it somewhere private." } },
+        "es": { "stringUnit": { "state": "translated", "value": "Think creó un archivo de texto legible con tus entradas del diario y retrospectivas nocturnas. Compártelo o guárdalo en un lugar privado." } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Think a créé un fichier texte lisible contenant tes entrées de journal et tes rétrospectives du soir. Partage-le ou conserve-le dans un endroit privé." } },
+        "it": { "stringUnit": { "state": "translated", "value": "Think ha creato un file di testo leggibile con le tue voci di diario e le retrospettive serali. Condividilo o salvalo in un luogo privato." } },
+        "pt-BR": { "stringUnit": { "state": "translated", "value": "O Think criou um arquivo de texto legível com suas entradas do diário e retrospectivas noturnas. Compartilhe-o ou salve-o em um local privado." } }
       }
     },
     "Think journal": {

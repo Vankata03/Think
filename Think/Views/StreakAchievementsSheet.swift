@@ -23,11 +23,9 @@ struct StreakAchievementsSheet: View {
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
 
-                    LazyVGrid(columns: columns, spacing: 14) {
-                        ForEach(StreakMilestone.allCases) { milestone in
-                            achievementCell(for: milestone)
-                        }
-                    }
+                    achievementSection("Streak", achievements: ProgressAchievement.streakMilestones)
+                    achievementSection("Paths", achievements: ProgressAchievement.pathMilestones)
+                    achievementSection("Focus sessions", achievements: ProgressAchievement.focusMilestones)
                 }
                 .padding(20)
             }
@@ -47,45 +45,67 @@ struct StreakAchievementsSheet: View {
     }
 
     @ViewBuilder
-    private func achievementCell(for milestone: StreakMilestone) -> some View {
-        if progress.hasEarned(milestone) {
+    private func achievementCell(for achievement: ProgressAchievement) -> some View {
+        let isEarned = progress.hasEarned(achievement)
+        if isEarned, case .streak(let milestone) = achievement {
             Button {
                 haptics.play(.selection)
                 selectedMilestone = milestone
             } label: {
-                badge(for: milestone, isEarned: true)
+                badge(for: achievement, isEarned: true)
             }
             .buttonStyle(.plain)
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel(streakLabel(for: milestone))
+            .accessibilityLabel(label(for: achievement))
             .accessibilityValue("Earned")
             .accessibilityHint("Opens milestone share card")
         } else {
-            badge(for: milestone, isEarned: false)
+            badge(for: achievement, isEarned: isEarned)
                 .accessibilityElement(children: .ignore)
-                .accessibilityLabel(streakLabel(for: milestone))
-                .accessibilityValue("Locked")
-                .accessibilityHint(
-                    String(localized: "Reach a \(milestone.rawValue)-day streak to unlock")
+                .accessibilityLabel(label(for: achievement))
+                .accessibilityValue(
+                    isEarned ? String(localized: "Earned") : String(localized: "Locked")
                 )
+                .accessibilityHint(isEarned ? "" : unlockHint(for: achievement))
         }
     }
 
-    private func badge(for milestone: StreakMilestone, isEarned: Bool) -> some View {
+    private func achievementSection(
+        _ title: LocalizedStringKey,
+        achievements: [ProgressAchievement]
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(title)
+                .font(.headline)
+                .accessibilityAddTraits(.isHeader)
+
+            LazyVGrid(columns: columns, spacing: 14) {
+                ForEach(achievements) { achievement in
+                    achievementCell(for: achievement)
+                }
+            }
+        }
+    }
+
+    private func badge(for achievement: ProgressAchievement, isEarned: Bool) -> some View {
         VStack(spacing: 12) {
             ZStack {
                 Circle()
                     .fill(isEarned ? Color.accentColor.opacity(0.16) : Color(.tertiarySystemFill))
-                Image(systemName: isEarned ? "medal.fill" : "medal")
+                Image(systemName: icon(for: achievement, isEarned: isEarned))
                     .font(.system(size: 42, weight: .semibold))
                     .foregroundStyle(isEarned ? Color.accentColor : Color.secondary.opacity(0.55))
             }
             .frame(width: 82, height: 82)
 
-            Text(milestone.rawValue, format: .number)
+            Text(achievement.target, format: .number)
                 .font(.system(.title2, design: .rounded).weight(.bold))
                 .monospacedDigit()
                 .foregroundStyle(isEarned ? Color.primary : Color.secondary)
+
+            Text(categoryLabel(for: achievement))
+                .font(.caption.weight(.medium))
+                .foregroundStyle(.secondary)
 
             Text(isEarned ? String(localized: "Earned") : String(localized: "Locked"))
                 .font(.caption.weight(.semibold))
@@ -108,8 +128,43 @@ struct StreakAchievementsSheet: View {
         .contentShape(Rectangle())
     }
 
-    private func streakLabel(for milestone: StreakMilestone) -> String {
-        String(localized: "\(milestone.rawValue) day streak")
+    private func label(for achievement: ProgressAchievement) -> String {
+        switch achievement {
+        case .streak(let milestone):
+            String(localized: "\(milestone.rawValue) day streak")
+        case .path(let target):
+            "\(String(localized: "Paths")): \(target)"
+        case .focus(let target):
+            "\(String(localized: "Focus sessions")): \(target)"
+        }
+    }
+
+    private func categoryLabel(for achievement: ProgressAchievement) -> String {
+        switch achievement {
+        case .streak: String(localized: "Streak")
+        case .path: String(localized: "Paths")
+        case .focus: String(localized: "Focus sessions")
+        }
+    }
+
+    private func unlockHint(for achievement: ProgressAchievement) -> String {
+        switch achievement {
+        case .streak(let milestone):
+            String(localized: "Reach a \(milestone.rawValue)-day streak to unlock")
+        case .path, .focus:
+            ""
+        }
+    }
+
+    private func icon(for achievement: ProgressAchievement, isEarned: Bool) -> String {
+        switch achievement {
+        case .streak:
+            isEarned ? "medal.fill" : "medal"
+        case .path:
+            isEarned ? "checkmark.seal.fill" : "point.topleft.down.to.point.bottomright.curvepath"
+        case .focus:
+            "timer"
+        }
     }
 }
 

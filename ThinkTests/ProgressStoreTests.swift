@@ -240,6 +240,70 @@ struct ProgressStoreTests {
         #expect(store.completedTaskToday)
     }
 
+    @Test func completingEveryPathDayEarnsThePathAchievement() {
+        let defaults = makeDefaults()
+        defaults.set(PathLibrary.deepFocus.steps.count, forKey: "pathCompletedDays")
+        let store = ProgressStore(defaults: defaults)
+
+        #expect(store.completedPathCount == 1)
+        #expect(store.hasEarned(.path(1)))
+    }
+
+    @Test func focusAchievementUsesAllTimeCompletedSessionCount() {
+        let defaults = makeDefaults()
+        defaults.set(50, forKey: "totalFocusSessions")
+        let store = ProgressStore(defaults: defaults)
+
+        #expect(store.hasEarned(.focus(1)))
+        #expect(store.hasEarned(.focus(10)))
+        #expect(store.hasEarned(.focus(50)))
+        #expect(!store.hasEarned(.focus(100)))
+    }
+
+    @Test func achievementCatalogIncludesEveryProgressCategory() {
+        #expect(ProgressAchievement.streakMilestones.map(\.target) == [7, 21, 100])
+        #expect(ProgressAchievement.pathMilestones.map(\.target) == [1])
+        #expect(ProgressAchievement.focusMilestones.map(\.target) == [1, 10, 50, 100])
+    }
+
+    @Test func reviewPromptTriggersOnlyWhenSevenDayAchievementIsNewlyEarned() {
+        #expect(
+            SevenDayReviewPromptPolicy.shouldRequest(
+                previouslyEarned: false,
+                isEarned: true,
+                hasRequested: false,
+                isEnabled: true
+            )
+        )
+        #expect(
+            !SevenDayReviewPromptPolicy.shouldRequest(
+                previouslyEarned: true,
+                isEarned: true,
+                hasRequested: false,
+                isEnabled: true
+            )
+        )
+    }
+
+    @Test func reviewPromptDoesNotRepeatOrInterruptUITests() {
+        #expect(
+            !SevenDayReviewPromptPolicy.shouldRequest(
+                previouslyEarned: false,
+                isEarned: true,
+                hasRequested: true,
+                isEnabled: true
+            )
+        )
+        #expect(
+            !SevenDayReviewPromptPolicy.shouldRequest(
+                previouslyEarned: false,
+                isEarned: true,
+                hasRequested: false,
+                isEnabled: false
+            )
+        )
+    }
+
     @Test func completedPathStepTodayOnlyReflectsTodaysCompletion() {
         let defaults = makeDefaults()
         defaults.set(3, forKey: "pathCompletedDays")
