@@ -33,6 +33,7 @@ nonisolated enum ProgressAchievement: Hashable, Identifiable, Sendable {
     static let streakMilestones = StreakMilestone.allCases.map(Self.streak)
     static let pathMilestones = [Self.path(1)]
     static let focusMilestones = [1, 10, 50, 100].map(Self.focus)
+    static let all = streakMilestones + pathMilestones + focusMilestones
 
     var id: String {
         switch self {
@@ -303,6 +304,10 @@ final class ProgressStore {
 
     var completedPathCount: Int {
         pathCompletedDays >= PathLibrary.deepFocus.steps.count ? 1 : 0
+    }
+
+    var earnedAchievements: Set<ProgressAchievement> {
+        Set(ProgressAchievement.all.filter(hasEarned))
     }
 
     func markTodayComplete() {

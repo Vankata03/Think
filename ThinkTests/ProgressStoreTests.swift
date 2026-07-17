@@ -264,6 +264,48 @@ struct ProgressStoreTests {
         #expect(ProgressAchievement.streakMilestones.map(\.target) == [7, 21, 100])
         #expect(ProgressAchievement.pathMilestones.map(\.target) == [1])
         #expect(ProgressAchievement.focusMilestones.map(\.target) == [1, 10, 50, 100])
+        #expect(
+            ProgressAchievement.all == [
+                .streak(.seven), .streak(.twentyOne), .streak(.oneHundred),
+                .path(1),
+                .focus(1), .focus(10), .focus(50), .focus(100),
+            ]
+        )
+    }
+
+    @Test func earnedAchievementsContainsEveryEarnedCategory() {
+        let defaults = makeDefaults()
+        defaults.set([StreakMilestone.seven.rawValue], forKey: "earnedStreakMilestones")
+        defaults.set(PathLibrary.deepFocus.steps.count, forKey: "pathCompletedDays")
+        defaults.set(50, forKey: "totalFocusSessions")
+        let store = ProgressStore(defaults: defaults)
+
+        #expect(
+            store.earnedAchievements == [
+                .streak(.seven),
+                .path(1),
+                .focus(1), .focus(10), .focus(50),
+            ]
+        )
+    }
+
+    @Test func newlyEarnedAchievementsFollowCatalogOrder() {
+        let previous: Set<ProgressAchievement> = [.focus(1)]
+        let current: Set<ProgressAchievement> = [
+            .focus(1), .focus(10), .path(1), .streak(.twentyOne),
+        ]
+
+        #expect(
+            AchievementUnlockPolicy.newlyEarned(previous: previous, current: current) == [
+                .streak(.twentyOne), .path(1), .focus(10),
+            ]
+        )
+    }
+
+    @Test func newlyEarnedAchievementsDoNotReplayEqualSnapshots() {
+        let earned: Set<ProgressAchievement> = [.streak(.seven), .focus(1)]
+
+        #expect(AchievementUnlockPolicy.newlyEarned(previous: earned, current: earned).isEmpty)
     }
 
     @Test func reviewPromptTriggersOnlyWhenSevenDayAchievementIsNewlyEarned() {

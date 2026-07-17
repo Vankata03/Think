@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "2660"
+   LastUpgradeVersion = "2700"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -47,7 +47,6 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "AC0000000000000000000006"
             BuildableName = "ThinkWatchApp.app"
-            BlueprintName = "ThinkWatchApp"
             ReferencedContainer = "container:Think.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -64,7 +63,6 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "AC0000000000000000000006"
             BuildableName = "ThinkWatchApp.app"
-            BlueprintName = "ThinkWatchApp"
             ReferencedContainer = "container:Think.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
