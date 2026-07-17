@@ -9,7 +9,7 @@ struct StreakAchievementsSheet: View {
     @Environment(ProgressStore.self) private var progress
     @Environment(\.dismiss) private var dismiss
     @Environment(\.haptics) private var haptics
-    @State private var selectedMilestone: StreakMilestone?
+    @State private var selectedAchievement: ProgressAchievement?
 
     private let columns = [
         GridItem(.adaptive(minimum: 120), spacing: 14),
@@ -39,30 +39,35 @@ struct StreakAchievementsSheet: View {
             }
         }
         .presentationDetents([.medium, .large])
-        .sheet(item: $selectedMilestone) { milestone in
-            StreakShareSheet(month: .now, milestone: milestone)
+        .sheet(item: $selectedAchievement) { achievement in
+            switch achievement {
+            case .streak(let milestone):
+                StreakShareSheet(month: .now, milestone: milestone)
+            case .path, .focus:
+                AchievementShareSheet(achievement: achievement)
+            }
         }
     }
 
     @ViewBuilder
     private func achievementCell(for achievement: ProgressAchievement) -> some View {
         let isEarned = progress.hasEarned(achievement)
-        if isEarned, case .streak(let milestone) = achievement {
+        if isEarned {
             Button {
                 haptics.play(.selection)
-                selectedMilestone = milestone
+                selectedAchievement = achievement
             } label: {
                 badge(for: achievement, isEarned: true)
             }
             .buttonStyle(.plain)
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel(label(for: achievement))
+            .accessibilityLabel(achievement.localizedLabel)
             .accessibilityValue("Earned")
-            .accessibilityHint("Opens milestone share card")
+            .accessibilityHint("Share")
         } else {
             badge(for: achievement, isEarned: isEarned)
                 .accessibilityElement(children: .ignore)
-                .accessibilityLabel(label(for: achievement))
+                .accessibilityLabel(achievement.localizedLabel)
                 .accessibilityValue(
                     isEarned ? String(localized: "Earned") : String(localized: "Locked")
                 )
@@ -92,7 +97,7 @@ struct StreakAchievementsSheet: View {
             ZStack {
                 Circle()
                     .fill(isEarned ? Color.accentColor.opacity(0.16) : Color(.tertiarySystemFill))
-                Image(systemName: icon(for: achievement, isEarned: isEarned))
+                Image(systemName: isEarned ? achievement.icon : lockedIcon(for: achievement))
                     .font(.system(size: 42, weight: .semibold))
                     .foregroundStyle(isEarned ? Color.accentColor : Color.secondary.opacity(0.55))
             }
@@ -107,9 +112,15 @@ struct StreakAchievementsSheet: View {
                 .font(.caption.weight(.medium))
                 .foregroundStyle(.secondary)
 
-            Text(isEarned ? String(localized: "Earned") : String(localized: "Locked"))
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(isEarned ? Color.accentColor : Color.secondary)
+            HStack(spacing: 6) {
+                Text(isEarned ? String(localized: "Earned") : String(localized: "Locked"))
+                if isEarned {
+                    Image(systemName: "square.and.arrow.up")
+                        .accessibilityHidden(true)
+                }
+            }
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(isEarned ? Color.accentColor : Color.secondary)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 18)
@@ -128,23 +139,8 @@ struct StreakAchievementsSheet: View {
         .contentShape(Rectangle())
     }
 
-    private func label(for achievement: ProgressAchievement) -> String {
-        switch achievement {
-        case .streak(let milestone):
-            String(localized: "\(milestone.rawValue) day streak")
-        case .path(let target):
-            "\(String(localized: "Paths")): \(target)"
-        case .focus(let target):
-            "\(String(localized: "Focus sessions")): \(target)"
-        }
-    }
-
     private func categoryLabel(for achievement: ProgressAchievement) -> String {
-        switch achievement {
-        case .streak: String(localized: "Streak")
-        case .path: String(localized: "Paths")
-        case .focus: String(localized: "Focus sessions")
-        }
+        achievement.localizedCategory
     }
 
     private func unlockHint(for achievement: ProgressAchievement) -> String {
@@ -156,12 +152,12 @@ struct StreakAchievementsSheet: View {
         }
     }
 
-    private func icon(for achievement: ProgressAchievement, isEarned: Bool) -> String {
+    private func lockedIcon(for achievement: ProgressAchievement) -> String {
         switch achievement {
         case .streak:
-            isEarned ? "medal.fill" : "medal"
+            "medal"
         case .path:
-            isEarned ? "checkmark.seal.fill" : "point.topleft.down.to.point.bottomright.curvepath"
+            "point.topleft.down.to.point.bottomright.curvepath"
         case .focus:
             "timer"
         }

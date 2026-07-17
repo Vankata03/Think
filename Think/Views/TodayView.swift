@@ -9,6 +9,7 @@ import SwiftData
 
 struct TodayView: View {
     @Environment(ProgressStore.self) private var progress
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.haptics) private var haptics
     @Environment(\.scenePhase) private var scenePhase
@@ -54,6 +55,7 @@ struct TodayView: View {
                     questionCard
                     if showsRetroCard {
                         retroCard
+                            .transition(ThinkMotion.stateTransition(reduceMotion: reduceMotion))
                     }
                     sectionHeader("Training log", detail: "today")
                     statsRow
@@ -63,6 +65,10 @@ struct TodayView: View {
                 .padding(.bottom, 110)
                 .opacity(appeared ? 1 : 0)
                 .offset(y: appeared ? 0 : 16)
+                .animation(
+                    ThinkMotion.stateAnimation(reduceMotion: reduceMotion),
+                    value: showsRetroCard
+                )
             }
             .navigationTitle("Today")
             .navigationBarTitleDisplayMode(.inline)
@@ -245,8 +251,10 @@ struct TodayView: View {
 
             if let entry = todaysEntry {
                 answeredState(entry)
+                    .transition(ThinkMotion.stateTransition(reduceMotion: reduceMotion))
             } else {
                 answerEditor
+                    .transition(ThinkMotion.stateTransition(reduceMotion: reduceMotion))
             }
         }
         .padding(18)
@@ -255,8 +263,12 @@ struct TodayView: View {
             RoundedRectangle(cornerRadius: 22, style: .continuous)
                 .stroke(.separator.opacity(0.6), lineWidth: 1)
         }
-        .scaleEffect(savedPulse ? 1.015 : 1)
+        .scaleEffect(reduceMotion ? 1 : (savedPulse ? 1.015 : 1))
         .animation(.spring(response: 0.28, dampingFraction: 0.8), value: savedPulse)
+        .animation(
+            ThinkMotion.stateAnimation(reduceMotion: reduceMotion),
+            value: todaysEntry != nil
+        )
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("QuestionOfTheDayCard")
     }

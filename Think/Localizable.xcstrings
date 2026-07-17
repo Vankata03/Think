@@ -7855,6 +7855,17 @@
         "pt-BR": { "stringUnit": { "state": "translated", "value": "Isso remove deste dispositivo as entradas do diário, retrospectivas, sequências, conquistas e o histórico de sessões de foco. Os minutos de atenção plena já salvos no app Saúde permanecem lá e podem ser apagados pelo app. Essa ação não pode ser desfeita." } }
       }
     },
+    "Achievement unlocked": {
+      "localizations": {
+        "bg": { "stringUnit": { "state": "translated", "value": "Постижението е отключено" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Erfolg freigeschaltet" } },
+        "en": { "stringUnit": { "state": "translated", "value": "Achievement unlocked" } },
+        "es": { "stringUnit": { "state": "translated", "value": "Logro desbloqueado" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Réussite débloquée" } },
+        "it": { "stringUnit": { "state": "translated", "value": "Traguardo sbloccato" } },
+        "pt-BR": { "stringUnit": { "state": "translated", "value": "Conquista desbloqueada" } }
+      }
+    },
     "Achievements": {
       "localizations": {
         "bg": { "stringUnit": { "state": "translated", "value": "Постижения" } },
