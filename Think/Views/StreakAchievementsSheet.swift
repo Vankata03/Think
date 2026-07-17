@@ -9,7 +9,11 @@ struct StreakAchievementsSheet: View {
     @Environment(ProgressStore.self) private var progress
     @Environment(\.dismiss) private var dismiss
     @Environment(\.haptics) private var haptics
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var selectedAchievement: ProgressAchievement?
+    @State private var canScroll = false
+    @State private var hasScrolled = false
+    @State private var scrollHintOffset: CGFloat = 0
 
     private let columns = [
         GridItem(.adaptive(minimum: 120), spacing: 14),
@@ -28,6 +32,50 @@ struct StreakAchievementsSheet: View {
                     achievementSection("Focus sessions", achievements: ProgressAchievement.focusMilestones)
                 }
                 .padding(20)
+            }
+            .onScrollGeometryChange(for: Bool.self) { geometry in
+                geometry.contentSize.height > geometry.containerSize.height + 1
+            } action: { _, canScroll in
+                self.canScroll = canScroll
+            }
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 8)
+                    .onChanged { value in
+                        guard !hasScrolled, abs(value.translation.height) >= 8 else { return }
+                        withAnimation(.easeOut(duration: 0.18)) {
+                            hasScrolled = true
+                        }
+                    }
+            )
+            .overlay(alignment: .bottom) {
+                if canScroll, !hasScrolled {
+                    Label("Scroll for more", systemImage: "chevron.down")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 9)
+                        .background(.regularMaterial, in: Capsule())
+                        .shadow(color: .black.opacity(0.08), radius: 8, y: 3)
+                        .offset(y: scrollHintOffset)
+                        .padding(.bottom, 10)
+                        .allowsHitTesting(false)
+                        .transition(
+                            reduceMotion
+                                ? .opacity
+                                : .opacity.combined(with: .move(edge: .bottom))
+                        )
+                        .task {
+                            guard !reduceMotion else { return }
+                            do {
+                                try await Task.sleep(for: .milliseconds(350))
+                            } catch {
+                                return
+                            }
+                            withAnimation(.easeInOut(duration: 0.55).repeatCount(2, autoreverses: true)) {
+                                scrollHintOffset = 5
+                            }
+                        }
+                }
             }
             .background(Color(.systemGroupedBackground).ignoresSafeArea())
             .navigationTitle("Achievements")

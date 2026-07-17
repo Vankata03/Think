@@ -1,67 +1,66 @@
 {
-  "sourceLanguage": "en",
-  "strings": {
-    "Check my streak in ${applicationName}": {
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "en": {
-          "stringSet": {
-            "state": "translated",
-            "values": [
-              "Check my streak in ${applicationName}",
-              "What's my streak in ${applicationName}"
-            ]
-          }
-        },
-        "bg": {
-          "stringSet": {
-            "state": "translated",
-            "values": [
+  "sourceLanguage" : "en",
+  "strings" : {
+    "Check my streak in ${applicationName}" : {
+      "localizations" : {
+        "bg" : {
+          "stringSet" : {
+            "state" : "translated",
+            "values" : [
               "Провери серията ми в ${applicationName}",
               "Каква е серията ми в ${applicationName}"
             ]
           }
         },
-        "de": {
-          "stringSet": {
-            "state": "translated",
-            "values": [
+        "de" : {
+          "stringSet" : {
+            "state" : "translated",
+            "values" : [
               "Prüfe meine Serie in ${applicationName}",
               "Wie ist meine Serie in ${applicationName}"
             ]
           }
         },
-        "es": {
-          "stringSet": {
-            "state": "translated",
-            "values": [
+        "en" : {
+          "stringSet" : {
+            "state" : "translated",
+            "values" : [
+              "Check my streak in ${applicationName}",
+              "What's my streak in ${applicationName}"
+            ]
+          }
+        },
+        "es" : {
+          "stringSet" : {
+            "state" : "translated",
+            "values" : [
               "Consulta mi racha en ${applicationName}",
               "Cuál es mi racha en ${applicationName}"
             ]
           }
         },
-        "fr": {
-          "stringSet": {
-            "state": "translated",
-            "values": [
+        "fr" : {
+          "stringSet" : {
+            "state" : "translated",
+            "values" : [
               "Vérifie ma série dans ${applicationName}",
               "Quelle est ma série dans ${applicationName}"
             ]
           }
         },
-        "it": {
-          "stringSet": {
-            "state": "translated",
-            "values": [
+        "it" : {
+          "stringSet" : {
+            "state" : "translated",
+            "values" : [
               "Controlla la mia serie in ${applicationName}",
               "Qual è la mia serie in ${applicationName}"
             ]
           }
         },
-        "pt-BR": {
-          "stringSet": {
-            "state": "translated",
-            "values": [
+        "pt-BR" : {
+          "stringSet" : {
+            "state" : "translated",
+            "values" : [
               "Verifique minha sequência no ${applicationName}",
               "Qual é minha sequência no ${applicationName}"
             ]
@@ -69,67 +68,66 @@
         }
       }
     },
-    "Show today's line in ${applicationName}": {
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "en": {
-          "stringSet": {
-            "state": "translated",
-            "values": [
-              "Show today's line in ${applicationName}",
-              "Show the daily line in ${applicationName}"
-            ]
-          }
-        },
-        "bg": {
-          "stringSet": {
-            "state": "translated",
-            "values": [
+    "Show today's line in ${applicationName}" : {
+      "localizations" : {
+        "bg" : {
+          "stringSet" : {
+            "state" : "translated",
+            "values" : [
               "Покажи днешната мисъл в ${applicationName}",
               "Покажи дневната мисъл в ${applicationName}"
             ]
           }
         },
-        "de": {
-          "stringSet": {
-            "state": "translated",
-            "values": [
+        "de" : {
+          "stringSet" : {
+            "state" : "translated",
+            "values" : [
               "Zeige die heutige Zeile in ${applicationName}",
               "Zeige die Tageszeile in ${applicationName}"
             ]
           }
         },
-        "es": {
-          "stringSet": {
-            "state": "translated",
-            "values": [
+        "en" : {
+          "stringSet" : {
+            "state" : "translated",
+            "values" : [
+              "Show today's line in ${applicationName}",
+              "Show the daily line in ${applicationName}"
+            ]
+          }
+        },
+        "es" : {
+          "stringSet" : {
+            "state" : "translated",
+            "values" : [
               "Muestra la frase de hoy en ${applicationName}",
               "Muestra la frase del día en ${applicationName}"
             ]
           }
         },
-        "fr": {
-          "stringSet": {
-            "state": "translated",
-            "values": [
+        "fr" : {
+          "stringSet" : {
+            "state" : "translated",
+            "values" : [
               "Affiche la citation du jour dans ${applicationName}",
               "Montre-moi la citation du jour dans ${applicationName}"
             ]
           }
         },
-        "it": {
-          "stringSet": {
-            "state": "translated",
-            "values": [
+        "it" : {
+          "stringSet" : {
+            "state" : "translated",
+            "values" : [
               "Mostra la frase di oggi in ${applicationName}",
               "Mostra la frase del giorno in ${applicationName}"
             ]
           }
         },
-        "pt-BR": {
-          "stringSet": {
-            "state": "translated",
-            "values": [
+        "pt-BR" : {
+          "stringSet" : {
+            "state" : "translated",
+            "values" : [
               "Mostre a frase de hoje no ${applicationName}",
               "Mostre a frase do dia no ${applicationName}"
             ]
@@ -137,67 +135,66 @@
         }
       }
     },
-    "Start focus in ${applicationName}": {
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "en": {
-          "stringSet": {
-            "state": "translated",
-            "values": [
-              "Start focus in ${applicationName}",
-              "Start a focus session with ${applicationName}"
-            ]
-          }
-        },
-        "bg": {
-          "stringSet": {
-            "state": "translated",
-            "values": [
+    "Start focus in ${applicationName}" : {
+      "localizations" : {
+        "bg" : {
+          "stringSet" : {
+            "state" : "translated",
+            "values" : [
               "Започни фокус в ${applicationName}",
               "Започни фокус сесия с ${applicationName}"
             ]
           }
         },
-        "de": {
-          "stringSet": {
-            "state": "translated",
-            "values": [
+        "de" : {
+          "stringSet" : {
+            "state" : "translated",
+            "values" : [
               "Starte Fokus in ${applicationName}",
               "Starte eine Fokus-Sitzung mit ${applicationName}"
             ]
           }
         },
-        "es": {
-          "stringSet": {
-            "state": "translated",
-            "values": [
+        "en" : {
+          "stringSet" : {
+            "state" : "translated",
+            "values" : [
+              "Start focus in ${applicationName}",
+              "Start a focus session with ${applicationName}"
+            ]
+          }
+        },
+        "es" : {
+          "stringSet" : {
+            "state" : "translated",
+            "values" : [
               "Inicia concentración en ${applicationName}",
               "Inicia una sesión de concentración con ${applicationName}"
             ]
           }
         },
-        "fr": {
-          "stringSet": {
-            "state": "translated",
-            "values": [
+        "fr" : {
+          "stringSet" : {
+            "state" : "translated",
+            "values" : [
               "Démarre la concentration dans ${applicationName}",
               "Démarre une session de concentration avec ${applicationName}"
             ]
           }
         },
-        "it": {
-          "stringSet": {
-            "state": "translated",
-            "values": [
+        "it" : {
+          "stringSet" : {
+            "state" : "translated",
+            "values" : [
               "Avvia focus in ${applicationName}",
               "Avvia una sessione di concentrazione con ${applicationName}"
             ]
           }
         },
-        "pt-BR": {
-          "stringSet": {
-            "state": "translated",
-            "values": [
+        "pt-BR" : {
+          "stringSet" : {
+            "state" : "translated",
+            "values" : [
               "Inicie o foco no ${applicationName}",
               "Inicie uma sessão de foco com o ${applicationName}"
             ]
@@ -206,5 +203,5 @@
       }
     }
   },
-  "version": "1.0"
+  "version" : "1.0"
 }
