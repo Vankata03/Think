@@ -26,7 +26,7 @@ struct JournalExportSheet: View {
                 Text("Your journal export is ready.")
                     .font(.title2.bold())
 
-                Text("Think created a readable JSON file containing your journal entries and evening retrospectives. Share or save it somewhere private.")
+                Text("Think created a readable text file containing your journal entries and evening retrospectives. Share or save it somewhere private.")
                     .font(.body)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -62,5 +62,5 @@ struct JournalExportSheet: View {
 }
 
 #Preview {
-    JournalExportSheet(fileURL: FileManager.default.temporaryDirectory.appendingPathComponent("Think-Journal.json"))
+    JournalExportSheet(fileURL: FileManager.default.temporaryDirectory.appendingPathComponent("Think-Journal.txt"))
 }

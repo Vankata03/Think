@@ -25,6 +25,31 @@ nonisolated enum StreakMilestone: Int, CaseIterable, Identifiable, Sendable {
     var id: Int { rawValue }
 }
 
+nonisolated enum ProgressAchievement: Hashable, Identifiable, Sendable {
+    case streak(StreakMilestone)
+    case path(Int)
+    case focus(Int)
+
+    static let streakMilestones = StreakMilestone.allCases.map(Self.streak)
+    static let pathMilestones = [Self.path(1)]
+    static let focusMilestones = [1, 10, 50, 100].map(Self.focus)
+
+    var id: String {
+        switch self {
+        case .streak(let milestone): "streak-\(milestone.rawValue)"
+        case .path(let target): "path-\(target)"
+        case .focus(let target): "focus-\(target)"
+        }
+    }
+
+    var target: Int {
+        switch self {
+        case .streak(let milestone): milestone.rawValue
+        case .path(let target), .focus(let target): target
+        }
+    }
+}
+
 enum ProgressMutation: Sendable {
     case markTodayComplete
     case recordAppOpen
@@ -276,6 +301,10 @@ final class ProgressStore {
         return !calendar.isDateInToday(lastPathCompletionDay)
     }
 
+    var completedPathCount: Int {
+        pathCompletedDays >= PathLibrary.deepFocus.steps.count ? 1 : 0
+    }
+
     func markTodayComplete() {
         guard completeDay(at: .now) else { return }
         emit(.markTodayComplete)
@@ -283,6 +312,17 @@ final class ProgressStore {
 
     func hasEarned(_ milestone: StreakMilestone) -> Bool {
         earnedStreakMilestones.contains(milestone)
+    }
+
+    func hasEarned(_ achievement: ProgressAchievement) -> Bool {
+        switch achievement {
+        case .streak(let milestone):
+            hasEarned(milestone)
+        case .path:
+            completedPathCount >= achievement.target
+        case .focus:
+            totalFocusSessions >= achievement.target
+        }
     }
 
     func hasCompleted(_ date: Date) -> Bool {

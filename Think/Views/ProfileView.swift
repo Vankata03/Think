@@ -46,7 +46,6 @@ struct ProfileView: View {
     @Environment(\.haptics) private var haptics
     @Environment(\.openURL) private var openURL
     @Environment(\.scenePhase) private var scenePhase
-    @Environment(\.requestReview) private var requestReview
     @AppStorage(Appearance.storageKey) private var appearance = Appearance.dark
     @AppStorage(DailyQuoteNotifier.enabledKey) private var dailyLineEnabled = false
     @AppStorage(DailyQuoteNotifier.minutesKey) private var dailyLineMinutes = DailyQuoteNotifier.defaultMinutes
@@ -427,7 +426,8 @@ struct ProfileView: View {
                 }
                 Divider()
                 feedbackButton("Rate Think", systemImage: "star") {
-                    requestReview()
+                    haptics.play(.selection)
+                    Task { await AppReviewRequester.request() }
                 }
                 Divider()
                 feedbackButton("Help & Support", systemImage: "questionmark.circle") {
