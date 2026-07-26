@@ -7,11 +7,18 @@ import SwiftUI
 import SwiftData
 import AppIntents
 
-private enum FocusSheet: String, Identifiable {
+private enum FocusSheet: Identifiable {
     case focusTip
     case sessionDuration
+    case focusNote(PomodoroTimer.FocusNotePrompt)
 
-    var id: String { rawValue }
+    var id: String {
+        switch self {
+        case .focusTip: "focusTip"
+        case .sessionDuration: "sessionDuration"
+        case .focusNote(let prompt): "focusNote.\(prompt.id)"
+        }
+    }
 }
 
 struct FocusView: View {
@@ -24,6 +31,7 @@ struct FocusView: View {
     @State private var presentedSheet: FocusSheet?
     @State private var appeared = false
     @State private var intentionDraft = ""
+    @FocusState private var intentionFocused: Bool
 
     private var sessionQuote: Quote { ContentLibrary.dailyQuote() }
     private var prominentButtonForeground: Color {
@@ -80,25 +88,38 @@ struct FocusView: View {
                 }
             }
             .background(Color(.systemGroupedBackground).ignoresSafeArea())
-            .sheet(item: $presentedSheet) { sheet in
+            // One presentation channel for all three sheets: two `.sheet`
+            // modifiers on the same view can race, and a work phase can
+            // finish while the duration sheet is open.
+            .sheet(item: $presentedSheet, onDismiss: clearPendingFocusNote) { sheet in
                 switch sheet {
                 case .focusTip:
                     FocusTipSheet()
                 case .sessionDuration:
                     FocusDurationSheet(timer: timer)
-                }
-            }
-            .sheet(item: pendingFocusNote) { prompt in
-                FocusNoteSheet(prompt: prompt) { note in
-                    saveFocusNote(prompt: prompt, note: note)
+                case .focusNote(let prompt):
+                    FocusNoteSheet(prompt: prompt) { note in
+                        saveFocusNote(prompt: prompt, note: note)
+                    }
                 }
             }
             .onAppear {
                 timer.resync()
                 timer.discardStalePendingFocusNote()
+                offerPendingFocusNote()
                 intentionDraft = timer.intention ?? ""
                 withAnimation(.easeOut(duration: 0.45)) {
                     appeared = true
+                }
+            }
+            .onChange(of: timer.pendingFocusNote) { _, _ in
+                offerPendingFocusNote()
+            }
+            .onChange(of: intentionFocused) { _, focused in
+                // Leaving the field is a commit; the keyboard going away
+                // must not lose what was typed.
+                if !focused {
+                    commitIntention()
                 }
             }
             .onChange(of: timer.intention) { _, intention in
@@ -113,6 +134,7 @@ struct FocusView: View {
                 if newPhase == .active {
                     timer.resync()
                     timer.discardStalePendingFocusNote()
+                    offerPendingFocusNote()
                 }
             }
             .onChange(of: timer.automaticTransitionCount) {
@@ -212,6 +234,8 @@ struct FocusView: View {
                 TextField(String(localized: "What are you working on?"), text: intentionBinding)
                     .font(.subheadline)
                     .submitLabel(.done)
+                    .focused($intentionFocused)
+                    .onSubmit { commitIntention() }
                     .accessibilityIdentifier("FocusIntention")
                 if !intentionDraft.isEmpty {
                     Button {
@@ -253,29 +277,41 @@ struct FocusView: View {
         }
     }
 
+    /// Typing only moves the draft. The timer — which persists and pushes
+    /// a Live Activity update — is written on submit, on focus loss, and
+    /// when a session starts, not once per keystroke.
     private var intentionBinding: Binding<String> {
         Binding(
             get: { intentionDraft },
-            set: { setIntention($0) }
+            set: { text in
+                // Capped here rather than rejected on save, so the limit is
+                // felt as the field simply stopping.
+                intentionDraft = String(text.prefix(PomodoroTimer.intentionMaxLength))
+            }
         )
     }
 
+    /// For the clear button and the reuse suggestion, where the tap is the
+    /// whole gesture and there is no later submit to wait for.
     private func setIntention(_ text: String) {
-        // Capped here rather than rejected on save, so the limit is felt
-        // as the field simply stopping.
         intentionDraft = String(text.prefix(PomodoroTimer.intentionMaxLength))
+        commitIntention()
+    }
+
+    private func commitIntention() {
+        guard timer.intention != PomodoroTimer.normalizedIntention(intentionDraft) else { return }
         timer.setIntention(intentionDraft)
     }
 
-    private var pendingFocusNote: Binding<PomodoroTimer.FocusNotePrompt?> {
-        Binding(
-            get: { timer.pendingFocusNote },
-            set: { prompt in
-                if prompt == nil {
-                    timer.clearPendingFocusNote()
-                }
-            }
-        )
+    private func offerPendingFocusNote() {
+        guard let prompt = timer.pendingFocusNote else { return }
+        presentedSheet = .focusNote(prompt)
+    }
+
+    /// Any dismissal of the note sheet — Save, Skip, or a swipe — retires
+    /// the prompt. Harmless for the other two sheets, which never set one.
+    private func clearPendingFocusNote() {
+        timer.clearPendingFocusNote()
     }
 
     /// The finished session already credited the day through
@@ -312,6 +348,9 @@ struct FocusView: View {
             .accessibilityLabel("Reset timer")
 
             Button {
+                // Start can be tapped with the keyboard still up, so the
+                // draft has to reach the timer before the session begins.
+                commitIntention()
                 let isManualStart = !timer.isRunning
                 let isManualWorkStart = isManualStart && timer.phase == .work
                 let donatedPreset = FocusSessionPreset(timer.preset)

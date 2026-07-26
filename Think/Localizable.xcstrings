@@ -5355,46 +5355,6 @@
         }
       }
     },
-    "Off — turn on iCloud Drive for Think in Settings" : {
-      "localizations" : {
-        "bg" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Изключено — включи iCloud Drive за Think в Настройки"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aus – aktiviere iCloud Drive für Think in den Einstellungen"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Desactivado: activa iCloud Drive para Think en Ajustes"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Désactivé — active iCloud Drive pour Think dans Réglages"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Non attivo — attiva iCloud Drive per Think in Impostazioni"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Desativado — ative o iCloud Drive para o Think em Ajustes"
-          }
-        }
-      }
-    },
     "OK" : {
       "localizations" : {
         "bg" : {
@@ -10758,6 +10718,46 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Remover"
+          }
+        }
+      }
+    },
+    "Off — Think cannot reach iCloud. Check iCloud in Settings." : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Изключено — Think не може да достигне iCloud. Провери iCloud в Настройки."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aus — Think erreicht iCloud nicht. Prüfe iCloud in den Einstellungen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desactivado — Think no puede conectar con iCloud. Revisa iCloud en Ajustes."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Désactivé — Think n'arrive pas à joindre iCloud. Vérifie iCloud dans Réglages."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disattivato — Think non riesce a raggiungere iCloud. Controlla iCloud in Impostazioni."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desativado — o Think não consegue acessar o iCloud. Verifique o iCloud nos Ajustes."
           }
         }
       }

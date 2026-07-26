@@ -162,7 +162,12 @@ extension CloudBackupState.Status {
         case .syncFailed:
             String(localized: "iCloud reported an error during the last backup")
         case .unavailable:
-            String(localized: "Off — turn on iCloud Drive for Think in Settings")
+            // Covers a store that opened without CloudKit and an account
+            // lookup that failed or came back temporarily unavailable.
+            // None of those is the iCloud Drive switch, so the copy points
+            // at iCloud in Settings without promising which control fixes
+            // it.
+            String(localized: "Off — Think cannot reach iCloud. Check iCloud in Settings.")
         case .signedOut:
             String(localized: "Signed out of iCloud")
         case .restricted:
