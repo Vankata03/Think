@@ -43,6 +43,7 @@ struct ProfileView: View {
     @Environment(ProgressStore.self) private var progress
     @Environment(MindfulMinutesStore.self) private var mindfulMinutes
     @Environment(CloudBackupState.self) private var cloudBackup
+    @Environment(JournalLock.self) private var journalLock
     @Environment(\.modelContext) private var modelContext
     @Environment(\.haptics) private var haptics
     @Environment(\.openURL) private var openURL
@@ -68,6 +69,16 @@ struct ProfileView: View {
 
     private var retroReminderTime: Binding<Date> {
         $retroReminderMinutes.timeOfDay
+    }
+
+    private var journalLockEnabled: Binding<Bool> {
+        Binding(
+            get: { journalLock.isEnabled },
+            set: { enabled in
+                haptics.play(.selection)
+                journalLock.setEnabled(enabled)
+            }
+        )
     }
 
     private var mindfulMinutesEnabled: Binding<Bool> {
@@ -121,11 +132,13 @@ struct ProfileView: View {
             .task {
                 refreshNotificationAuthorization()
                 mindfulMinutes.refreshAuthorization()
+                journalLock.refreshAvailability()
             }
             .onChange(of: scenePhase) { _, phase in
                 guard phase == .active else { return }
                 refreshNotificationAuthorization()
                 mindfulMinutes.refreshAuthorization()
+                journalLock.refreshAvailability()
             }
             .sheet(item: $exportItem, onDismiss: removeTemporaryExport) { item in
                 JournalExportSheet(fileURL: item.url)
@@ -404,6 +417,23 @@ struct ProfileView: View {
                         .fixedSize(horizontal: false, vertical: true)
                         .padding(.top, 10)
                 }
+
+                Divider()
+                    .padding(.top, 10)
+
+                Toggle(isOn: journalLockEnabled) {
+                    settingsLabel("Lock journal", systemImage: "lock")
+                }
+                .toggleStyle(AdaptiveSwitchToggleStyle())
+                .disabled(!journalLock.availability.canEnable)
+                .padding(.top, 10)
+                .accessibilityIdentifier("LockJournal")
+
+                Text(journalLock.availability.settingSubtitle)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, 10)
             }
             .padding(18)
             .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
@@ -553,7 +583,19 @@ struct ProfileView: View {
         }
     }
 
+    /// Export copies every entry into a file that leaves the app, so it
+    /// authenticates on its own even inside an already-unlocked session.
     private func exportJournal() {
+        Task { @MainActor in
+            guard await journalLock.authenticateForExport() else {
+                haptics.play(.warning)
+                return
+            }
+            writeJournalExport()
+        }
+    }
+
+    private func writeJournalExport() {
         do {
             let export = JournalExport(entries: journalEntries, retrospectives: retrospectives)
             exportItem = ExportItem(url: try export.writeToTemporaryFile())
@@ -688,5 +730,6 @@ private struct AdaptiveSwitchToggleStyle: ToggleStyle {
         .environment(ProgressStore())
         .environment(MindfulMinutesStore(client: UnavailableMindfulHealthClient()))
         .environment(CloudBackupState(storage: .inMemory))
+        .environment(JournalLock(authenticator: UnavailableJournalAuthenticator()))
         .modelContainer(for: [JournalEntry.self, DailyRetro.self], inMemory: true)
 }

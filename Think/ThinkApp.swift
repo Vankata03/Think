@@ -32,6 +32,7 @@ struct ThinkApp: App {
     @State private var syncCoordinator: SyncCoordinator
     @State private var mindfulMinutes: MindfulMinutesStore
     @State private var cloudBackup: CloudBackupState
+    @State private var journalLock: JournalLock
     @AppStorage(Appearance.storageKey) private var appearance = Appearance.dark
     @AppStorage(Onboarding.completedKey) private var completedOnboarding = false
     private let isUITesting: Bool
@@ -44,6 +45,15 @@ struct ThinkApp: App {
         let journalStore = Self.makeJournalStore(isUITesting: isUITesting)
         journalContainer = journalStore.container
         _cloudBackup = State(initialValue: CloudBackupState(storage: journalStore.storage))
+        // UI tests must never reach LocalAuthentication: a system
+        // authentication sheet is outside the app's element tree.
+        _journalLock = State(
+            initialValue: JournalLock(
+                authenticator: isUITesting
+                    ? UnavailableJournalAuthenticator()
+                    : DeviceOwnerJournalAuthenticator()
+            )
+        )
         let appGroupDefaults = SharedDefaults.appGroup()
         if isUITesting, let bundleIdentifier = Bundle.main.bundleIdentifier {
             UserDefaults.standard.removePersistentDomain(forName: bundleIdentifier)
@@ -177,6 +187,7 @@ struct ThinkApp: App {
             .environment(AppIntentRouter.shared)
             .environment(mindfulMinutes)
             .environment(cloudBackup)
+            .environment(journalLock)
             .environment(\.haptics, .live)
             .task {
                 cloudBackup.startObservingMirroringEvents()
@@ -196,6 +207,9 @@ struct ThinkApp: App {
         }
         .modelContainer(journalContainer)
         .onChange(of: scenePhase) { _, phase in
+            // Owned by the app, not by JournalView: the lock has to keep
+            // its grace period while the journal is off screen.
+            journalLock.scenePhaseChanged(to: phase)
             if phase == .active {
                 timer.resync()
                 progress.recordAppOpen()

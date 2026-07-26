@@ -49,6 +49,53 @@
         }
       }
     },
+    "NSFaceIDUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "bg": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think използва Face ID, за да пази дневника ти личен."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think uses Face ID to keep your journal private."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think verwendet Face ID, um dein Journal privat zu halten."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think usa Face ID para mantener tu diario en privado."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think utilise Face ID pour garder ton journal privé."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Think usa il Face ID per mantenere privato il tuo diario."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Think usa o Face ID para manter seu diário privado."
+          }
+        }
+      }
+    },
     "NSHealthShareUsageDescription": {
       "extractionState": "manual",
       "localizations": {

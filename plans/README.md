@@ -18,8 +18,8 @@ Feature wave after the 1.1 platform release. No paywall or Pro gating in this ba
 
 | # | Plan | Severity | Status | Depends on |
 |---|---|---|---|---|
-| 006 | Back the journal up to the user's iCloud | HIGH | IN PROGRESS | — |
-| 007 | Lock the journal behind Face ID or the device passcode | MEDIUM | TODO | — |
+| 006 | Back the journal up to the user's iCloud | HIGH | DONE | — |
+| 007 | Lock the journal behind Face ID or the device passcode | MEDIUM | DONE | — |
 | 008 | Give each focus session an intention and a closing note | MEDIUM | TODO | — |
 | 009 | Let people keep the lines that land | MEDIUM | TODO | — |
 | 010 | Tag entries with a mood | LOW | DONE | 006 |

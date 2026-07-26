@@ -23,12 +23,15 @@ struct JournalView: View {
         }
     }
 
+    @Environment(JournalLock.self) private var lock
+
     @Query(sort: \JournalEntry.date, order: .reverse) private var entries: [JournalEntry]
     @Query(sort: \DailyRetro.date, order: .reverse) private var retros: [DailyRetro]
 
     @State private var section = Section.notes
     @State private var composingNote = false
     @State private var composingRetro = false
+    @State private var authenticating = false
 
     private var filtered: [JournalEntry] {
         let kind = section == .notes ? JournalEntry.kindNote : JournalEntry.kindQuestion
@@ -36,6 +39,56 @@ struct JournalView: View {
     }
 
     var body: some View {
+        Group {
+            if lock.isLocked {
+                lockGate
+            } else {
+                entryList
+            }
+        }
+        .navigationTitle("Journal")
+        .accessibilityIdentifier("JournalView")
+        .task {
+            // Ask straight away: the gate's Unlock button is the retry
+            // path, not the first step.
+            await unlock()
+        }
+    }
+
+    /// Deliberately holds no entry text — not even a count — so nothing
+    /// private renders behind a failed authentication or in the app
+    /// switcher snapshot.
+    private var lockGate: some View {
+        VStack(spacing: 14) {
+            Image(systemName: "lock.fill")
+                .font(.system(size: 44))
+                .foregroundStyle(Color.accentColor)
+            Text("Your journal is locked")
+                .font(.headline)
+            Text("Unlock to read your notes, answers, and retrospectives.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+            Button {
+                Task { await unlock() }
+            } label: {
+                Text("Unlock")
+                    .font(.subheadline.weight(.semibold))
+                    .padding(.horizontal, 22)
+                    .padding(.vertical, 10)
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(authenticating)
+            .accessibilityIdentifier("UnlockJournal")
+        }
+        .padding(28)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(.systemGroupedBackground).ignoresSafeArea())
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("JournalLocked")
+    }
+
+    private var entryList: some View {
         List {
             SwiftUI.Section {
                 Picker("Entries", selection: $section) {
@@ -71,8 +124,6 @@ struct JournalView: View {
                 }
             }
         }
-        .navigationTitle("Journal")
-        .accessibilityIdentifier("JournalView")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
@@ -96,6 +147,13 @@ struct JournalView: View {
         .sheet(isPresented: $composingRetro) {
             RetroSheet()
         }
+    }
+
+    private func unlock() async {
+        guard lock.isLocked, !authenticating else { return }
+        authenticating = true
+        await lock.authenticate()
+        authenticating = false
     }
 
     private func entryRow(_ entry: JournalEntry) -> some View {
@@ -234,5 +292,6 @@ private struct NewNoteSheet: View {
         JournalView()
     }
     .environment(ProgressStore())
+    .environment(JournalLock(authenticator: UnavailableJournalAuthenticator()))
     .modelContainer(for: [JournalEntry.self, DailyRetro.self], inMemory: true)
 }
