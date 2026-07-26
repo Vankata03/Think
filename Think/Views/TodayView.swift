@@ -219,13 +219,13 @@ struct TodayView: View {
                 .fixedSize(horizontal: false, vertical: true)
 
             HStack {
+                favoriteButton
                 if let attribution = quote.attribution {
                     Text(attribution)
                         .font(.footnote.weight(.medium))
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
-                favoriteButton
                 Button {
                     haptics.play(.selection)
                     showingShareCard = true
