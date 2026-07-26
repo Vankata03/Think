@@ -33,6 +33,7 @@ struct ThinkApp: App {
     @State private var mindfulMinutes: MindfulMinutesStore
     @State private var cloudBackup: CloudBackupState
     @State private var journalLock: JournalLock
+    @State private var favorites: FavoritesStore
     @AppStorage(Appearance.storageKey) private var appearance = Appearance.dark
     @AppStorage(Onboarding.completedKey) private var completedOnboarding = false
     private let isUITesting: Bool
@@ -69,6 +70,9 @@ struct ThinkApp: App {
             progressDefaults = appGroupDefaults
         }
         let progressStore = ProgressStore(defaults: progressDefaults)
+        // Same isolated suite as progress under UI tests, so a favorited
+        // line never leaks between runs.
+        _favorites = State(initialValue: FavoritesStore(defaults: progressDefaults))
         let timer = PomodoroTimer(
             systemSideEffectsEnabled: !isUITesting,
             defaults: isUITesting ? nil : appGroupDefaults,
@@ -188,6 +192,7 @@ struct ThinkApp: App {
             .environment(mindfulMinutes)
             .environment(cloudBackup)
             .environment(journalLock)
+            .environment(favorites)
             .environment(\.haptics, .live)
             .task {
                 cloudBackup.startObservingMirroringEvents()

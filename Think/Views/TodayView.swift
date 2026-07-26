@@ -9,6 +9,7 @@ import SwiftData
 
 struct TodayView: View {
     @Environment(ProgressStore.self) private var progress
+    @Environment(FavoritesStore.self) private var favorites
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.haptics) private var haptics
@@ -182,6 +183,28 @@ struct TodayView: View {
         }
     }
 
+    /// Keeping a line is a quiet act: the fill change and the selection
+    /// haptic are the whole feedback. No bounce, no particles.
+    private var favoriteButton: some View {
+        let isFavorite = favorites.isFavorite(quote)
+
+        return Button {
+            haptics.play(.selection)
+            withAnimation(ThinkMotion.stateAnimation(reduceMotion: reduceMotion)) {
+                favorites.toggle(quote)
+            }
+        } label: {
+            Image(systemName: isFavorite ? "heart.fill" : "heart")
+                .contentTransition(.symbolEffect(.replace))
+        }
+        .buttonStyle(.bordered)
+        .tint(.accentColor)
+        .accessibilityLabel(isFavorite
+                            ? String(localized: "Remove from saved lines")
+                            : String(localized: "Save this line"))
+        .accessibilityIdentifier("FavoriteQuote")
+    }
+
     private var quoteCard: some View {
         VStack(alignment: .leading, spacing: 16) {
             Rectangle()
@@ -202,6 +225,7 @@ struct TodayView: View {
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
+                favoriteButton
                 Button {
                     haptics.play(.selection)
                     showingShareCard = true
@@ -474,5 +498,6 @@ struct TodayView: View {
 #Preview {
     TodayView()
         .environment(ProgressStore())
+        .environment(FavoritesStore(defaults: .standard))
         .modelContainer(for: [JournalEntry.self, DailyRetro.self], inMemory: true)
 }

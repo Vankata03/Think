@@ -171,6 +171,33 @@ final class ThinkUITests: XCTestCase {
     }
 
     @MainActor
+    func testSavingTodaysLineFillsAndEmptiesTheFavoritesList() throws {
+        let app = launchApp()
+
+        let favoriteButton = app.buttons["FavoriteQuote"]
+        XCTAssertTrue(favoriteButton.waitForExistence(timeout: 5))
+        favoriteButton.tap()
+
+        app.tabBars.buttons.element(boundBy: 3).tap()
+        app.descendants(matching: .any)["Favorites"].tap()
+
+        let list = app.descendants(matching: .any)["FavoritesView"]
+        XCTAssertTrue(list.waitForExistence(timeout: 3))
+        XCTAssertFalse(app.staticTexts["FavoritesEmpty"].exists)
+        XCTAssertEqual(list.cells.count, 1)
+
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        app.tabBars.buttons.element(boundBy: 0).tap()
+
+        XCTAssertTrue(favoriteButton.waitForExistence(timeout: 3))
+        favoriteButton.tap()
+
+        app.tabBars.buttons.element(boundBy: 3).tap()
+        app.descendants(matching: .any)["Favorites"].tap()
+
+        XCTAssertTrue(app.staticTexts["FavoritesEmpty"].waitForExistence(timeout: 3))
+    }
+
     private func launchApp() -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = englishLaunchArguments

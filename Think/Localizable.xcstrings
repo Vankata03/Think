@@ -361,46 +361,6 @@
         }
       }
     },
-    "This removes journal entries, retrospectives, streaks, achievements, and focus history from this device. Journal entries and retrospectives are also removed from your iCloud backup and any device signed into it; streaks, achievements, and focus history are on this device only. Mindful minutes already saved to Health stay in Health and can be deleted there. This cannot be undone." : {
-      "localizations" : {
-        "bg" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Това премахва записите в дневника, ретроспекциите, поредиците, постиженията и историята на фокус сесиите от това устройство. Записите в дневника и ретроспекциите се премахват и от твоето резервно копие в iCloud, както и от всяко устройство, влязло в него; поредиците, постиженията и историята на фокус сесиите са само на това устройство. Минутите за осъзнатост, вече запазени в Здраве, остават там и могат да бъдат изтрити от приложението. Действието не може да бъде отменено."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Das entfernt Journaleinträge, Retrospektiven, Streaks, Erfolge und den Fokusverlauf von diesem Gerät. Journaleinträge und Retrospektiven werden auch aus deinem iCloud-Backup und von jedem dort angemeldeten Gerät entfernt; Streaks, Erfolge und Fokusverlauf liegen nur auf diesem Gerät. Bereits in Health gespeicherte Achtsamkeitsminuten bleiben dort und können dort gelöscht werden. Das lässt sich nicht rückgängig machen."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Esto elimina las entradas del diario, las retrospectivas, las rachas, los logros y el historial de sesiones de concentración de este dispositivo. Las entradas del diario y las retrospectivas también se eliminan de tu copia en iCloud y de cualquier dispositivo con esa sesión iniciada; las rachas, los logros y el historial están solo en este dispositivo. Los minutos de atención plena ya guardados en Salud permanecen allí y se pueden eliminar desde la app. No se puede deshacer."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cette action supprime les entrées du journal, les rétrospectives, les séries, les réussites et l’historique des sessions de concentration de cet appareil. Les entrées du journal et les rétrospectives sont aussi supprimées de ta sauvegarde iCloud et de tout appareil qui y est connecté ; les séries, les réussites et l’historique ne sont que sur cet appareil. Les minutes de pleine conscience déjà enregistrées dans Santé y restent et peuvent y être supprimées. Elle est irréversible."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Questa operazione rimuove da questo dispositivo le voci del diario, le retrospettive, le serie, i traguardi e la cronologia delle sessioni di concentrazione. Le voci del diario e le retrospettive vengono rimosse anche dal tuo backup iCloud e da ogni dispositivo con cui hai eseguito l’accesso; serie, traguardi e cronologia restano solo su questo dispositivo. I minuti di mindfulness già salvati in Salute restano lì e possono essere eliminati dall’app. Non può essere annullata."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Isso remove deste aparelho as entradas do diário, retrospectivas, sequências, conquistas e o histórico de sessões de foco. As entradas do diário e as retrospectivas também são removidas do seu backup no iCloud e de qualquer aparelho conectado a ele; sequências, conquistas e histórico ficam apenas neste aparelho. Os minutos de atenção plena já salvos no app Saúde permanecem lá e podem ser apagados pelo app. Essa ação não pode ser desfeita."
-          }
-        }
-      }
-    },
     "iCloud reported an error during the last backup" : {
       "localizations" : {
         "bg" : {
@@ -10478,6 +10438,326 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Depois da sessão"
+          }
+        }
+      }
+    },
+    "This removes journal entries, retrospectives, saved lines, streaks, achievements, and focus history from this device. Journal entries and retrospectives are also removed from your iCloud backup and any device signed into it; saved lines, streaks, achievements, and focus history are on this device only. Mindful minutes already saved to Health stay in Health and can be deleted there. This cannot be undone." : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Това премахва записите в дневника, ретроспекциите, запазените реплики, поредиците, постиженията и историята на фокус сесиите от това устройство. Записите в дневника и ретроспекциите се премахват и от твоето резервно копие в iCloud, както и от всяко устройство, влязло в него; запазените реплики, поредиците, постиженията и историята на фокус сесиите са само на това устройство. Минутите за осъзнатост, вече запазени в Здраве, остават там и могат да бъдат изтрити от приложението. Действието не може да бъде отменено."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das entfernt Journaleinträge, Retrospektiven, gespeicherte Zeilen, Streaks, Erfolge und den Fokusverlauf von diesem Gerät. Journaleinträge und Retrospektiven werden auch aus deinem iCloud-Backup und von jedem dort angemeldeten Gerät entfernt; gespeicherte Zeilen, Streaks, Erfolge und Fokusverlauf liegen nur auf diesem Gerät. Bereits in Health gespeicherte Achtsamkeitsminuten bleiben dort und können dort gelöscht werden. Das lässt sich nicht rückgängig machen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esto elimina las entradas del diario, las retrospectivas, las frases guardadas, las rachas, los logros y el historial de sesiones de concentración de este dispositivo. Las entradas del diario y las retrospectivas también se eliminan de tu copia en iCloud y de cualquier dispositivo con esa sesión iniciada; las frases guardadas, las rachas, los logros y el historial están solo en este dispositivo. Los minutos de atención plena ya guardados en Salud permanecen allí y se pueden eliminar desde la app. No se puede deshacer."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cette action supprime les entrées du journal, les rétrospectives, les phrases enregistrées, les séries, les réussites et l’historique des sessions de concentration de cet appareil. Les entrées du journal et les rétrospectives sont aussi supprimées de ta sauvegarde iCloud et de tout appareil qui y est connecté ; les phrases enregistrées, les séries, les réussites et l’historique ne sont que sur cet appareil. Les minutes de pleine conscience déjà enregistrées dans Santé y restent et peuvent y être supprimées. Elle est irréversible."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questa operazione rimuove da questo dispositivo le voci del diario, le retrospettive, le frasi salvate, le serie, i traguardi e la cronologia delle sessioni di concentrazione. Le voci del diario e le retrospettive vengono rimosse anche dal tuo backup iCloud e da ogni dispositivo con cui hai eseguito l’accesso; frasi salvate, serie, traguardi e cronologia restano solo su questo dispositivo. I minuti di mindfulness già salvati in Salute restano lì e possono essere eliminati dall’app. Non può essere annullata."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Isso remove deste aparelho as entradas do diário, retrospectivas, frases salvas, sequências, conquistas e o histórico de sessões de foco. As entradas do diário e as retrospectivas também são removidas do seu backup no iCloud e de qualquer aparelho conectado a ele; frases salvas, sequências, conquistas e histórico ficam apenas neste aparelho. Os minutos de atenção plena já salvos no app Saúde permanecem lá e podem ser apagados pelo app. Essa ação não pode ser desfeita."
+          }
+        }
+      }
+    },
+    "Lines you keep will appear here." : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Репликите, които запазиш, ще се появят тук."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeilen, die du behältst, erscheinen hier."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las frases que guardes aparecerán aquí."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les phrases que tu gardes apparaîtront ici."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le frasi che salvi appariranno qui."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As frases que você guardar aparecerão aqui."
+          }
+        }
+      }
+    },
+    "Saved lines" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Запазени реплики"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gespeicherte Zeilen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frases guardadas"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phrases enregistrées"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frasi salvate"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frases salvas"
+          }
+        }
+      }
+    },
+    "The lines you kept" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Репликите, които запази"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Zeilen, die du behalten hast"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las frases que guardaste"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les phrases que tu as gardées"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le frasi che hai salvato"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As frases que você guardou"
+          }
+        }
+      }
+    },
+    "Save this line" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Запази тази реплика"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese Zeile speichern"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guardar esta frase"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enregistrer cette phrase"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salva questa frase"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guardar esta frase"
+          }
+        }
+      }
+    },
+    "Saved to your lines" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Запазена при твоите реплики"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zu deinen Zeilen gespeichert"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guardada en tus frases"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enregistrée dans tes phrases"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salvata tra le tue frasi"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guardada nas suas frases"
+          }
+        }
+      }
+    },
+    "Remove from saved lines" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Премахни от запазените реплики"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aus gespeicherten Zeilen entfernen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quitar de las frases guardadas"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retirer des phrases enregistrées"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rimuovi dalle frasi salvate"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remover das frases salvas"
+          }
+        }
+      }
+    },
+    "Remove" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Премахни"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entfernen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quitar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retirer"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rimuovi"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remover"
           }
         }
       }

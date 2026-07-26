@@ -44,6 +44,7 @@ struct ProfileView: View {
     @Environment(MindfulMinutesStore.self) private var mindfulMinutes
     @Environment(CloudBackupState.self) private var cloudBackup
     @Environment(JournalLock.self) private var journalLock
+    @Environment(FavoritesStore.self) private var favorites
     @Environment(\.modelContext) private var modelContext
     @Environment(\.haptics) private var haptics
     @Environment(\.openURL) private var openURL
@@ -100,6 +101,7 @@ struct ProfileView: View {
                     header
                     progressPanel
                     journalPanel
+                    favoritesPanel
                     cloudBackupPanel
                     settingsPanel
                     feedbackPanel
@@ -160,7 +162,7 @@ struct ProfileView: View {
                 }
                 Button("Cancel", role: .cancel) { }
             } message: {
-                Text("This removes journal entries, retrospectives, streaks, achievements, and focus history from this device. Journal entries and retrospectives are also removed from your iCloud backup and any device signed into it; streaks, achievements, and focus history are on this device only. Mindful minutes already saved to Health stay in Health and can be deleted there. This cannot be undone.")
+                Text("This removes journal entries, retrospectives, saved lines, streaks, achievements, and focus history from this device. Journal entries and retrospectives are also removed from your iCloud backup and any device signed into it; saved lines, streaks, achievements, and focus history are on this device only. Mindful minutes already saved to Health stay in Health and can be deleted there. This cannot be undone.")
             }
             .alert("Delete failed", isPresented: $showingDeleteError) {
                 Button("OK", role: .cancel) { }
@@ -253,6 +255,39 @@ struct ProfileView: View {
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("Journal")
+    }
+
+    private var favoritesPanel: some View {
+        NavigationLink {
+            FavoritesView()
+        } label: {
+            HStack(spacing: 14) {
+                Image(systemName: "heart")
+                    .font(.title3)
+                    .foregroundStyle(Color.accentColor)
+                    .frame(width: 32)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Saved lines")
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                    Text("The lines you kept")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.bold))
+                    .foregroundStyle(.secondary)
+            }
+            .padding(14)
+            .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .stroke(.separator.opacity(0.6), lineWidth: 1)
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("Favorites")
     }
 
     /// Status only. Mirroring is decided when the SwiftData container is
@@ -624,6 +659,7 @@ struct ProfileView: View {
             try modelContext.save()
 
             progress.reset()
+            favorites.removeAll()
             DailyQuoteNotifier.cancelSchedule()
             RetroReminder.cancelSchedule()
             dailyLineEnabled = false
@@ -731,5 +767,6 @@ private struct AdaptiveSwitchToggleStyle: ToggleStyle {
         .environment(MindfulMinutesStore(client: UnavailableMindfulHealthClient()))
         .environment(CloudBackupState(storage: .inMemory))
         .environment(JournalLock(authenticator: UnavailableJournalAuthenticator()))
+        .environment(FavoritesStore(defaults: .standard))
         .modelContainer(for: [JournalEntry.self, DailyRetro.self], inMemory: true)
 }

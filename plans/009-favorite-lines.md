@@ -1,6 +1,6 @@
 # 009 — Let people keep the lines that land
 
-- **Status**: TODO
+- **Status**: DONE
 - **Severity**: MEDIUM
 - **Category**: Missed opportunity / retention
 - **Estimated scope**: 6–8 files, about 260 lines including tests and localized strings
