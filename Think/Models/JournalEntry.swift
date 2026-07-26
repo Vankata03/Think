@@ -10,6 +10,9 @@ import SwiftData
 final class JournalEntry {
     static let kindQuestion = "question"
     static let kindNote = "note"
+    /// A note written right after a focus session, prompted by the
+    /// intention that session was started with.
+    static let kindFocus = "focus"
 
     // CloudKit mirroring requires every attribute to be optional or carry a
     // default value, so all four are defaulted even though the initializer

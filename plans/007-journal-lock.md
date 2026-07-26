@@ -1,6 +1,6 @@
 # 007 — Lock the journal behind Face ID or the device passcode
 
-- **Status**: TODO
+- **Status**: DONE
 - **Severity**: MEDIUM
 - **Category**: Privacy / missed opportunity
 - **Estimated scope**: 4–6 files, about 180 lines including tests and localized strings

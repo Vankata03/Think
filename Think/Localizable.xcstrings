@@ -361,46 +361,6 @@
         }
       }
     },
-    "This removes journal entries, retrospectives, streaks, achievements, and focus history from this device. Journal entries and retrospectives are also removed from your iCloud backup and any device signed into it; streaks, achievements, and focus history are on this device only. Mindful minutes already saved to Health stay in Health and can be deleted there. This cannot be undone." : {
-      "localizations" : {
-        "bg" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Това премахва записите в дневника, ретроспекциите, поредиците, постиженията и историята на фокус сесиите от това устройство. Записите в дневника и ретроспекциите се премахват и от твоето резервно копие в iCloud, както и от всяко устройство, влязло в него; поредиците, постиженията и историята на фокус сесиите са само на това устройство. Минутите за осъзнатост, вече запазени в Здраве, остават там и могат да бъдат изтрити от приложението. Действието не може да бъде отменено."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Das entfernt Journaleinträge, Retrospektiven, Streaks, Erfolge und den Fokusverlauf von diesem Gerät. Journaleinträge und Retrospektiven werden auch aus deinem iCloud-Backup und von jedem dort angemeldeten Gerät entfernt; Streaks, Erfolge und Fokusverlauf liegen nur auf diesem Gerät. Bereits in Health gespeicherte Achtsamkeitsminuten bleiben dort und können dort gelöscht werden. Das lässt sich nicht rückgängig machen."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Esto elimina las entradas del diario, las retrospectivas, las rachas, los logros y el historial de sesiones de concentración de este dispositivo. Las entradas del diario y las retrospectivas también se eliminan de tu copia en iCloud y de cualquier dispositivo con esa sesión iniciada; las rachas, los logros y el historial están solo en este dispositivo. Los minutos de atención plena ya guardados en Salud permanecen allí y se pueden eliminar desde la app. No se puede deshacer."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cette action supprime les entrées du journal, les rétrospectives, les séries, les réussites et l’historique des sessions de concentration de cet appareil. Les entrées du journal et les rétrospectives sont aussi supprimées de ta sauvegarde iCloud et de tout appareil qui y est connecté ; les séries, les réussites et l’historique ne sont que sur cet appareil. Les minutes de pleine conscience déjà enregistrées dans Santé y restent et peuvent y être supprimées. Elle est irréversible."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Questa operazione rimuove da questo dispositivo le voci del diario, le retrospettive, le serie, i traguardi e la cronologia delle sessioni di concentrazione. Le voci del diario e le retrospettive vengono rimosse anche dal tuo backup iCloud e da ogni dispositivo con cui hai eseguito l’accesso; serie, traguardi e cronologia restano solo su questo dispositivo. I minuti di mindfulness già salvati in Salute restano lì e possono essere eliminati dall’app. Non può essere annullata."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Isso remove deste aparelho as entradas do diário, retrospectivas, sequências, conquistas e o histórico de sessões de foco. As entradas do diário e as retrospectivas também são removidas do seu backup no iCloud e de qualquer aparelho conectado a ele; sequências, conquistas e histórico ficam apenas neste aparelho. Os minutos de atenção plena já salvos no app Saúde permanecem lá e podem ser apagados pelo app. Essa ação não pode ser desfeita."
-          }
-        }
-      }
-    },
     "iCloud reported an error during the last backup" : {
       "localizations" : {
         "bg" : {
@@ -5395,46 +5355,6 @@
         }
       }
     },
-    "Off — turn on iCloud Drive for Think in Settings" : {
-      "localizations" : {
-        "bg" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Изключено — включи iCloud Drive за Think в Настройки"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aus – aktiviere iCloud Drive für Think in den Einstellungen"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Desactivado: activa iCloud Drive para Think en Ajustes"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Désactivé — active iCloud Drive pour Think dans Réglages"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Non attivo — attiva iCloud Drive per Think in Impostazioni"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Desativado — ative o iCloud Drive para o Think em Ajustes"
-          }
-        }
-      }
-    },
     "OK" : {
       "localizations" : {
         "bg" : {
@@ -9758,6 +9678,1086 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sua exportação do diário está pronta."
+          }
+        }
+      }
+    },
+    "Face ID or your passcode opens the journal." : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Face ID или кодът ти отключва дневника."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Face ID oder dein Code öffnet das Journal."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Face ID o tu código abre el diario."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Face ID ou ton code ouvre le journal."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Face ID o il tuo codice apre il diario."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Face ID ou seu código abre o diário."
+          }
+        }
+      }
+    },
+    "Touch ID or your passcode opens the journal." : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Touch ID или кодът ти отключва дневника."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Touch ID oder dein Code öffnet das Journal."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Touch ID o tu código abre el diario."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Touch ID ou ton code ouvre le journal."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Touch ID o il tuo codice apre il diario."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Touch ID ou seu código abre o diário."
+          }
+        }
+      }
+    },
+    "Optic ID or your passcode opens the journal." : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Optic ID или кодът ти отключва дневника."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Optic ID oder dein Code öffnet das Journal."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Optic ID o tu código abre el diario."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Optic ID ou ton code ouvre le journal."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Optic ID o il tuo codice apre il diario."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Optic ID ou seu código abre o diário."
+          }
+        }
+      }
+    },
+    "Your device passcode opens the journal." : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Кодът на устройството ти отключва дневника."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Gerätecode öffnet das Journal."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El código de tu dispositivo abre el diario."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le code de ton appareil ouvre le journal."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il codice del dispositivo apre il diario."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O código do seu dispositivo abre o diário."
+          }
+        }
+      }
+    },
+    "Set a device passcode to use the journal lock." : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Задай код на устройството, за да използваш заключването на дневника."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lege einen Gerätecode fest, um die Journalsperre zu nutzen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configura un código en el dispositivo para usar el bloqueo del diario."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Définis un code sur ton appareil pour utiliser le verrouillage du journal."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Imposta un codice sul dispositivo per usare il blocco del diario."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Defina um código no dispositivo para usar o bloqueio do diário."
+          }
+        }
+      }
+    },
+    "The journal lock is unavailable on this device." : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Заключването на дневника не е достъпно на това устройство."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Journalsperre ist auf diesem Gerät nicht verfügbar."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El bloqueo del diario no está disponible en este dispositivo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le verrouillage du journal n'est pas disponible sur cet appareil."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il blocco del diario non è disponibile su questo dispositivo."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O bloqueio do diário não está disponível neste dispositivo."
+          }
+        }
+      }
+    },
+    "Unlock your journal." : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отключи дневника си."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entsperre dein Journal."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desbloquea tu diario."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Déverrouille ton journal."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sblocca il tuo diario."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desbloqueie seu diário."
+          }
+        }
+      }
+    },
+    "Unlock to export your journal." : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отключи, за да експортираш дневника си."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entsperre, um dein Journal zu exportieren."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desbloquea para exportar tu diario."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Déverrouille pour exporter ton journal."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sblocca per esportare il tuo diario."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desbloqueie para exportar seu diário."
+          }
+        }
+      }
+    },
+    "Your journal is locked" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Дневникът ти е заключен"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein Journal ist gesperrt"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu diario está bloqueado"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ton journal est verrouillé"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il tuo diario è bloccato"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seu diário está bloqueado"
+          }
+        }
+      }
+    },
+    "Unlock to read your notes, answers, and retrospectives." : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отключи, за да четеш бележките, отговорите и ретроспекциите си."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entsperre, um deine Notizen, Antworten und Retrospektiven zu lesen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desbloquea para leer tus notas, respuestas y retrospectivas."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Déverrouille pour lire tes notes, réponses et rétrospectives."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sblocca per leggere note, risposte e retrospettive."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desbloqueie para ler suas notas, respostas e retrospectivas."
+          }
+        }
+      }
+    },
+    "Unlock" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отключи"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entsperren"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desbloquear"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Déverrouiller"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sblocca"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desbloquear"
+          }
+        }
+      }
+    },
+    "Lock journal" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Заключи дневника"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Journal sperren"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bloquear diario"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verrouiller le journal"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blocca il diario"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bloquear diário"
+          }
+        }
+      }
+    },
+    "Start a focus session with an intention and your closing notes will appear here." : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Започни фокус сесия с намерение и бележките ти след нея ще се появят тук."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Starte eine Fokus-Session mit einer Absicht, und deine Notizen danach erscheinen hier."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Empieza una sesión de concentración con una intención y tus notas finales aparecerán aquí."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Démarre une session de concentration avec une intention et tes notes de fin apparaîtront ici."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avvia una sessione di concentrazione con un'intenzione e le tue note finali appariranno qui."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comece uma sessão de foco com uma intenção e suas notas finais aparecerão aqui."
+          }
+        }
+      }
+    },
+    "What are you working on?" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Върху какво работиш?"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Woran arbeitest du?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿En qué estás trabajando?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sur quoi travailles-tu ?"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A cosa stai lavorando?"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No que você está trabalhando?"
+          }
+        }
+      }
+    },
+    "Clear intention" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Изчисти намерението"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Absicht löschen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Borrar intención"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Effacer l'intention"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancella l'intenzione"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limpar intenção"
+          }
+        }
+      }
+    },
+    "Reuse intention: %@" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Използвай отново намерението: %@"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Absicht erneut verwenden: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reutilizar la intención: %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réutiliser l'intention : %@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Riusa l'intenzione: %@"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reutilizar a intenção: %@"
+          }
+        }
+      }
+    },
+    "How did it go?" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Как мина?"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wie ist es gelaufen?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Cómo fue?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comment ça s'est passé ?"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Com'è andata?"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Como foi?"
+          }
+        }
+      }
+    },
+    "After the session" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "След сесията"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nach der Session"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Después de la sesión"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Après la session"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dopo la sessione"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Depois da sessão"
+          }
+        }
+      }
+    },
+    "This removes journal entries, retrospectives, saved lines, streaks, achievements, and focus history from this device. Journal entries and retrospectives are also removed from your iCloud backup and any device signed into it; saved lines, streaks, achievements, and focus history are on this device only. Mindful minutes already saved to Health stay in Health and can be deleted there. This cannot be undone." : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Това премахва записите в дневника, ретроспекциите, запазените реплики, поредиците, постиженията и историята на фокус сесиите от това устройство. Записите в дневника и ретроспекциите се премахват и от твоето резервно копие в iCloud, както и от всяко устройство, влязло в него; запазените реплики, поредиците, постиженията и историята на фокус сесиите са само на това устройство. Минутите за осъзнатост, вече запазени в Здраве, остават там и могат да бъдат изтрити от приложението. Действието не може да бъде отменено."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das entfernt Journaleinträge, Retrospektiven, gespeicherte Zeilen, Streaks, Erfolge und den Fokusverlauf von diesem Gerät. Journaleinträge und Retrospektiven werden auch aus deinem iCloud-Backup und von jedem dort angemeldeten Gerät entfernt; gespeicherte Zeilen, Streaks, Erfolge und Fokusverlauf liegen nur auf diesem Gerät. Bereits in Health gespeicherte Achtsamkeitsminuten bleiben dort und können dort gelöscht werden. Das lässt sich nicht rückgängig machen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esto elimina las entradas del diario, las retrospectivas, las frases guardadas, las rachas, los logros y el historial de sesiones de concentración de este dispositivo. Las entradas del diario y las retrospectivas también se eliminan de tu copia en iCloud y de cualquier dispositivo con esa sesión iniciada; las frases guardadas, las rachas, los logros y el historial están solo en este dispositivo. Los minutos de atención plena ya guardados en Salud permanecen allí y se pueden eliminar desde la app. No se puede deshacer."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cette action supprime les entrées du journal, les rétrospectives, les phrases enregistrées, les séries, les réussites et l’historique des sessions de concentration de cet appareil. Les entrées du journal et les rétrospectives sont aussi supprimées de ta sauvegarde iCloud et de tout appareil qui y est connecté ; les phrases enregistrées, les séries, les réussites et l’historique ne sont que sur cet appareil. Les minutes de pleine conscience déjà enregistrées dans Santé y restent et peuvent y être supprimées. Elle est irréversible."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questa operazione rimuove da questo dispositivo le voci del diario, le retrospettive, le frasi salvate, le serie, i traguardi e la cronologia delle sessioni di concentrazione. Le voci del diario e le retrospettive vengono rimosse anche dal tuo backup iCloud e da ogni dispositivo con cui hai eseguito l’accesso; frasi salvate, serie, traguardi e cronologia restano solo su questo dispositivo. I minuti di mindfulness già salvati in Salute restano lì e possono essere eliminati dall’app. Non può essere annullata."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Isso remove deste aparelho as entradas do diário, retrospectivas, frases salvas, sequências, conquistas e o histórico de sessões de foco. As entradas do diário e as retrospectivas também são removidas do seu backup no iCloud e de qualquer aparelho conectado a ele; frases salvas, sequências, conquistas e histórico ficam apenas neste aparelho. Os minutos de atenção plena já salvos no app Saúde permanecem lá e podem ser apagados pelo app. Essa ação não pode ser desfeita."
+          }
+        }
+      }
+    },
+    "Lines you keep will appear here." : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Репликите, които запазиш, ще се появят тук."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeilen, die du behältst, erscheinen hier."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las frases que guardes aparecerán aquí."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les phrases que tu gardes apparaîtront ici."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le frasi che salvi appariranno qui."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As frases que você guardar aparecerão aqui."
+          }
+        }
+      }
+    },
+    "Saved lines" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Запазени реплики"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gespeicherte Zeilen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frases guardadas"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phrases enregistrées"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frasi salvate"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frases salvas"
+          }
+        }
+      }
+    },
+    "The lines you kept" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Репликите, които запази"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Zeilen, die du behalten hast"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las frases que guardaste"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les phrases que tu as gardées"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le frasi che hai salvato"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As frases que você guardou"
+          }
+        }
+      }
+    },
+    "Save this line" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Запази тази реплика"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese Zeile speichern"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guardar esta frase"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enregistrer cette phrase"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salva questa frase"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guardar esta frase"
+          }
+        }
+      }
+    },
+    "Saved to your lines" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Запазена при твоите реплики"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zu deinen Zeilen gespeichert"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guardada en tus frases"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enregistrée dans tes phrases"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salvata tra le tue frasi"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guardada nas suas frases"
+          }
+        }
+      }
+    },
+    "Remove from saved lines" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Премахни от запазените реплики"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aus gespeicherten Zeilen entfernen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quitar de las frases guardadas"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retirer des phrases enregistrées"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rimuovi dalle frasi salvate"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remover das frases salvas"
+          }
+        }
+      }
+    },
+    "Remove" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Премахни"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entfernen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quitar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retirer"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rimuovi"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remover"
+          }
+        }
+      }
+    },
+    "Off — Think cannot reach iCloud. Check iCloud in Settings." : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Изключено — Think не може да достигне iCloud. Провери iCloud в Настройки."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aus — Think erreicht iCloud nicht. Prüfe iCloud in den Einstellungen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desactivado — Think no puede conectar con iCloud. Revisa iCloud en Ajustes."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Désactivé — Think n'arrive pas à joindre iCloud. Vérifie iCloud dans Réglages."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disattivato — Think non riesce a raggiungere iCloud. Controlla iCloud in Impostazioni."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desativado — o Think não consegue acessar o iCloud. Verifique o iCloud nos Ajustes."
           }
         }
       }

@@ -770,6 +770,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "Think uses Face ID to keep your journal private.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Think uses Health access to save completed focus sessions as mindful minutes when you opt in. Think does not read your Health data.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Think logs completed focus sessions as mindful minutes in Apple Health when you opt in.";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Think saves quote cards and wallpapers to your photo library.";
@@ -811,6 +812,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "Think uses Face ID to keep your journal private.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Think uses Health access to save completed focus sessions as mindful minutes when you opt in. Think does not read your Health data.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Think logs completed focus sessions as mindful minutes in Apple Health when you opt in.";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Think saves quote cards and wallpapers to your photo library.";

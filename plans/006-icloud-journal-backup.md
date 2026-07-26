@@ -1,6 +1,6 @@
 # 006 — Back the journal up to the user's iCloud
 
-- **Status**: IN PROGRESS — code landed on `feature/icloud-journal-backup`; App Store Connect / CloudKit dashboard steps still owed (see Verification)
+- **Status**: CODE LANDED — ship blocked until the release checklist below is complete
 - **Severity**: HIGH
 - **Category**: Data loss risk
 - **Estimated scope**: 6–9 files, about 300 lines including tests and localized strings
@@ -66,7 +66,16 @@ State comes from `CKContainer.accountStatus()` plus whether the container was bu
 
 Done (2026-07-26): unit and UI suites green; CloudKit Development schema generated (`CD_JournalEntry`, `CD_DailyRetro`); records from a device build appear in the private database, zone `com.apple.coredata.cloudkit.zone`, with `CD_date`, `CD_kind`, `CD_prompt`, `CD_text` populated. Entries written by 1.1.1 before the upgrade are present, so the defaulted-attribute change migrated the existing store without loss.
 
-Still owed: the two-device round trip, the no-account run, and deploying the schema to production.
+Release checklist — every item blocks shipping this feature, because each one
+covers a failure that only appears outside the development environment:
+
+- [ ] Deploy the CloudKit schema to production. A production build against a
+      development-only schema cannot mirror at all.
+- [ ] Two-device round trip on one iCloud account: create a note, an answer,
+      and a retro on device A; confirm all three reach device B; delete on B;
+      confirm removal on A.
+- [ ] No-account run: launch signed out, confirm journaling still works and the
+      Profile row reports the signed-out state rather than claiming a backup.
 
 Console note: browsing records in CloudKit Console needs a Queryable index on `recordName` for each record type (Schema → Indexes). SwiftData does not create one; the app never needs it, since mirroring syncs by zone changes rather than by querying record names.
 

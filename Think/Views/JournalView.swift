@@ -10,6 +10,7 @@ struct JournalView: View {
     private enum Section: String, CaseIterable, Identifiable {
         case notes = "Notes"
         case questions = "Questions"
+        case focus = "Focus"
         case retros = "Retros"
 
         var id: String { rawValue }
@@ -18,10 +19,35 @@ struct JournalView: View {
             switch self {
             case .notes: String(localized: "Notes")
             case .questions: String(localized: "Questions")
+            case .focus: String(localized: "Focus")
             case .retros: String(localized: "Retros")
             }
         }
+
+        var entryKind: String? {
+            switch self {
+            case .notes: JournalEntry.kindNote
+            case .questions: JournalEntry.kindQuestion
+            case .focus: JournalEntry.kindFocus
+            case .retros: nil
+            }
+        }
+
+        var emptyMessage: String {
+            switch self {
+            case .notes:
+                String(localized: "Write anything on your mind. Tap + to start.")
+            case .questions:
+                String(localized: "Your answers to the daily question will appear here.")
+            case .focus:
+                String(localized: "Start a focus session with an intention and your closing notes will appear here.")
+            case .retros:
+                String(localized: "Close each day with two honest minutes. Your evening retrospectives will appear here.")
+            }
+        }
     }
+
+    @Environment(JournalLock.self) private var lock
 
     @Query(sort: \JournalEntry.date, order: .reverse) private var entries: [JournalEntry]
     @Query(sort: \DailyRetro.date, order: .reverse) private var retros: [DailyRetro]
@@ -29,13 +55,64 @@ struct JournalView: View {
     @State private var section = Section.notes
     @State private var composingNote = false
     @State private var composingRetro = false
+    @State private var authenticating = false
 
     private var filtered: [JournalEntry] {
-        let kind = section == .notes ? JournalEntry.kindNote : JournalEntry.kindQuestion
+        guard let kind = section.entryKind else { return [] }
         return entries.filter { $0.kind == kind }
     }
 
     var body: some View {
+        Group {
+            if lock.isLocked {
+                lockGate
+            } else {
+                entryList
+            }
+        }
+        .navigationTitle("Journal")
+        .accessibilityIdentifier("JournalView")
+        .task {
+            // Ask straight away: the gate's Unlock button is the retry
+            // path, not the first step.
+            await unlock()
+        }
+    }
+
+    /// Deliberately holds no entry text — not even a count — so nothing
+    /// private renders behind a failed authentication or in the app
+    /// switcher snapshot.
+    private var lockGate: some View {
+        VStack(spacing: 14) {
+            Image(systemName: "lock.fill")
+                .font(.system(size: 44))
+                .foregroundStyle(Color.accentColor)
+            Text("Your journal is locked")
+                .font(.headline)
+            Text("Unlock to read your notes, answers, and retrospectives.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+            Button {
+                Task { await unlock() }
+            } label: {
+                Text("Unlock")
+                    .font(.subheadline.weight(.semibold))
+                    .padding(.horizontal, 22)
+                    .padding(.vertical, 10)
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(authenticating)
+            .accessibilityIdentifier("UnlockJournal")
+        }
+        .padding(28)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(.systemGroupedBackground).ignoresSafeArea())
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("JournalLocked")
+    }
+
+    private var entryList: some View {
         List {
             SwiftUI.Section {
                 Picker("Entries", selection: $section) {
@@ -49,11 +126,9 @@ struct JournalView: View {
             }
 
             switch section {
-            case .notes, .questions:
+            case .notes, .questions, .focus:
                 if filtered.isEmpty {
-                    Text(section == .notes
-                         ? String(localized: "Write anything on your mind. Tap + to start.")
-                         : String(localized: "Your answers to the daily question will appear here."))
+                    Text(section.emptyMessage)
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(filtered) { entry in
@@ -62,7 +137,7 @@ struct JournalView: View {
                 }
             case .retros:
                 if retros.isEmpty {
-                    Text("Close each day with two honest minutes. Your evening retrospectives will appear here.")
+                    Text(section.emptyMessage)
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(retros) { retro in
@@ -71,23 +146,25 @@ struct JournalView: View {
                 }
             }
         }
-        .navigationTitle("Journal")
-        .accessibilityIdentifier("JournalView")
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    if section == .retros {
-                        composingRetro = true
-                    } else {
-                        composingNote = true
+            // No + under Focus: a focus note is written when a session
+            // ends, never composed from here.
+            if section != .focus {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        if section == .retros {
+                            composingRetro = true
+                        } else {
+                            composingNote = true
+                        }
+                    } label: {
+                        Image(systemName: "plus")
                     }
-                } label: {
-                    Image(systemName: "plus")
+                    .accessibilityLabel(section == .retros
+                                        ? String(localized: "New retrospective")
+                                        : String(localized: "New note"))
+                    .accessibilityIdentifier("NewNote")
                 }
-                .accessibilityLabel(section == .retros
-                                    ? String(localized: "New retrospective")
-                                    : String(localized: "New note"))
-                .accessibilityIdentifier("NewNote")
             }
         }
         .sheet(isPresented: $composingNote) {
@@ -96,6 +173,13 @@ struct JournalView: View {
         .sheet(isPresented: $composingRetro) {
             RetroSheet()
         }
+    }
+
+    private func unlock() async {
+        guard lock.isLocked, !authenticating else { return }
+        authenticating = true
+        await lock.authenticate()
+        authenticating = false
     }
 
     private func entryRow(_ entry: JournalEntry) -> some View {
@@ -234,5 +318,6 @@ private struct NewNoteSheet: View {
         JournalView()
     }
     .environment(ProgressStore())
+    .environment(JournalLock(authenticator: UnavailableJournalAuthenticator()))
     .modelContainer(for: [JournalEntry.self, DailyRetro.self], inMemory: true)
 }

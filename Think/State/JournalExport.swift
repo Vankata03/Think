@@ -100,6 +100,11 @@ struct JournalExport {
                     lines.append("Prompt: \(entry.prompt)")
                 }
                 lines.append("Response:\n\(entry.text)")
+            } else if entry.kind == JournalEntry.kindFocus {
+                if !entry.prompt.isEmpty {
+                    lines.append("Intention: \(entry.prompt)")
+                }
+                lines.append("After the session:\n\(entry.text)")
             } else {
                 lines.append("Note:\n\(entry.text)")
             }

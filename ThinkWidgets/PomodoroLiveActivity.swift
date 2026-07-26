@@ -48,10 +48,13 @@ struct PomodoroLiveActivity: Widget {
                         .padding(.trailing, 8)
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    progressBar(for: presentationState(for: context))
-                        .padding(.horizontal, 22)
-                        .padding(.top, 8)
-                        .padding(.bottom, 6)
+                    VStack(spacing: 6) {
+                        intentionText(for: presentationState(for: context))
+                        progressBar(for: presentationState(for: context))
+                    }
+                    .padding(.horizontal, 22)
+                    .padding(.top, 8)
+                    .padding(.bottom, 6)
                 }
             } compactLeading: {
                 Image(systemName: PomodoroLiveActivityPresentation.symbol(for: presentationState(for: context)))
@@ -85,9 +88,27 @@ struct PomodoroLiveActivity: Widget {
                     .monospacedDigit()
             }
 
+            intentionText(for: state)
+
             progressBar(for: state)
         }
         .padding()
+    }
+
+    /// One line, never wrapped: the intention is context for the
+    /// countdown, and a two-line activity pushes the progress bar around.
+    @ViewBuilder
+    private func intentionText(
+        for state: PomodoroActivityAttributes.ContentState
+    ) -> some View {
+        if let intention = state.intention, !intention.isEmpty {
+            Text(intention)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .truncationMode(.tail)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
     }
 
     private func timerText(for state: PomodoroActivityAttributes.ContentState) -> Text {
