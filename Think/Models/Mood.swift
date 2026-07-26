@@ -37,6 +37,14 @@ enum Mood: String, CaseIterable, Identifiable, Sendable {
         }
     }
 
+    /// Stable English name for the plain-text export, whose headings
+    /// ("JOURNAL ENTRIES", "Prompt:", "What went well:") are English in
+    /// every locale. Using the localized label here would produce a
+    /// mixed-language document.
+    var exportLabel: String {
+        rawValue.capitalized
+    }
+
     var systemImage: String {
         switch self {
         case .low: "cloud.rain"

@@ -62,12 +62,57 @@ struct JournalDataStoreTests {
 @MainActor
 struct CloudBackupStateTests {
 
-    @Test func availableAccountReportsActiveBackup() async {
+    @Test func availableAccountReportsConfiguredNotSynced() async {
         let state = CloudBackupState(storage: .cloudKit) { .available }
 
         await state.refresh()
 
-        #expect(state.status == .active)
+        // An available account says mirroring is configured, never that a
+        // backup has actually run.
+        #expect(state.status == .configured)
+        #expect(state.status.isCloudBacked)
+    }
+
+    @Test func failedMirroringEventDowngradesAConfiguredAccount() async {
+        let state = CloudBackupState(storage: .cloudKit) { .available }
+        await state.refresh()
+
+        state.recordMirroringOutcome(succeeded: false)
+        #expect(state.status == .syncFailed)
+
+        state.recordMirroringOutcome(succeeded: true)
+        #expect(state.status == .configured)
+    }
+
+    @Test func mirroringEventsNeverOverrideAnAccountProblem() async {
+        let state = CloudBackupState(storage: .cloudKit) { .noAccount }
+        await state.refresh()
+
+        state.recordMirroringOutcome(succeeded: true)
+
+        #expect(state.status == .signedOut)
+    }
+
+    @Test func aFailedMirroringEventSurvivesTheNextRefresh() async {
+        let state = CloudBackupState(storage: .cloudKit) { .available }
+        await state.refresh()
+        state.recordMirroringOutcome(succeeded: false)
+
+        await state.refresh()
+
+        #expect(state.status == .syncFailed)
+    }
+
+    @Test func emergencyStoreReportsThatNothingIsBeingSaved() async {
+        let state = CloudBackupState(storage: .emergencyInMemory) {
+            Issue.record("Account status must not be queried for an emergency store.")
+            return .available
+        }
+
+        await state.refresh()
+
+        #expect(state.status == .temporaryStore)
+        #expect(!state.status.isCloudBacked)
     }
 
     @Test func missingAccountReportsSignedOut() async {

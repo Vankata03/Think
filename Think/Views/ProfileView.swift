@@ -147,7 +147,7 @@ struct ProfileView: View {
                 }
                 Button("Cancel", role: .cancel) { }
             } message: {
-                Text("This removes journal entries, retrospectives, streaks, achievements, and focus history from this device — and from your iCloud backup, and any other device signed into it, when backup is on. Mindful minutes already saved to Health stay in Health and can be deleted there. This cannot be undone.")
+                Text("This removes journal entries, retrospectives, streaks, achievements, and focus history from this device. Journal entries and retrospectives are also removed from your iCloud backup and any device signed into it; streaks, achievements, and focus history are on this device only. Mindful minutes already saved to Health stay in Health and can be deleted there. This cannot be undone.")
             }
             .alert("Delete failed", isPresented: $showingDeleteError) {
                 Button("OK", role: .cancel) { }
@@ -258,7 +258,11 @@ struct ProfileView: View {
                 Text(cloudBackup.status.summary)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
-                Text("Entries stay in your own iCloud. Think has no server and no account.")
+                // Only claim iCloud while entries are actually headed
+                // there; otherwise say where they do stay.
+                Text(cloudBackup.status.isCloudBacked
+                     ? String(localized: "Entries stay in your own iCloud. Think has no server and no account.")
+                     : String(localized: "Entries stay on this device. Think has no server and no account."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

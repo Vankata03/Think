@@ -58,8 +58,10 @@ final class ThinkUITests: XCTestCase {
         let row = app.descendants(matching: .any)["CloudBackup"]
         XCTAssertTrue(row.waitForExistence(timeout: 2))
         // UI tests run on a throwaway in-memory store, so the row must
-        // report backup as off rather than claiming a live sync.
+        // report the explicit off state and say entries stay on device.
         XCTAssertTrue(row.label.contains("iCloud backup"))
+        XCTAssertTrue(row.label.contains("Off"))
+        XCTAssertTrue(row.label.contains("Entries stay on this device"))
         XCTAssertFalse(row.label.contains("On —"))
     }
 

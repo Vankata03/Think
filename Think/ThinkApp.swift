@@ -120,9 +120,11 @@ struct ThinkApp: App {
         }
     }
 
-    /// Opens the journal store, degrading to an in-memory store only when
-    /// every on-disk candidate fails. Launching without a journal is worse
-    /// than launching with a temporary one.
+    /// Opens the journal store. When every on-disk candidate fails the app
+    /// still launches, on a throwaway store — but as
+    /// `.emergencyInMemory`, so the Profile row states outright that the
+    /// session is not being saved rather than letting the user write into
+    /// a store that disappears on quit.
     private static func makeJournalStore(isUITesting: Bool) -> JournalDataStore.Result {
         do {
             return try JournalDataStore.makeContainer(isUITesting: isUITesting)
@@ -131,9 +133,9 @@ struct ThinkApp: App {
             do {
                 let container = try ModelContainer(
                     for: JournalDataStore.schema,
-                    configurations: JournalDataStore.configuration(for: .inMemory)
+                    configurations: JournalDataStore.configuration(for: .emergencyInMemory)
                 )
-                return JournalDataStore.Result(container: container, storage: .inMemory)
+                return JournalDataStore.Result(container: container, storage: .emergencyInMemory)
             } catch {
                 fatalError(
                     """
@@ -176,7 +178,10 @@ struct ThinkApp: App {
             .environment(mindfulMinutes)
             .environment(cloudBackup)
             .environment(\.haptics, .live)
-            .task { await cloudBackup.refresh() }
+            .task {
+                cloudBackup.startObservingMirroringEvents()
+                await cloudBackup.refresh()
+            }
             .modifier(AchievementUnlockModifier(progress: progress, isEnabled: !isUITesting))
             .preferredColorScheme(appearance.colorScheme)
             .animation(.easeInOut(duration: 0.3), value: completedOnboarding)

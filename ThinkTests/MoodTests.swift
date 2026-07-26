@@ -43,6 +43,7 @@ struct MoodTests {
         for mood in Mood.allCases {
             #expect(!mood.label.isEmpty)
             #expect(!mood.systemImage.isEmpty)
+            #expect(mood.exportLabel.lowercased() == mood.rawValue)
         }
         #expect(Mood.allCases.count == 5)
     }
@@ -93,8 +94,10 @@ struct MoodTests {
         let export = JournalExport(entries: [tagged, untagged], retrospectives: [retro])
         let text = export.text(locale: Locale(identifier: "en_US"), timeZone: TimeZone(identifier: "UTC")!)
 
-        #expect(text.contains("Mood: \(Mood.good.label)"))
-        #expect(text.contains("Mood: \(Mood.flat.label)"))
+        // The export document is English throughout, so it carries the
+        // stable English name rather than the localized label.
+        #expect(text.contains("Mood: Good"))
+        #expect(text.contains("Mood: Flat"))
         // Two tagged records, so exactly two mood lines.
         #expect(text.components(separatedBy: "Mood: ").count == 3)
     }

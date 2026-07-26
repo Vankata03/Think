@@ -93,7 +93,7 @@ struct JournalExport {
         blocks.append(contentsOf: sortedEntries.map { entry in
             var lines = [dateFormatter.string(from: entry.date)]
             if let mood = entry.mood {
-                lines.append("Mood: \(mood.label)")
+                lines.append("Mood: \(mood.exportLabel)")
             }
             if entry.kind == JournalEntry.kindQuestion {
                 if !entry.prompt.isEmpty {
@@ -121,7 +121,7 @@ struct JournalExport {
         blocks.append(contentsOf: sortedRetrospectives.map { retrospective in
             var lines = [dateFormatter.string(from: retrospective.date)]
             if let mood = retrospective.mood {
-                lines.append("Mood: \(mood.label)")
+                lines.append("Mood: \(mood.exportLabel)")
             }
             lines.append(contentsOf: [
                 "What went well:\n\(retrospective.wentWell)",

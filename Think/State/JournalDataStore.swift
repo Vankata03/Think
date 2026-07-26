@@ -27,6 +27,10 @@ enum JournalDataStore {
         case localOnly
         /// Throwaway store used by UI tests and previews.
         case inMemory
+        /// Last-resort throwaway store, used only when no on-disk store
+        /// could be opened. Anything written to it is lost on quit, so it
+        /// is a distinct case: the UI has to be able to say so.
+        case emergencyInMemory
     }
 
     /// Which CloudKit database, if any, a storage kind mirrors into.
@@ -66,12 +70,15 @@ enum JournalDataStore {
     static func mirroring(for storage: Storage) -> Mirroring {
         switch storage {
         case .cloudKit: .privateDatabase(containerIdentifier: cloudKitContainerIdentifier)
-        case .localOnly, .inMemory: .none
+        case .localOnly, .inMemory, .emergencyInMemory: .none
         }
     }
 
     static func isStoredInMemoryOnly(_ storage: Storage) -> Bool {
-        storage == .inMemory
+        switch storage {
+        case .inMemory, .emergencyInMemory: true
+        case .cloudKit, .localOnly: false
+        }
     }
 
     static func configuration(for storage: Storage) -> ModelConfiguration {
@@ -86,7 +93,7 @@ enum JournalDataStore {
         // real store inside a test host.
         let groupContainer: ModelConfiguration.GroupContainer = switch storage {
         case .cloudKit, .localOnly: .automatic
-        case .inMemory: .none
+        case .inMemory, .emergencyInMemory: .none
         }
 
         return ModelConfiguration(
@@ -105,6 +112,9 @@ enum JournalDataStore {
         case .cloudKit: [.cloudKit, .localOnly]
         case .localOnly: [.localOnly]
         case .inMemory: [.inMemory]
+        // Never a preferred kind; only `ThinkApp` reaches for it once the
+        // chain above has failed outright.
+        case .emergencyInMemory: [.emergencyInMemory]
         }
     }
 
