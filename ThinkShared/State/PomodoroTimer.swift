@@ -87,6 +87,13 @@ final class PomodoroTimer {
     private static let restEndNotificationID = "pomodoro-rest-end"
     private static let notificationIDs = [workEndNotificationID, restEndNotificationID]
     private static let persistedStateKey = SharedDefaults.pomodoroTimerStateKey
+    #if os(iOS)
+    // Stored outside `PersistedState` because the intention is phone-only
+    // and that struct is decoded on the watch as well.
+    private static let intentionKey = "focus.intention"
+    private static let lastIntentionKey = "focus.lastIntention"
+    private static let lastIntentionDateKey = "focus.lastIntentionDate"
+    #endif
 
     private struct PersistedState: Codable {
         let workMinutes: Int
@@ -117,6 +124,38 @@ final class PomodoroTimer {
     private(set) var currentRevision: Revision
     private(set) var customPreset: Preset
     private(set) var automaticTransitionCount = 0
+
+    #if os(iOS)
+    /// One line on what this session is for. Phone-local on purpose: it is
+    /// not in `TimerSyncState`, so the watch timer and the sync codec
+    /// version stay untouched.
+    private(set) var intention: String?
+
+    /// Offered as a one-tap suggestion for the next session of the same
+    /// day, so a repeat session costs no typing.
+    private(set) var lastIntention: String?
+    private var lastIntentionDate: Date?
+
+    /// Set when a work phase completes with an intention, in time for the
+    /// app to ask how it went. Nil the rest of the time.
+    private(set) var pendingFocusNote: FocusNotePrompt?
+
+    struct FocusNotePrompt: Identifiable, Equatable {
+        let id = UUID()
+        let intention: String
+        let completedAt: Date
+    }
+
+    static let intentionMaxLength = 60
+
+    /// A completion noticed later than this is treated as one that
+    /// happened while the app was away. A "how did it go?" sheet for a
+    /// session that ended hours ago is worse than no sheet at all.
+    static let focusNotePromptWindow: TimeInterval = 120
+
+    /// How long an unanswered prompt stays offerable once it exists.
+    static let focusNotePromptExpiry: TimeInterval = 15 * 60
+    #endif
 
     /// Called when a work phase runs to completion. The date is the original
     /// work-phase end date, not the newly-created break end date.
@@ -152,7 +191,82 @@ final class PomodoroTimer {
         self.currentRevision = Revision(date: .distantPast, deviceID: deviceID)
         self.customPreset = Self.loadCustomPreset(from: resolvedDefaults)
         restorePersistedState()
+        #if os(iOS)
+        restoreIntentions()
+        #endif
     }
+
+    #if os(iOS)
+    /// Trims, and treats whitespace-only as absent. An over-long value is
+    /// rejected rather than truncated: the composer caps input at
+    /// `intentionMaxLength`, so anything longer reached here by mistake.
+    static func normalizedIntention(_ raw: String?) -> String? {
+        guard let raw else { return nil }
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, trimmed.count <= intentionMaxLength else { return nil }
+        return trimmed
+    }
+
+    /// Setting an intention never starts, stops, or reschedules anything —
+    /// it annotates the session in flight. Deliberately not cleared by
+    /// `reset()` or `skipPhase()`: an interrupted session is usually
+    /// restarted on the same task.
+    func setIntention(_ raw: String?) {
+        intention = Self.normalizedIntention(raw)
+        persistIntentions()
+        if isRunning, systemSideEffectsEnabled {
+            syncLiveActivity()
+        }
+    }
+
+    /// The previous intention, offered only on the day it was used. A
+    /// yesterday suggestion is noise.
+    func suggestedIntention(on date: Date = .now, calendar: Calendar = .current) -> String? {
+        guard let lastIntention,
+              let lastIntentionDate,
+              calendar.isDate(lastIntentionDate, inSameDayAs: date) else { return nil }
+        return lastIntention
+    }
+
+    func clearPendingFocusNote() {
+        pendingFocusNote = nil
+    }
+
+    /// Drops a prompt nobody came back for. The sheet lives on the Focus
+    /// tab, which may not be visited again for hours; asking how a session
+    /// went long after it ended is the stale prompt this avoids.
+    func discardStalePendingFocusNote(now: Date = .now) {
+        guard let pendingFocusNote,
+              now.timeIntervalSince(pendingFocusNote.completedAt) > Self.focusNotePromptExpiry
+        else { return }
+        self.pendingFocusNote = nil
+    }
+
+    private func completeIntention(workEndDate: Date, detectedAt: Date) {
+        guard let intention else { return }
+        lastIntention = intention
+        lastIntentionDate = workEndDate
+        self.intention = nil
+        if detectedAt.timeIntervalSince(workEndDate) <= Self.focusNotePromptWindow {
+            pendingFocusNote = FocusNotePrompt(intention: intention, completedAt: workEndDate)
+        }
+        persistIntentions()
+    }
+
+    private func restoreIntentions() {
+        guard let defaults else { return }
+        intention = Self.normalizedIntention(defaults.string(forKey: Self.intentionKey))
+        lastIntention = Self.normalizedIntention(defaults.string(forKey: Self.lastIntentionKey))
+        lastIntentionDate = defaults.object(forKey: Self.lastIntentionDateKey) as? Date
+    }
+
+    private func persistIntentions() {
+        guard let defaults else { return }
+        defaults.set(intention, forKey: Self.intentionKey)
+        defaults.set(lastIntention, forKey: Self.lastIntentionKey)
+        defaults.set(lastIntentionDate, forKey: Self.lastIntentionDateKey)
+    }
+    #endif
 
     var phaseTotalSeconds: Int {
         (phase == .work ? preset.workMinutes : preset.restMinutes) * 60
@@ -284,6 +398,9 @@ final class PomodoroTimer {
 
         if phase == .work {
             onWorkSessionComplete?(endDate)
+            #if os(iOS)
+            completeIntention(workEndDate: endDate, detectedAt: currentDate)
+            #endif
             phase = .rest
             automaticTransitionCount += 1
             let restEnd = endDate.addingTimeInterval(TimeInterval(preset.restMinutes * 60))
@@ -513,7 +630,10 @@ final class PomodoroTimer {
             endDate: endDate,
             restEndDate: phase == .work
                 ? endDate.addingTimeInterval(TimeInterval(preset.restMinutes * 60))
-                : nil
+                : nil,
+            // A break is not the work it was for; the intention rides
+            // along with the work phase only.
+            intention: phase == .work ? intention : nil
         )
         let content = ActivityContent(state: state, staleDate: endDate)
         let alertConfiguration = alertsTransition

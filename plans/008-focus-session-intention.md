@@ -1,6 +1,6 @@
 # 008 — Give each focus session an intention and a closing note
 
-- **Status**: TODO
+- **Status**: DONE
 - **Severity**: MEDIUM
 - **Category**: Missed opportunity / product differentiation
 - **Estimated scope**: 7–9 files, about 320 lines including tests and localized strings

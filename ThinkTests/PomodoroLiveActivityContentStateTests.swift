@@ -24,6 +24,28 @@ struct PomodoroLiveActivityContentStateTests {
         #expect(state.startDate == endDate)
         #expect(state.endDate == endDate)
         #expect(state.restEndDate == nil)
+        // An activity encoded by 1.1.1 carries no intention key.
+        #expect(state.intention == nil)
+    }
+
+    @Test func contentStateRoundTripsAnIntention() throws {
+        let startDate = Date(timeIntervalSinceReferenceDate: 2_000)
+        let state = PomodoroActivityAttributes.ContentState(
+            phase: .work,
+            startDate: startDate,
+            endDate: startDate.addingTimeInterval(25 * 60),
+            restEndDate: startDate.addingTimeInterval(30 * 60),
+            intention: "Rewrite the sync codec"
+        )
+
+        let data = try JSONEncoder().encode(state)
+        let decoded = try JSONDecoder().decode(
+            PomodoroActivityAttributes.ContentState.self,
+            from: data
+        )
+
+        #expect(decoded == state)
+        #expect(decoded.intention == "Rewrite the sync codec")
     }
 
     @Test func staleWorkStateTransitionsToItsPreloadedBreak() {

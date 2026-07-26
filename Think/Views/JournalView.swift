@@ -10,6 +10,7 @@ struct JournalView: View {
     private enum Section: String, CaseIterable, Identifiable {
         case notes = "Notes"
         case questions = "Questions"
+        case focus = "Focus"
         case retros = "Retros"
 
         var id: String { rawValue }
@@ -18,7 +19,30 @@ struct JournalView: View {
             switch self {
             case .notes: String(localized: "Notes")
             case .questions: String(localized: "Questions")
+            case .focus: String(localized: "Focus")
             case .retros: String(localized: "Retros")
+            }
+        }
+
+        var entryKind: String? {
+            switch self {
+            case .notes: JournalEntry.kindNote
+            case .questions: JournalEntry.kindQuestion
+            case .focus: JournalEntry.kindFocus
+            case .retros: nil
+            }
+        }
+
+        var emptyMessage: String {
+            switch self {
+            case .notes:
+                String(localized: "Write anything on your mind. Tap + to start.")
+            case .questions:
+                String(localized: "Your answers to the daily question will appear here.")
+            case .focus:
+                String(localized: "Start a focus session with an intention and your closing notes will appear here.")
+            case .retros:
+                String(localized: "Close each day with two honest minutes. Your evening retrospectives will appear here.")
             }
         }
     }
@@ -34,7 +58,7 @@ struct JournalView: View {
     @State private var authenticating = false
 
     private var filtered: [JournalEntry] {
-        let kind = section == .notes ? JournalEntry.kindNote : JournalEntry.kindQuestion
+        guard let kind = section.entryKind else { return [] }
         return entries.filter { $0.kind == kind }
     }
 
@@ -102,11 +126,9 @@ struct JournalView: View {
             }
 
             switch section {
-            case .notes, .questions:
+            case .notes, .questions, .focus:
                 if filtered.isEmpty {
-                    Text(section == .notes
-                         ? String(localized: "Write anything on your mind. Tap + to start.")
-                         : String(localized: "Your answers to the daily question will appear here."))
+                    Text(section.emptyMessage)
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(filtered) { entry in
@@ -115,7 +137,7 @@ struct JournalView: View {
                 }
             case .retros:
                 if retros.isEmpty {
-                    Text("Close each day with two honest minutes. Your evening retrospectives will appear here.")
+                    Text(section.emptyMessage)
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(retros) { retro in
@@ -125,20 +147,24 @@ struct JournalView: View {
             }
         }
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    if section == .retros {
-                        composingRetro = true
-                    } else {
-                        composingNote = true
+            // No + under Focus: a focus note is written when a session
+            // ends, never composed from here.
+            if section != .focus {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        if section == .retros {
+                            composingRetro = true
+                        } else {
+                            composingNote = true
+                        }
+                    } label: {
+                        Image(systemName: "plus")
                     }
-                } label: {
-                    Image(systemName: "plus")
+                    .accessibilityLabel(section == .retros
+                                        ? String(localized: "New retrospective")
+                                        : String(localized: "New note"))
+                    .accessibilityIdentifier("NewNote")
                 }
-                .accessibilityLabel(section == .retros
-                                    ? String(localized: "New retrospective")
-                                    : String(localized: "New note"))
-                .accessibilityIdentifier("NewNote")
             }
         }
         .sheet(isPresented: $composingNote) {
