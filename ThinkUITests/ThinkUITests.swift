@@ -50,6 +50,38 @@ final class ThinkUITests: XCTestCase {
     }
 
     @MainActor
+    func testProfileShowsCloudBackupStatus() throws {
+        let app = launchApp()
+
+        app.tabBars.buttons.element(boundBy: 3).tap()
+
+        let row = app.descendants(matching: .any)["CloudBackup"]
+        XCTAssertTrue(row.waitForExistence(timeout: 2))
+        // UI tests run on a throwaway in-memory store, so the row must
+        // report the explicit off state and say entries stay on device.
+        XCTAssertTrue(row.label.contains("iCloud backup"))
+        XCTAssertTrue(row.label.contains("Off"))
+        XCTAssertTrue(row.label.contains("Entries stay on this device"))
+        XCTAssertFalse(row.label.contains("On —"))
+    }
+
+    @MainActor
+    func testMoodChipTogglesOnAndOff() throws {
+        let app = launchApp()
+
+        let chip = app.descendants(matching: .any)["Mood.steady"]
+        XCTAssertTrue(chip.waitForExistence(timeout: 3))
+        XCTAssertFalse(chip.isSelected)
+
+        chip.tap()
+        XCTAssertTrue(chip.isSelected)
+
+        // Tapping the selected chip clears it, so a mis-tap is never sticky.
+        chip.tap()
+        XCTAssertFalse(chip.isSelected)
+    }
+
+    @MainActor
     func testShareSheetShowsAvailableCardStyles() throws {
         let app = launchApp()
 

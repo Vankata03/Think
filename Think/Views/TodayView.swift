@@ -18,6 +18,7 @@ struct TodayView: View {
     @Query(sort: \DailyRetro.date, order: .reverse) private var retros: [DailyRetro]
 
     @State private var answer = ""
+    @State private var answerMood: Mood?
     @State private var showingShareCard = false
     @State private var showingRetro = false
     @State private var showingStreakCalendar = false
@@ -299,6 +300,8 @@ struct TodayView: View {
                 .background(Color(.tertiarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                 .accessibilityIdentifier("DailyQuestionInput")
 
+            MoodPicker(selection: $answerMood)
+
             Button {
                 saveAnswer()
             } label: {
@@ -444,10 +447,18 @@ struct TodayView: View {
     private func saveAnswer() {
         let text = answer.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
-        modelContext.insert(JournalEntry(prompt: question, text: text, kind: JournalEntry.kindQuestion))
+        modelContext.insert(
+            JournalEntry(
+                prompt: question,
+                text: text,
+                kind: JournalEntry.kindQuestion,
+                mood: answerMood
+            )
+        )
         progress.recordDailyQuestionAnswer()
         haptics.play(.success)
         answer = ""
+        answerMood = nil
         savedPulse = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.22) {
             savedPulse = false

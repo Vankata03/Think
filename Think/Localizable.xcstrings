@@ -1,6 +1,446 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Entries stay on this device. Think has no server and no account." : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Записите остават на това устройство. Think няма сървър и няма акаунт."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deine Einträge bleiben auf diesem Gerät. Think hat keinen Server und kein Konto."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tus entradas se quedan en este dispositivo. Think no tiene servidor ni cuenta."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tes entrées restent sur cet appareil. Think n'a ni serveur ni compte."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le tue voci restano su questo dispositivo. Think non ha né server né account."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suas anotações ficam neste aparelho. O Think não tem servidor nem conta."
+          }
+        }
+      }
+    },
+    "Flat" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Равно"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Flach"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plano"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plat"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Piatto"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neutro"
+          }
+        }
+      }
+    },
+    "Good" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добре"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gut"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bien"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bien"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bene"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bem"
+          }
+        }
+      }
+    },
+    "How is it going?" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Как върви?"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wie läuft es?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Cómo va?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comment ça va ?"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Come va?"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Como está indo?"
+          }
+        }
+      }
+    },
+    "Low" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ниско"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Niedrig"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bajo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bas"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Basso"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Baixo"
+          }
+        }
+      }
+    },
+    "Off — this session is not being saved. Restart Think." : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Изключено — тази сесия не се записва. Рестартирай Think."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aus – diese Sitzung wird nicht gespeichert. Starte Think neu."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desactivado: esta sesión no se está guardando. Reinicia Think."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Désactivé — cette session n'est pas enregistrée. Relance Think."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Non attivo — questa sessione non viene salvata. Riavvia Think."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desativado — esta sessão não está sendo salva. Reinicie o Think."
+          }
+        }
+      }
+    },
+    "On — new entries copy to your iCloud" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Включено — новите записи се копират в твоя iCloud"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ein – neue Einträge werden in deine iCloud kopiert"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activado: las entradas nuevas se copian a tu iCloud"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activé — les nouvelles entrées sont copiées vers ton iCloud"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Attivo — le nuove voci vengono copiate nel tuo iCloud"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ativado — novas anotações são copiadas para o seu iCloud"
+          }
+        }
+      }
+    },
+    "Sharp" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Изострено"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klar"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lúcido"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vif"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lucido"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aguçado"
+          }
+        }
+      }
+    },
+    "Steady" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Стабилно"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stabil"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estable"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stable"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stabile"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estável"
+          }
+        }
+      }
+    },
+    "This removes journal entries, retrospectives, streaks, achievements, and focus history from this device. Journal entries and retrospectives are also removed from your iCloud backup and any device signed into it; streaks, achievements, and focus history are on this device only. Mindful minutes already saved to Health stay in Health and can be deleted there. This cannot be undone." : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Това премахва записите в дневника, ретроспекциите, поредиците, постиженията и историята на фокус сесиите от това устройство. Записите в дневника и ретроспекциите се премахват и от твоето резервно копие в iCloud, както и от всяко устройство, влязло в него; поредиците, постиженията и историята на фокус сесиите са само на това устройство. Минутите за осъзнатост, вече запазени в Здраве, остават там и могат да бъдат изтрити от приложението. Действието не може да бъде отменено."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das entfernt Journaleinträge, Retrospektiven, Streaks, Erfolge und den Fokusverlauf von diesem Gerät. Journaleinträge und Retrospektiven werden auch aus deinem iCloud-Backup und von jedem dort angemeldeten Gerät entfernt; Streaks, Erfolge und Fokusverlauf liegen nur auf diesem Gerät. Bereits in Health gespeicherte Achtsamkeitsminuten bleiben dort und können dort gelöscht werden. Das lässt sich nicht rückgängig machen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esto elimina las entradas del diario, las retrospectivas, las rachas, los logros y el historial de sesiones de concentración de este dispositivo. Las entradas del diario y las retrospectivas también se eliminan de tu copia en iCloud y de cualquier dispositivo con esa sesión iniciada; las rachas, los logros y el historial están solo en este dispositivo. Los minutos de atención plena ya guardados en Salud permanecen allí y se pueden eliminar desde la app. No se puede deshacer."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cette action supprime les entrées du journal, les rétrospectives, les séries, les réussites et l’historique des sessions de concentration de cet appareil. Les entrées du journal et les rétrospectives sont aussi supprimées de ta sauvegarde iCloud et de tout appareil qui y est connecté ; les séries, les réussites et l’historique ne sont que sur cet appareil. Les minutes de pleine conscience déjà enregistrées dans Santé y restent et peuvent y être supprimées. Elle est irréversible."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questa operazione rimuove da questo dispositivo le voci del diario, le retrospettive, le serie, i traguardi e la cronologia delle sessioni di concentrazione. Le voci del diario e le retrospettive vengono rimosse anche dal tuo backup iCloud e da ogni dispositivo con cui hai eseguito l’accesso; serie, traguardi e cronologia restano solo su questo dispositivo. I minuti di mindfulness già salvati in Salute restano lì e possono essere eliminati dall’app. Non può essere annullata."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Isso remove deste aparelho as entradas do diário, retrospectivas, sequências, conquistas e o histórico de sessões de foco. As entradas do diário e as retrospectivas também são removidas do seu backup no iCloud e de qualquer aparelho conectado a ele; sequências, conquistas e histórico ficam apenas neste aparelho. Os minutos de atenção plena já salvos no app Saúde permanecem lá e podem ser apagados pelo app. Essa ação não pode ser desfeita."
+          }
+        }
+      }
+    },
+    "iCloud reported an error during the last backup" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud съобщи за грешка при последното архивиране"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud hat beim letzten Backup einen Fehler gemeldet"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud informó de un error en la última copia"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud a signalé une erreur lors de la dernière sauvegarde"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud ha segnalato un errore durante l'ultimo backup"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O iCloud informou um erro no último backup"
+          }
+        }
+      }
+    },
     "·" : {
 
     },
@@ -84,6 +524,52 @@
         }
       }
     },
+    "%@ — Earned" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ — Спечелено"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ — Erreicht"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ — Earned"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ — Conseguido"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ — Obtenu"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ — Ottenuto"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ — Conquistado"
+          }
+        }
+      }
+    },
     "%@ of deliberate thinking with Think — one honest question a day." : {
       "localizations" : {
         "bg" : {
@@ -120,52 +606,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ Pense de forma consciente com o Think — uma pergunta sincera por dia."
-          }
-        }
-      }
-    },
-    "%@: %lld" : {
-      "localizations" : {
-        "bg" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$@: %2$lld"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$@: %2$lld"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$@: %2$lld"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$@: %2$lld"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$@: %2$lld"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$@: %2$lld"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$@: %2$lld"
           }
         }
       }
@@ -220,6 +660,52 @@
         }
       }
     },
+    "%@: %lld" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@: %2$lld"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@: %2$lld"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@: %2$lld"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@: %2$lld"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@: %2$lld"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@: %2$lld"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@: %2$lld"
+          }
+        }
+      }
+    },
     "%@. One short lesson and one concrete task per day, ten minutes at most." : {
       "localizations" : {
         "bg" : {
@@ -256,52 +742,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@. Uma lição curta e uma tarefa concreta por dia, no máximo dez minutos."
-          }
-        }
-      }
-    },
-    "%@ — Earned" : {
-      "localizations" : {
-        "bg" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ — Спечелено"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ — Erreicht"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ — Earned"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ — Conseguido"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ — Obtenu"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ — Ottenuto"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ — Conquistado"
           }
         }
       }
@@ -2031,6 +2471,46 @@
         }
       }
     },
+    "Checking…" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Проверява се…"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wird geprüft …"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comprobando…"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vérification…"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Controllo in corso…"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verificando…"
+          }
+        }
+      }
+    },
     "Clay" : {
       "localizations" : {
         "bg" : {
@@ -3267,6 +3747,46 @@
         }
       }
     },
+    "Entries stay in your own iCloud. Think has no server and no account." : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Записите остават в твоя iCloud. Think няма сървър и няма акаунт."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deine Einträge bleiben in deiner eigenen iCloud. Think hat keinen Server und kein Konto."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tus entradas se quedan en tu propio iCloud. Think no tiene servidor ni cuenta."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tes entrées restent dans ton propre iCloud. Think n'a ni serveur ni compte."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le tue voci restano nel tuo iCloud. Think non ha né server né account."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suas anotações ficam no seu próprio iCloud. O Think não tem servidor nem conta."
+          }
+        }
+      }
+    },
     "Evening retrospective" : {
       "localizations" : {
         "bg" : {
@@ -4007,6 +4527,86 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Como foi o dia? Encerre-o com sinceridade antes que ele termine por conta própria."
+          }
+        }
+      }
+    },
+    "iCloud backup" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Резервно копие в iCloud"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud-Backup"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copia en iCloud"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sauvegarde iCloud"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backup su iCloud"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backup no iCloud"
+          }
+        }
+      }
+    },
+    "iCloud is restricted on this device" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud е ограничен на това устройство"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud ist auf diesem Gerät eingeschränkt"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud está restringido en este dispositivo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud est restreint sur cet appareil"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud è limitato su questo dispositivo"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O iCloud está restrito neste aparelho"
           }
         }
       }
@@ -4791,6 +5391,46 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Desativado"
+          }
+        }
+      }
+    },
+    "Off — turn on iCloud Drive for Think in Settings" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Изключено — включи iCloud Drive за Think в Настройки"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aus – aktiviere iCloud Drive für Think in den Einstellungen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desactivado: activa iCloud Drive para Think en Ajustes"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Désactivé — active iCloud Drive pour Think dans Réglages"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Non attivo — attiva iCloud Drive per Think in Impostazioni"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desativado — ative o iCloud Drive para o Think em Ajustes"
           }
         }
       }
@@ -6426,6 +7066,52 @@
         }
       }
     },
+    "Scroll for more" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Превърти за още"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Für mehr scrollen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scroll for more"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desplázate para ver más"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fais défiler pour en voir plus"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scorri per vedere altro"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Role para ver mais"
+          }
+        }
+      }
+    },
     "Session complete" : {
       "localizations" : {
         "bg" : {
@@ -6786,52 +7472,6 @@
         }
       }
     },
-    "Scroll for more" : {
-      "localizations" : {
-        "bg" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Превърти за още"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Für mehr scrollen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Scroll for more"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Desplázate para ver más"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fais défiler pour en voir plus"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Scorri per vedere altro"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Role para ver mais"
-          }
-        }
-      }
-    },
     "Share export" : {
       "localizations" : {
         "bg" : {
@@ -6994,6 +7634,46 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mostra seu calendário de sequências"
+          }
+        }
+      }
+    },
+    "Signed out of iCloud" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не си влязъл в iCloud"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nicht bei iCloud angemeldet"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No has iniciado sesión en iCloud"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Non connecté à iCloud"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Non hai eseguito l'accesso a iCloud"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Você não está conectado ao iCloud"
           }
         }
       }
@@ -7989,6 +8669,7 @@
       }
     },
     "This removes journal entries, retrospectives, streaks, achievements, and focus history from this device. Mindful minutes already saved to Health stay in Health and can be deleted there. This cannot be undone." : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {

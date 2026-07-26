@@ -18,6 +18,7 @@ struct RetroSheet: View {
     @State private var wentWell = ""
     @State private var improve = ""
     @State private var tomorrow = ""
+    @State private var mood: Mood?
     @State private var loaded = false
 
     private var todaysRetro: DailyRetro? {
@@ -36,6 +37,8 @@ struct RetroSheet: View {
                     Text("Two honest minutes. Skip anything that doesn't apply.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
+
+                    MoodPicker(selection: $mood)
 
                     retroField(
                         "What went well?",
@@ -113,6 +116,7 @@ struct RetroSheet: View {
             wentWell = retro.wentWell
             improve = retro.improve
             tomorrow = retro.tomorrow
+            mood = Mood(stored: retro.mood)
         }
     }
 
@@ -126,8 +130,11 @@ struct RetroSheet: View {
             retro.wentWell = well
             retro.improve = better
             retro.tomorrow = next
+            retro.mood = mood?.rawValue
         } else {
-            modelContext.insert(DailyRetro(wentWell: well, improve: better, tomorrow: next))
+            modelContext.insert(
+                DailyRetro(wentWell: well, improve: better, tomorrow: next, mood: mood)
+            )
         }
         progress.markTodayComplete()
         haptics.play(.success)
