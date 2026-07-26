@@ -23,7 +23,7 @@ Feature wave after the 1.1 platform release. No paywall or Pro gating in this ba
 | 008 | Give each focus session an intention and a closing note | MEDIUM | DONE | — |
 | 009 | Let people keep the lines that land | MEDIUM | DONE | — |
 | 010 | Tag entries with a mood | LOW | DONE | 006 |
-| 011 | Let the evening retrospective reminder through Focus modes | LOW | TODO | — |
+| 011 | Let the evening retrospective reminder through Focus modes | LOW | DONE | — |
 
 Recommended execution order: 006 → 010 → 007 → 008 → 009 → 011.
 

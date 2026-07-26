@@ -1,6 +1,6 @@
 # 011 — Let the evening retrospective reminder through Focus modes
 
-- **Status**: TODO
+- **Status**: DONE
 - **Severity**: LOW
 - **Category**: Missed opportunity
 - **Estimated scope**: 2–3 files, about 40 lines including tests
