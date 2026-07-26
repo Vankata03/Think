@@ -100,9 +100,12 @@ struct JournalView: View {
 
     private func entryRow(_ entry: JournalEntry) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(entry.date.formatted(date: .abbreviated, time: .shortened))
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            HStack(spacing: 6) {
+                Text(entry.date.formatted(date: .abbreviated, time: .shortened))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                moodBadge(Mood(stored: entry.mood))
+            }
             if !entry.prompt.isEmpty {
                 Text(entry.prompt)
                     .font(.subheadline.weight(.medium))
@@ -116,14 +119,27 @@ struct JournalView: View {
 
     private func retroRow(_ retro: DailyRetro) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(retro.date.formatted(date: .abbreviated, time: .omitted))
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            HStack(spacing: 6) {
+                Text(retro.date.formatted(date: .abbreviated, time: .omitted))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                moodBadge(Mood(stored: retro.mood))
+            }
             retroSection("Went well", systemImage: "checkmark.circle", text: retro.wentWell)
             retroSection("Improve", systemImage: "arrow.up.circle", text: retro.improve)
             retroSection("Tomorrow", systemImage: "sunrise", text: retro.tomorrow)
         }
         .padding(.vertical, 4)
+    }
+
+    @ViewBuilder
+    private func moodBadge(_ mood: Mood?) -> some View {
+        if let mood {
+            Label(mood.label, systemImage: mood.systemImage)
+                .font(.caption)
+                .foregroundStyle(Color.accentColor)
+                .accessibilityLabel(mood.label)
+        }
     }
 
     @ViewBuilder
@@ -147,6 +163,7 @@ private struct NewNoteSheet: View {
     @Environment(ProgressStore.self) private var progress
 
     @State private var text = ""
+    @State private var mood: Mood?
 
     var body: some View {
         NavigationStack {
@@ -154,6 +171,8 @@ private struct NewNoteSheet: View {
                 Text("Capture the thought while it is still clear.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
+
+                MoodPicker(selection: $mood)
 
                 ZStack(alignment: .topLeading) {
                     TextEditor(text: $text)
@@ -201,7 +220,9 @@ private struct NewNoteSheet: View {
     private func save() {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
-        modelContext.insert(JournalEntry(prompt: "", text: trimmed, kind: JournalEntry.kindNote))
+        modelContext.insert(
+            JournalEntry(prompt: "", text: trimmed, kind: JournalEntry.kindNote, mood: mood)
+        )
         progress.markTodayComplete()
         haptics.play(.success)
         dismiss()

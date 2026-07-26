@@ -19,8 +19,10 @@ struct JournalEntryTests {
     }
 
     @Test func journalEntriesPersistInInMemorySwiftDataContainer() throws {
-        let configuration = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try ModelContainer(for: JournalEntry.self, configurations: configuration)
+        let container = try ModelContainer(
+            for: JournalDataStore.schema,
+            configurations: JournalDataStore.configuration(for: .inMemory)
+        )
         let context = ModelContext(container)
         let entry = JournalEntry(prompt: "", text: "A private note.", kind: JournalEntry.kindNote)
 

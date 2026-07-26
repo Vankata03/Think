@@ -11,17 +11,24 @@ final class JournalEntry {
     static let kindQuestion = "question"
     static let kindNote = "note"
 
-    var date: Date
-    var prompt: String
-    var text: String
-    // Default keeps existing stores migrating cleanly; entries written
+    // CloudKit mirroring requires every attribute to be optional or carry a
+    // default value, so all four are defaulted even though the initializer
+    // always supplies them.
+    var date: Date = Date()
+    var prompt: String = ""
+    var text: String = ""
+    // Default also keeps existing stores migrating cleanly; entries written
     // before the split were all daily-question answers.
     var kind: String = JournalEntry.kindQuestion
+    /// Raw `Mood` value, or nil when the entry is untagged. Stored as a
+    /// string so an unrecognised value reads back as untagged.
+    var mood: String?
 
-    init(date: Date = .now, prompt: String, text: String, kind: String) {
+    init(date: Date = .now, prompt: String, text: String, kind: String, mood: Mood? = nil) {
         self.date = date
         self.prompt = prompt
         self.text = text
         self.kind = kind
+        self.mood = mood?.rawValue
     }
 }

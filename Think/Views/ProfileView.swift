@@ -42,6 +42,7 @@ private enum ProfileSheetDestination: String, Identifiable {
 struct ProfileView: View {
     @Environment(ProgressStore.self) private var progress
     @Environment(MindfulMinutesStore.self) private var mindfulMinutes
+    @Environment(CloudBackupState.self) private var cloudBackup
     @Environment(\.modelContext) private var modelContext
     @Environment(\.haptics) private var haptics
     @Environment(\.openURL) private var openURL
@@ -88,6 +89,7 @@ struct ProfileView: View {
                     header
                     progressPanel
                     journalPanel
+                    cloudBackupPanel
                     settingsPanel
                     feedbackPanel
                     privacyPanel
@@ -145,7 +147,7 @@ struct ProfileView: View {
                 }
                 Button("Cancel", role: .cancel) { }
             } message: {
-                Text("This removes journal entries, retrospectives, streaks, achievements, and focus history from this device. Mindful minutes already saved to Health stay in Health and can be deleted there. This cannot be undone.")
+                Text("This removes journal entries, retrospectives, streaks, achievements, and focus history from this device — and from your iCloud backup, and any other device signed into it, when backup is on. Mindful minutes already saved to Health stay in Health and can be deleted there. This cannot be undone.")
             }
             .alert("Delete failed", isPresented: $showingDeleteError) {
                 Button("OK", role: .cancel) { }
@@ -238,6 +240,38 @@ struct ProfileView: View {
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("Journal")
+    }
+
+    /// Status only. Mirroring is decided when the SwiftData container is
+    /// built, so iCloud settings — not an in-app switch — turn backup on
+    /// and off.
+    private var cloudBackupPanel: some View {
+        HStack(spacing: 14) {
+            Image(systemName: cloudBackup.status.systemImage)
+                .font(.title3)
+                .foregroundStyle(Color.accentColor)
+                .frame(width: 32)
+            VStack(alignment: .leading, spacing: 3) {
+                Text("iCloud backup")
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+                Text(cloudBackup.status.summary)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                Text("Entries stay in your own iCloud. Think has no server and no account.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(14)
+        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .stroke(.separator.opacity(0.6), lineWidth: 1)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("CloudBackup")
     }
 
     private var privacyPanel: some View {
@@ -649,5 +683,6 @@ private struct AdaptiveSwitchToggleStyle: ToggleStyle {
     ProfileView()
         .environment(ProgressStore())
         .environment(MindfulMinutesStore(client: UnavailableMindfulHealthClient()))
+        .environment(CloudBackupState(storage: .inMemory))
         .modelContainer(for: [JournalEntry.self, DailyRetro.self], inMemory: true)
 }

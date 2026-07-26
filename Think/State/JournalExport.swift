@@ -11,6 +11,7 @@ struct JournalExport {
         let prompt: String
         let text: String
         let kind: String
+        let mood: Mood?
     }
 
     struct Retrospective {
@@ -18,6 +19,7 @@ struct JournalExport {
         let wentWell: String
         let improve: String
         let tomorrow: String
+        let mood: Mood?
     }
 
     let exportedAt: Date
@@ -27,14 +29,21 @@ struct JournalExport {
     init(entries: [JournalEntry], retrospectives: [DailyRetro], exportedAt: Date = .now) {
         self.exportedAt = exportedAt
         self.entries = entries.map {
-            Entry(date: $0.date, prompt: $0.prompt, text: $0.text, kind: $0.kind)
+            Entry(
+                date: $0.date,
+                prompt: $0.prompt,
+                text: $0.text,
+                kind: $0.kind,
+                mood: Mood(stored: $0.mood)
+            )
         }
         self.retrospectives = retrospectives.map {
             Retrospective(
                 date: $0.date,
                 wentWell: $0.wentWell,
                 improve: $0.improve,
-                tomorrow: $0.tomorrow
+                tomorrow: $0.tomorrow,
+                mood: Mood(stored: $0.mood)
             )
         }
     }
@@ -83,6 +92,9 @@ struct JournalExport {
 
         blocks.append(contentsOf: sortedEntries.map { entry in
             var lines = [dateFormatter.string(from: entry.date)]
+            if let mood = entry.mood {
+                lines.append("Mood: \(mood.label)")
+            }
             if entry.kind == JournalEntry.kindQuestion {
                 if !entry.prompt.isEmpty {
                     lines.append("Prompt: \(entry.prompt)")
@@ -107,12 +119,16 @@ struct JournalExport {
         }
 
         blocks.append(contentsOf: sortedRetrospectives.map { retrospective in
-            [
-                dateFormatter.string(from: retrospective.date),
+            var lines = [dateFormatter.string(from: retrospective.date)]
+            if let mood = retrospective.mood {
+                lines.append("Mood: \(mood.label)")
+            }
+            lines.append(contentsOf: [
                 "What went well:\n\(retrospective.wentWell)",
                 "What could improve:\n\(retrospective.improve)",
                 "Tomorrow:\n\(retrospective.tomorrow)",
-            ].joined(separator: "\n\n")
+            ])
+            return lines.joined(separator: "\n\n")
         })
 
         return blocks.joined(separator: "\n\n----------------------------------------\n\n")

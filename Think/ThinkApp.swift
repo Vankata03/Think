@@ -31,13 +31,19 @@ struct ThinkApp: App {
     @State private var timer: PomodoroTimer
     @State private var syncCoordinator: SyncCoordinator
     @State private var mindfulMinutes: MindfulMinutesStore
+    @State private var cloudBackup: CloudBackupState
     @AppStorage(Appearance.storageKey) private var appearance = Appearance.dark
     @AppStorage(Onboarding.completedKey) private var completedOnboarding = false
     private let isUITesting: Bool
+    private let journalContainer: ModelContainer
 
     init() {
-        isUITesting = ProcessInfo.processInfo.arguments.contains("-ui-testing")
+        let isUITesting = ProcessInfo.processInfo.arguments.contains("-ui-testing")
+        self.isUITesting = isUITesting
         Self.prepareApplicationSupportDirectory()
+        let journalStore = Self.makeJournalStore(isUITesting: isUITesting)
+        journalContainer = journalStore.container
+        _cloudBackup = State(initialValue: CloudBackupState(storage: journalStore.storage))
         let appGroupDefaults = SharedDefaults.appGroup()
         if isUITesting, let bundleIdentifier = Bundle.main.bundleIdentifier {
             UserDefaults.standard.removePersistentDomain(forName: bundleIdentifier)
@@ -114,6 +120,32 @@ struct ThinkApp: App {
         }
     }
 
+    /// Opens the journal store, degrading to an in-memory store only when
+    /// every on-disk candidate fails. Launching without a journal is worse
+    /// than launching with a temporary one.
+    private static func makeJournalStore(isUITesting: Bool) -> JournalDataStore.Result {
+        do {
+            return try JournalDataStore.makeContainer(isUITesting: isUITesting)
+        } catch {
+            let onDiskError = error
+            do {
+                let container = try ModelContainer(
+                    for: JournalDataStore.schema,
+                    configurations: JournalDataStore.configuration(for: .inMemory)
+                )
+                return JournalDataStore.Result(container: container, storage: .inMemory)
+            } catch {
+                fatalError(
+                    """
+                    Unable to open the journal store.
+                    On-disk: \(onDiskError)
+                    In-memory: \(error)
+                    """
+                )
+            }
+        }
+    }
+
     private static func prepareApplicationSupportDirectory() {
         guard let applicationSupportURL = FileManager.default.urls(
             for: .applicationSupportDirectory,
@@ -142,7 +174,9 @@ struct ThinkApp: App {
             .environment(syncCoordinator)
             .environment(AppIntentRouter.shared)
             .environment(mindfulMinutes)
+            .environment(cloudBackup)
             .environment(\.haptics, .live)
+            .task { await cloudBackup.refresh() }
             .modifier(AchievementUnlockModifier(progress: progress, isEnabled: !isUITesting))
             .preferredColorScheme(appearance.colorScheme)
             .animation(.easeInOut(duration: 0.3), value: completedOnboarding)
@@ -155,7 +189,7 @@ struct ThinkApp: App {
                 RetroReminder.refreshSchedule()
             }
         }
-        .modelContainer(for: [JournalEntry.self, DailyRetro.self], inMemory: isUITesting)
+        .modelContainer(journalContainer)
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
                 timer.resync()
@@ -164,6 +198,11 @@ struct ThinkApp: App {
                 DailyQuoteNotifier.refreshSchedule()
                 Task {
                     await mindfulMinutes.drainPendingSessions()
+                }
+                Task {
+                    // The account can change while the app sits in the
+                    // background.
+                    await cloudBackup.refresh()
                 }
             }
         }
