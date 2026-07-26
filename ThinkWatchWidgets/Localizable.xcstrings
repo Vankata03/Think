@@ -1,446 +1,449 @@
 {
-  "sourceLanguage": "en",
-  "strings": {
-    "%lld": {
-      "localizations": {
-        "bg": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld"
+  "sourceLanguage" : "en",
+  "strings" : {
+    "%lld" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld"
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld"
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
           }
         },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld"
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
           }
         }
       }
     },
-    "%lld-day streak": {
-      "localizations": {
-        "bg": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld дни поред"
+    "%lld-day streak" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld дни поред"
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld Tage in Folge"
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld Tage in Folge"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld días seguidos"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld días seguidos"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld jours d’affilée"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld jours d’affilée"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld giorni consecutivi"
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld giorni consecutivi"
           }
         },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld dias seguidos"
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld dias seguidos"
           }
         }
       }
     },
-    "1-day streak": {
-      "localizations": {
-        "bg": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "1 ден поред"
+    "1-day streak" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 ден поред"
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "1 Tag in Folge"
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 Tag in Folge"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "1 día seguido"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 día seguido"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "1 jour d’affilée"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 jour d’affilée"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "1 giorno consecutivo"
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 giorno consecutivo"
           }
         },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "1 dia seguido"
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 dia seguido"
           }
         }
       }
     },
-    "Begin today": {
-      "localizations": {
-        "bg": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Започни днес"
+    "Begin today" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Започни днес"
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fang noch heute an"
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fang noch heute an"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Empieza hoy mismo"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Empieza hoy mismo"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Commence dès aujourd’hui"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Commence dès aujourd’hui"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inizia oggi stesso"
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inizia oggi stesso"
           }
         },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Comece hoje mesmo"
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comece hoje mesmo"
           }
         }
       }
     },
-    "Streak": {
-      "localizations": {
-        "bg": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Серия"
+    "break" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "почивка"
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Serie"
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pause"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Racha"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "descanso"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Série"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "pause"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Serie"
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "pausa"
           }
         },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sequência"
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "pausa"
           }
         }
       }
     },
-    "Think": {
-      "localizations": {
-        "bg": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Think"
+    "day streak" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ден поред"
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Think"
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tag in Folge"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Think"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "día seguido"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Think"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "jour d’affilée"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Think"
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "giorno consecutivo"
           }
         },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Think"
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "dia seguido"
           }
         }
       }
     },
-    "Your Think practice streak, on the watch face.": {
-      "localizations": {
-        "bg": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Поредицата ти в Think, на циферблата."
+    "days streak" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "дни поред"
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Deine Think-Serie auf dem Zifferblatt."
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tage in Folge"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tu racha de uso de Think, en la esfera del reloj."
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "días seguidos"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ta série de séances Think, affichée sur le cadran de ta montre."
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "jours d’affilée"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La tua serie di sessioni consecutive su Think, sul quadrante dell’orologio."
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "giorni consecutivi"
           }
         },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sua sequência de dias de uso do Think, no mostrador do relógio."
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "dias seguidos"
           }
         }
       }
     },
-    "break": {
-      "localizations": {
-        "bg": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "почивка"
+    "deep work" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "дълбока работа"
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pause"
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deep Work"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "descanso"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "trabajo profundo"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "pause"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "travail en profondeur"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "pausa"
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "lavoro profondo"
           }
         },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "pausa"
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "trabalho profundo"
           }
         }
       }
     },
-    "day streak": {
-      "localizations": {
-        "bg": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ден поред"
+    "Streak" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Серия"
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tag in Folge"
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serie"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "día seguido"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Racha"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "jour d’affilée"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Série"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "giorno consecutivo"
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serie"
           }
         },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "dia seguido"
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sequência"
           }
         }
       }
     },
-    "days streak": {
-      "localizations": {
-        "bg": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "дни поред"
+    "Think" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Think"
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tage in Folge"
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Think"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "días seguidos"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Think"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "jours d’affilée"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Think"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "giorni consecutivi"
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Think"
           }
         },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "dias seguidos"
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Think"
           }
         }
       }
     },
-    "deep work": {
-      "localizations": {
-        "bg": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "дълбока работа"
+    "Your Think practice streak, on the watch face." : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поредицата ти в Think, на циферблата."
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Deep Work"
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deine Think-Serie auf dem Zifferblatt."
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "trabajo profundo"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu racha de uso de Think, en la esfera del reloj."
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "travail en profondeur"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ta série de séances Think, affichée sur le cadran de ta montre."
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "lavoro profondo"
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La tua serie di sessioni consecutive su Think, sul quadrante dell’orologio."
           }
         },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "trabalho profundo"
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sua sequência de dias de uso do Think, no mostrador do relógio."
           }
         }
       }
     }
   },
-  "version": "1.3"
+  "version" : "1.3"
 }

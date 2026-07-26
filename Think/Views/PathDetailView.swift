@@ -8,6 +8,7 @@ import SwiftUI
 struct PathDetailView: View {
     let path: ThinkingPath
     @Environment(ProgressStore.self) private var progress
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.haptics) private var haptics
 
@@ -45,7 +46,9 @@ struct PathDetailView: View {
                     }
                     Button {
                         guard progress.canCompletePathStepToday else { return }
-                        progress.completePathStep()
+                        withAnimation(ThinkMotion.stateAnimation(reduceMotion: reduceMotion)) {
+                            progress.completePathStep()
+                        }
                         haptics.play(.success)
                     } label: {
                         Text(progress.canCompletePathStepToday
@@ -59,11 +62,13 @@ struct PathDetailView: View {
                     .tint(.accentColor)
                     .disabled(!progress.canCompletePathStepToday)
                 }
+                .transition(ThinkMotion.stateTransition(reduceMotion: reduceMotion))
             } else {
                 Section {
                     Label("Path completed. Begin again anytime.", systemImage: "checkmark.seal.fill")
                         .foregroundStyle(.green)
                 }
+                .transition(ThinkMotion.stateTransition(reduceMotion: reduceMotion))
             }
 
             Section("All days") {
@@ -71,6 +76,7 @@ struct PathDetailView: View {
                     HStack {
                         Image(systemName: icon(for: step))
                             .foregroundStyle(step.id <= completed ? .green : .secondary)
+                            .contentTransition(reduceMotion ? .opacity : .symbolEffect(.replace))
                         Text("Day \(step.id) — \(step.title)")
                             .font(.subheadline)
                             .foregroundStyle(step.id <= completed + 1 ? .primary : .secondary)

@@ -28,10 +28,12 @@ struct MonthGrid {
 
 struct StreakCalendarSheet: View {
     @Environment(ProgressStore.self) private var progress
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dismiss) private var dismiss
     @Environment(\.haptics) private var haptics
 
     @State private var displayedMonth = Date.now
+    @State private var monthShift = 0
     @State private var showingShare = false
 
     private let calendar = Calendar.current
@@ -97,7 +99,23 @@ struct StreakCalendarSheet: View {
     private var calendarCard: some View {
         let grid = MonthGrid(containing: displayedMonth, calendar: calendar)
 
-        return VStack(spacing: 16) {
+        return ZStack {
+            calendarMonthContent(grid)
+                .id(grid.monthStart)
+                .transition(monthTransition)
+        }
+        .padding(18)
+        .frame(maxWidth: .infinity)
+        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .stroke(.separator.opacity(0.6), lineWidth: 1)
+        }
+    }
+
+    private func calendarMonthContent(_ grid: MonthGrid) -> some View {
+        VStack(spacing: 16) {
             monthHeader
             HStack {
                 ForEach(Array(grid.weekdaySymbols.enumerated()), id: \.offset) { _, symbol in
@@ -116,12 +134,16 @@ struct StreakCalendarSheet: View {
                 }
             }
         }
-        .padding(18)
-        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .stroke(.separator.opacity(0.6), lineWidth: 1)
-        }
+    }
+
+    private var monthTransition: AnyTransition {
+        guard !reduceMotion else { return .opacity }
+        let insertion: Edge = monthShift < 0 ? .leading : .trailing
+        let removal: Edge = monthShift < 0 ? .trailing : .leading
+        return .asymmetric(
+            insertion: .move(edge: insertion).combined(with: .opacity),
+            removal: .move(edge: removal).combined(with: .opacity)
+        )
     }
 
     private var monthHeader: some View {
@@ -195,7 +217,10 @@ struct StreakCalendarSheet: View {
 
     private func shiftMonth(by value: Int) {
         if let shifted = calendar.date(byAdding: .month, value: value, to: displayedMonth) {
-            displayedMonth = shifted
+            monthShift = value
+            withAnimation(reduceMotion ? ThinkMotion.reduced : ThinkMotion.move) {
+                displayedMonth = shifted
+            }
         }
     }
 

@@ -9,7 +9,11 @@ struct StreakAchievementsSheet: View {
     @Environment(ProgressStore.self) private var progress
     @Environment(\.dismiss) private var dismiss
     @Environment(\.haptics) private var haptics
-    @State private var selectedMilestone: StreakMilestone?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var selectedAchievement: ProgressAchievement?
+    @State private var canScroll = false
+    @State private var hasScrolled = false
+    @State private var scrollHintOffset: CGFloat = 0
 
     private let columns = [
         GridItem(.adaptive(minimum: 120), spacing: 14),
@@ -23,13 +27,54 @@ struct StreakAchievementsSheet: View {
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
 
-                    LazyVGrid(columns: columns, spacing: 14) {
-                        ForEach(StreakMilestone.allCases) { milestone in
-                            achievementCell(for: milestone)
-                        }
-                    }
+                    achievementSection("Streak", achievements: ProgressAchievement.streakMilestones)
+                    achievementSection("Paths", achievements: ProgressAchievement.pathMilestones)
+                    achievementSection("Focus sessions", achievements: ProgressAchievement.focusMilestones)
                 }
                 .padding(20)
+            }
+            .onScrollGeometryChange(for: Bool.self) { geometry in
+                geometry.contentSize.height > geometry.containerSize.height + 1
+            } action: { _, canScroll in
+                self.canScroll = canScroll
+            }
+            .onScrollGeometryChange(for: Bool.self) { geometry in
+                geometry.contentOffset.y + geometry.contentInsets.top > 8
+            } action: { _, didScroll in
+                guard didScroll, !hasScrolled else { return }
+                withAnimation(.easeOut(duration: 0.18)) {
+                    hasScrolled = true
+                }
+            }
+            .overlay(alignment: .bottom) {
+                if canScroll, !hasScrolled {
+                    Label("Scroll for more", systemImage: "chevron.down")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 9)
+                        .background(.regularMaterial, in: Capsule())
+                        .shadow(color: .black.opacity(0.08), radius: 8, y: 3)
+                        .offset(y: scrollHintOffset)
+                        .padding(.bottom, 10)
+                        .allowsHitTesting(false)
+                        .transition(
+                            reduceMotion
+                                ? .opacity
+                                : .opacity.combined(with: .move(edge: .bottom))
+                        )
+                        .task {
+                            guard !reduceMotion else { return }
+                            do {
+                                try await Task.sleep(for: .milliseconds(350))
+                            } catch {
+                                return
+                            }
+                            withAnimation(.easeInOut(duration: 0.55).repeatCount(2, autoreverses: true)) {
+                                scrollHintOffset = 5
+                            }
+                        }
+                }
             }
             .background(Color(.systemGroupedBackground).ignoresSafeArea())
             .navigationTitle("Achievements")
@@ -41,55 +86,88 @@ struct StreakAchievementsSheet: View {
             }
         }
         .presentationDetents([.medium, .large])
-        .sheet(item: $selectedMilestone) { milestone in
-            StreakShareSheet(month: .now, milestone: milestone)
+        .sheet(item: $selectedAchievement) { achievement in
+            switch achievement {
+            case .streak(let milestone):
+                StreakShareSheet(month: .now, milestone: milestone)
+            case .path, .focus:
+                AchievementShareSheet(achievement: achievement)
+            }
         }
     }
 
     @ViewBuilder
-    private func achievementCell(for milestone: StreakMilestone) -> some View {
-        if progress.hasEarned(milestone) {
+    private func achievementCell(for achievement: ProgressAchievement) -> some View {
+        let isEarned = progress.hasEarned(achievement)
+        if isEarned {
             Button {
                 haptics.play(.selection)
-                selectedMilestone = milestone
+                selectedAchievement = achievement
             } label: {
-                badge(for: milestone, isEarned: true)
+                badge(for: achievement, isEarned: true)
             }
             .buttonStyle(.plain)
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel(streakLabel(for: milestone))
+            .accessibilityLabel(achievement.localizedLabel)
             .accessibilityValue("Earned")
-            .accessibilityHint("Opens milestone share card")
+            .accessibilityHint("Share")
         } else {
-            badge(for: milestone, isEarned: false)
+            badge(for: achievement, isEarned: isEarned)
                 .accessibilityElement(children: .ignore)
-                .accessibilityLabel(streakLabel(for: milestone))
-                .accessibilityValue("Locked")
-                .accessibilityHint(
-                    String(localized: "Reach a \(milestone.rawValue)-day streak to unlock")
+                .accessibilityLabel(achievement.localizedLabel)
+                .accessibilityValue(
+                    isEarned ? String(localized: "Earned") : String(localized: "Locked")
                 )
+                .accessibilityHint(isEarned ? "" : unlockHint(for: achievement))
         }
     }
 
-    private func badge(for milestone: StreakMilestone, isEarned: Bool) -> some View {
+    private func achievementSection(
+        _ title: LocalizedStringKey,
+        achievements: [ProgressAchievement]
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(title)
+                .font(.headline)
+                .accessibilityAddTraits(.isHeader)
+
+            LazyVGrid(columns: columns, spacing: 14) {
+                ForEach(achievements) { achievement in
+                    achievementCell(for: achievement)
+                }
+            }
+        }
+    }
+
+    private func badge(for achievement: ProgressAchievement, isEarned: Bool) -> some View {
         VStack(spacing: 12) {
             ZStack {
                 Circle()
                     .fill(isEarned ? Color.accentColor.opacity(0.16) : Color(.tertiarySystemFill))
-                Image(systemName: isEarned ? "medal.fill" : "medal")
+                Image(systemName: isEarned ? achievement.icon : lockedIcon(for: achievement))
                     .font(.system(size: 42, weight: .semibold))
                     .foregroundStyle(isEarned ? Color.accentColor : Color.secondary.opacity(0.55))
             }
             .frame(width: 82, height: 82)
 
-            Text(milestone.rawValue, format: .number)
+            Text(achievement.target, format: .number)
                 .font(.system(.title2, design: .rounded).weight(.bold))
                 .monospacedDigit()
                 .foregroundStyle(isEarned ? Color.primary : Color.secondary)
 
-            Text(isEarned ? String(localized: "Earned") : String(localized: "Locked"))
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(isEarned ? Color.accentColor : Color.secondary)
+            Text(categoryLabel(for: achievement))
+                .font(.caption.weight(.medium))
+                .foregroundStyle(.secondary)
+
+            HStack(spacing: 6) {
+                Text(isEarned ? String(localized: "Earned") : String(localized: "Locked"))
+                if isEarned {
+                    Image(systemName: "square.and.arrow.up")
+                        .accessibilityHidden(true)
+                }
+            }
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(isEarned ? Color.accentColor : Color.secondary)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 18)
@@ -108,8 +186,28 @@ struct StreakAchievementsSheet: View {
         .contentShape(Rectangle())
     }
 
-    private func streakLabel(for milestone: StreakMilestone) -> String {
-        String(localized: "\(milestone.rawValue) day streak")
+    private func categoryLabel(for achievement: ProgressAchievement) -> String {
+        achievement.localizedCategory
+    }
+
+    private func unlockHint(for achievement: ProgressAchievement) -> String {
+        switch achievement {
+        case .streak(let milestone):
+            String(localized: "Reach a \(milestone.rawValue)-day streak to unlock")
+        case .path, .focus:
+            ""
+        }
+    }
+
+    private func lockedIcon(for achievement: ProgressAchievement) -> String {
+        switch achievement {
+        case .streak:
+            "medal"
+        case .path:
+            "point.topleft.down.to.point.bottomright.curvepath"
+        case .focus:
+            "timer"
+        }
     }
 }
 

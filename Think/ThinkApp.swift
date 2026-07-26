@@ -11,6 +11,19 @@ import Foundation
 import AppIntents
 import WidgetKit
 
+nonisolated enum SevenDayReviewPromptPolicy {
+    static let storageKey = "hasRequestedReviewAfterSevenDayStreak"
+
+    static func shouldRequest(
+        previouslyEarned: Bool,
+        isEarned: Bool,
+        hasRequested: Bool,
+        isEnabled: Bool
+    ) -> Bool {
+        isEnabled && !previouslyEarned && isEarned && !hasRequested
+    }
+}
+
 @main
 struct ThinkApp: App {
     @Environment(\.scenePhase) private var scenePhase
@@ -130,6 +143,7 @@ struct ThinkApp: App {
             .environment(AppIntentRouter.shared)
             .environment(mindfulMinutes)
             .environment(\.haptics, .live)
+            .modifier(AchievementUnlockModifier(progress: progress, isEnabled: !isUITesting))
             .preferredColorScheme(appearance.colorScheme)
             .animation(.easeInOut(duration: 0.3), value: completedOnboarding)
             .onReceive(NotificationCenter.default.publisher(for: NSLocale.currentLocaleDidChangeNotification)) { _ in
