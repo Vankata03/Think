@@ -52,10 +52,9 @@ final class CloudBackupState {
     private let storage: JournalDataStore.Storage
     private let accountStatusProvider: @Sendable () async throws -> CKAccountStatus
     private var mirroringFailed = false
-    // `deinit` is nonisolated, so the token it has to release cannot be
-    // MainActor state. Only `startObservingMirroringEvents` (MainActor)
-    // and `deinit` (exclusive by definition) ever touch it.
-    private nonisolated(unsafe) var eventObserver: (any NSObjectProtocol)?
+    // Only `startObservingMirroringEvents` (MainActor) and `deinit`
+    // (exclusive by definition) ever touch this token.
+    private var eventObserver: (any NSObjectProtocol)?
 
     init(
         storage: JournalDataStore.Storage,
@@ -68,7 +67,7 @@ final class CloudBackupState {
         }
     }
 
-    deinit {
+    isolated deinit {
         if let eventObserver {
             NotificationCenter.default.removeObserver(eventObserver)
         }
