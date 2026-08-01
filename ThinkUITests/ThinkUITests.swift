@@ -154,6 +154,10 @@ final class ThinkUITests: XCTestCase {
         let field = app.textFields["DailyQuestionInput"]
         XCTAssertTrue(field.waitForExistence(timeout: 2))
         field.tap()
+        if !app.keyboards.firstMatch.waitForExistence(timeout: 2) {
+            field.tap()
+        }
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 2))
         field.typeText(answer)
         app.buttons["SaveDailyAnswer"].tap()
 
