@@ -54,7 +54,7 @@ final class CloudBackupState {
     private var mirroringFailed = false
     // Only `startObservingMirroringEvents` (MainActor) and `deinit`
     // (exclusive by definition) ever touch this token.
-    private var eventObserver: (any NSObjectProtocol)?
+    private var eventObserver: (center: NotificationCenter, token: any NSObjectProtocol)?
 
     init(
         storage: JournalDataStore.Storage,
@@ -69,7 +69,7 @@ final class CloudBackupState {
 
     isolated deinit {
         if let eventObserver {
-            NotificationCenter.default.removeObserver(eventObserver)
+            eventObserver.center.removeObserver(eventObserver.token)
         }
     }
 
@@ -104,7 +104,7 @@ final class CloudBackupState {
     func startObservingMirroringEvents(center: NotificationCenter = .default) {
         guard storage == .cloudKit, eventObserver == nil else { return }
 
-        eventObserver = center.addObserver(
+        let token = center.addObserver(
             forName: NSPersistentCloudKitContainer.eventChangedNotification,
             object: nil,
             queue: .main
@@ -121,6 +121,7 @@ final class CloudBackupState {
                 self?.recordMirroringOutcome(succeeded: succeeded)
             }
         }
+        eventObserver = (center, token)
     }
 
     /// Applies the outcome of one finished mirroring event. A failure is
