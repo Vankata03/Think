@@ -191,7 +191,7 @@ struct TodayView: View {
         return Button {
             haptics.play(.selection)
             withAnimation(ThinkMotion.stateAnimation(reduceMotion: reduceMotion)) {
-                favorites.toggle(quote)
+                _ = favorites.toggle(quote)
             }
         } label: {
             Image(systemName: isFavorite ? "heart.fill" : "heart")
