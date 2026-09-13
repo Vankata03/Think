@@ -22,8 +22,14 @@ struct PathLibraryTests {
     @Test func futurePathsAreLockedUntilContentShips() {
         let lockedPaths = PathLibrary.all.filter { !$0.isAvailable }
 
-        #expect(lockedPaths.count == 3)
+        #expect(lockedPaths.count == 2)
         #expect(lockedPaths.allSatisfy { $0.steps.isEmpty })
+    }
+
+    @Test func clearThinkingHasSevenUsableSteps() throws {
+        let path = try #require(PathLibrary.all.first { $0.id == "clear-thinking" })
+        #expect(path.isAvailable)
+        #expect(path.steps.count == 7)
     }
 
     @Test func pathModelsRoundTripThroughJSON() throws {
