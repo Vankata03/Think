@@ -33,3 +33,7 @@ open, and mirroring cannot work in production until at least the first of those
 lands.
 
 006 first because it is the only item that removes a data-loss risk, and because it constrains the SwiftData model shape (every attribute optional or defaulted) that 010 must follow — landing 010 before 006 means writing the model twice. 007 completes the privacy story 006 opens. 008 and 009 are independent of both and can run in either order. 011 is a two-file change that can ride along with any of them.
+
+## Audit integration (2026-09-13)
+
+[012 — Audit integration](012-audit-integration.md): implemented and committed locally (as of 2026-09-14); full test plan passed (259 app, 15 widget, 40 UI). Journal UI, six additional locale translations, synthetic measurements and independent review corrections are implemented. Simulator checks and external release gates are listed explicitly. Earlier DONE labels describe their original scope, not blanket release qualification.
