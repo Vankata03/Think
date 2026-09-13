@@ -3,52 +3,248 @@
   "strings": {
     "%lld-day streak": {
       "localizations": {
-        "bg": { "stringUnit": { "state": "translated", "value": "%lld дни поред" } },
-        "de": { "stringUnit": { "state": "translated", "value": "%lld Tage in Folge" } },
-        "es": { "stringUnit": { "state": "translated", "value": "%lld días seguidos" } },
-        "fr": { "stringUnit": { "state": "translated", "value": "%lld jours d’affilée" } },
-        "it": { "stringUnit": { "state": "translated", "value": "%lld giorni consecutivi" } },
-        "pt-BR": { "stringUnit": { "state": "translated", "value": "%lld dias seguidos" } }
+        "bg": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld дни поред"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld Tage in Folge"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld días seguidos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld jours d’affilée"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld giorni consecutivi"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld dias seguidos"
+          }
+        }
       }
     },
     "%lld/4 today": {
       "localizations": {
-        "bg": { "stringUnit": { "state": "translated", "value": "%lld/4 днес" } },
-        "de": { "stringUnit": { "state": "translated", "value": "%lld/4 heute" } },
-        "es": { "stringUnit": { "state": "translated", "value": "%lld/4 hoy" } },
-        "fr": { "stringUnit": { "state": "translated", "value": "%lld/4 aujourd’hui" } },
-        "it": { "stringUnit": { "state": "translated", "value": "%lld/4 oggi" } },
-        "pt-BR": { "stringUnit": { "state": "translated", "value": "%lld/4 hoje" } }
+        "bg": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld/4 днес"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld/4 heute"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld/4 hoy"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld/4 aujourd’hui"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld/4 oggi"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld/4 hoje"
+          }
+        }
       }
     },
     "1-day streak": {
       "localizations": {
-        "bg": { "stringUnit": { "state": "translated", "value": "1 ден поред" } },
-        "de": { "stringUnit": { "state": "translated", "value": "1 Tag in Folge" } },
-        "es": { "stringUnit": { "state": "translated", "value": "1 día seguido" } },
-        "fr": { "stringUnit": { "state": "translated", "value": "1 jour d’affilée" } },
-        "it": { "stringUnit": { "state": "translated", "value": "1 giorno consecutivo" } },
-        "pt-BR": { "stringUnit": { "state": "translated", "value": "1 dia seguido" } }
+        "bg": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 ден поред"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 Tag in Folge"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 día seguido"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 jour d’affilée"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 giorno consecutivo"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 dia seguido"
+          }
+        }
       }
     },
     "Begin today": {
       "localizations": {
-        "bg": { "stringUnit": { "state": "translated", "value": "Започни днес" } },
-        "de": { "stringUnit": { "state": "translated", "value": "Fang heute an" } },
-        "es": { "stringUnit": { "state": "translated", "value": "Empieza hoy" } },
-        "fr": { "stringUnit": { "state": "translated", "value": "Commence aujourd’hui" } },
-        "it": { "stringUnit": { "state": "translated", "value": "Inizia oggi" } },
-        "pt-BR": { "stringUnit": { "state": "translated", "value": "Comece hoje" } }
+        "bg": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Започни днес"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fang heute an"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empieza hoy"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Commence aujourd’hui"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inizia oggi"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comece hoje"
+          }
+        }
       }
     },
     "Today complete": {
       "localizations": {
-        "bg": { "stringUnit": { "state": "translated", "value": "Готово за днес" } },
-        "de": { "stringUnit": { "state": "translated", "value": "Heute abgeschlossen" } },
-        "es": { "stringUnit": { "state": "translated", "value": "Completado hoy" } },
-        "fr": { "stringUnit": { "state": "translated", "value": "Terminé pour aujourd’hui" } },
-        "it": { "stringUnit": { "state": "translated", "value": "Completato oggi" } },
-        "pt-BR": { "stringUnit": { "state": "translated", "value": "Concluído hoje" } }
+        "bg": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Готово за днес"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heute abgeschlossen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completado hoy"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terminé pour aujourd’hui"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completato oggi"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Concluído hoje"
+          }
+        }
+      }
+    },
+    "Begin today's practice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Begin today's practice"
+          }
+        },
+        "bg": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Започни днешната практика"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Heutige Übung beginnen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Empezar la práctica de hoy"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Commencer la pratique du jour"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Inizia la pratica di oggi"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Começar a prática de hoje"
+          }
+        }
       }
     }
   },

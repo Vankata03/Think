@@ -10,6 +10,22 @@ nonisolated struct FocusSessionRecord: Codable, Equatable, Identifiable, Sendabl
     let id: String
     let completedAt: Date
     let durationMinutes: Int
+    var actualActiveSeconds: Int? = nil
+    var isCompleted: Bool = true
+
+    private enum CodingKeys: String, CodingKey { case id, completedAt, durationMinutes, actualActiveSeconds, isCompleted }
+    init(id: String, completedAt: Date, durationMinutes: Int, actualActiveSeconds: Int? = nil, isCompleted: Bool = true) {
+        self.id = id; self.completedAt = completedAt; self.durationMinutes = durationMinutes
+        self.actualActiveSeconds = actualActiveSeconds; self.isCompleted = isCompleted
+    }
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(String.self, forKey: .id)
+        completedAt = try c.decode(Date.self, forKey: .completedAt)
+        durationMinutes = try c.decode(Int.self, forKey: .durationMinutes)
+        actualActiveSeconds = try c.decodeIfPresent(Int.self, forKey: .actualActiveSeconds)
+        isCompleted = try c.decodeIfPresent(Bool.self, forKey: .isCompleted) ?? true
+    }
 }
 
 nonisolated struct FocusHistoryDay: Codable, Equatable, Sendable {
@@ -58,6 +74,9 @@ enum ProgressMutation: Sendable {
     case completePathStep
     case recordFocusSession
     case reset
+    case activityChanged
+    case pathRunChanged
+    case partialFocusSession
 }
 
 /// Streak, focus-session, and path progress. Backed by UserDefaults —
@@ -67,6 +86,11 @@ enum ProgressMutation: Sendable {
 final class ProgressStore {
 
     private nonisolated enum Key {
+        static let activities = "practice.activities.v1"
+        static let pathRuns = "practice.pathRuns.v1"
+        static let seenFocusIDs = "practice.seenFocusIDs.v1"
+        static let legacyDays = "practice.legacyDays.v1"
+        static let appliedSnapshotDate = "practice.appliedSnapshotDate"
         static let streak = "streak"
         static let lastCompletedDay = "lastCompletedDay"
         static let pathCompletedDays = "pathCompletedDays"
@@ -83,6 +107,7 @@ final class ProgressStore {
 
     /// Every key this store persists, for migrating between defaults suites.
     nonisolated static let persistedKeys: [String] = [
+        Key.activities, Key.pathRuns, Key.seenFocusIDs, Key.legacyDays, Key.appliedSnapshotDate,
         Key.streak,
         Key.lastCompletedDay,
         Key.pathCompletedDays,
@@ -101,6 +126,12 @@ final class ProgressStore {
     private let calendar: Calendar
     private let now: () -> Date
     private static let focusHistoryRetentionDays = 365
+    private(set) var practiceActivities: [PracticeActivity] = []
+    private(set) var pathRuns: [PathRunProgress] = []
+    private var seenFocusIDs: Set<String> = []
+    private var legacyDays: Set<Date> = []
+    var resetBoundary: SyncResetBoundary? { SharedDefaults.resetBoundary(in: defaults) }
+    var latestAppliedSnapshotDate: Date { defaults.object(forKey: Key.appliedSnapshotDate) as? Date ?? .distantPast }
 
     private(set) var streak: Int
     private(set) var lastCompletedDay: Date?
@@ -136,7 +167,7 @@ final class ProgressStore {
         self.calendar = calendar
         self.now = now
         streak = storedStreak
-        lastCompletedDay = storedLastCompletedDay
+        lastCompletedDay = storedLastCompletedDay.map { calendar.startOfDay(for: $0) }
         pathCompletedDays = defaults.integer(forKey: Key.pathCompletedDays)
         lastPathCompletionDay = defaults.object(forKey: Key.lastPathCompletionDay) as? Date
         totalFocusSessions = defaults.integer(forKey: Key.totalFocusSessions)
@@ -161,21 +192,27 @@ final class ProgressStore {
         if let stored = defaults.array(forKey: Key.completedDays) as? [Date] {
             completedDays = Set(stored.map { calendar.startOfDay(for: $0) })
         } else {
-            // History shipped after streaks did; reconstruct the current
-            // run from the streak counter so existing users don't open
-            // an empty calendar.
-            var backfilled: Set<Date> = []
-            if let last = storedLastCompletedDay, storedStreak > 0 {
-                let lastDay = calendar.startOfDay(for: last)
-                for offset in 0..<storedStreak {
-                    if let day = calendar.date(byAdding: .day, value: -offset, to: lastDay) {
-                        backfilled.insert(day)
-                    }
-                }
-            }
-            completedDays = backfilled
-            defaults.set(Array(backfilled), forKey: Key.completedDays)
+            // An aggregate streak cannot prove the dates of older activity.
+            completedDays = Set(storedLastCompletedDay.map { [calendar.startOfDay(for: $0)] } ?? [])
+            defaults.set(Array(completedDays), forKey: Key.completedDays)
         }
+        if let data = defaults.data(forKey: Key.activities) {
+            practiceActivities = (try? SyncCodec.decode([PracticeActivity].self, from: data)) ?? []
+        }
+        if let data = defaults.data(forKey: Key.pathRuns) {
+            pathRuns = (try? SyncCodec.decode([PathRunProgress].self, from: data)) ?? []
+        } else if pathCompletedDays > 0 {
+            pathRuns = [PathRunProgress(id: UUID(), pathID: PathLibrary.deepFocus.id,
+                totalSteps: PathLibrary.deepFocus.steps.count, startedAt: nil,
+                legacyCompletedSteps: pathCompletedDays, completions: [])]
+        }
+        seenFocusIDs = Set(defaults.stringArray(forKey: Key.seenFocusIDs) ?? [])
+        seenFocusIDs.formUnion(focusHistoryByDay.values.flatMap { $0.map(\.id) })
+        if let days = defaults.array(forKey: Key.legacyDays) as? [Date] {
+            legacyDays = Set(days)
+        } else { legacyDays = completedDays }
+        persistPractice()
+
         if !hasStoredMilestoneAwards {
             let longestHistoricalRun = Self.maximumContiguousStreak(
                 in: completedDays,
@@ -190,6 +227,7 @@ final class ProgressStore {
         }
         pruneFocusHistory(relativeTo: now())
         persistFocusHistory()
+        if defaults.bool(forKey: SharedDefaults.resetPendingKey) { reset() }
     }
 
     /// Same rule as `displayedStreak`, computed straight from stored
@@ -214,35 +252,30 @@ final class ProgressStore {
         calendar: Calendar = .current,
         now: Date = .now
     ) -> Int {
-        var completed = 0
-        if storedDate(forKey: Key.lastOpenDay, in: defaults, isSameDayAs: now, calendar: calendar) {
-            completed += 1
+        var kinds: Set<PracticeActivityKind> = []
+        if let data = defaults.data(forKey: Key.activities),
+           let records = try? SyncCodec.decode([PracticeActivity].self, from: data) {
+            kinds.formUnion(records.filter { calendar.isDate($0.date, inSameDayAs: now) }.map(\.kind))
         }
-        if storedDate(forKey: Key.lastQuestionAnswerDay, in: defaults, isSameDayAs: now, calendar: calendar) {
-            completed += 1
-        }
+        if storedDate(forKey: Key.lastQuestionAnswerDay, in: defaults, isSameDayAs: now, calendar: calendar) { kinds.insert(.answer) }
         if defaults.integer(forKey: Key.focusSessionDayCount) > 0,
-           storedDate(forKey: Key.focusSessionDay, in: defaults, isSameDayAs: now, calendar: calendar) {
-            completed += 1
-        }
-        if storedDate(forKey: Key.lastPathCompletionDay, in: defaults, isSameDayAs: now, calendar: calendar) {
-            completed += 1
-        }
-        return completed
+           storedDate(forKey: Key.focusSessionDay, in: defaults, isSameDayAs: now, calendar: calendar) { kinds.insert(.focus) }
+        if storedDate(forKey: Key.lastPathCompletionDay, in: defaults, isSameDayAs: now, calendar: calendar) { kinds.insert(.path) }
+        return kinds.count
     }
 
     /// Streak shown to the user: still alive if the last completed day
     /// is today or yesterday, otherwise back to zero.
     var displayedStreak: Int {
         guard let lastCompletedDay else { return 0 }
-        if calendar.isDateInToday(lastCompletedDay) || calendar.isDateInYesterday(lastCompletedDay) {
+        if calendar.isDate(lastCompletedDay, inSameDayAs: now()) || calendar.isDate(lastCompletedDay, inSameDayAs: calendar.date(byAdding: .day, value: -1, to: now())!) {
             return streak
         }
         return 0
     }
 
     var focusSessionsToday: Int {
-        guard let focusSessionDay, calendar.isDateInToday(focusSessionDay) else { return 0 }
+        guard let focusSessionDay, calendar.isDate(focusSessionDay, inSameDayAs: now()) else { return 0 }
         return focusSessionDayCount
     }
 
@@ -274,44 +307,35 @@ final class ProgressStore {
 
     var completedTaskToday: Bool {
         guard let lastCompletedDay else { return false }
-        return calendar.isDateInToday(lastCompletedDay)
+        return calendar.isDate(lastCompletedDay, inSameDayAs: now())
     }
 
     var completedPathStepToday: Bool {
         guard let lastPathCompletionDay else { return false }
-        return calendar.isDateInToday(lastPathCompletionDay)
+        return calendar.isDate(lastPathCompletionDay, inSameDayAs: now())
     }
 
     var answeredDailyQuestionToday: Bool {
         guard let lastQuestionAnswerDay else { return false }
-        return calendar.isDateInToday(lastQuestionAnswerDay)
+        return calendar.isDate(lastQuestionAnswerDay, inSameDayAs: now())
     }
 
     var dailyPracticeProgressCount: Int {
-        var completed = 0
-        if openedToday { completed += 1 }
-        if answeredDailyQuestionToday { completed += 1 }
-        if focusSessionsToday > 0 { completed += 1 }
-        if completedPathStepToday { completed += 1 }
-        return completed
+        activities(on: now()).count
     }
 
     var canCompletePathStepToday: Bool {
-        guard pathCompletedDays < PathLibrary.deepFocus.steps.count else { return false }
-        guard let lastPathCompletionDay else { return true }
-        return !calendar.isDateInToday(lastPathCompletionDay)
+        canCompletePathStep(pathID: PathLibrary.deepFocus.id, totalSteps: PathLibrary.deepFocus.steps.count, at: now())
     }
 
-    var completedPathCount: Int {
-        pathCompletedDays >= PathLibrary.deepFocus.steps.count ? 1 : 0
-    }
+    var completedPathCount: Int { pathRuns.filter(\.isComplete).count }
 
     var earnedAchievements: Set<ProgressAchievement> {
         Set(ProgressAchievement.all.filter(hasEarned))
     }
 
     func markTodayComplete() {
-        guard completeDay(at: .now) else { return }
+        guard recordActivitySilently(.note, id: "legacy-note-\(calendar.startOfDay(for: now()).timeIntervalSince1970)", at: now()) else { return }
         emit(.markTodayComplete)
     }
 
@@ -338,12 +362,12 @@ final class ProgressStore {
     /// of the daily-practice bar. Does not touch the streak.
     var openedToday: Bool {
         guard let lastOpenDay else { return false }
-        return calendar.isDateInToday(lastOpenDay)
+        return calendar.isDate(lastOpenDay, inSameDayAs: now())
     }
 
     func recordAppOpen() {
         guard !openedToday else { return }
-        lastOpenDay = calendar.startOfDay(for: .now)
+        lastOpenDay = calendar.startOfDay(for: now())
         defaults.set(lastOpenDay, forKey: Key.lastOpenDay)
         emit(.recordAppOpen)
     }
@@ -353,19 +377,12 @@ final class ProgressStore {
         guard lastQuestionAnswerDay.map({ !calendar.isDate($0, inSameDayAs: day) }) ?? true else { return }
         lastQuestionAnswerDay = day
         defaults.set(day, forKey: Key.lastQuestionAnswerDay)
-        _ = completeDay(at: day)
+        _ = recordActivitySilently(.answer, id: "answer-\(day.timeIntervalSince1970)", at: date)
         emit(.recordDailyQuestionAnswer)
     }
 
     func completePathStep() {
-        guard canCompletePathStepToday else { return }
-        pathCompletedDays += 1
-        let today = calendar.startOfDay(for: .now)
-        lastPathCompletionDay = today
-        defaults.set(pathCompletedDays, forKey: Key.pathCompletedDays)
-        defaults.set(today, forKey: Key.lastPathCompletionDay)
-        _ = completeDay(at: today)
-        emit(.completePathStep)
+        _ = completePathStep(pathID: PathLibrary.deepFocus.id, totalSteps: PathLibrary.deepFocus.steps.count, at: now())
     }
 
     /// Records a completed focus phase on the calendar day it actually
@@ -373,8 +390,12 @@ final class ProgressStore {
     func recordFocusSession(
         at date: Date = .now,
         durationMinutes: Int? = nil,
-        eventID: String? = nil
+        eventID: String? = nil,
+        actualActiveSeconds: Int? = nil
     ) {
+        let resolvedID = eventID ?? UUID().uuidString
+        guard seenFocusIDs.insert(resolvedID).inserted else { return }
+        defaults.set(Array(seenFocusIDs), forKey: Key.seenFocusIDs)
         let day = calendar.startOfDay(for: date)
         if let existingFocusSessionDay = focusSessionDay {
             let existingDay = calendar.startOfDay(for: existingFocusSessionDay)
@@ -396,10 +417,10 @@ final class ProgressStore {
             recordFocusHistory(
                 at: date,
                 durationMinutes: durationMinutes,
-                eventID: eventID ?? UUID().uuidString
+                eventID: resolvedID, actualActiveSeconds: actualActiveSeconds
             )
         }
-        _ = completeDay(at: day)
+        _ = recordActivitySilently(.focus, id: resolvedID, at: date)
         emit(.recordFocusSession)
     }
 
@@ -408,6 +429,8 @@ final class ProgressStore {
             defaults.removeObject(forKey: key)
         }
 
+        practiceActivities = []; pathRuns = []; seenFocusIDs = []; legacyDays = []
+        persistPractice()
         streak = 0
         lastCompletedDay = nil
         pathCompletedDays = 0
@@ -422,6 +445,8 @@ final class ProgressStore {
         earnedStreakMilestones = []
         defaults.set([], forKey: Key.completedDays)
         persistFocusHistory()
+        defaults.removeObject(forKey: SharedDefaults.resetPendingKey)
+        defaults.synchronize()
         emit(.reset)
     }
 
@@ -441,13 +466,23 @@ final class ProgressStore {
             lastOpenDay: lastOpenDay,
             lastQuestionAnswerDay: lastQuestionAnswerDay,
             appliedEventIDs: appliedEventIDs,
-            publishedAt: publishedAt
+            publishedAt: publishedAt,
+            resetBoundary: resetBoundary,
+            practiceActivities: practiceActivities
         )
     }
 
     /// Replaces every persisted progress field. This is intentionally silent;
     /// the phone is the only writer of canonical progress.
     func apply(_ snapshot: ProgressSnapshot) {
+        guard snapshot.resetBoundary == resetBoundary,
+              snapshot.publishedAt > latestAppliedSnapshotDate else { return }
+        defaults.set(snapshot.publishedAt, forKey: Key.appliedSnapshotDate)
+        practiceActivities = snapshot.practiceActivities ?? []
+        // Snapshots replace canonical counters; pending Watch events are replayed afterwards.
+        seenFocusIDs = Set(snapshot.appliedEventIDs)
+        legacyDays = Set(snapshot.completedDays).subtracting(practiceActivities.map { calendar.startOfDay(for: $0.date) })
+        persistPractice()
         streak = snapshot.streak
         lastCompletedDay = snapshot.lastCompletedDay.map(calendar.startOfDay(for:))
         completedDays = Set(snapshot.completedDays.map(calendar.startOfDay(for:)))
@@ -464,7 +499,14 @@ final class ProgressStore {
     private func completeDay(at date: Date) -> Bool {
         let day = calendar.startOfDay(for: date)
         guard completedDays.insert(day).inserted else { return false }
+        let previousStreak = streak
+        let previousLastDay = lastCompletedDay
         recomputeStreak()
+        if let previousLastDay,
+           calendar.date(byAdding: .day, value: 1, to: previousLastDay) == day {
+            // Preserve a known legacy aggregate without fabricating its dates.
+            streak = max(streak, previousStreak + 1)
+        }
         awardMilestonesIfNeeded()
         defaults.set(streak, forKey: Key.streak)
         setOptional(lastCompletedDay, forKey: Key.lastCompletedDay)
@@ -561,7 +603,7 @@ final class ProgressStore {
             .sorted { $0.day < $1.day }
     }
 
-    private func recordFocusHistory(at date: Date, durationMinutes: Int, eventID: String) {
+    private func recordFocusHistory(at date: Date, durationMinutes: Int, eventID: String, actualActiveSeconds: Int? = nil, isCompleted: Bool = true) {
         pruneFocusHistory(relativeTo: now())
         let day = calendar.startOfDay(for: date)
         guard let cutoff = calendar.date(
@@ -576,7 +618,9 @@ final class ProgressStore {
             FocusSessionRecord(
                 id: eventID,
                 completedAt: date,
-                durationMinutes: durationMinutes
+                durationMinutes: durationMinutes,
+                actualActiveSeconds: actualActiveSeconds,
+                isCompleted: isCompleted
             )
         )
         focusHistoryByDay[day] = sessions
@@ -605,6 +649,147 @@ final class ProgressStore {
     ) -> Bool {
         guard let stored = defaults.object(forKey: key) as? Date else { return false }
         return calendar.isDate(stored, inSameDayAs: date)
+    }
+
+    func activities(on date: Date) -> Set<PracticeActivityKind> {
+        var kinds = Set(practiceActivities.filter { calendar.isDate($0.date, inSameDayAs: date) }.map(\.kind))
+        if let lastQuestionAnswerDay, calendar.isDate(lastQuestionAnswerDay, inSameDayAs: date) { kinds.insert(.answer) }
+        if let focusSessionDay, focusSessionDayCount > 0, calendar.isDate(focusSessionDay, inSameDayAs: date) { kinds.insert(.focus) }
+        if let lastPathCompletionDay, calendar.isDate(lastPathCompletionDay, inSameDayAs: date) { kinds.insert(.path) }
+        return kinds
+    }
+
+    @discardableResult
+    func recordActivity(_ kind: PracticeActivityKind, id: String, at date: Date = .now) -> Bool {
+        guard recordActivitySilently(kind, id: id, at: date) else { return false }
+        emit(.activityChanged)
+        return true
+    }
+
+    private func recordActivitySilently(_ kind: PracticeActivityKind, id: String, at date: Date) -> Bool {
+        guard !practiceActivities.contains(where: { $0.id == id && $0.kind == kind }) else { return false }
+        practiceActivities.append(PracticeActivity(id: id, kind: kind, date: date))
+        persistPractice()
+        _ = completeDay(at: date)
+        return true
+    }
+
+    func isMoveCompleted(practiceID: String, at date: Date = .now) -> Bool {
+        let id = moveID(practiceID, date: date)
+        return practiceActivities.contains { $0.id == id && $0.kind == .move }
+    }
+
+    func setMoveCompleted(_ completed: Bool, practiceID: String, at date: Date = .now) {
+        let id = moveID(practiceID, date: date)
+        if completed { _ = recordActivity(.move, id: id, at: date); return }
+        let oldCount = practiceActivities.count
+        practiceActivities.removeAll { $0.id == id && $0.kind == .move }
+        guard practiceActivities.count != oldCount else { return }
+        let day = calendar.startOfDay(for: date)
+        if !legacyDays.contains(day) && activities(on: date).isEmpty {
+            completedDays.remove(day)
+            recomputeStreak()
+        }
+        persistPractice(); persistAllFields(); emit(.activityChanged)
+    }
+
+    private func moveID(_ practiceID: String, date: Date) -> String {
+        "move-\(practiceID)-\(calendar.startOfDay(for: date).timeIntervalSince1970)"
+    }
+
+    func runs(for pathID: String) -> [PathRunProgress] { pathRuns.filter { $0.pathID == pathID } }
+    func activeRun(for pathID: String) -> PathRunProgress? { runs(for: pathID).last }
+
+    @discardableResult
+    func startNewRun(pathID: String, totalSteps: Int, at date: Date = .now) -> PathRunProgress {
+        let run = createRun(pathID: pathID, totalSteps: totalSteps, at: date)
+        emit(.pathRunChanged)
+        return run
+    }
+
+    private func createRun(pathID: String, totalSteps: Int, at date: Date) -> PathRunProgress {
+        let run = PathRunProgress(id: UUID(), pathID: pathID, totalSteps: max(1, totalSteps),
+            startedAt: date, legacyCompletedSteps: 0, completions: [])
+        pathRuns.append(run)
+        updateLegacyPathFields(pathID: pathID)
+        persistPractice()
+        return run
+    }
+
+    func canCompletePathStep(pathID: String, totalSteps: Int, at date: Date = .now) -> Bool {
+        guard totalSteps > 0 else { return false }
+        guard let run = activeRun(for: pathID) else { return true }
+        guard !run.isComplete else { return false }
+        let last = run.lastCompletionDate ?? (run.startedAt == nil && pathID == PathLibrary.deepFocus.id ? lastPathCompletionDay : nil)
+        return last.map { !calendar.isDate($0, inSameDayAs: date) } ?? true
+    }
+
+    @discardableResult
+    func completePathStep(pathID: String, totalSteps: Int, at date: Date = .now) -> Bool {
+        guard canCompletePathStep(pathID: pathID, totalSteps: totalSteps, at: date) else { return false }
+        if activeRun(for: pathID) == nil { _ = createRun(pathID: pathID, totalSteps: totalSteps, at: date) }
+        guard let index = pathRuns.lastIndex(where: { $0.pathID == pathID }) else { return false }
+        let step = pathRuns[index].completedSteps + 1
+        pathRuns[index].completions.append(PathStepCompletion(step: step, date: date))
+        updateLegacyPathFields(pathID: pathID)
+        _ = recordActivitySilently(.path, id: "\(pathRuns[index].id.uuidString)-\(step)", at: date)
+        persistPractice(); emit(.completePathStep)
+        return true
+    }
+
+    private func updateLegacyPathFields(pathID: String) {
+        guard pathID == PathLibrary.deepFocus.id, let run = activeRun(for: pathID) else { return }
+        pathCompletedDays = run.completedSteps
+        lastPathCompletionDay = run.lastCompletionDate
+        defaults.set(pathCompletedDays, forKey: Key.pathCompletedDays)
+        setOptional(lastPathCompletionDay, forKey: Key.lastPathCompletionDay)
+    }
+
+    func recordPartialFocusSession(_ record: FocusSessionRecord) {
+        guard !record.isCompleted, (record.actualActiveSeconds ?? 0) > 0,
+              seenFocusIDs.insert(record.id).inserted else { return }
+        persistPractice()
+        recordFocusHistory(at: record.completedAt, durationMinutes: record.durationMinutes,
+            eventID: record.id, actualActiveSeconds: record.actualActiveSeconds, isCompleted: false)
+        emit(.partialFocusSession)
+    }
+
+    func installResetBoundary(_ boundary: SyncResetBoundary) {
+        defaults.set(true, forKey: SharedDefaults.resetPendingKey)
+        SharedDefaults.setResetBoundary(boundary, in: defaults)
+        reset()
+    }
+
+    func weeklySummary(containing date: Date = .now, calendar summaryCalendar: Calendar = .current) -> WeeklyPracticeSummary {
+        let start = summaryCalendar.dateInterval(of: .weekOfYear, for: date)?.start ?? summaryCalendar.startOfDay(for: date)
+        let end = summaryCalendar.date(byAdding: .day, value: 7, to: start)!
+        var days = (0..<7).map { WeeklyPracticeDay(date: summaryCalendar.date(byAdding: .day, value: $0, to: start)!) }
+        let indices = Dictionary(uniqueKeysWithValues: days.enumerated().map { ($0.element.date, $0.offset) })
+        for day in completedDays {
+            if let i = indices[summaryCalendar.startOfDay(for: day)] { days[i].practiced = true }
+        }
+        for activity in practiceActivities {
+            if let i = indices[summaryCalendar.startOfDay(for: activity.date)] { days[i].activities.insert(activity.kind) }
+        }
+        for records in focusHistoryByDay.values {
+            for record in records {
+                guard let i = indices[summaryCalendar.startOfDay(for: record.completedAt)] else { continue }
+                if record.isCompleted {
+                    days[i].completedSessions += 1
+                    days[i].completedMinutes += record.durationMinutes
+                    days[i].completedActiveSeconds += record.actualActiveSeconds ?? 0
+                } else { days[i].partialActiveSeconds += record.actualActiveSeconds ?? 0 }
+                if record.actualActiveSeconds == nil { days[i].unknownActualDurationSessions += 1 }
+            }
+        }
+        return WeeklyPracticeSummary(interval: DateInterval(start: start, end: end), days: days, focusHistoryRetentionDays: Self.focusHistoryRetentionDays)
+    }
+
+    private func persistPractice() {
+        if let data = try? SyncCodec.encode(practiceActivities) { defaults.set(data, forKey: Key.activities) }
+        if let data = try? SyncCodec.encode(pathRuns) { defaults.set(data, forKey: Key.pathRuns) }
+        defaults.set(Array(seenFocusIDs), forKey: Key.seenFocusIDs)
+        defaults.set(Array(legacyDays), forKey: Key.legacyDays)
     }
 
     private func emit(_ mutation: ProgressMutation) {

@@ -19,6 +19,13 @@ final class DailyRetro {
     var tomorrow: String = ""
     /// Raw `Mood` value, or nil when the retrospective is untagged.
     var mood: String?
+    var recordID: UUID?
+    var civilDay: String?
+    var timeZoneIdentifier: String?
+    var practiceID: String?
+    var promptSnapshot: String?
+    var tomorrowIntention: String?
+    var updatedAt: Date?
 
     init(
         date: Date = .now,
@@ -27,6 +34,10 @@ final class DailyRetro {
         tomorrow: String,
         mood: Mood? = nil
     ) {
+        let day = CivilDay(date: date)
+        self.recordID = UUID()
+        self.civilDay = day.key
+        self.timeZoneIdentifier = day.timeZoneIdentifier
         self.date = date
         self.wentWell = wentWell
         self.improve = improve

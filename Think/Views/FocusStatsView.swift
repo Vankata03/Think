@@ -1,161 +1,51 @@
-//
-//  FocusStatsView.swift
-//  Think
-//
-
 import Charts
 import SwiftUI
 
 struct FocusStatsView: View {
     @Environment(ProgressStore.self) private var progress
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-
-    private let calendar = Calendar.autoupdatingCurrent
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 22) {
-                Text("This week")
-                    .font(.largeTitle.bold())
-
-                summaryCards
-
-                VStack(alignment: .leading, spacing: 16) {
-                    Text("Sessions by day")
-                        .font(.headline)
-
-                    Chart(weekdays) { day in
-                        BarMark(
-                            x: .value("Day", day.date, unit: .day),
-                            y: .value("Sessions", day.sessions)
-                        )
-                        .foregroundStyle(Color.accentColor.gradient)
-                        .cornerRadius(5)
-                        .accessibilityLabel(day.date.formatted(.dateTime.weekday(.wide)))
-                        .accessibilityValue(day.sessions.formatted())
-                    }
-                    .chartXAxis {
-                        AxisMarks(values: weekdays.map(\.date)) { _ in
-                            AxisGridLine().foregroundStyle(.clear)
-                            AxisTick().foregroundStyle(.secondary)
-                            AxisValueLabel(format: .dateTime.weekday(.narrow))
-                        }
-                    }
-                    .chartYAxis {
-                        AxisMarks(position: .leading, values: .automatic(desiredCount: 3))
-                    }
-                    .frame(height: 220)
-                    .accessibilityLabel("Sessions by day")
-
-                    if weeklySessions.isEmpty {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("No completed focus sessions this week.")
-                                .font(.subheadline.weight(.semibold))
-                            Text("Finish a work session to see it here.")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
+        let summary = progress.weeklySummary()
+        List {
+            Section("This week") {
+                LabeledContent("Completed sessions", value: summary.completedSessions.formatted())
+                LabeledContent("Completed focus minutes", value: summary.completedMinutes.formatted())
+                LabeledContent("Partial effort", value: Duration.seconds(summary.partialActiveSeconds).formatted(.time(pattern: .minuteSecond)))
+                Text("Completed minutes use planned session lengths. Active effort excludes pauses when recorded.")
+                    .font(.footnote).foregroundStyle(.secondary)
+                Chart(summary.days, id: \.date) { day in
+                    BarMark(x: .value("Day", day.date, unit: .day), y: .value("Sessions", day.completedSessions))
+                        .foregroundStyle(Color.accentColor)
                 }
-                .padding(20)
-                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+                .frame(height: 180)
+                .accessibilityLabel("Sessions by day")
+                NavigationLink("Weekly review") { WeeklyReviewView() }
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 24)
-        }
-        .navigationTitle("Focus stats")
-        .navigationBarTitleDisplayMode(.inline)
-        .background(Color(.systemGroupedBackground).ignoresSafeArea())
-    }
-
-    private var weekInterval: DateInterval {
-        calendar.dateInterval(of: .weekOfYear, for: .now)
-            ?? DateInterval(start: calendar.startOfDay(for: .now), duration: 7 * 24 * 60 * 60)
-    }
-
-    @ViewBuilder
-    private var summaryCards: some View {
-        if dynamicTypeSize.isAccessibilitySize {
-            VStack(spacing: 12) {
-                cards
+            Section {
+                LabeledContent("All-time completed sessions", value: progress.totalFocusSessions.formatted())
             }
-        } else {
-            HStack(spacing: 12) {
-                cards
+            Section {
+                if progress.focusHistory.isEmpty {
+                    Text("No completed focus sessions this week.").foregroundStyle(.secondary)
+                }
+                ForEach(progress.focusHistory.reversed()) { record in
+                    NavigationLink { FocusSessionDetailView(session: record) } label: {
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text(record.completedAt, format: .dateTime.month().day().hour().minute())
+                            Text(record.isCompleted ? String(localized: "Completed") : String(localized: "Partial effort"))
+                                .font(.caption).foregroundStyle(.secondary)
+                            if let seconds = record.actualActiveSeconds {
+                                Text(Duration.seconds(seconds).formatted(.time(pattern: .minuteSecond)))
+                                    .font(.subheadline.monospacedDigit())
+                            } else { Text("Actual duration unknown").font(.caption).foregroundStyle(.secondary) }
+                        }
+                    }
+                    .accessibilityIdentifier("FocusSession.\(record.id)")
+                }
+            } header: { Text("Session history") } footer: {
+                Text("History covers the last 365 days. All-time totals are retained. Older actual durations are unknown.")
             }
         }
+        .navigationTitle("Focus stats").navigationBarTitleDisplayMode(.inline)
     }
-
-    @ViewBuilder
-    private var cards: some View {
-        FocusStatCard(
-            value: weeklySessions.count,
-            label: "Sessions",
-            systemImage: "checkmark.circle"
-        )
-        FocusStatCard(
-            value: weeklyMinutes,
-            label: "Focus minutes",
-            systemImage: "timer"
-        )
-    }
-
-    private var weeklySessions: [FocusSessionRecord] {
-        progress.focusSessions(in: weekInterval)
-    }
-
-    private var weeklyMinutes: Int {
-        weeklySessions.reduce(0) { $0 + $1.durationMinutes }
-    }
-
-    private var weekdays: [FocusStatsDay] {
-        (0..<7).compactMap { offset in
-            guard let day = calendar.date(byAdding: .day, value: offset, to: weekInterval.start),
-                  let nextDay = calendar.date(byAdding: .day, value: 1, to: day) else {
-                return nil
-            }
-            let sessions = progress.focusSessions(in: DateInterval(start: day, end: nextDay))
-            return FocusStatsDay(
-                date: day,
-                sessions: sessions.count
-            )
-        }
-    }
-}
-
-private struct FocusStatsDay: Identifiable {
-    let date: Date
-    let sessions: Int
-
-    var id: Date { date }
-}
-
-private struct FocusStatCard: View {
-    let value: Int
-    let label: LocalizedStringKey
-    let systemImage: String
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Image(systemName: systemImage)
-                .font(.title3)
-                .foregroundStyle(Color.accentColor)
-            Text(value, format: .number)
-                .font(.title.bold())
-                .monospacedDigit()
-            Text(label)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(18)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-    }
-}
-
-#Preview {
-    NavigationStack {
-        FocusStatsView()
-    }
-    .environment(ProgressStore())
 }

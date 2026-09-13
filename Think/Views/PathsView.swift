@@ -23,13 +23,13 @@ struct PathsView: View {
                             .padding(.bottom, 16)
 
                         ProgressView(value: Double(progress.pathCompletedDays) / Double(PathLibrary.deepFocus.steps.count))
-                            .tint(.accentColor)
+                            .tint(Color("AccentColor"))
                             .padding(.bottom, 18)
 
                         VStack(spacing: 0) {
-                            ForEach(PathLibrary.all) { path in
+                            ForEach(PathLibrary.all.filter(\.isAvailable)) { path in
                                 pathLink(path)
-                                if path.id != PathLibrary.all.last?.id {
+                                if path.id != PathLibrary.all.filter(\.isAvailable).last?.id {
                                     Divider()
                                         .padding(.leading, 52)
                                 }
@@ -43,6 +43,11 @@ struct PathsView: View {
                             .stroke(.separator.opacity(0.6), lineWidth: 1)
                     }
                     .padding(.horizontal, 20)
+
+                    DisclosureGroup("In development") {
+                        ForEach(PathLibrary.all.filter { !$0.isAvailable }) { path in pathRow(path) }
+                    }
+                    .padding(.horizontal, 24)
 
                     Text("The path is intentionally small. Read, act, mark the day.")
                         .font(.footnote)
@@ -69,7 +74,7 @@ struct PathsView: View {
             Text("Paths")
                 .font(.largeTitle.bold())
                 .foregroundStyle(.primary)
-            Text("Pick one discipline. Ten minutes a day.")
+            Text("Choose a practice. Each lesson includes its time and a smaller option.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
@@ -108,8 +113,8 @@ struct PathsView: View {
                     Text(path.name)
                         .font(.headline)
                         .foregroundStyle(path.isAvailable ? Color.primary : Color.secondary)
-                    if path.isAvailable, progress.pathCompletedDays > 0 {
-                        Text("Day \(min(progress.pathCompletedDays + 1, path.steps.count))")
+                    if path.isAvailable, (progress.activeRun(for: path.id)?.completedSteps ?? 0) > 0 {
+                        Text("Day \(min((progress.activeRun(for: path.id)?.completedSteps ?? 0) + 1, path.steps.count))")
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(Color.accentColor)
                     }
@@ -145,7 +150,7 @@ struct PathsView: View {
 
     private func subtitle(for path: ThinkingPath) -> String {
         guard path.isAvailable else { return path.tagline }
-        let done = progress.pathCompletedDays
+        let done = progress.activeRun(for: path.id)?.completedSteps ?? 0
         if done == 0 { return path.tagline }
         if done >= path.steps.count { return String(localized: "Completed") }
         return String(localized: "Day \(done + 1) of \(path.steps.count)")

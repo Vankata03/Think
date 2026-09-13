@@ -121,7 +121,7 @@ struct JournalLockTests {
         #expect(!defaults.bool(forKey: JournalLock.enabledKey))
     }
 
-    @Test func removingThePasscodeStopsGatingButKeepsThePreference() {
+    @Test func removingThePasscodeFailsClosedAndKeepsThePreference() {
         let authenticator = StubJournalAuthenticator(availability: .faceID, succeeds: true)
         let defaults = makeDefaults()
         let lock = JournalLock(defaults: defaults, authenticator: authenticator)
@@ -130,9 +130,8 @@ struct JournalLockTests {
         authenticator.availability = .passcodeNotSet
         lock.refreshAvailability()
 
-        // An unlockable-by-nobody journal would be a lockout, not privacy.
-        #expect(!lock.isEnabled)
-        #expect(!lock.isLocked)
+        #expect(lock.isEnabled)
+        #expect(lock.isLocked)
         #expect(defaults.bool(forKey: JournalLock.enabledKey))
 
         // Setting a passcode again brings the lock back on its own.
@@ -169,7 +168,7 @@ struct JournalLockTests {
         lock.setEnabled(true)
         await lock.authenticate()
 
-        lock.setEnabled(false)
+        #expect(await lock.disable())
 
         #expect(!lock.isEnabled)
         #expect(!lock.isUnlocked)
@@ -223,4 +222,78 @@ private final class StubJournalAuthenticator: JournalAuthenticator {
         reasons.append(reason)
         return succeeds
     }
+}
+
+@MainActor struct JournalLockRaceTests {
+    private func lock(_ authenticator: any JournalAuthenticator) -> JournalLock {
+        let defaults = UserDefaults(suiteName: "JournalLockRace.\(UUID().uuidString)")!
+        defaults.set(true, forKey: JournalLock.enabledKey)
+        return JournalLock(defaults: defaults, authenticator: authenticator)
+    }
+    @Test func unavailableLaunchRemainsLockedAndCannotDisable() async {
+        let state = lock(UnavailableJournalAuthenticator())
+        #expect(state.isEnabled && state.isLocked)
+        #expect(await state.disable() == false)
+        #expect(await state.authenticateForExport() == false)
+        #expect(state.isEnabled)
+    }
+    @Test func cancellationOrFailureCannotDisable() async {
+        let authenticator = StubJournalAuthenticator(availability: .passcodeOnly, succeeds: false)
+        let state = lock(authenticator)
+        #expect(await state.disable() == false)
+        #expect(state.isEnabled && state.isLocked)
+    }
+    @Test func lateSuccessAfterBackgroundIsRejectedAndCoverIgnoresGrace() async {
+        let authenticator = SuspendedJournalAuthenticator()
+        let state = lock(authenticator)
+        let result = Task { await state.authenticate() }
+        await authenticator.waitUntilStarted()
+        state.scenePhaseChanged(to: .background)
+        #expect(state.isPrivacyCoverActive)
+        state.scenePhaseChanged(to: .active)
+        authenticator.finish(true)
+        #expect(await result.value == false)
+        #expect(state.isLocked)
+    }
+    @Test func lateSuccessAfterExplicitLockIsRejected() async {
+        let authenticator = SuspendedJournalAuthenticator()
+        let state = lock(authenticator)
+        let result = Task { await state.disable() }
+        await authenticator.waitUntilStarted()
+        state.lock()
+        authenticator.finish(true)
+        #expect(await result.value == false)
+        #expect(state.isEnabled)
+    }
+    @Test func simultaneousUnlockRequestsUseOnePrompt() async {
+        let authenticator = SuspendedJournalAuthenticator()
+        let state = lock(authenticator)
+        let first = Task { await state.authenticate() }
+        await authenticator.waitUntilStarted()
+        let second = Task { await state.authenticate() }
+        await Task.yield()
+        authenticator.finish(true)
+        #expect(await first.value)
+        #expect(await second.value)
+        #expect(authenticator.attempts == 1)
+    }
+}
+
+@MainActor private final class SuspendedJournalAuthenticator: JournalAuthenticator {
+    var availability: JournalLockAvailability = .passcodeOnly
+    var attempts = 0
+    private var continuation: CheckedContinuation<Bool, Never>?
+    private var started: CheckedContinuation<Void, Never>?
+    func authenticate(reason: String) async -> Bool {
+        attempts += 1
+        return await withCheckedContinuation { continuation in
+            self.continuation = continuation
+            started?.resume(); started = nil
+        }
+    }
+    func waitUntilStarted() async {
+        if continuation != nil { return }
+        await withCheckedContinuation { started = $0 }
+    }
+    func finish(_ result: Bool) { continuation?.resume(returning: result); continuation = nil }
 }

@@ -47,7 +47,34 @@ final class CloudBackupState {
         case unknown
     }
 
+    struct MirroringEvent: Sendable {
+        enum Kind: Sendable { case setup, importRecords, exportRecords }
+        var id: UUID
+        var kind: Kind
+        var startedAt: Date
+        var endedAt: Date? = nil
+        var succeeded: Bool
+    }
     private(set) var status: Status = .unknown
+    private(set) var lastSuccessfulExportDate: Date?
+    private(set) var lastSuccessfulImportDate: Date?
+    private(set) var lastFailureDate: Date?
+    private var activeEvents: Set<UUID> = []
+    var isSyncing: Bool { !activeEvents.isEmpty }
+
+    func recordMirroringEvent(_ event: MirroringEvent) {
+        guard storage == .cloudKit else { return }
+        guard let endedAt = event.endedAt else { activeEvents.insert(event.id); return }
+        activeEvents.remove(event.id)
+        if event.succeeded {
+            switch event.kind {
+            case .exportRecords: lastSuccessfulExportDate = max(lastSuccessfulExportDate ?? .distantPast, endedAt)
+            case .importRecords: lastSuccessfulImportDate = max(lastSuccessfulImportDate ?? .distantPast, endedAt)
+            case .setup: break
+            }
+        } else { lastFailureDate = max(lastFailureDate ?? .distantPast, endedAt) }
+        recordMirroringOutcome(succeeded: event.succeeded)
+    }
 
     private let storage: JournalDataStore.Storage
     private let accountStatusProvider: @Sendable () async throws -> CKAccountStatus
@@ -112,14 +139,17 @@ final class CloudBackupState {
             let event = notification.userInfo?[
                 NSPersistentCloudKitContainer.eventNotificationUserInfoKey
             ] as? NSPersistentCloudKitContainer.Event
-            guard let event, event.endDate != nil else { return }
-            // Read the outcome here: the event itself must not cross into
-            // the MainActor region.
-            let succeeded = event.succeeded
-
-            MainActor.assumeIsolated {
-                self?.recordMirroringOutcome(succeeded: succeeded)
+            guard let event else { return }
+            let kind: MirroringEvent.Kind
+            switch event.type {
+            case .setup: kind = .setup
+            case .import: kind = .importRecords
+            case .export: kind = .exportRecords
+            @unknown default: return
             }
+            let snapshot = MirroringEvent(id: event.identifier, kind: kind, startedAt: event.startDate,
+                                          endedAt: event.endDate, succeeded: event.succeeded)
+            MainActor.assumeIsolated { self?.recordMirroringEvent(snapshot) }
         }
         eventObserver = (center, token)
     }
@@ -158,9 +188,9 @@ extension CloudBackupState.Status {
     var summary: String {
         switch self {
         case .configured:
-            String(localized: "On — new entries copy to your iCloud")
+            String(localized: "Configured for iCloud sync")
         case .syncFailed:
-            String(localized: "iCloud reported an error during the last backup")
+            String(localized: "iCloud reported an error during the last sync")
         case .unavailable:
             // Covers a store that opened without CloudKit and an account
             // lookup that failed or came back temporarily unavailable.
