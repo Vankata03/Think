@@ -1,7 +1,55 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Complete %@ to unlock" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Завърши %@, за да отключиш"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Schließe %@ ab, um diesen Pfad freizuschalten"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Complete %@ to unlock"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Completa %@ para desbloquear"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Terminez %@ pour déverrouiller"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Completa %@ per sbloccare"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Conclua %@ para desbloquear"
+          }
+        }
+      }
+    },
     "Entries stay on this device. Think has no server and no account." : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -242,6 +290,7 @@
       }
     },
     "On — new entries copy to your iCloud" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -362,6 +411,7 @@
       }
     },
     "iCloud reported an error during the last backup" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -740,6 +790,7 @@
       }
     },
     "%@. One short lesson and one concrete task per day, ten minutes at most." : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -1293,6 +1344,7 @@
       }
     },
     "%lld/4" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -1333,6 +1385,7 @@
       }
     },
     "1 minute" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -1413,6 +1466,7 @@
       }
     },
     "A few private sentences. Stored on your device only." : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -2425,6 +2479,7 @@
       }
     },
     "Capture the thought while it is still clear." : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -2745,6 +2800,7 @@
       }
     },
     "complete" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -3025,6 +3081,7 @@
       }
     },
     "Daily practice" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -3781,6 +3838,7 @@
       }
     },
     "Entries stay in your own iCloud. Think has no server and no account." : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -4033,6 +4091,7 @@
       }
     },
     "Finish a work session to see it here." : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -4193,6 +4252,7 @@
       }
     },
     "Focus minutes" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -4525,6 +4585,7 @@
       }
     },
     "How was the day? Close it honestly before it closes on you." : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -4565,6 +4626,7 @@
       }
     },
     "iCloud backup" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -6048,6 +6110,7 @@
       }
     },
     "Pick one discipline. Ten minutes a day." : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -6940,6 +7003,7 @@
       }
     },
     "Save answer" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -7832,6 +7896,7 @@
       }
     },
     "Soon" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -8232,6 +8297,7 @@
       }
     },
     "The path is intentionally small. Read, act, mark the day." : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -8869,6 +8935,7 @@
       }
     },
     "today" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -9029,6 +9096,7 @@
       }
     },
     "Today's practice" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -9189,6 +9257,7 @@
       }
     },
     "Training atlas" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -9229,6 +9298,7 @@
       }
     },
     "Training log" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -9309,6 +9379,7 @@
       }
     },
     "Two honest minutes. Skip anything that doesn't apply." : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -9510,6 +9581,7 @@
       }
     },
     "Write a few honest sentences…" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -10476,6 +10548,7 @@
       }
     },
     "This removes journal entries, retrospectives, saved lines, streaks, achievements, and focus history from this device. Journal entries and retrospectives are also removed from your iCloud backup and any device signed into it; saved lines, streaks, achievements, and focus history are on this device only. Mindful minutes already saved to Health stay in Health and can be deleted there. This cannot be undone." : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -11434,6 +11507,7 @@
       }
     },
     "An unsaved answer could not be read. It was left untouched. Try again or open it from Drafts." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -11940,6 +12014,7 @@
       }
     },
     "Choose a practice. Each lesson includes its time and a smaller option." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -14148,6 +14223,7 @@
       }
     },
     "Estimated task time" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -14286,6 +14362,7 @@
       }
     },
     "Finishing the timer does not mark this task complete. Return here when you have done it." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -18242,6 +18319,7 @@
       }
     },
     "Start a focus session" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -19438,6 +19516,7 @@
       }
     },
     "Unlock to see today's retrospective. You can still begin one now." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -19484,6 +19563,7 @@
       }
     },
     "Unlock to see whether you have answered today. Writing never needs the lock." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -20358,6 +20438,7 @@
       }
     },
     "answered" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

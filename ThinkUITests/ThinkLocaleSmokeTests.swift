@@ -62,7 +62,7 @@ final class ThinkLocaleSmokeTests: XCTestCase {
             "Share action did not load for \(language)"
         )
         XCTAssertTrue(
-            app.descendants(matching: .any)["TrainingLog"].waitForExistence(timeout: 2),
+            app.descendants(matching: .any)["ActivityLog"].waitForExistence(timeout: 2),
             "Training log did not load for \(language)"
         )
 

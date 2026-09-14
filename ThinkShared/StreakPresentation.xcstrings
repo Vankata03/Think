@@ -42,6 +42,7 @@
       }
     },
     "%lld/4 today": {
+      "extractionState" : "stale",
       "localizations": {
         "bg": {
           "stringUnit": {

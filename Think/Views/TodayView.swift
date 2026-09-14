@@ -46,7 +46,7 @@ struct TodayView: View {
     @State private var showingStreakCalendar = false
     @State private var appeared = false
 
-    private enum NextAction { case answer, move, retro, focus, none }
+    private enum NextAction { case answer, move, retro, none }
 
     private static let activityOrder: [PracticeActivityKind] = [.answer, .move, .retro, .note, .focus, .path]
 
@@ -67,7 +67,6 @@ struct TodayView: View {
         if !answeredToday { return .answer }
         if !moveDone { return .move }
         if isEvening && !retroWrittenToday { return .retro }
-        if !activities.contains(.focus) { return .focus }
         return .none
     }
 
@@ -77,27 +76,23 @@ struct TodayView: View {
                 VStack(alignment: .leading, spacing: 18) {
                     ritualHeader
                     quoteCard
+                    moveCard
                     questionCard
                     if showsRetroCard {
                         retroCard
                             .transition(ThinkMotion.stateTransition(reduceMotion: reduceMotion))
                     }
-                    sectionHeader("Training log", detail: "today")
                     activityLog
-                    statsRow
-                    if nextAction == .focus {
-                        focusPrompt
-                    }
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 18)
-                .padding(.bottom, 110)
+                .padding(.bottom, 32)
                 .opacity(appeared ? 1 : 0)
                 .offset(y: appeared || reduceMotion ? 0 : 16)
                 .animation(ThinkMotion.stateAnimation(reduceMotion: reduceMotion), value: showsRetroCard)
             }
             .navigationTitle("Today")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     NavigationLink {
@@ -153,28 +148,14 @@ struct TodayView: View {
             Text(now.formatted(.dateTime.weekday(.wide).month(.abbreviated).day()))
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.secondary)
-            Text("Today's practice")
-                .font(.largeTitle.bold())
-                .foregroundStyle(.primary)
 
             if let carriedIntention, !carriedIntention.isEmpty {
-                HStack(alignment: .top, spacing: 8) {
-                    Image(systemName: "arrow.turn.down.right")
-                        .font(.footnote)
-                        .foregroundStyle(Color.accentColor)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Carried from yesterday")
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(.secondary)
-                            .textCase(.uppercase)
-                        Text(carriedIntention)
-                            .font(.body)
-                            .foregroundStyle(.primary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
+                DisclosureGroup("Carried from yesterday") {
+                    Text(carriedIntention)
+                        .font(.body).foregroundStyle(.primary)
+                        .padding(.top, 8)
                 }
-                .padding(.top, 4)
-                .accessibilityElement(children: .combine)
+                .font(.subheadline).foregroundStyle(.secondary)
                 .accessibilityIdentifier("CarriedIntention")
             }
         }
@@ -207,8 +188,6 @@ struct TodayView: View {
                         .font(.system(.subheadline, design: .rounded).weight(.bold))
                         .monospacedDigit()
                 }
-                Text(streakCaption)
-                    .font(.caption.weight(.medium))
             }
             .foregroundStyle(progress.displayedStreak > 0 ? Color.accentColor : .secondary)
         }
@@ -233,9 +212,11 @@ struct TodayView: View {
             }
         } label: {
             Image(systemName: isFavorite ? "heart.fill" : "heart")
+                .foregroundStyle(isFavorite ? Color.accessibleAccent(for: colorScheme) : Color.secondary)
                 .contentTransition(.symbolEffect(.replace))
         }
-        .buttonStyle(.bordered)
+        .buttonStyle(.plain)
+        .frame(minWidth: 44, minHeight: 44)
         .tint(Color.accessibleAccent(for: colorScheme))
         .accessibilityLabel(isFavorite
                             ? String(localized: "Remove from saved lines")
@@ -256,58 +237,40 @@ struct TodayView: View {
                 .lineSpacing(2)
                 .fixedSize(horizontal: false, vertical: true)
 
-            adaptiveRow {
-                HStack(spacing: 12) {
-                    favoriteButton
-                    if let attribution = quote.attribution {
-                        Text(attribution)
-                            .font(.footnote.weight(.medium))
-                            .foregroundStyle(.secondary)
-                    }
+            HStack(spacing: 8) {
+                if let attribution = quote.attribution {
+                    Text(attribution)
+                        .font(.footnote).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer(minLength: 0)
+                NavigationLink {
+                    PracticeDetailView(practiceID: practice.id, version: practice.version)
+                } label: {
+                    Image(systemName: "info.circle")
+                        .frame(width: 44, height: 44)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("About this practice")
+                .accessibilityIdentifier("PracticeSource")
+                favoriteButton
                 Button {
                     haptics.play(.selection)
                     showingShareCard = true
                 } label: {
-                    Label("Share", systemImage: "square.and.arrow.up")
+                    Image(systemName: "square.and.arrow.up")
+                        .foregroundStyle(Color.accessibleAccent(for: colorScheme))
+                        .frame(width: 44, height: 44)
                 }
-                .buttonStyle(.bordered)
-                .tint(Color.accessibleAccent(for: colorScheme))
+                .buttonStyle(.plain)
+                .accessibilityLabel("Share")
                 .accessibilityIdentifier("ShareQuote")
+
             }
-
-            NavigationLink {
-                PracticeDetailView(practiceID: practice.id, version: practice.version)
-            } label: {
-                Label("About this practice", systemImage: "text.quote")
-                    .font(.footnote.weight(.medium))
-            }
-            .tint(Color.accessibleAccent(for: colorScheme))
-            .accessibilityIdentifier("PracticeSource")
-
-            Divider()
-
-            VStack(alignment: .leading, spacing: 10) {
-                Label("Today's move", systemImage: "arrow.right")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .textCase(.uppercase)
-
-                Text(practice.action)
-                    .font(.body.weight(.medium))
-                    .foregroundStyle(.primary)
-                    .fixedSize(horizontal: false, vertical: true)
-
-                moveToggle
-            }
+            .foregroundStyle(.secondary)
         }
-        .padding(18)
+        .padding(24)
         .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .stroke(.separator.opacity(0.6), lineWidth: 1)
-        }
         .sheet(isPresented: $showingShareCard) {
             ShareCardSheet(quote: quote)
         }
@@ -333,13 +296,25 @@ struct TodayView: View {
 
     // MARK: - Question of the day
 
-    private var questionCard: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            sectionHeader(
-                "Question of the day",
-                detail: todaysAnswer == nil ? "1 minute" : "answered"
-            )
+    private var moveCard: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            Label("Today's move", systemImage: "arrow.up.right")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
+            Text(practice.action)
+                .font(.body.weight(.medium))
+                .fixedSize(horizontal: false, vertical: true)
+            moveToggle
+        }
+        .padding(24)
+        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 24))
+    }
 
+    private var questionCard: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            Label("Question of the day", systemImage: "square.and.pencil")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
             JournalStorageWarning()
 
             Text(practice.question)
@@ -365,12 +340,8 @@ struct TodayView: View {
                     .transition(ThinkMotion.stateTransition(reduceMotion: reduceMotion))
             }
         }
-        .padding(18)
-        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .stroke(.separator.opacity(0.6), lineWidth: 1)
-        }
+        .padding(24)
+        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 24))
         .animation(ThinkMotion.stateAnimation(reduceMotion: reduceMotion), value: todaysAnswer?.primary.recordID)
         .animation(ThinkMotion.stateAnimation(reduceMotion: reduceMotion), value: lock.isLocked)
         .accessibilityElement(children: .contain)
@@ -384,20 +355,23 @@ struct TodayView: View {
             Label("Journal locked", systemImage: "lock.fill")
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.secondary)
-            Text("Unlock to see whether you have answered today. Writing never needs the lock.")
-                .font(.body)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-            adaptiveRow {
+            VStack(spacing: 10) {
                 Button {
                     Task { _ = await lock.authenticate() }
                 } label: {
-                    Label("Unlock to read", systemImage: "lock.open")
-                        .frame(maxWidth: .infinity)
+                    HStack(spacing: 8) {
+                        Image(systemName: "lock.open")
+                            .frame(width: 20)
+                        Text("Unlock to read")
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 4)
                 }
                 .buttonStyle(.bordered)
                 .tint(Color.accessibleAccent(for: colorScheme))
                 .disabled(!lock.canAuthenticate)
+                .accessibilityLabel("Unlock to read")
                 .accessibilityIdentifier("UnlockToRead")
 
                 writeAnswerButton(prominent: false)
@@ -408,9 +382,7 @@ struct TodayView: View {
                     .foregroundStyle(.secondary)
             }
         }
-        .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(.tertiarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
     private func writeAnswerButton(prominent: Bool) -> some View {
@@ -429,9 +401,6 @@ struct TodayView: View {
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.green)
                 .accessibilityIdentifier("DailyQuestionAnswered")
-            Text(selection.primary.date.formatted(date: .omitted, time: .shortened))
-                .font(.footnote)
-                .foregroundStyle(.secondary)
             if selection.hasConflicts {
                 Text("\(selection.all.count) versions were written for today. All are kept.")
                     .font(.footnote)
@@ -447,9 +416,7 @@ struct TodayView: View {
             .tint(Color.accessibleAccent(for: colorScheme))
             .accessibilityIdentifier("ReadDailyAnswer")
         }
-        .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(.tertiarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
     @ViewBuilder
@@ -471,30 +438,13 @@ struct TodayView: View {
             )
 
             if lock.isLocked {
-                Text("Unlock to see today's retrospective. You can still begin one now.")
-                    .font(.body)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
                 actionButton("Begin retrospective", systemImage: "moon.stars", prominent: nextAction == .retro) {
                     haptics.play(.selection)
                     showingRetro = true
                 }
                 .accessibilityIdentifier("BeginRetrospective")
             } else if let selection = todaysRetro {
-                VStack(alignment: .leading, spacing: 12) {
-                    retroSummaryRow("checkmark.circle", selection.primary.wentWell)
-                    retroSummaryRow("arrow.up.circle", selection.primary.improve)
-                    retroSummaryRow("sunrise", selection.primary.tomorrow)
-                    if selection.hasConflicts {
-                        Text("\(selection.all.count) versions were written for today. All are kept.")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .padding(14)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color(.tertiarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-                VStack(spacing: 8) {
+                adaptiveRow {
                     NavigationLink {
                         retroDestination(selection)
                     } label: {
@@ -516,10 +466,6 @@ struct TodayView: View {
                     .accessibilityIdentifier("EditRetrospective")
                 }
             } else {
-                Text("How was the day? Close it honestly before it closes on you.")
-                    .font(.body)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
                 actionButton("Begin retrospective", systemImage: "moon.stars", prominent: nextAction == .retro) {
                     haptics.play(.selection)
                     showingRetro = true
@@ -527,12 +473,8 @@ struct TodayView: View {
                 .accessibilityIdentifier("BeginRetrospective")
             }
         }
-        .padding(18)
-        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .stroke(.separator.opacity(0.6), lineWidth: 1)
-        }
+        .padding(24)
+        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 24))
         .sheet(isPresented: $showingRetro) {
             RetroSheet()
         }
@@ -547,22 +489,6 @@ struct TodayView: View {
         }
     }
 
-    @ViewBuilder
-    private func retroSummaryRow(_ systemImage: String, _ text: String) -> some View {
-        if !text.isEmpty {
-            HStack(alignment: .top, spacing: 10) {
-                Image(systemName: systemImage)
-                    .font(.footnote)
-                    .foregroundStyle(Color.accentColor)
-                    .frame(width: 18)
-                Text(text)
-                    .font(.body)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(2)
-            }
-        }
-    }
-
     // MARK: - Training log
 
     /// Named activities from the progress ledger. Opening the app records
@@ -570,25 +496,24 @@ struct TodayView: View {
     private var activityLog: some View {
         let done = activities
         return VStack(alignment: .leading, spacing: 12) {
-            Text(done.isEmpty
-                 ? String(localized: "Nothing logged yet today.")
-                 : String(localized: "\(done.count) logged today"))
-                .font(.footnote.weight(.medium))
-                .foregroundStyle(.secondary)
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: stacksVertically ? 260 : 150), spacing: 10, alignment: .leading)],
-                      alignment: .leading, spacing: 10) {
-                ForEach(Self.activityOrder, id: \.self) { kind in
-                    activityChip(kind, done: done.contains(kind))
-                }
+            DisclosureGroup {
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: stacksVertically ? 260 : 150), spacing: 10, alignment: .leading)],
+                          alignment: .leading, spacing: 10) {
+                    ForEach(Self.activityOrder, id: \.self) { kind in
+                        activityChip(kind, done: done.contains(kind))
+                    }
+                }.padding(.top, 12)
+                statsRow.padding(.top, 12)
+            } label: {
+                Text(done.isEmpty
+                     ? String(localized: "Nothing logged yet today.")
+                     : String(localized: "\(done.count) logged today"))
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(.secondary)
             }
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(.separator.opacity(0.6), lineWidth: 1)
-        }
         .accessibilityIdentifier("ActivityLog")
     }
 
@@ -638,16 +563,6 @@ struct TodayView: View {
             .accessibilityIdentifier("PathMetric")
         }
         .accessibilityIdentifier("TrainingLog")
-    }
-
-    /// Shown only once answer, move, and (in the evening) retro are done,
-    /// so the day has a single obvious next step at any time.
-    private var focusPrompt: some View {
-        actionButton("Start a focus session", systemImage: "timer", prominent: true) {
-            haptics.play(.selection)
-            router.selectedTab = .focus
-        }
-        .accessibilityIdentifier("StartFocusFromToday")
     }
 
     // MARK: - Building blocks

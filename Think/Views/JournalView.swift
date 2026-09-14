@@ -236,14 +236,20 @@ struct JournalView: View {
     private var entryList: some View {
         List {
             SwiftUI.Section {
-                sectionPicker
-                    .listRowInsets(EdgeInsets())
-                    .listRowBackground(Color.clear)
-                filterBar
-                    .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
-                    .listRowBackground(Color.clear)
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        Text("Entries")
+                        Spacer(minLength: 12)
+                        sectionPicker.labelsHidden()
+                    }
+                    filterBar
+                }
+                .accessibilityElement(children: .contain)
+                .accessibilityIdentifier("JournalFilters")
+                .listRowInsets(EdgeInsets(top: 16, leading: 20, bottom: 16, trailing: 20))
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
             }
-
             if recoverableCount > 0 || unreadableDraftCount > 0 {
                 SwiftUI.Section {
                     NavigationLink {
@@ -264,35 +270,45 @@ struct JournalView: View {
                 }
             }
 
-            SwiftUI.Section {
-                JournalStorageWarning()
-                if let loadError {
-                    Text(loadError).foregroundStyle(.red).accessibilityIdentifier("JournalLoadError")
-                }
-                if rows.isEmpty && loadError == nil {
-                    Text(isFiltering ? String(localized: "No entries match these filters.") : section.emptyMessage)
-                        .foregroundStyle(.secondary)
-                        .accessibilityIdentifier("JournalEmpty")
-                } else {
-                    ForEach(rows) { row in
-                        rowView(row)
+            if repository.storageWarning != nil || loadError != nil || rows.isEmpty {
+                SwiftUI.Section {
+                    if repository.storageWarning != nil { JournalStorageWarning() }
+                    if let loadError {
+                        Text(loadError).foregroundStyle(.red).accessibilityIdentifier("JournalLoadError")
                     }
-                    if hasMore {
-                        Button {
-                            loadMore()
-                        } label: {
-                            Label("Load more", systemImage: "arrow.down.circle")
-                                .frame(maxWidth: .infinity)
-                        }
-                        .accessibilityIdentifier("JournalLoadMore")
+                    if rows.isEmpty && loadError == nil {
+                        Text(isFiltering ? String(localized: "No entries match these filters.") : section.emptyMessage)
+                            .foregroundStyle(.secondary)
+                            .accessibilityIdentifier("JournalEmpty")
                     }
-                }
-            } footer: {
-                if totalCount > 0 {
-                    Text("\(rows.count) of \(totalCount) shown")
                 }
             }
+
+            ForEach(rows) { row in
+                SwiftUI.Section {
+                    rowView(row)
+                        .listRowInsets(EdgeInsets(top: 16, leading: 20, bottom: 16, trailing: 20))
+                        .listRowSeparator(.hidden)
+                }
+            }
+            if hasMore {
+                SwiftUI.Section {
+                    Button { loadMore() } label: {
+                        Label("Load more", systemImage: "arrow.down.circle")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .accessibilityIdentifier("JournalLoadMore")
+                }
+            }
+            if totalCount > 0 {
+                Text("\(rows.count) of \(totalCount) shown")
+                    .font(.caption).foregroundStyle(.secondary)
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+            }
         }
+        .listStyle(.insetGrouped)
+        .listSectionSpacing(12)
         .searchable(text: $search, prompt: Text("Search prompts and text"))
         .refreshable { reload() }
         .accessibilityIdentifier("JournalList")

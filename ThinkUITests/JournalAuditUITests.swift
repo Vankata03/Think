@@ -27,12 +27,39 @@ final class JournalAuditUITests: XCTestCase {
     @MainActor
     func testSuccessfulUnlockShowsSeededJournalAndDetailActions() throws {
         let app = launch(["-ui-journal-locked", "-ui-auth-success", "-ui-seed-journal"])
-        XCTAssertTrue(app.buttons["UnlockToRead"].waitForExistence(timeout: 3))
+        let unlock = app.buttons["UnlockToRead"]
+        XCTAssertTrue(unlock.waitForExistence(timeout: 3))
+        for _ in 0..<3 where !unlock.isHittable { app.swipeUp() }
+        let homeCapture = XCTAttachment(screenshot: app.screenshot())
+        homeCapture.name = "Home unlock alignment"
+        homeCapture.lifetime = .keepAlways
+        add(homeCapture)
         app.buttons["Journal"].tap()
         XCTAssertTrue(app.descendants(matching: .any)["JournalView"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["PRIVATE AUDIT ANSWER"].waitForExistence(timeout: 3))
         app.staticTexts["PRIVATE AUDIT ANSWER"].tap()
         XCTAssertTrue(app.buttons["EntryActions"].waitForExistence(timeout: 3))
+    }
+
+    @MainActor
+    func testJournalFiltersScrollWithEntries() throws {
+        let app = launch(["-ui-seed-journal"])
+        app.buttons["Journal"].tap()
+        let controls = app.descendants(matching: .any)["JournalFilters"]
+        XCTAssertTrue(controls.waitForExistence(timeout: 3))
+        let before = controls.frame.minY
+        let top = XCTAttachment(screenshot: app.screenshot())
+        top.name = "Journal scrolling controls top"
+        top.lifetime = .keepAlways
+        add(top)
+        app.swipeUp()
+        if controls.exists && controls.isHittable {
+            XCTAssertLessThan(controls.frame.minY, before - 20)
+        }
+        let scrolled = XCTAttachment(screenshot: app.screenshot())
+        scrolled.name = "Journal scrolling controls scrolled"
+        scrolled.lifetime = .keepAlways
+        add(scrolled)
     }
 
     @MainActor

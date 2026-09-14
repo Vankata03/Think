@@ -79,30 +79,44 @@ struct WeeklyReviewView: View {
 
     private func practiceSection(_ summary: WeeklyPracticeSummary) -> some View {
         Section {
-            LabeledContent("Practiced", value: "\(summary.practiceDays) of \(summary.days.count) days")
-            if !lock.isLocked, let activity {
-                LabeledContent("Answers", value: activity.answers.formatted())
-                LabeledContent("Notes", value: activity.notes.formatted())
-                LabeledContent("Retrospectives", value: activity.retros.formatted())
-            }
-            LabeledContent("Completed focus sessions", value: summary.completedSessions.formatted())
-            LabeledContent("Completed focus minutes", value: summary.completedMinutes.formatted())
-            if summary.partialActiveSeconds > 0 {
-                LabeledContent("Partial effort, not completed", value: Duration.seconds(summary.partialActiveSeconds).formatted(.time(pattern: .minuteSecond)))
-            }
-            Text("Counts cover this calendar week only. Completed minutes use planned session lengths; partial effort is active time from sessions ended early.")
-                .font(.footnote).foregroundStyle(.secondary)
-        } header: { Text("This week") }
+            VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("\(summary.practiceDays) of \(summary.days.count) days")
+                        .font(.title2.bold())
+                    Text("Practiced").font(.subheadline).foregroundStyle(.secondary)
+                }
+                DisclosureGroup("This week") {
+                    VStack(spacing: 12) {
+                        if !lock.isLocked, let activity {
+                            LabeledContent("Answers", value: activity.answers.formatted())
+                            LabeledContent("Notes", value: activity.notes.formatted())
+                            LabeledContent("Retrospectives", value: activity.retros.formatted())
+                        }
+                        LabeledContent("Completed focus sessions", value: summary.completedSessions.formatted())
+                        LabeledContent("Completed focus minutes", value: summary.completedMinutes.formatted())
+                        if summary.partialActiveSeconds > 0 {
+                            LabeledContent("Partial effort, not completed", value: Duration.seconds(summary.partialActiveSeconds).formatted(.time(pattern: .minuteSecond)))
+                        }
+                        Text("Counts cover this calendar week only. Completed minutes use planned session lengths; partial effort is active time from sessions ended early.")
+                            .font(.footnote).foregroundStyle(.secondary)
+                    }.padding(.top, 12)
+                }.font(.subheadline)
+            }.padding(.vertical, 8)
+        }
     }
 
     private func moodSection(_ activity: JournalRepository.ActivitySummary) -> some View {
         Section {
-            ForEach(Mood.allCases) { mood in
-                LabeledContent(mood.label, value: (activity.taggedMoodCounts[mood.rawValue] ?? 0).formatted())
-            }
-            LabeledContent("Untagged", value: activity.untaggedCount.formatted())
-        } header: { Text("Mood this week") } footer: {
-            Text("Categories, not a score. An entry either carries one of these tags or stays untagged.")
+            DisclosureGroup("Mood this week") {
+                VStack(spacing: 12) {
+                    ForEach(Mood.allCases) { mood in
+                        LabeledContent(mood.label, value: (activity.taggedMoodCounts[mood.rawValue] ?? 0).formatted())
+                    }
+                    LabeledContent("Untagged", value: activity.untaggedCount.formatted())
+                    Text("Categories, not a score. An entry either carries one of these tags or stays untagged.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                }.padding(.top, 12)
+            }.font(.subheadline)
         }
     }
 

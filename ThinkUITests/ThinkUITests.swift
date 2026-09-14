@@ -17,8 +17,22 @@ final class ThinkUITests: XCTestCase {
 
         XCTAssertTrue(app.descendants(matching: .any)["QuestionOfTheDayCard"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["ShareQuote"].waitForExistence(timeout: 2))
-        XCTAssertTrue(app.descendants(matching: .any)["TrainingLog"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.descendants(matching: .any)["ActivityLog"].waitForExistence(timeout: 2))
         XCTAssertTrue(app.tabBars.buttons.element(boundBy: 0).isSelected)
+    }
+
+    @MainActor
+    func testHomeKeepsMoveVisibleAndReversible() throws {
+        let app = launchApp()
+        let move = app.buttons["TodaysMoveToggle"]
+        XCTAssertTrue(move.waitForExistence(timeout: 5))
+        for _ in 0..<3 where !move.isHittable { app.swipeUp() }
+        move.tap()
+        XCTAssertEqual(move.label, "Today's move done. Undo")
+        move.tap()
+        XCTAssertEqual(move.label, "Mark today's move done")
+        XCTAssertTrue(app.buttons["WriteDailyAnswer"].exists)
+        XCTAssertFalse(app.segmentedControls["DailyPracticePicker"].exists)
     }
 
     @MainActor
