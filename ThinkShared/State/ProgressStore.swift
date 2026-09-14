@@ -700,6 +700,18 @@ final class ProgressStore {
     func runs(for pathID: String) -> [PathRunProgress] { pathRuns.filter { $0.pathID == pathID } }
     func activeRun(for pathID: String) -> PathRunProgress? { runs(for: pathID).last }
 
+    /// Completion of an earlier run keeps the next path unlocked during repeats.
+    func prerequisite(for pathID: String) -> ThinkingPath? {
+        guard let index = PathLibrary.all.firstIndex(where: { $0.id == pathID }), index > 0 else { return nil }
+        return PathLibrary.all[index - 1]
+    }
+
+    func isPathUnlocked(_ pathID: String) -> Bool {
+        guard let path = PathLibrary.all.first(where: { $0.id == pathID }), path.isAvailable else { return false }
+        guard let previous = prerequisite(for: pathID) else { return true }
+        return runs(for: previous.id).contains { $0.isComplete }
+    }
+
     @discardableResult
     func startNewRun(pathID: String, totalSteps: Int, at date: Date = .now) -> PathRunProgress {
         let run = createRun(pathID: pathID, totalSteps: totalSteps, at: date)
@@ -717,7 +729,7 @@ final class ProgressStore {
     }
 
     func canCompletePathStep(pathID: String, totalSteps: Int, at date: Date = .now) -> Bool {
-        guard totalSteps > 0 else { return false }
+        guard totalSteps > 0, isPathUnlocked(pathID) else { return false }
         guard let run = activeRun(for: pathID) else { return true }
         guard !run.isComplete else { return false }
         let last = run.lastCompletionDate ?? (run.startedAt == nil && pathID == PathLibrary.deepFocus.id ? lastPathCompletionDay : nil)

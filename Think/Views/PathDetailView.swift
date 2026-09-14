@@ -22,57 +22,73 @@ struct PathDetailView: View {
     }
 
     var body: some View {
-        List {
-            Section {
-                ProgressView(value: Double(completed), total: Double(max(1, path.steps.count))) {
-                    Text("\(completed) of \(path.steps.count) days")
-                }
-                if let continuation = path.continuation { Text(continuation).font(.footnote).foregroundStyle(.secondary) }
-            }
-            if !reviewing, let step = path.currentStep(afterCompleted: completed) {
-                Section("Day \(step.id) — \(step.title)") {
-                    lesson(step)
-                    Button {
-                        withAnimation(ThinkMotion.stateAnimation(reduceMotion: reduceMotion)) {
-                            _ = progress.completePathStep(pathID: path.id, totalSteps: path.steps.count)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 24) {
+                if progress.isPathUnlocked(path.id) {
+                    ProgressView(value: Double(completed), total: Double(max(1, path.steps.count))) {
+                        Text("\(completed) of \(path.steps.count) days")
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
+                    .tint(Color("AccentColor"))
+                    if !reviewing, let step = path.currentStep(afterCompleted: completed) {
+                        VStack(alignment: .leading, spacing: 24) {
+                            lesson(step)
+                            Button {
+                                withAnimation(ThinkMotion.stateAnimation(reduceMotion: reduceMotion)) {
+                                    if progress.completePathStep(pathID: path.id, totalSteps: path.steps.count) {
+                                        haptics.play(.success)
+                                    }
+                                }
+                            } label: {
+                                Text(canComplete ? String(localized: "Mark day complete") : String(localized: "Come back tomorrow"))
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.borderedProminent).controlSize(.large).tint(Color("AccentColor"))
+                            .foregroundStyle(.black).disabled(!canComplete)
                         }
-                        haptics.play(.success)
-                    } label: {
-                        Text(canComplete ? String(localized: "Mark day complete") : String(localized: "Come back tomorrow"))
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.borderedProminent).controlSize(.large).tint(Color("AccentColor"))
-                    .foregroundStyle(.black).disabled(!canComplete)
-                }
-            } else if completed >= path.steps.count {
-                Section { Label("Path completed. Begin again anytime.", systemImage: "checkmark.seal.fill") }
-            }
-            Section("All days") {
-                ForEach(path.steps) { step in
-                    NavigationLink {
-                        List { Section("Day \(step.id) — \(step.title)") { lesson(step) } }
-                            .navigationTitle(path.name).navigationBarTitleDisplayMode(.inline)
-                    } label: {
-                        Label("Day \(step.id) — \(step.title)", systemImage: step.id <= completed ? "checkmark.circle.fill" : "circle")
-                    }
-                }
-            }
-            Section("Practice runs") {
-                ForEach(Array(progress.runs(for: path.id).enumerated()), id: \.element.id) { index, value in
-                    Button {
-                        selectedRunID = value.id
-                    } label: {
-                        HStack {
-                            Text("Run \(index + 1)")
-                            Spacer()
-                            Text("\(value.completedSteps)/\(value.totalSteps)")
-                            if value.id == run?.id { Image(systemName: "checkmark") }
+                        .padding(24)
+                        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 24))
+                    } else if completed >= path.steps.count {
+                        Label("Path completed. Begin again anytime.", systemImage: "checkmark.seal.fill")
+                        if let continuation = path.continuation {
+                            Text(continuation).font(.subheadline).foregroundStyle(.secondary)
                         }
                     }
+                    DisclosureGroup("All days") {
+                        VStack(alignment: .leading, spacing: 20) {
+                            ForEach(path.steps) { step in
+                                NavigationLink {
+                                    ScrollView { lesson(step).padding(24) }
+                                        .navigationTitle(path.name).navigationBarTitleDisplayMode(.inline)
+                                } label: {
+                                    Label("Day \(step.id) — \(step.title)", systemImage: step.id <= completed ? "checkmark.circle.fill" : "circle")
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                }
+                            }
+                        }.padding(.top, 20)
+                    }
+                    DisclosureGroup("Practice runs") {
+                        VStack(spacing: 20) {
+                            ForEach(Array(progress.runs(for: path.id).enumerated()), id: \.element.id) { index, value in
+                                Button { selectedRunID = value.id } label: {
+                                    HStack {
+                                        Text("Run \(index + 1)")
+                                        Spacer()
+                                        Text("\(value.completedSteps)/\(value.totalSteps)")
+                                        if value.id == run?.id { Image(systemName: "checkmark") }
+                                    }
+                                }
+                            }
+                            Button("Start a new run") { showRestart = true }
+                        }.padding(.top, 20)
+                    }
+                } else if let previous = progress.prerequisite(for: path.id) {
+                    Label("Complete \(previous.name) to unlock", systemImage: "lock.fill")
                 }
-                Button("Start a new run") { showRestart = true }
             }
+            .padding(20)
         }
+        .background(Color(.systemGroupedBackground))
         .navigationTitle(path.name).navigationBarTitleDisplayMode(.inline)
         .accessibilityIdentifier("PathDetail.\(path.id)")
         .confirmationDialog("Start a new run?", isPresented: $showRestart) {
@@ -83,27 +99,36 @@ struct PathDetailView: View {
         } message: { Text("Your earlier runs and achievements stay saved. The new run starts at day one.") }
     }
 
-    @ViewBuilder private func lesson(_ step: PathStep) -> some View {
-        Text(step.lesson).font(.body).fontDesign(.serif)
-        LabeledContent("Estimated task time", value: String(localized: "\(step.estimatedMinutes) min"))
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Today's task").font(.caption).foregroundStyle(.secondary)
-            Text(step.task).accessibilityIdentifier("PathCurrentTask")
-        }
-        if let smaller = step.smallerTask {
-            DisclosureGroup("A smaller version") { Text(smaller).font(.body) }
-        }
-        if let minutes = step.suggestedFocusMinutes {
-            Button("Focus for \(minutes) min") {
-                // Do not replace work already running. Route to it instead.
-                if !timer.isRunning {
-                    _ = timer.selectCustom(workMinutes: minutes, restMinutes: 5)
-                    if !journalLock.isLocked { timer.setIntention(step.suggestedIntention) }
+    private func lesson(_ step: PathStep) -> some View {
+        VStack(alignment: .leading, spacing: 24) {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("Day \(step.id)")
+                    Spacer()
+                    Label("\(step.estimatedMinutes) min", systemImage: "clock")
                 }
-                router.selectedTab = .focus
+                .font(.caption.weight(.medium)).foregroundStyle(.secondary)
+                Text(step.title).font(.title2.bold())
             }
-            Text("Finishing the timer does not mark this task complete. Return here when you have done it.")
-                .font(.footnote).foregroundStyle(.secondary)
+            Text(step.lesson).font(.body).fontDesign(.serif).lineSpacing(4)
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Today's task").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+                Text(step.task).accessibilityIdentifier("PathCurrentTask")
+            }
+            if let smaller = step.smallerTask {
+                DisclosureGroup("A smaller version") {
+                    Text(smaller).font(.body).padding(.top, 8)
+                }.font(.subheadline)
+            }
+            if let minutes = step.suggestedFocusMinutes {
+                Button("Focus for \(minutes) min") {
+                    if !timer.isRunning {
+                        _ = timer.selectCustom(workMinutes: minutes, restMinutes: 5)
+                        if !journalLock.isLocked { timer.setIntention(step.suggestedIntention) }
+                    }
+                    router.selectedTab = .focus
+                }.buttonStyle(.bordered).controlSize(.large)
+            }
         }
     }
 }

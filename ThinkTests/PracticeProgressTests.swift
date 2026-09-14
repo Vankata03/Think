@@ -50,6 +50,26 @@ struct PracticeProgressTests {
         #expect(loaded.completePathStep(pathID: "clear-thinking", totalSteps: 7, at: day))
     }
 
+    @Test func pathsUnlockInOrderAndStayUnlockedAfterRestartAndReload() {
+        let d = defaults()
+        let store = ProgressStore(defaults: d, calendar: calendar, now: { day })
+        #expect(store.isPathUnlocked("deep-focus"))
+        #expect(!store.isPathUnlocked("clear-thinking"))
+        #expect(!store.completePathStep(pathID: "clear-thinking", totalSteps: 7, at: day))
+        #expect(store.activeRun(for: "clear-thinking") == nil)
+        for offset in 0..<21 {
+            #expect(store.completePathStep(pathID: "deep-focus", totalSteps: 21,
+                                          at: day.addingTimeInterval(Double(offset) * 86_400)))
+            #expect(store.isPathUnlocked("clear-thinking") == (offset == 20))
+        }
+        _ = store.startNewRun(pathID: "deep-focus", totalSteps: 21, at: day)
+        let reloaded = ProgressStore(defaults: d, calendar: calendar, now: { day })
+        #expect(reloaded.isPathUnlocked("clear-thinking"))
+        #expect(reloaded.completePathStep(pathID: "clear-thinking", totalSteps: 7, at: day))
+        #expect(!reloaded.isPathUnlocked("discipline"))
+        #expect(!reloaded.isPathUnlocked("unknown"))
+    }
+
     @Test func focusIdentityIsIdempotentBeyondHistoryRetentionAndPathLinkage() {
         let d = defaults()
         let store = ProgressStore(defaults: d, calendar: calendar, now: { day })

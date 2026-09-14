@@ -1,8 +1,3 @@
-//
-//  PathsView.swift
-//  Think
-//
-
 import SwiftUI
 
 struct PathsView: View {
@@ -12,55 +7,31 @@ struct PathsView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    header
-
-                    VStack(spacing: 0) {
-                        sectionHeader(
-                            "Training atlas",
-                            detail: "\(progress.pathCompletedDays)/\(PathLibrary.deepFocus.steps.count)"
-                        )
-                            .padding(.bottom, 16)
-
-                        ProgressView(value: Double(progress.pathCompletedDays) / Double(PathLibrary.deepFocus.steps.count))
-                            .tint(Color("AccentColor"))
-                            .padding(.bottom, 18)
-
-                        VStack(spacing: 0) {
-                            ForEach(PathLibrary.all.filter(\.isAvailable)) { path in
-                                pathLink(path)
-                                if path.id != PathLibrary.all.filter(\.isAvailable).last?.id {
-                                    Divider()
-                                        .padding(.leading, 52)
-                                }
-                            }
+                VStack(spacing: 16) {
+                    ForEach(PathLibrary.all.filter(\.isAvailable)) { path in
+                        if progress.isPathUnlocked(path.id) {
+                            NavigationLink(value: path.id) { pathCard(path) }
+                                .buttonStyle(.plain)
+                                .simultaneousGesture(TapGesture().onEnded { haptics.play(.selection) })
+                        } else {
+                            pathCard(path)
                         }
                     }
-                    .padding(18)
-                    .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            .stroke(.separator.opacity(0.6), lineWidth: 1)
-                    }
-                    .padding(.horizontal, 20)
-
                     DisclosureGroup("In development") {
-                        ForEach(PathLibrary.all.filter { !$0.isAvailable }) { path in pathRow(path) }
+                        ForEach(PathLibrary.all.filter { !$0.isAvailable }) { path in
+                            Label(path.name, systemImage: path.icon)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.top, 12)
+                        }
                     }
-                    .padding(.horizontal, 24)
-
-                    Text("The path is intentionally small. Read, act, mark the day.")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal, 34)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .padding(8)
                 }
-                .padding(.bottom, 110)
+                .padding(20)
             }
-            .background(Color(.systemGroupedBackground).ignoresSafeArea())
-            .scrollContentBackground(.hidden)
+            .background(Color(.systemGroupedBackground))
             .navigationTitle("Paths")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(.hidden, for: .navigationBar)
             .navigationDestination(for: String.self) { id in
                 if let path = PathLibrary.all.first(where: { $0.id == id }) {
                     PathDetailView(path: path)
@@ -69,110 +40,41 @@ struct PathsView: View {
         }
     }
 
-    private var header: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Paths")
-                .font(.largeTitle.bold())
-                .foregroundStyle(.primary)
-            Text("Choose a practice. Each lesson includes its time and a smaller option.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-        }
-        .padding(.horizontal, 20)
-        .padding(.top, 18)
-    }
-
-    @ViewBuilder
-    private func pathLink(_ path: ThinkingPath) -> some View {
-        if path.isAvailable {
-            NavigationLink(value: path.id) {
-                pathRow(path)
-            }
-            .buttonStyle(.plain)
-            .simultaneousGesture(TapGesture().onEnded {
-                haptics.play(.selection)
-            })
-        } else {
-            pathRow(path)
-        }
-    }
-
-    private func pathRow(_ path: ThinkingPath) -> some View {
-        HStack(spacing: 14) {
-            ZStack {
-                Circle()
-                    .fill(path.isAvailable ? Color.accentColor.opacity(0.16) : Color(.tertiarySystemFill))
-                    .frame(width: 40, height: 40)
+    private func pathCard(_ path: ThinkingPath) -> some View {
+        let unlocked = progress.isPathUnlocked(path.id)
+        let done = progress.activeRun(for: path.id)?.completedSteps ?? 0
+        return VStack(alignment: .leading, spacing: 20) {
+            HStack {
                 Image(systemName: path.icon)
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(path.isAvailable ? Color.accentColor : .secondary)
+                    .font(.title2)
+                    .foregroundStyle(unlocked ? Color.accentColor : .secondary)
+                Spacer()
+                Image(systemName: unlocked ? "arrow.up.right" : "lock.fill")
+                    .foregroundStyle(.secondary)
             }
-
-            VStack(alignment: .leading, spacing: 3) {
-                HStack(spacing: 8) {
-                    Text(path.name)
-                        .font(.headline)
-                        .foregroundStyle(path.isAvailable ? Color.primary : Color.secondary)
-                    if path.isAvailable, (progress.activeRun(for: path.id)?.completedSteps ?? 0) > 0 {
-                        Text("Day \(min((progress.activeRun(for: path.id)?.completedSteps ?? 0) + 1, path.steps.count))")
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(Color.accentColor)
-                    }
+            VStack(alignment: .leading, spacing: 6) {
+                Text(path.name).font(.title2.bold()).foregroundStyle(.primary)
+                if unlocked {
+                    Text(path.tagline).font(.subheadline).foregroundStyle(.secondary)
+                } else if let previous = progress.prerequisite(for: path.id) {
+                    Text("Complete \(previous.name) to unlock")
+                        .font(.subheadline).foregroundStyle(.secondary)
                 }
-                Text(subtitle(for: path))
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
             }
-
-            Spacer()
-
-            if !path.isAvailable {
-                Text("Soon")
-                    .font(.caption.weight(.medium))
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
-                    .background(Color(.tertiarySystemFill), in: Capsule())
-                    .foregroundStyle(.secondary)
-            } else {
-                Image(systemName: "chevron.right")
-                    .font(.footnote.weight(.bold))
-                    .foregroundStyle(.secondary)
+            if unlocked {
+                ProgressView(value: Double(done), total: Double(max(1, path.steps.count)))
+                    .tint(Color("AccentColor"))
+                    .accessibilityLabel(path.name)
+                    .accessibilityValue("\(done) of \(path.steps.count) days")
+                Text(done >= path.steps.count ? String(localized: "Completed") : String(localized: "Day \(done + 1) of \(path.steps.count)"))
+                    .font(.caption.weight(.semibold)).foregroundStyle(.secondary)
             }
         }
-        .padding(.vertical, 14)
+        .padding(24)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .contentShape(Rectangle())
-        .opacity(path.isAvailable ? 1 : 0.68)
+        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 24))
+        .contentShape(RoundedRectangle(cornerRadius: 24))
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("Path.\(path.id)")
     }
-
-    private func subtitle(for path: ThinkingPath) -> String {
-        guard path.isAvailable else { return path.tagline }
-        let done = progress.activeRun(for: path.id)?.completedSteps ?? 0
-        if done == 0 { return path.tagline }
-        if done >= path.steps.count { return String(localized: "Completed") }
-        return String(localized: "Day \(done + 1) of \(path.steps.count)")
-    }
-
-    private func sectionHeader(_ title: LocalizedStringKey, detail: LocalizedStringKey? = nil) -> some View {
-        HStack(alignment: .lastTextBaseline) {
-            Text(title)
-                .font(.caption.weight(.semibold))
-                .textCase(.uppercase)
-            Spacer()
-            if let detail {
-                Text(detail)
-                    .font(.caption)
-            }
-        }
-        .foregroundStyle(.secondary)
-        .accessibilityElement(children: .combine)
-    }
-}
-
-#Preview {
-    PathsView()
-        .environment(ProgressStore())
 }
