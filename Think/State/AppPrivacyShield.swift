@@ -45,16 +45,20 @@ final class AppPrivacyShield: NSObject {
             guard !coveredScenes.contains(scene.session.persistentIdentifier),
                   scene.activationState != .unattached else { continue }
             let controller = UIViewController()
-            controller.view.backgroundColor = .systemGroupedBackground
-            let label = UILabel()
-            label.text = "Think"
-            label.font = .preferredFont(forTextStyle: .title1)
-            label.textColor = .label
-            label.translatesAutoresizingMaskIntoConstraints = false
-            controller.view.addSubview(label)
+            controller.view.backgroundColor = UIColor(red: 0.086, green: 0.086, blue: 0.094, alpha: 1)
+            let icon = UIImageView(image: UIImage(named: "LaunchIcon"))
+            icon.contentMode = .scaleAspectFit
+            icon.layer.cornerRadius = 32
+            icon.clipsToBounds = true
+            icon.isAccessibilityElement = true
+            icon.accessibilityLabel = "Think"
+            icon.translatesAutoresizingMaskIntoConstraints = false
+            controller.view.addSubview(icon)
             NSLayoutConstraint.activate([
-                label.centerXAnchor.constraint(equalTo: controller.view.centerXAnchor),
-                label.centerYAnchor.constraint(equalTo: controller.view.centerYAnchor)
+                icon.widthAnchor.constraint(equalToConstant: 160),
+                icon.heightAnchor.constraint(equalTo: icon.widthAnchor),
+                icon.centerXAnchor.constraint(equalTo: controller.view.centerXAnchor),
+                icon.centerYAnchor.constraint(equalTo: controller.view.centerYAnchor)
             ])
             controller.view.accessibilityViewIsModal = true
             controller.view.accessibilityIdentifier = "AppPrivacyShield"
