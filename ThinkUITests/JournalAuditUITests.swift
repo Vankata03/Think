@@ -43,16 +43,19 @@ final class JournalAuditUITests: XCTestCase {
 
     @MainActor
     func testJournalFiltersScrollWithEntries() throws {
-        let app = launch(["-ui-seed-journal"])
+        let app = launch(["-ui-seed-journal", "-ui-seed-journal-scroll"])
         app.buttons["Journal"].tap()
         let controls = app.descendants(matching: .any)["JournalFilters"]
         XCTAssertTrue(controls.waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["SCROLL AUDIT NOTE 11"].waitForExistence(timeout: 3))
+        let journal = app.descendants(matching: .any)["JournalView"]
+        XCTAssertTrue(journal.exists)
         let before = controls.frame.minY
         let top = XCTAttachment(screenshot: app.screenshot())
         top.name = "Journal scrolling controls top"
         top.lifetime = .keepAlways
         add(top)
-        app.swipeUp()
+        journal.swipeUp()
         if controls.exists && controls.isHittable {
             XCTAssertLessThan(controls.frame.minY, before - 20)
         }
