@@ -19,9 +19,8 @@ struct FavoritesView: View {
                     .accessibilityIdentifier("FavoritesEmpty")
             } else {
                 ForEach(favorites.favorites) { quote in
-                    Button {
-                        haptics.play(.selection)
-                        sharedQuote = quote
+                    NavigationLink {
+                        PracticeDetailView(practiceID: quote.id)
                     } label: {
                         row(quote)
                     }

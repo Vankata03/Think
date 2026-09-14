@@ -2,17 +2,17 @@
 
 Motivational app for young ambitious people. Not a quote-wallpaper app: every daily line pairs with an action. Pitch: "Stoic gym for your mind."
 
-## Core loop (under 2 minutes)
+## Core loop
 1. Open app, see daily line.
 2. Answer question of the day (1–3 sentence journal entry).
-3. Do today's path step (10 min max) or a focus session.
-4. Streak grows.
+3. Try today's move, a path step with its stated duration/smaller alternative, or a focus session.
+4. Record meaningful practice. Opening the app alone does not complete a day.
 
 ## Features
 - **Daily line** — curated, themed rotation. Public-domain sources (Marcus Aurelius, Seneca, Epictetus, proverbs) + original lines. No modern-author quotes (licensing).
-- **Question of the day** — private journal answer, stored on device only (privacy is a selling point, no backend cost).
-- **Paths** — 21-day tracks: Deep focus, Discipline, Clear thinking, Learning machine (later: Money mindset, Social courage). Each day: ≤200-word lesson + one concrete task. Duolingo structure, Stoic content.
-- **Pomodoro (Focus tab)** — 25/5 and 50/10 presets free; custom durations, stats history, ambient sounds = Pro later. Quote shown under the timer. Sessions feed streak and path tasks. Live Activity + Dynamic Island are implemented, including recovery of an existing activity after relaunch.
+- **Question of the day** — private journal answer, local persistence with optional synchronization through the user's iCloud. No Think backend or account; deletions synchronize too. Local draft recovery is separate from cloud-synced saved entries.
+- **Paths** — Deep focus (21 steps) and Clear thinking (7 steps), with independent progress and repeat runs. Discipline and Learning machine remain unavailable. Tasks state their duration; longer tasks offer smaller alternatives.
+- **Pomodoro (Focus tab)** — 25/5 and 50/10 presets, custom durations, and session history implemented; paywall gating and ambient sounds remain future work. Quote shown under the timer. Completed sessions count as practice; path tasks require separate explicit confirmation. Live Activity + Dynamic Island are implemented, including recovery of an existing activity after relaunch.
 - **Streak** — gentle, no guilt. Missed day → "Begin again," not shame.
 - **Share cards / wallpapers** — same render engine. Quote + template → Instagram story or wallpaper resolution. Weekly wallpaper drop: 2 free, rest Pro. Generator (any quote + style + color) beats static gallery.
 - **Feedback** — Profile section: "Share an idea" / "Report a problem" (prefilled mail, app + iOS version in footer) and "Rate Think" (StoreKit review prompt). In-app feedback form once the server exists.
@@ -24,7 +24,7 @@ Motivational app for young ambitious people. Not a quote-wallpaper app: every da
 - Brand: black + yellow. Icon is a yellow serif quote mark on near-black; app accent color is the same yellow. Light/dark/tinted icon variants shipped.
 - Dark mode day one, plus in-app appearance setting (auto/light/dark).
 - 4 tabs: Today, Paths, Focus, Profile (journal lives under Profile/Today).
-- No account required; account only when sync ships.
+- No Think account required, including for personal iCloud synchronization.
 
 ## Monetization — subscription (freemium)
 | Tier | Gets | Price |
@@ -71,3 +71,7 @@ Motivational app for young ambitious people. Not a quote-wallpaper app: every da
 - [x] Release content audit: 100 deliberately paired line → question → action practices; attributed lines carry exact public-domain edition provenance, house lines remain unattributed on cards
 - [ ] App Store 1.0 release prep: signing, screenshots, metadata, final branch/tag flow — in progress. Done so far: iPhone-only device family + localized timer notifications (PR #8), legal pages live at https://thinkapp.tech/privacy.html and https://thinkapp.tech/support.html. Open: free-vs-paywall decision, recut `release/1.0`, App Store Connect setup.
 - [ ] CI/release pipeline upgrade (post-1.0): PR gates now, Xcode Cloud TestFlight lane after launch, fastlane screenshots/metadata before first update. Detailed implementation notes are maintained outside this repository.
+
+## Audit implementation status (2026-09-13)
+
+Plan [012](plans/012-audit-integration.md) tracks the locally committed audit improvements on `codex/think-audit-improvements` (as of 2026-09-14). Privacy/persistence, journal editing/recovery, meaningful activities, independent path runs, focus reflection/history, weekly review, discovery and versioned content are integrated. Independent review findings have been corrected. All seven locales have coverage; new translations remain marked for human review. Full integration verification passed: 259 app, 15 widget and 40 UI tests. Simulator evidence and unresolved VoiceOver/Reduce Motion runtime checks are recorded in plan 012. Production CloudKit, two-device/account states, paired Watch, HealthKit and Release/device performance remain separate release gates.

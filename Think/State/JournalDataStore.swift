@@ -42,7 +42,7 @@ enum JournalDataStore {
     }
 
     static var schema: Schema {
-        Schema([JournalEntry.self, DailyRetro.self])
+        Schema([JournalEntry.self, DailyRetro.self, FocusSessionMetadata.self])
     }
 
     /// True when the process is hosting an XCTest bundle. Unit tests run

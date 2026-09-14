@@ -205,6 +205,49 @@ struct SyncCoordinatorTimerTests {
         watch.activate()
         let preset = PomodoroTimer.Preset(workMinutes: 0, restMinutes: 5)
         phoneTimer.select(preset)
+        phoneTimer.start()
+        phoneTransport.setReachable(false)
+
+        phoneTimer.resync()
+        now = now.addingTimeInterval(1)
+        phoneTransport.setReachable(true)
+
+        #expect(phoneProgress.totalFocusSessions == 1)
+        #expect(watchProgress.totalFocusSessions == 1)
+        #expect(phoneProgress.totalFocusSessions == watchProgress.totalFocusSessions)
+    }
+
+    @Test func independentOfflineSessionsWithEqualEndDatesRemainDistinct() {
+        var now = Date(timeIntervalSince1970: 13_000)
+        let (phoneTransport, watchTransport) = MockSyncTransport.paired()
+        let phoneTimer = PomodoroTimer(
+            systemSideEffectsEnabled: false,
+            deviceID: UUID(uuidString: "11111111-1111-1111-1111-111111111111")!,
+            now: { now }
+        )
+        let watchTimer = PomodoroTimer(
+            systemSideEffectsEnabled: false,
+            deviceID: UUID(uuidString: "22222222-2222-2222-2222-222222222222")!,
+            now: { now }
+        )
+        let phoneProgress = ProgressStore(defaults: makeDefaults())
+        let watchProgress = ProgressStore(defaults: makeDefaults())
+        let phone = coordinator(
+            role: .phone,
+            timer: phoneTimer,
+            progress: phoneProgress,
+            transport: phoneTransport
+        )
+        let watch = coordinator(
+            role: .watch,
+            timer: watchTimer,
+            progress: watchProgress,
+            transport: watchTransport
+        )
+        phone.activate()
+        watch.activate()
+        let preset = PomodoroTimer.Preset(workMinutes: 0, restMinutes: 5)
+        phoneTimer.select(preset)
         phoneTransport.setReachable(false)
         phoneTimer.start()
         watchTimer.start()
@@ -214,8 +257,8 @@ struct SyncCoordinatorTimerTests {
         now = now.addingTimeInterval(1)
         phoneTransport.setReachable(true)
 
-        #expect(phoneProgress.totalFocusSessions == 1)
-        #expect(watchProgress.totalFocusSessions == 1)
+        #expect(phoneProgress.totalFocusSessions == 2)
+        #expect(watchProgress.totalFocusSessions == 2)
         #expect(phoneProgress.totalFocusSessions == watchProgress.totalFocusSessions)
     }
 

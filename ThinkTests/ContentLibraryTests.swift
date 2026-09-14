@@ -16,11 +16,11 @@ struct ContentLibraryTests {
         let secondDay = calendar.date(byAdding: .day, value: 1, to: firstDay)!
 
         let first = ContentLibrary.dailyQuote(for: firstDay)
-        let firstIndex = ContentLibrary.quotes.firstIndex(of: first)!
+        let firstIndex = ContentLibrary.legacyScheduleIDs.firstIndex(of: ContentLibrary.dailyPractice(for: firstDay).id)!
 
         // Same day is stable; the next day advances exactly one slot.
         #expect(ContentLibrary.dailyQuote(for: firstDay.addingTimeInterval(3_600)) == first)
-        #expect(ContentLibrary.dailyQuote(for: secondDay) == ContentLibrary.quotes[(firstIndex + 1) % ContentLibrary.quotes.count])
+        #expect(ContentLibrary.dailyQuote(for: secondDay) == ContentLibrary.practice(id: ContentLibrary.legacyScheduleIDs[(firstIndex + 1) % ContentLibrary.legacyScheduleIDs.count], version: 1)!.quote)
     }
 
     @Test func dailyQuestionUsesStableDayRotation() {
@@ -29,10 +29,10 @@ struct ContentLibraryTests {
         let secondDay = calendar.date(byAdding: .day, value: 1, to: firstDay)!
 
         let first = ContentLibrary.dailyQuestion(for: firstDay)
-        let firstIndex = ContentLibrary.questions.firstIndex(of: first)!
+        let firstIndex = ContentLibrary.legacyScheduleIDs.firstIndex(of: ContentLibrary.dailyPractice(for: firstDay).id)!
 
         #expect(ContentLibrary.dailyQuestion(for: firstDay.addingTimeInterval(3_600)) == first)
-        #expect(ContentLibrary.dailyQuestion(for: secondDay) == ContentLibrary.questions[(firstIndex + 1) % ContentLibrary.questions.count])
+        #expect(ContentLibrary.dailyQuestion(for: secondDay) == ContentLibrary.practice(id: ContentLibrary.legacyScheduleIDs[(firstIndex + 1) % ContentLibrary.legacyScheduleIDs.count], version: 1)!.question)
     }
 
     @Test func dailyLineQuestionAndActionRemainPaired() {
@@ -54,12 +54,12 @@ struct ContentLibraryTests {
         // local day, including across DST transitions.
         let calendar = Calendar.current
         var day = calendar.startOfDay(for: Date(timeIntervalSinceReferenceDate: 0))
-        var previousIndex = ContentLibrary.quotes.firstIndex(of: ContentLibrary.dailyQuote(for: day))!
+        var previousIndex = ContentLibrary.legacyScheduleIDs.firstIndex(of: ContentLibrary.dailyPractice(for: day).id)!
 
         for _ in 0..<365 {
             day = calendar.date(byAdding: .day, value: 1, to: day)!
-            let index = ContentLibrary.quotes.firstIndex(of: ContentLibrary.dailyQuote(for: day))!
-            #expect(index == (previousIndex + 1) % ContentLibrary.quotes.count)
+            let index = ContentLibrary.legacyScheduleIDs.firstIndex(of: ContentLibrary.dailyPractice(for: day).id)!
+            #expect(index == (previousIndex + 1) % ContentLibrary.legacyScheduleIDs.count)
             previousIndex = index
         }
     }

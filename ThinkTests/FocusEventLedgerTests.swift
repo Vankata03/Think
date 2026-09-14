@@ -19,7 +19,8 @@ struct FocusEventLedgerTests {
         }
 
         #expect(ledger.appliedEventIDs.count == 50)
-        #expect(!ledger.containsApplied("event-0"))
+        #expect(ledger.containsApplied("event-0"))
+        #expect(!FocusEventLedger(defaults: defaults).recordApplied("event-0"))
         #expect(ledger.containsApplied("event-1"))
         #expect(ledger.appliedEventIDs.last == "event-50")
         #expect(!ledger.recordApplied("event-50"))

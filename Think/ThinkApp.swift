@@ -34,7 +34,12 @@ struct ThinkApp: App {
     @State private var cloudBackup: CloudBackupState
     @State private var journalLock: JournalLock
     @State private var favorites: FavoritesStore
-    @AppStorage(Appearance.storageKey) private var appearance = Appearance.dark
+    @State private var journalRepository: JournalRepository
+    @State private var journalDrafts: JournalDraftStore
+    @State private var dataReset: AppDataResetCoordinator
+    @State private var practicePreferences: PracticePreferencesStore
+    @State private var privacyShield = AppPrivacyShield()
+    @AppStorage(Appearance.storageKey) private var appearance = Appearance.system
     @AppStorage(Onboarding.completedKey) private var completedOnboarding = false
     private let isUITesting: Bool
     private let journalContainer: ModelContainer
@@ -46,19 +51,53 @@ struct ThinkApp: App {
         let journalStore = Self.makeJournalStore(isUITesting: isUITesting)
         journalContainer = journalStore.container
         _cloudBackup = State(initialValue: CloudBackupState(storage: journalStore.storage))
-        // UI tests must never reach LocalAuthentication: a system
-        // authentication sheet is outside the app's element tree.
-        _journalLock = State(
-            initialValue: JournalLock(
-                authenticator: isUITesting
-                    ? UnavailableJournalAuthenticator()
-                    : DeviceOwnerJournalAuthenticator()
-            )
-        )
         let appGroupDefaults = SharedDefaults.appGroup()
         if isUITesting, let bundleIdentifier = Bundle.main.bundleIdentifier {
             UserDefaults.standard.removePersistentDomain(forName: bundleIdentifier)
             appGroupDefaults.removeObject(forKey: SharedDefaults.pomodoroTimerStateKey)
+        }
+        let arguments = ProcessInfo.processInfo.arguments
+        if isUITesting && arguments.contains("-ui-journal-locked") {
+            UserDefaults.standard.set(true, forKey: JournalLock.enabledKey)
+        }
+        let authenticator: any JournalAuthenticator
+        if isUITesting {
+            if arguments.contains("-ui-auth-success") || arguments.contains("-ui-auth-failure") {
+                authenticator = UITestJournalAuthenticator(succeeds: arguments.contains("-ui-auth-success"))
+            } else {
+                authenticator = UnavailableJournalAuthenticator()
+            }
+        } else {
+            authenticator = DeviceOwnerJournalAuthenticator()
+        }
+        let journalLock = JournalLock(authenticator: authenticator)
+        _journalLock = State(initialValue: journalLock)
+        var draftDirectory = isUITesting
+            ? FileManager.default.temporaryDirectory.appending(path: "ThinkUITestDrafts", directoryHint: .isDirectory)
+            : nil
+        if isUITesting && arguments.contains("-ui-fail-drafts") {
+            let blocked = FileManager.default.temporaryDirectory.appendingPathComponent("ThinkUITestBlockedDrafts")
+            try? FileManager.default.removeItem(at: blocked)
+            try? Data().write(to: blocked)
+            draftDirectory = blocked
+        }
+        let drafts = JournalDraftStore(directory: draftDirectory)
+        if isUITesting && !arguments.contains("-ui-preserve-drafts") && !arguments.contains("-ui-fail-drafts") { try? drafts.deleteAll() }
+        let repository = JournalRepository(modelContext: journalStore.container.mainContext, storage: journalStore.storage,
+            commitInterceptor: {
+                if isUITesting && arguments.contains("-ui-fail-save") { throw UITestJournalFailure.save }
+            })
+        _journalDrafts = State(initialValue: drafts)
+        _journalRepository = State(initialValue: repository)
+        if isUITesting && arguments.contains("-ui-seed-journal") {
+            _ = try? repository.saveAnswer(text: "PRIVATE AUDIT ANSWER", practiceID: ContentLibrary.dailyPractice().id, prompt: "PRIVATE AUDIT PROMPT")
+            _ = try? repository.saveRetro(wentWell: "PRIVATE AUDIT RETRO", improve: "PRIVATE AUDIT IMPROVE", tomorrow: "PRIVATE AUDIT TOMORROW")
+        }
+        if isUITesting && arguments.contains("-ui-seed-journal-scroll") {
+            // Enough entries to require scrolling even on the largest CI phone.
+            for index in 0..<12 {
+                _ = try? repository.saveNote(text: "SCROLL AUDIT NOTE \(index)")
+            }
         }
         let progressDefaults: UserDefaults
         if isUITesting, let bundleIdentifier = Bundle.main.bundleIdentifier {
@@ -70,9 +109,18 @@ struct ThinkApp: App {
             progressDefaults = appGroupDefaults
         }
         let progressStore = ProgressStore(defaults: progressDefaults)
+        if isUITesting && arguments.contains("-ui-seed-focus") {
+            let sessionID = "audit-focus-session"
+            progressStore.recordFocusSession(durationMinutes: 25, eventID: sessionID, actualActiveSeconds: 1500)
+            let receipt = try? repository.saveFocusNote(text: "Original focus note", intention: "Audit intention", sessionID: sessionID)
+            try? repository.upsertSessionMetadata(sessionID: sessionID, intention: "Audit intention", outcome: .movedForward, energy: .steady, closingNoteRecordID: receipt?.recordID, completedAt: .now)
+        }
         // Same isolated suite as progress under UI tests, so a favorited
         // line never leaks between runs.
-        _favorites = State(initialValue: FavoritesStore(defaults: progressDefaults))
+        let favorites = FavoritesStore(defaults: progressDefaults)
+        _favorites = State(initialValue: favorites)
+        let practicePreferences = PracticePreferencesStore(defaults: progressDefaults)
+        _practicePreferences = State(initialValue: practicePreferences)
         let timer = PomodoroTimer(
             systemSideEffectsEnabled: !isUITesting,
             defaults: isUITesting ? nil : appGroupDefaults,
@@ -125,6 +173,11 @@ struct ThinkApp: App {
         _timer = State(initialValue: timer)
         _syncCoordinator = State(initialValue: coordinator)
         _mindfulMinutes = State(initialValue: mindfulMinutes)
+        _dataReset = State(initialValue: AppDataResetCoordinator(
+            journal: repository, drafts: drafts, sync: coordinator,
+            mindfulMinutes: mindfulMinutes, favorites: favorites, lock: journalLock,
+            preferences: practicePreferences
+        ))
         let appIntentRouter = AppIntentRouter.shared
         AppDependencyManager.shared.add(dependency: FocusSessionIntentHandler(timer: timer))
         AppDependencyManager.shared.add(dependency: appIntentRouter)
@@ -185,6 +238,7 @@ struct ThinkApp: App {
                     OnboardingView()
                 }
             }
+            .id(dataReset.generation)
             .environment(progress)
             .environment(timer)
             .environment(syncCoordinator)
@@ -193,8 +247,13 @@ struct ThinkApp: App {
             .environment(cloudBackup)
             .environment(journalLock)
             .environment(favorites)
+            .environment(journalRepository)
+            .environment(journalDrafts)
+            .environment(dataReset)
+            .environment(practicePreferences)
             .environment(\.haptics, .live)
             .task {
+                try? journalRepository.ensureRecordIdentities()
                 cloudBackup.startObservingMirroringEvents()
                 await cloudBackup.refresh()
             }
@@ -215,6 +274,7 @@ struct ThinkApp: App {
             // Owned by the app, not by JournalView: the lock has to keep
             // its grace period while the journal is off screen.
             journalLock.scenePhaseChanged(to: phase)
+            privacyShield.scenePhaseChanged(to: phase)
             if phase == .active {
                 timer.resync()
                 progress.recordAppOpen()
@@ -232,3 +292,13 @@ struct ThinkApp: App {
         }
     }
 }
+
+@MainActor
+private final class UITestJournalAuthenticator: JournalAuthenticator {
+    let availability = JournalLockAvailability.passcodeOnly
+    let succeeds: Bool
+    init(succeeds: Bool) { self.succeeds = succeeds }
+    func authenticate(reason: String) async -> Bool { succeeds }
+}
+
+private enum UITestJournalFailure: Error { case save }

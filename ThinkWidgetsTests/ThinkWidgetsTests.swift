@@ -86,7 +86,7 @@ struct StreakWidgetTests {
         )
 
         #expect(presentation.streak == 7)
-        #expect(presentation.completedPracticeCount == 4)
+        #expect(presentation.completedPracticeCount == 3)
         #expect(presentation.practiceProgress == 1)
         #expect(presentation.isTodayComplete)
     }
@@ -106,7 +106,7 @@ struct StreakWidgetTests {
         )
 
         #expect(presentation.completedPracticeCount == 1)
-        #expect(presentation.practiceProgress == 0.25)
+        #expect(presentation.practiceProgress == 1)
     }
 
     @Test func timelineCoversNowAndNextTwoMidnights() throws {
@@ -134,7 +134,7 @@ struct StreakWidgetTests {
         #expect(StreakPresentation(streak: 0, completedPracticeCount: 0).streakText == "Begin today")
         #expect(StreakPresentation(streak: 1, completedPracticeCount: 1).streakText == "1-day streak")
         #expect(StreakPresentation(streak: 7, completedPracticeCount: 2).streakText == "7-day streak")
-        #expect(StreakPresentation(streak: 7, completedPracticeCount: 3).todayText == "3/4 today")
+        #expect(StreakPresentation(streak: 7, completedPracticeCount: 0).todayText == "Begin today's practice")
         #expect(StreakPresentation(streak: 7, completedPracticeCount: 4).todayText == "Today complete")
     }
 

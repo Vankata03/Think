@@ -123,104 +123,126 @@ final class JournalLock {
     private let defaults: UserDefaults
     private let authenticator: any JournalAuthenticator
     private var backgroundedAt: Date?
+    private var generation = 0
+    private var sceneIsActive = true
+    private var inFlight: (id: UUID, generation: Int, purpose: Purpose, task: Task<Bool, Never>)?
+    private enum Purpose { case unlock, export, disable }
 
     private(set) var isEnabled: Bool
     private(set) var isUnlocked = false
     private(set) var availability: JournalLockAvailability
 
-    init(
-        defaults: UserDefaults = .standard,
-        authenticator: any JournalAuthenticator = DeviceOwnerJournalAuthenticator()
-    ) {
+    init(defaults: UserDefaults = .standard,
+         authenticator: any JournalAuthenticator = DeviceOwnerJournalAuthenticator()) {
         self.defaults = defaults
         self.authenticator = authenticator
-        let availability = authenticator.availability
-        self.availability = availability
-        isEnabled = defaults.bool(forKey: Self.enabledKey) && availability.canEnable
+        self.availability = authenticator.availability
+        self.isEnabled = defaults.bool(forKey: Self.enabledKey)
     }
 
-    /// Whether the journal must render the gate instead of entries.
     var isLocked: Bool { isEnabled && !isUnlocked }
+    var canAuthenticate: Bool { availability.canEnable }
+    var isPrivacyCoverActive: Bool { isEnabled && !sceneIsActive }
 
-    /// Re-reads what the device can do. The passcode can be removed while
-    /// the app is in the background.
     func refreshAvailability() {
-        availability = authenticator.availability
-        if isEnabled, !availability.canEnable {
-            // Stop gating a journal that can no longer be unlocked, but
-            // keep the stored preference: the lock returns by itself once
-            // a passcode is set again.
-            isEnabled = false
-            isUnlocked = false
-        } else if !isEnabled, availability.canEnable, defaults.bool(forKey: Self.enabledKey) {
-            isEnabled = true
-        }
+        let next = authenticator.availability
+        if next != availability { invalidateAttempt() }
+        availability = next
+        if isEnabled && !next.canEnable { isUnlocked = false }
     }
 
+    /// Legacy synchronous callers may enable. Disabling always requires authentication.
     func setEnabled(_ enabled: Bool) {
         guard enabled else {
-            isEnabled = false
-            isUnlocked = false
-            backgroundedAt = nil
-            defaults.set(false, forKey: Self.enabledKey)
+            Task { await disable() }
             return
         }
-
         refreshAvailability()
         guard availability.canEnable else { return }
+        invalidateAttempt()
         isEnabled = true
-        // Left locked on purpose: the next visit to the journal shows the
-        // user what they just switched on.
         isUnlocked = false
         defaults.set(true, forKey: Self.enabledKey)
     }
 
-    /// Unlocks for the lifetime of the foreground session. Returns `true`
-    /// when the journal may be read, which includes the case where the
-    /// lock is off.
+    @discardableResult
+    func requestEnabled(_ enabled: Bool) async -> Bool {
+        if enabled { setEnabled(true); return isEnabled }
+        return await disable()
+    }
+
+    @discardableResult
+    func disable() async -> Bool {
+        guard isEnabled else { return true }
+        guard await attempt(.disable, reason: String(localized: "Unlock your journal.")) else { return false }
+        invalidateAttempt()
+        isEnabled = false
+        isUnlocked = false
+        backgroundedAt = nil
+        defaults.set(false, forKey: Self.enabledKey)
+        return true
+    }
+
     @discardableResult
     func authenticate() async -> Bool {
         guard isEnabled else { return true }
-        let succeeded = await authenticator.authenticate(
-            reason: String(localized: "Unlock your journal.")
-        )
-        if succeeded {
-            isUnlocked = true
-            backgroundedAt = nil
-        }
-        return succeeded
+        if isUnlocked { return true }
+        guard await attempt(.unlock, reason: String(localized: "Unlock your journal.")) else { return false }
+        isUnlocked = true
+        return true
     }
 
-    /// Export writes every entry to a file that leaves the app, so it
-    /// authenticates every time regardless of the session unlock.
     func authenticateForExport() async -> Bool {
         guard isEnabled else { return true }
-        return await authenticator.authenticate(
-            reason: String(localized: "Unlock to export your journal.")
-        )
+        return await attempt(.export, reason: String(localized: "Unlock to export your journal."))
+    }
+
+    private func attempt(_ purpose: Purpose, reason: String) async -> Bool {
+        refreshAvailability()
+        guard availability.canEnable, sceneIsActive else { return false }
+        if let pending = inFlight {
+            if pending.purpose == purpose {
+                let success = await pending.task.value
+                return success && pending.generation == generation && isEnabled && authenticator.availability.canEnable
+            }
+            // A different operation needs its own fresh authentication, serialized behind this one.
+            _ = await pending.task.value
+            guard pending.generation == generation, isEnabled else { return false }
+            if inFlight?.id == pending.id { inFlight = nil }
+            return await attempt(purpose, reason: reason)
+        }
+        let epoch = generation
+        let id = UUID()
+        let task = Task { await authenticator.authenticate(reason: reason) }
+        inFlight = (id, epoch, purpose, task)
+        let success = await task.value
+        if inFlight?.id == id { inFlight = nil }
+        return success && epoch == generation && isEnabled && authenticator.availability.canEnable
+    }
+
+    private func invalidateAttempt() {
+        generation += 1
+        inFlight?.task.cancel()
+        inFlight = nil
     }
 
     func lock() {
+        invalidateAttempt()
         isUnlocked = false
         backgroundedAt = nil
     }
 
-    /// Relocks after a background trip longer than the grace period.
-    /// `.inactive` is ignored: the app passes through it for a control
-    /// center pull or an incoming call banner.
     func scenePhaseChanged(to phase: ScenePhase, now: Date = .now) {
+        sceneIsActive = phase == .active
         switch phase {
         case .background:
-            guard backgroundedAt == nil else { return }
-            backgroundedAt = now
+            invalidateAttempt()
+            if backgroundedAt == nil { backgroundedAt = now }
         case .active:
             refreshAvailability()
             guard let leftAt = backgroundedAt else { return }
-            if now.timeIntervalSince(leftAt) >= Self.backgroundGrace {
-                lock()
-            } else {
-                backgroundedAt = nil
-            }
+            if now.timeIntervalSince(leftAt) >= Self.backgroundGrace { lock() }
+            else { backgroundedAt = nil }
         default:
             break
         }

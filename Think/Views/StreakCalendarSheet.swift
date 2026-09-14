@@ -234,7 +234,7 @@ struct StreakCalendarSheet: View {
         }
         .buttonStyle(.bordered)
         .controlSize(.large)
-        .tint(.accentColor)
+        .tint(Color("AccentColor"))
     }
 }
 

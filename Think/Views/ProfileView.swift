@@ -45,17 +45,20 @@ struct ProfileView: View {
     @Environment(CloudBackupState.self) private var cloudBackup
     @Environment(JournalLock.self) private var journalLock
     @Environment(FavoritesStore.self) private var favorites
+    @Environment(JournalRepository.self) private var journalRepository
+    @Environment(AppDataResetCoordinator.self) private var dataReset
+    @Environment(PomodoroTimer.self) private var timer
     @Environment(\.modelContext) private var modelContext
     @Environment(\.haptics) private var haptics
     @Environment(\.openURL) private var openURL
     @Environment(\.scenePhase) private var scenePhase
-    @AppStorage(Appearance.storageKey) private var appearance = Appearance.dark
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @AppStorage(Appearance.storageKey) private var appearance = Appearance.system
     @AppStorage(DailyQuoteNotifier.enabledKey) private var dailyLineEnabled = false
     @AppStorage(DailyQuoteNotifier.minutesKey) private var dailyLineMinutes = DailyQuoteNotifier.defaultMinutes
     @AppStorage(RetroReminder.enabledKey) private var retroReminderEnabled = false
     @AppStorage(RetroReminder.minutesKey) private var retroReminderMinutes = RetroReminder.defaultMinutes
-    @Query(sort: \JournalEntry.date, order: .reverse) private var journalEntries: [JournalEntry]
-    @Query(sort: \DailyRetro.date, order: .reverse) private var retrospectives: [DailyRetro]
 
     @State private var notificationAuthorization = UNAuthorizationStatus.notDetermined
     @State private var exportItem: ExportItem?
@@ -63,6 +66,7 @@ struct ProfileView: View {
     @State private var showingExportError = false
     @State private var showingDeleteConfirmation = false
     @State private var showingDeleteError = false
+    @State private var changingJournalLock = false
 
     private var dailyLineTime: Binding<Date> {
         $dailyLineMinutes.timeOfDay
@@ -76,8 +80,13 @@ struct ProfileView: View {
         Binding(
             get: { journalLock.isEnabled },
             set: { enabled in
-                haptics.play(.selection)
-                journalLock.setEnabled(enabled)
+                guard !changingJournalLock else { return }
+                changingJournalLock = true
+                Task { @MainActor in
+                    let changed = await journalLock.requestEnabled(enabled)
+                    changingJournalLock = false
+                    haptics.play(changed ? .selection : .warning)
+                }
             }
         )
     }
@@ -102,10 +111,40 @@ struct ProfileView: View {
                     progressPanel
                     journalPanel
                     favoritesPanel
-                    cloudBackupPanel
-                    settingsPanel
-                    feedbackPanel
-                    privacyPanel
+                    NavigationLink(destination: PracticeDiscoveryView()) {
+                        Label("Find a practice", systemImage: "sparkle.magnifyingglass")
+                            .font(.headline).foregroundStyle(.primary)
+                            .frame(maxWidth: .infinity, alignment: .leading).padding(18)
+                            .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 20))
+                    }
+                    NavigationLink(destination: WeeklyReviewView()) {
+                        Label("Weekly review", systemImage: "calendar")
+                            .font(.headline).foregroundStyle(.primary)
+                            .frame(maxWidth: .infinity, alignment: .leading).padding(18)
+                            .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 20))
+                    }
+                    .accessibilityIdentifier("OpenWeeklyReview")
+                    NavigationLink {
+                        ScrollView {
+                            VStack(alignment: .leading, spacing: 20) {
+                                cloudBackupPanel
+                                settingsPanel
+                                privacyPanel
+                                feedbackPanel
+                            }
+                            .padding(20)
+                        }
+                        .navigationTitle("Settings")
+                        .background(Color(.systemGroupedBackground))
+                    } label: {
+                        Label("Settings", systemImage: "gearshape")
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(18)
+                            .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 20))
+                    }
+                    .accessibilityIdentifier("ProfileSettings")
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 12)
@@ -142,6 +181,7 @@ struct ProfileView: View {
                 mindfulMinutes.refreshAuthorization()
                 journalLock.refreshAvailability()
             }
+        }
             .sheet(item: $exportItem, onDismiss: removeTemporaryExport) { item in
                 JournalExportSheet(fileURL: item.url)
             }
@@ -162,19 +202,18 @@ struct ProfileView: View {
                 }
                 Button("Cancel", role: .cancel) { }
             } message: {
-                Text("This removes journal entries, retrospectives, saved lines, streaks, achievements, and focus history from this device. Journal entries and retrospectives are also removed from your iCloud backup and any device signed into it; saved lines, streaks, achievements, and focus history are on this device only. Mindful minutes already saved to Health stay in Health and can be deleted there. This cannot be undone.")
+                Text("This stops Focus and removes your journal, drafts, intentions, saved practices, progress, and reminders. Journal deletions also sync through your iCloud. Mindful minutes already sent to Health remain in Health. This cannot be undone.")
             }
             .alert("Delete failed", isPresented: $showingDeleteError) {
                 Button("OK", role: .cancel) { }
             } message: {
                 Text("Think could not delete every local record. Try again.")
             }
-        }
     }
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("Profile")
+            Text("Your practice")
                 .font(.largeTitle.bold())
                 .foregroundStyle(.primary)
             Text("Progress, settings, and your private notes.")
@@ -187,7 +226,10 @@ struct ProfileView: View {
         VStack(alignment: .leading, spacing: 12) {
             sectionHeader("Progress")
             VStack(spacing: 16) {
-                HStack(spacing: 12) {
+                let metricLayout = dynamicTypeSize.isAccessibilitySize
+                    ? AnyLayout(VStackLayout(spacing: 12))
+                    : AnyLayout(HStackLayout(spacing: 12))
+                metricLayout {
                     profileMetric(
                         value: "\(progress.displayedStreak)",
                         label: "Current streak",
@@ -212,7 +254,7 @@ struct ProfileView: View {
                 .font(.subheadline)
 
                 ProgressView(value: Double(progress.pathCompletedDays) / Double(PathLibrary.deepFocus.steps.count))
-                    .tint(.accentColor)
+                    .tint(Color("AccentColor"))
             }
             .padding(18)
             .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
@@ -300,17 +342,22 @@ struct ProfileView: View {
                 .foregroundStyle(Color.accentColor)
                 .frame(width: 32)
             VStack(alignment: .leading, spacing: 3) {
-                Text("iCloud backup")
+                Text("iCloud sync")
                     .font(.headline)
                     .foregroundStyle(.primary)
                 Text(cloudBackup.status.summary)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
+                if cloudBackup.isSyncing {
+                    Text("Syncing…").font(.caption).foregroundStyle(.secondary)
+                }
+                if let exportedAt = cloudBackup.lastSuccessfulExportDate {
+                    Text("Last successful upload: \(exportedAt.formatted(date: .abbreviated, time: .shortened))")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
                 // Only claim iCloud while entries are actually headed
                 // there; otherwise say where they do stay.
-                Text(cloudBackup.status.isCloudBacked
-                     ? String(localized: "Entries stay in your own iCloud. Think has no server and no account.")
-                     : String(localized: "Entries stay on this device. Think has no server and no account."))
+                Text("Journal changes, including deletions, sync through your own iCloud when available. Think has no server or account.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -403,7 +450,7 @@ struct ProfileView: View {
                     DatePicker(selection: dailyLineTime, displayedComponents: .hourAndMinute) {
                         settingsLabel("Time", systemImage: "clock")
                     }
-                    .tint(.accentColor)
+                    .tint(Color("AccentColor"))
                     .padding(.vertical, 10)
                 }
 
@@ -420,7 +467,7 @@ struct ProfileView: View {
                     DatePicker(selection: retroReminderTime, displayedComponents: .hourAndMinute) {
                         settingsLabel("Time", systemImage: "clock")
                     }
-                    .tint(.accentColor)
+                    .tint(Color("AccentColor"))
                     .padding(.vertical, 10)
                 }
 
@@ -460,7 +507,7 @@ struct ProfileView: View {
                     settingsLabel("Lock journal", systemImage: "lock")
                 }
                 .toggleStyle(AdaptiveSwitchToggleStyle())
-                .disabled(!journalLock.availability.canEnable)
+                .disabled(changingJournalLock || (!journalLock.isEnabled && !journalLock.availability.canEnable))
                 .padding(.top, 10)
                 .accessibilityIdentifier("LockJournal")
 
@@ -469,6 +516,20 @@ struct ProfileView: View {
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.top, 10)
+
+                Divider().padding(.top, 10)
+                Toggle(isOn: Binding(
+                    get: { timer.showIntentionInLiveActivity },
+                    set: { timer.setShowIntentionInLiveActivity($0) }
+                )) {
+                    settingsLabel("Show intention on Lock Screen", systemImage: "rectangle.inset.filled")
+                }
+                .toggleStyle(AdaptiveSwitchToggleStyle())
+                .padding(.top, 10)
+                Text("Off keeps your focus intention out of Live Activities and the Dynamic Island.")
+                    .font(.footnote).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, 6)
             }
             .padding(18)
             .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
@@ -508,7 +569,7 @@ struct ProfileView: View {
                 openAppSettings()
             }
             .font(.subheadline.weight(.semibold))
-            .foregroundStyle(Color.accentColor)
+            .foregroundStyle(Color.accessibleAccent(for: colorScheme))
             .accessibilityIdentifier("OpenNotificationSettings")
         }
         .padding(.vertical, 10)
@@ -558,6 +619,7 @@ struct ProfileView: View {
         Label {
             Text(title)
                 .foregroundStyle(.primary)
+                .fixedSize(horizontal: false, vertical: true)
         } icon: {
             Image(systemName: systemImage)
                 .foregroundStyle(Color.accentColor)
@@ -632,7 +694,7 @@ struct ProfileView: View {
 
     private func writeJournalExport() {
         do {
-            let export = JournalExport(entries: journalEntries, retrospectives: retrospectives)
+            let export = try journalRepository.exportSnapshot()
             exportItem = ExportItem(url: try export.writeToTemporaryFile())
             haptics.play(.success)
         } catch {
@@ -650,25 +712,7 @@ struct ProfileView: View {
 
     private func deleteAllData() {
         do {
-            for entry in try modelContext.fetch(FetchDescriptor<JournalEntry>()) {
-                modelContext.delete(entry)
-            }
-            for retrospective in try modelContext.fetch(FetchDescriptor<DailyRetro>()) {
-                modelContext.delete(retrospective)
-            }
-            try modelContext.save()
-
-            progress.reset()
-            favorites.removeAll()
-            DailyQuoteNotifier.cancelSchedule()
-            RetroReminder.cancelSchedule()
-            dailyLineEnabled = false
-            dailyLineMinutes = DailyQuoteNotifier.defaultMinutes
-            retroReminderEnabled = false
-            retroReminderMinutes = RetroReminder.defaultMinutes
-            Task {
-                await mindfulMinutes.setEnabled(false)
-            }
+            try dataReset.reset()
             haptics.play(.success)
         } catch {
             showingDeleteError = true
@@ -718,10 +762,11 @@ struct ProfileView: View {
 
 private struct AdaptiveSwitchToggleStyle: ToggleStyle {
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     func makeBody(configuration: Configuration) -> some View {
         Button {
-            withAnimation(.spring(response: 0.24, dampingFraction: 0.82)) {
+            withAnimation(reduceMotion ? nil : .spring(response: 0.24, dampingFraction: 0.82)) {
                 configuration.isOn.toggle()
             }
         } label: {

@@ -10,6 +10,7 @@ import SwiftData
 final class JournalEntry {
     static let kindQuestion = "question"
     static let kindNote = "note"
+    static let kindWeeklyReview = "weeklyReview"
     /// A note written right after a focus session, prompted by the
     /// intention that session was started with.
     static let kindFocus = "focus"
@@ -26,8 +27,20 @@ final class JournalEntry {
     /// Raw `Mood` value, or nil when the entry is untagged. Stored as a
     /// string so an unrecognised value reads back as untagged.
     var mood: String?
+    var recordID: UUID?
+    var civilDay: String?
+    var timeZoneIdentifier: String?
+    var practiceID: String?
+    var sessionID: String?
+    var updatedAt: Date?
+    var periodKey: String?
+    var nextIntention: String?
 
     init(date: Date = .now, prompt: String, text: String, kind: String, mood: Mood? = nil) {
+        let day = CivilDay(date: date)
+        self.recordID = UUID()
+        self.civilDay = day.key
+        self.timeZoneIdentifier = day.timeZoneIdentifier
         self.date = date
         self.prompt = prompt
         self.text = text

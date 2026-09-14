@@ -118,7 +118,7 @@ struct ShareCardSheet: View {
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
-            .tint(.accentColor)
+            .tint(Color("AccentColor"))
             .foregroundStyle(prominentButtonForeground)
             .simultaneousGesture(TapGesture().onEnded {
                 haptics.play(.selection)
@@ -136,7 +136,7 @@ struct ShareCardSheet: View {
             }
             .buttonStyle(.bordered)
             .controlSize(.large)
-            .tint(.accentColor)
+            .tint(Color("AccentColor"))
             .disabled(photoSaveState == .saving || photoSaveState == .saved)
             .accessibilityIdentifier("SaveShareCard")
         }
@@ -160,7 +160,7 @@ struct ShareCardSheet: View {
             .font(.subheadline.weight(.medium))
         }
         .buttonStyle(.plain)
-        .tint(.accentColor)
+        .tint(Color("AccentColor"))
         .foregroundStyle(Color.accentColor)
         .accessibilityIdentifier("FavoriteFromShareCard")
     }
