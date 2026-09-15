@@ -1,7 +1,11 @@
 name: CI
 
-# Path filters must stay in sync with ci-skip.yml, which provides the
-# green no-op "build-test" check for changes that only touch these paths.
+# "build-test" is a required status check on protected branches. The workflow
+# therefore runs for every PR and push, with no top-level path filters: a
+# path-filtered workflow never starts for PRs whose diff is empty or touches
+# only ignored files, which leaves the required check stuck on "Expected".
+# Instead, the `changes` job inspects the diff and `build-test` downgrades
+# itself to a cheap no-op on ubuntu when no app code changed.
 on:
   pull_request:
     types: [opened, synchronize, reopened, labeled, unlabeled]
@@ -9,25 +13,11 @@ on:
       - develop
       - prod
       - "release/**"
-    paths-ignore:
-      - "**.md"
-      - LICENSE
-      - .gitignore
-      - "docs/**"
-      - "Screenshots/**"
-      - "scripts/**"
   push:
     branches:
       - develop
       - prod
       - "release/**"
-    paths-ignore:
-      - "**.md"
-      - LICENSE
-      - .gitignore
-      - "docs/**"
-      - "Screenshots/**"
-      - "scripts/**"
   workflow_dispatch:
 
 concurrency:
@@ -38,17 +28,82 @@ permissions:
   contents: read
 
 jobs:
+  changes:
+    name: changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      app: ${{ steps.filter.outputs.app }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+          # PR checkouts are the merge commit; depth 2 gives HEAD^1 (the base).
+          fetch-depth: ${{ github.event_name == 'pull_request' && 2 || 0 }}
+
+      - name: Detect app code changes
+        id: filter
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+          AFTER_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          case "$EVENT_NAME" in
+            pull_request)
+              # Merge commit vs. its first parent = exactly what the PR adds
+              # to the base branch. Empty when the branch is already merged.
+              git diff --name-only HEAD^1 HEAD > changed.txt
+              ;;
+            push)
+              if [ -z "$BEFORE_SHA" ] || [ "$BEFORE_SHA" = "0000000000000000000000000000000000000000" ] \
+                 || ! git cat-file -e "$BEFORE_SHA^{commit}" 2>/dev/null; then
+                echo "No usable base commit for push; treating as app change."
+                echo "app=true" >> "$GITHUB_OUTPUT"
+                exit 0
+              fi
+              git diff --name-only "$BEFORE_SHA" "$AFTER_SHA" > changed.txt
+              ;;
+            *)
+              echo "app=true" >> "$GITHUB_OUTPUT"
+              exit 0
+              ;;
+          esac
+
+          echo "Changed files:"
+          sed 's/^/  /' changed.txt
+          # Paths that never affect the build. Keep in sync with the comment
+          # at the top of this file if the list changes.
+          if grep -Ev '(^|/)[^/]*\.md$|^LICENSE$|^\.gitignore$|^docs/|^Screenshots/|^scripts/' changed.txt \
+               | grep -q .; then
+            echo "app=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No app code changed."
+            echo "app=false" >> "$GITHUB_OUTPUT"
+          fi
+
   build-test:
     name: build-test
-    runs-on: ${{ contains(github.event.pull_request.labels.*.name, 'skip-tests') && 'ubuntu-latest' || 'macos-26' }}
+    needs: changes
+    # Cheap runner whenever nothing needs building: docs-only or empty diffs,
+    # or the skip-tests PR label.
+    runs-on: ${{ (needs.changes.outputs.app != 'true' || contains(github.event.pull_request.labels.*.name, 'skip-tests')) && 'ubuntu-latest' || 'macos-26' }}
     timeout-minutes: 45
     env:
-      SKIP_ALL_TESTS: ${{ contains(github.event.pull_request.labels.*.name, 'skip-tests') }}
+      SKIP_ALL_TESTS: ${{ needs.changes.outputs.app != 'true' || contains(github.event.pull_request.labels.*.name, 'skip-tests') }}
 
     steps:
       - name: Skip all tests
         if: env.SKIP_ALL_TESTS == 'true'
-        run: echo "skip-tests label present; build and tests skipped"
+        env:
+          APP_CHANGED: ${{ needs.changes.outputs.app }}
+        run: |
+          if [ "$APP_CHANGED" != "true" ]; then
+            echo "No app code changed; build and tests skipped."
+          else
+            echo "skip-tests label present; build and tests skipped."
+          fi
 
       - name: Checkout
         if: env.SKIP_ALL_TESTS != 'true'
