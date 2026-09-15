@@ -25,6 +25,9 @@ concurrency:
 jobs:
   release:
     name: release
+    # Manual runs must be dispatched on prod; releasing from any other ref
+    # would tag a version early and make the real prod merge a silent no-op.
+    if: github.ref == 'refs/heads/prod'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -38,12 +41,20 @@ jobs:
         id: version
         run: |
           set -euo pipefail
-          VERSION="$(grep -m1 -E 'MARKETING_VERSION = ' Think.xcodeproj/project.pbxproj \
-            | sed -E 's/.*MARKETING_VERSION = ([^;]+);.*/\1/')"
-          if [ -z "$VERSION" ]; then
+          # Every build configuration declares MARKETING_VERSION; they must
+          # all agree, otherwise the tag could differ from the shipped archive.
+          VERSIONS="$(grep -E 'MARKETING_VERSION = ' Think.xcodeproj/project.pbxproj \
+            | sed -E 's/.*MARKETING_VERSION = ([^;]+);.*/\1/' | sort -u)"
+          if [ -z "$VERSIONS" ]; then
             echo "::error::MARKETING_VERSION not found in Think.xcodeproj/project.pbxproj"
             exit 1
           fi
+          if [ "$(printf '%s\n' "$VERSIONS" | wc -l)" -ne 1 ]; then
+            echo "::error::MARKETING_VERSION differs between build configurations:"
+            printf '%s\n' "$VERSIONS"
+            exit 1
+          fi
+          VERSION="$VERSIONS"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Version: $VERSION"
 
