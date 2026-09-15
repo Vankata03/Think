@@ -64,6 +64,10 @@ nonisolated struct TimerSyncState: Codable, Equatable, Sendable {
     let endDate: Date?
     let remainingSeconds: Int
     let revision: Revision
+    var resetBoundary: SyncResetBoundary? = nil
+    var sessionID: String? = nil
+    var activeSeconds: Double? = nil
+    var activeSegmentStart: Date? = nil
 
     init(
         workMinutes: Int,
@@ -73,7 +77,11 @@ nonisolated struct TimerSyncState: Codable, Equatable, Sendable {
         isRunning: Bool,
         endDate: Date?,
         remainingSeconds: Int,
-        revision: Revision
+        revision: Revision,
+        resetBoundary: SyncResetBoundary? = nil,
+        sessionID: String? = nil,
+        activeSeconds: Double? = nil,
+        activeSegmentStart: Date? = nil
     ) {
         self.workMinutes = workMinutes
         self.restMinutes = restMinutes
@@ -83,6 +91,10 @@ nonisolated struct TimerSyncState: Codable, Equatable, Sendable {
         self.endDate = endDate
         self.remainingSeconds = remainingSeconds
         self.revision = revision
+        self.resetBoundary = resetBoundary
+        self.sessionID = sessionID
+        self.activeSeconds = activeSeconds
+        self.activeSegmentStart = activeSegmentStart
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -94,6 +106,7 @@ nonisolated struct TimerSyncState: Codable, Equatable, Sendable {
         case endDate
         case remainingSeconds
         case revision
+        case resetBoundary, sessionID, activeSeconds, activeSegmentStart
     }
 }
 
@@ -104,11 +117,15 @@ nonisolated struct FocusSessionEvent: Codable, Equatable, Sendable {
     /// Additive in schema v1. Older queued events decode as nil and still
     /// update aggregate progress, but cannot create fabricated history.
     let durationMinutes: Int?
+    var resetBoundary: SyncResetBoundary? = nil
+    var actualActiveSeconds: Int? = nil
 
-    init(id: String, completedAt: Date, durationMinutes: Int? = nil) {
+    init(id: String, completedAt: Date, durationMinutes: Int? = nil, resetBoundary: SyncResetBoundary? = nil, actualActiveSeconds: Int? = nil) {
         self.id = id
         self.completedAt = completedAt
         self.durationMinutes = durationMinutes
+        self.resetBoundary = resetBoundary
+        self.actualActiveSeconds = actualActiveSeconds
     }
 
     init(endDate: Date, durationMinutes: Int? = nil) {
@@ -117,6 +134,10 @@ nonisolated struct FocusSessionEvent: Codable, Equatable, Sendable {
             completedAt: endDate,
             durationMinutes: durationMinutes
         )
+    }
+
+    var hasValidIdentity: Bool {
+        id == Self.id(for: completedAt) || UUID(uuidString: id) != nil
     }
 
     static func id(for endDate: Date) -> String {
@@ -129,6 +150,7 @@ nonisolated struct FocusSessionEvent: Codable, Equatable, Sendable {
         case id
         case completedAt
         case durationMinutes
+        case resetBoundary, actualActiveSeconds
     }
 
     init(from decoder: Decoder) throws {
@@ -136,6 +158,8 @@ nonisolated struct FocusSessionEvent: Codable, Equatable, Sendable {
         id = try container.decode(String.self, forKey: .id)
         completedAt = try container.decode(Date.self, forKey: .completedAt)
         durationMinutes = try container.decodeIfPresent(Int.self, forKey: .durationMinutes)
+        resetBoundary = try container.decodeIfPresent(SyncResetBoundary.self, forKey: .resetBoundary)
+        actualActiveSeconds = try container.decodeIfPresent(Int.self, forKey: .actualActiveSeconds)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -143,6 +167,8 @@ nonisolated struct FocusSessionEvent: Codable, Equatable, Sendable {
         try container.encode(id, forKey: .id)
         try container.encode(completedAt, forKey: .completedAt)
         try container.encodeIfPresent(durationMinutes, forKey: .durationMinutes)
+        try container.encodeIfPresent(resetBoundary, forKey: .resetBoundary)
+        try container.encodeIfPresent(actualActiveSeconds, forKey: .actualActiveSeconds)
     }
 }
 
@@ -161,6 +187,8 @@ nonisolated struct ProgressSnapshot: Codable, Equatable, Sendable {
     let lastQuestionAnswerDay: Date?
     let appliedEventIDs: [String]
     let publishedAt: Date
+    var resetBoundary: SyncResetBoundary? = nil
+    var practiceActivities: [PracticeActivity]? = nil
 
     init(
         streak: Int,
@@ -174,7 +202,9 @@ nonisolated struct ProgressSnapshot: Codable, Equatable, Sendable {
         lastOpenDay: Date?,
         lastQuestionAnswerDay: Date? = nil,
         appliedEventIDs: [String],
-        publishedAt: Date
+        publishedAt: Date,
+        resetBoundary: SyncResetBoundary? = nil,
+        practiceActivities: [PracticeActivity]? = nil
     ) {
         self.streak = streak
         self.lastCompletedDay = lastCompletedDay
@@ -188,6 +218,8 @@ nonisolated struct ProgressSnapshot: Codable, Equatable, Sendable {
         self.lastQuestionAnswerDay = lastQuestionAnswerDay
         self.appliedEventIDs = appliedEventIDs
         self.publishedAt = publishedAt
+        self.resetBoundary = resetBoundary
+        self.practiceActivities = practiceActivities
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -203,6 +235,7 @@ nonisolated struct ProgressSnapshot: Codable, Equatable, Sendable {
         case lastQuestionAnswerDay
         case appliedEventIDs
         case publishedAt
+        case resetBoundary, practiceActivities
     }
 }
 

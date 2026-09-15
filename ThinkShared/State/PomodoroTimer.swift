@@ -87,6 +87,24 @@ final class PomodoroTimer {
     private static let restEndNotificationID = "pomodoro-rest-end"
     private static let notificationIDs = [workEndNotificationID, restEndNotificationID]
     private static let persistedStateKey = SharedDefaults.pomodoroTimerStateKey
+    #if os(iOS)
+    // Stored outside `PersistedState` because the intention is phone-only
+    // and that struct is decoded on the watch as well.
+    private static let intentionKey = "focus.intention"
+    private static let lastIntentionKey = "focus.lastIntention"
+    private static let lastIntentionDateKey = "focus.lastIntentionDate"
+    private static let pendingFocusNoteKey = "focus.pendingFocusNote.v1"
+    private static let activityIntentionVisibilityKey = "focus.showIntentionInLiveActivity"
+    private(set) var showIntentionInLiveActivity = false
+
+    func setShowIntentionInLiveActivity(_ visible: Bool) {
+        showIntentionInLiveActivity = visible
+        defaults?.set(visible, forKey: Self.activityIntentionVisibilityKey)
+        if systemSideEffectsEnabled {
+            if isRunning { syncLiveActivity() } else { endLiveActivity() }
+        }
+    }
+    #endif
 
     private struct PersistedState: Codable {
         let workMinutes: Int
@@ -97,6 +115,11 @@ final class PomodoroTimer {
         let isRunning: Bool
         let endDate: Date?
         let revision: Revision?
+        var resetBoundary: SyncResetBoundary? = nil
+        var sessionID: String? = nil
+        var activeSeconds: Double? = nil
+        var activeSegmentStart: Date? = nil
+        var lastSessionRecord: FocusSessionRecord? = nil
 
         private enum CodingKeys: String, CodingKey {
             case workMinutes
@@ -107,8 +130,16 @@ final class PomodoroTimer {
             case isRunning
             case endDate
             case revision
+            case resetBoundary, sessionID, activeSeconds, activeSegmentStart, lastSessionRecord
         }
     }
+
+    private(set) var currentSessionID: String?
+    private(set) var lastSessionRecord: FocusSessionRecord?
+    private var accumulatedActiveSeconds: Double? = nil
+    private var activeSegmentStart: Date?
+    private(set) var resetBoundary: SyncResetBoundary?
+    var onSessionRecorded: ((FocusSessionRecord) -> Void)?
 
     private(set) var preset: Preset = .classic
     private(set) var phase: Phase = .work
@@ -117,6 +148,39 @@ final class PomodoroTimer {
     private(set) var currentRevision: Revision
     private(set) var customPreset: Preset
     private(set) var automaticTransitionCount = 0
+
+    #if os(iOS)
+    /// One line on what this session is for. Phone-local on purpose: it is
+    /// not in `TimerSyncState`, so the watch timer and the sync codec
+    /// version stay untouched.
+    private(set) var intention: String?
+
+    /// Offered as a one-tap suggestion for the next session of the same
+    /// day, so a repeat session costs no typing.
+    private(set) var lastIntention: String?
+    private var lastIntentionDate: Date?
+
+    /// Set when a work phase completes with an intention, in time for the
+    /// app to ask how it went. Nil the rest of the time.
+    private(set) var pendingFocusNote: FocusNotePrompt?
+
+    struct FocusNotePrompt: Identifiable, Equatable, Codable {
+        let id: UUID
+        let sessionID: String
+        let intention: String
+        let completedAt: Date
+    }
+
+    static let intentionMaxLength = 60
+
+    /// A completion noticed later than this is treated as one that
+    /// happened while the app was away. A "how did it go?" sheet for a
+    /// session that ended hours ago is worse than no sheet at all.
+    static let focusNotePromptWindow: TimeInterval = 120
+
+    /// How long an unanswered prompt stays offerable once it exists.
+    static let focusNotePromptExpiry: TimeInterval = 15 * 60
+    #endif
 
     /// Called when a work phase runs to completion. The date is the original
     /// work-phase end date, not the newly-created break end date.
@@ -151,8 +215,92 @@ final class PomodoroTimer {
         self.now = now
         self.currentRevision = Revision(date: .distantPast, deviceID: deviceID)
         self.customPreset = Self.loadCustomPreset(from: resolvedDefaults)
+        self.resetBoundary = resolvedDefaults.flatMap { SharedDefaults.resetBoundary(in: $0) }
+        #if os(iOS)
+        showIntentionInLiveActivity = resolvedDefaults?.bool(forKey: Self.activityIntentionVisibilityKey) ?? false
+        #endif
         restorePersistedState()
+        #if os(iOS)
+        restoreIntentions()
+        #endif
     }
+
+    #if os(iOS)
+    /// Trims, and treats whitespace-only as absent. An over-long value is
+    /// rejected rather than truncated: the composer caps input at
+    /// `intentionMaxLength`, so anything longer reached here by mistake.
+    static func normalizedIntention(_ raw: String?) -> String? {
+        guard let raw else { return nil }
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, trimmed.count <= intentionMaxLength else { return nil }
+        return trimmed
+    }
+
+    /// Setting an intention never starts, stops, or reschedules anything —
+    /// it annotates the session in flight. Deliberately not cleared by
+    /// `reset()` or `skipPhase()`: an interrupted session is usually
+    /// restarted on the same task.
+    func setIntention(_ raw: String?) {
+        intention = Self.normalizedIntention(raw)
+        persistIntentions()
+        if isRunning, systemSideEffectsEnabled {
+            syncLiveActivity()
+        }
+    }
+
+    /// The previous intention, offered only on the day it was used. A
+    /// yesterday suggestion is noise.
+    func suggestedIntention(on date: Date = .now, calendar: Calendar = .current) -> String? {
+        guard let lastIntention,
+              let lastIntentionDate,
+              calendar.isDate(lastIntentionDate, inSameDayAs: date) else { return nil }
+        return lastIntention
+    }
+
+    func clearPendingFocusNote() {
+        pendingFocusNote = nil
+        defaults?.removeObject(forKey: Self.pendingFocusNoteKey)
+    }
+
+    /// Drops a prompt nobody came back for. The sheet lives on the Focus
+    /// tab, which may not be visited again for hours; asking how a session
+    /// went long after it ended is the stale prompt this avoids.
+    func discardStalePendingFocusNote(now: Date = .now) {
+        guard let pendingFocusNote,
+              now.timeIntervalSince(pendingFocusNote.completedAt) > Self.focusNotePromptExpiry
+        else { return }
+        clearPendingFocusNote()
+    }
+
+    private func completeIntention(workEndDate: Date, detectedAt: Date) {
+        guard let intention else { return }
+        lastIntention = intention
+        lastIntentionDate = workEndDate
+        self.intention = nil
+        if detectedAt.timeIntervalSince(workEndDate) <= Self.focusNotePromptWindow {
+            pendingFocusNote = FocusNotePrompt(id: UUID(), sessionID: lastSessionRecord?.id ?? FocusSessionEvent.id(for: workEndDate), intention: intention, completedAt: workEndDate)
+            if let data = try? JSONEncoder().encode(pendingFocusNote) { defaults?.set(data, forKey: Self.pendingFocusNoteKey) }
+        }
+        persistIntentions()
+    }
+
+    private func restoreIntentions() {
+        guard let defaults else { return }
+        intention = Self.normalizedIntention(defaults.string(forKey: Self.intentionKey))
+        lastIntention = Self.normalizedIntention(defaults.string(forKey: Self.lastIntentionKey))
+        lastIntentionDate = defaults.object(forKey: Self.lastIntentionDateKey) as? Date
+        if let data = defaults.data(forKey: Self.pendingFocusNoteKey) {
+            pendingFocusNote = try? JSONDecoder().decode(FocusNotePrompt.self, from: data)
+        }
+    }
+
+    private func persistIntentions() {
+        guard let defaults else { return }
+        defaults.set(intention, forKey: Self.intentionKey)
+        defaults.set(lastIntention, forKey: Self.lastIntentionKey)
+        defaults.set(lastIntentionDate, forKey: Self.lastIntentionDateKey)
+    }
+    #endif
 
     var phaseTotalSeconds: Int {
         (phase == .work ? preset.workMinutes : preset.restMinutes) * 60
@@ -176,11 +324,16 @@ final class PomodoroTimer {
             isRunning: isRunning,
             endDate: isRunning ? endDate : nil,
             remainingSeconds: remainingSeconds,
-            revision: currentRevision
+            revision: currentRevision,
+            resetBoundary: resetBoundary,
+            sessionID: currentSessionID,
+            activeSeconds: accumulatedActiveSeconds,
+            activeSegmentStart: activeSegmentStart
         )
     }
 
     func select(_ preset: Preset) {
+        recordPartialIfNeeded()
         stopRunningWithoutPublishing()
         self.preset = preset
         adoptCustomPresetIfNeeded(preset)
@@ -214,6 +367,10 @@ final class PomodoroTimer {
     }
 
     private func beginRunning() {
+        if phase == .work {
+            if currentSessionID == nil { currentSessionID = UUID().uuidString; accumulatedActiveSeconds = 0 }
+            activeSegmentStart = now()
+        }
         isRunning = true
         endDate = now().addingTimeInterval(TimeInterval(remainingSeconds))
         if systemSideEffectsEnabled {
@@ -237,6 +394,7 @@ final class PomodoroTimer {
 
     func pause() {
         guard isRunning else { return }
+        accumulateActiveTime(until: now())
         if let endDate {
             remainingSeconds = max(0, Int(endDate.timeIntervalSince(now()).rounded(.up)))
         }
@@ -245,6 +403,7 @@ final class PomodoroTimer {
     }
 
     func reset() {
+        recordPartialIfNeeded()
         stopRunningWithoutPublishing()
         phase = .work
         remainingSeconds = preset.workMinutes * 60
@@ -253,6 +412,7 @@ final class PomodoroTimer {
 
     func skipPhase() {
         let wasRunning = isRunning
+        recordPartialIfNeeded()
         stopRunningWithoutPublishing()
 
         // Skipping never counts the session.
@@ -283,7 +443,22 @@ final class PomodoroTimer {
         }
 
         if phase == .work {
+            accumulateActiveTime(until: endDate)
+            let recoveredID = lastSessionRecord.flatMap { $0.isCompleted && $0.completedAt == endDate ? $0.id : nil }
+            let record = FocusSessionRecord(id: currentSessionID ?? recoveredID ?? FocusSessionEvent.id(for: endDate),
+                completedAt: endDate, durationMinutes: preset.workMinutes,
+                actualActiveSeconds: accumulatedActiveSeconds.map { max(0, Int($0.rounded(.down))) })
+            lastSessionRecord = record
+            // Persist the terminal identity before delivering callbacks.
+            currentSessionID = nil
+            activeSegmentStart = nil
+            accumulatedActiveSeconds = nil
+            persistState()
+            onSessionRecorded?(record)
             onWorkSessionComplete?(endDate)
+            #if os(iOS)
+            completeIntention(workEndDate: endDate, detectedAt: currentDate)
+            #endif
             phase = .rest
             automaticTransitionCount += 1
             let restEnd = endDate.addingTimeInterval(TimeInterval(preset.restMinutes * 60))
@@ -312,7 +487,8 @@ final class PomodoroTimer {
     /// effects are rebuilt from the adopted wall-clock state.
     @discardableResult
     func apply(_ remote: TimerSyncState) -> Bool {
-        guard remote.revision > currentRevision,
+        guard remote.resetBoundary == resetBoundary,
+              remote.revision > currentRevision,
               isValid(remote) else { return false }
 
         applyingRemoteState = true
@@ -327,6 +503,9 @@ final class PomodoroTimer {
         phase = Phase(rawValue: remote.phase)!
         currentRevision = remote.revision
         remainingSeconds = remote.remainingSeconds
+        currentSessionID = remote.sessionID
+        accumulatedActiveSeconds = remote.activeSeconds
+        activeSegmentStart = remote.activeSegmentStart
 
         if remote.isRunning, let remoteEndDate = remote.endDate {
             if systemSideEffectsEnabled {
@@ -358,12 +537,49 @@ final class PomodoroTimer {
         guard remote.workMinutes >= 0,
               remote.restMinutes >= 0,
               Phase(rawValue: remote.phase) != nil,
-              remote.remainingSeconds >= 0 else { return false }
+              remote.remainingSeconds >= 0,
+              remote.activeSeconds.map({ $0.isFinite && $0 >= 0 }) ?? true,
+              remote.sessionID.map({ UUID(uuidString: $0) != nil }) ?? true else { return false }
 
         if remote.isRunning {
             return remote.endDate != nil
         }
         return remote.endDate == nil
+    }
+
+    /// Destructive reset never records partial effort or a completed session.
+    func resetForDataDeletion(boundary: SyncResetBoundary) {
+        if let defaults { SharedDefaults.setResetBoundary(boundary, in: defaults) }
+        resetBoundary = boundary
+        stopRunningWithoutPublishing()
+        currentSessionID = nil; lastSessionRecord = nil
+        accumulatedActiveSeconds = nil; activeSegmentStart = nil
+        phase = .work
+        remainingSeconds = preset.workMinutes * 60
+        #if os(iOS)
+        intention = nil; lastIntention = nil; lastIntentionDate = nil
+        clearPendingFocusNote(); persistIntentions()
+        #endif
+        finishLocalMutation()
+    }
+
+    private func accumulateActiveTime(until date: Date) {
+        guard phase == .work, let start = activeSegmentStart, let accumulated = accumulatedActiveSeconds else { return }
+        let finish = min(date, endDate ?? date)
+        accumulatedActiveSeconds = accumulated + max(0, finish.timeIntervalSince(start))
+        activeSegmentStart = nil
+    }
+
+    private func recordPartialIfNeeded() {
+        guard phase == .work, let id = currentSessionID else { return }
+        accumulateActiveTime(until: now())
+        let seconds = accumulatedActiveSeconds.map { max(0, Int($0.rounded(.down))) }
+        currentSessionID = nil; accumulatedActiveSeconds = nil; activeSegmentStart = nil
+        guard let seconds, seconds > 0 else { return }
+        let record = FocusSessionRecord(id: id, completedAt: now(), durationMinutes: preset.workMinutes,
+            actualActiveSeconds: seconds, isCompleted: false)
+        lastSessionRecord = record
+        onSessionRecorded?(record)
     }
 
     private func stopRunningWithoutPublishing() {
@@ -401,12 +617,20 @@ final class PomodoroTimer {
             return
         }
 
+        guard state.resetBoundary == resetBoundary else {
+            if let resetBoundary { resetForDataDeletion(boundary: resetBoundary) }
+            return
+        }
         applyResolvedPreset(
             workMinutes: state.workMinutes,
             restMinutes: state.restMinutes,
             isCustom: state.isCustomPreset
         )
         phase = restoredPhase
+        currentSessionID = state.sessionID
+        accumulatedActiveSeconds = state.activeSeconds
+        activeSegmentStart = state.activeSegmentStart
+        lastSessionRecord = state.lastSessionRecord
         remainingSeconds = max(0, state.remainingSeconds)
         if let revision = state.revision {
             currentRevision = revision
@@ -450,7 +674,12 @@ final class PomodoroTimer {
             remainingSeconds: remainingSeconds,
             isRunning: isRunning,
             endDate: isRunning ? endDate : nil,
-            revision: currentRevision
+            revision: currentRevision,
+            resetBoundary: resetBoundary,
+            sessionID: currentSessionID,
+            activeSeconds: accumulatedActiveSeconds,
+            activeSegmentStart: activeSegmentStart,
+            lastSessionRecord: lastSessionRecord
         )
         guard let data = try? JSONEncoder().encode(state) else { return }
         defaults.set(data, forKey: Self.persistedStateKey)
@@ -513,7 +742,10 @@ final class PomodoroTimer {
             endDate: endDate,
             restEndDate: phase == .work
                 ? endDate.addingTimeInterval(TimeInterval(preset.restMinutes * 60))
-                : nil
+                : nil,
+            // A break is not the work it was for; the intention rides
+            // along with the work phase only.
+            intention: phase == .work && showIntentionInLiveActivity ? intention : nil
         )
         let content = ActivityContent(state: state, staleDate: endDate)
         let alertConfiguration = alertsTransition

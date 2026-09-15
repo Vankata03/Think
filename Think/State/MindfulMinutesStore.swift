@@ -97,6 +97,7 @@ final class MindfulMinutesStore {
     private let client: any MindfulHealthClient
     private var pendingSessions: [PendingSession]
     private var isDraining = false
+    private var resetGeneration = 0
 
     private(set) var authorization: MindfulMinutesAuthorization
     private(set) var isEnabled: Bool
@@ -139,10 +140,7 @@ final class MindfulMinutesStore {
 
     func setEnabled(_ enabled: Bool) async {
         guard enabled else {
-            isEnabled = false
-            defaults.set(false, forKey: Self.enabledKey)
-            pendingSessions.removeAll()
-            persistPendingSessions()
+            resetForDataDeletion()
             return
         }
 
@@ -165,6 +163,16 @@ final class MindfulMinutesStore {
         defaults.set(isEnabled, forKey: Self.enabledKey)
     }
 
+    /// Stops queued writes synchronously. A sample already handed to HealthKit
+    /// may still finish; deleting Health records requires the Health app.
+    func resetForDataDeletion() {
+        resetGeneration += 1
+        isEnabled = false
+        defaults.set(false, forKey: Self.enabledKey)
+        pendingSessions.removeAll()
+        persistPendingSessions()
+    }
+
     func enqueueCompletedSession(endedAt endDate: Date, durationMinutes: Int) {
         guard Self.supportedDurationMinutes.contains(durationMinutes) else { return }
         refreshAuthorization()
@@ -184,9 +192,10 @@ final class MindfulMinutesStore {
         guard isEnabled, authorization == .authorized else { return }
 
         isDraining = true
+        let generation = resetGeneration
         defer { isDraining = false }
 
-        while let session = pendingSessions.first {
+        while generation == resetGeneration, isEnabled, let session = pendingSessions.first {
             let startDate = session.endDate.addingTimeInterval(-TimeInterval(session.durationMinutes) * 60)
             do {
                 try await client.saveMindfulSession(
@@ -194,6 +203,7 @@ final class MindfulMinutesStore {
                     startDate: startDate,
                     endDate: session.endDate
                 )
+                guard generation == resetGeneration else { return }
                 if let index = pendingSessions.firstIndex(where: { $0.id == session.id }) {
                     pendingSessions.remove(at: index)
                     persistPendingSessions()

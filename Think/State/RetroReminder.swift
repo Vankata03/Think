@@ -33,14 +33,28 @@ enum RetroReminder {
         components.hour = minutes / 60
         components.minute = minutes % 60
 
+        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
+        let request = UNNotificationRequest(
+            identifier: identifier,
+            content: notificationContent(),
+            trigger: trigger
+        )
+        try? await UNUserNotificationCenter.current().add(request)
+    }
+
+    static func notificationContent() -> UNMutableNotificationContent {
         let content = UNMutableNotificationContent()
         content.title = String(localized: "Evening retrospective")
         content.body = String(localized: "Close the day. Two honest minutes.")
         content.sound = .default
-
-        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
-        let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
-        try? await UNUserNotificationCenter.current().add(request)
+        // An evening Wind Down, Sleep, or Do Not Disturb Focus silences
+        // `.active` notifications — including the one reminder whose whole
+        // purpose is to fire at the end of the day, for exactly the people
+        // most likely to run such a Focus. Time Sensitive delivery is still
+        // controllable per app in Settings, so this raises the ceiling
+        // without taking the choice away.
+        content.interruptionLevel = .timeSensitive
+        return content
     }
 
     static func cancelSchedule() {

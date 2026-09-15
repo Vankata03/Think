@@ -10,6 +10,8 @@ nonisolated enum SharedDefaults {
     static let pomodoroTimerStateKey = "pomodoro.timer.state"
     static let pomodoroCustomWorkMinutesKey = "pomodoro.custom.workMinutes"
     static let pomodoroCustomRestMinutesKey = "pomodoro.custom.restMinutes"
+    static let resetBoundaryKey = "sync.resetBoundary.v1"
+    static let resetPendingKey = "sync.resetPending.v1"
     static let syncDeviceIDKey = "sync.deviceID"
 
     static func appGroup() -> UserDefaults {
@@ -24,7 +26,7 @@ nonisolated enum SharedDefaults {
     /// overwriting existing values. Per-key checks (rather than a one-shot
     /// marker) let keys added in future releases migrate too.
     static func migrateProgressIfNeeded(from source: UserDefaults, to destination: UserDefaults) {
-        guard source !== destination else { return }
+        guard source !== destination, resetBoundary(in: destination) == nil else { return }
         for key in ProgressStore.persistedKeys where destination.object(forKey: key) == nil {
             if let value = source.object(forKey: key) {
                 destination.set(value, forKey: key)
@@ -37,6 +39,18 @@ nonisolated enum SharedDefaults {
             return fallback
         }
         return defaults
+    }
+
+    static func resetBoundary(in defaults: UserDefaults) -> SyncResetBoundary? {
+        guard let data = defaults.data(forKey: resetBoundaryKey) else { return nil }
+        return try? SyncCodec.decode(SyncResetBoundary.self, from: data)
+    }
+
+    static func setResetBoundary(_ boundary: SyncResetBoundary, in defaults: UserDefaults) {
+        guard let data = try? SyncCodec.encode(boundary) else { return }
+        defaults.set(data, forKey: resetBoundaryKey)
+        // Deletion barriers must reach disk before destructive state changes.
+        defaults.synchronize()
     }
 
     static func syncDeviceID(in defaults: UserDefaults? = nil) -> UUID {

@@ -4,139 +4,154 @@
 //
 
 import SwiftUI
-import SwiftData
 
-/// Three-field evening retrospective. Edits today's retro in place if
-/// one already exists, so reopening the sheet never duplicates.
+/// Evening retrospective entry point. Resolves today's context once —
+/// captured civil day, practice, prompt — then hands a bound draft to the
+/// shared editor. An existing retro is edited in place; a durable draft is
+/// resumed; a blank one is captured without unlocking. The optional
+/// "intention to carry" is its own field and is never merged into the
+/// three narrative answers.
 struct RetroSheet: View {
+    @Environment(JournalRepository.self) private var repository
+    @Environment(JournalDraftStore.self) private var drafts
+    @Environment(JournalLock.self) private var lock
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.haptics) private var haptics
-    @Environment(\.modelContext) private var modelContext
-    @Environment(ProgressStore.self) private var progress
-    @Query(sort: \DailyRetro.date, order: .reverse) private var retros: [DailyRetro]
-
-    @State private var wentWell = ""
-    @State private var improve = ""
-    @State private var tomorrow = ""
-    @State private var loaded = false
-
-    private var todaysRetro: DailyRetro? {
-        retros.first { Calendar.current.isDateInToday($0.date) }
-    }
-
-    private var canSave: Bool {
-        ![wentWell, improve, tomorrow]
-            .allSatisfy { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
-    }
+    @State private var draft: JournalDraft?
+    @State private var conflicts: [JournalRepository.RetroSnapshot] = []
+    @State private var error: String?
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    Text("Two honest minutes. Skip anything that doesn't apply.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-
-                    retroField(
-                        "What went well?",
-                        systemImage: "checkmark.circle",
-                        placeholder: "One thing you did right today…",
-                        text: $wentWell
-                    )
-                    retroField(
-                        "What can improve?",
-                        systemImage: "arrow.up.circle",
-                        placeholder: "One thing to do differently…",
-                        text: $improve
-                    )
-                    retroField(
-                        "Ideas & tomorrow",
-                        systemImage: "sunrise",
-                        placeholder: "Thoughts to keep, tasks for tomorrow…",
-                        text: $tomorrow
-                    )
+        Group {
+            if let draft {
+                JournalEditor(draft: draft, notice: error)
+            } else if lock.isLocked {
+                NavigationStack {
+                    VStack {
+                        JournalGate()
+                        Button("Write a new retrospective") { beginBlank() }
+                            .buttonStyle(.bordered)
+                            .padding()
+                            .accessibilityIdentifier("WriteBlankRetro")
+                    }
+                    .navigationTitle("Retrospective")
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() } }
+                    }
                 }
-                .padding(20)
+            } else if !conflicts.isEmpty {
+                conflictChooser
+            } else if let error {
+                errorState(error)
+            } else {
+                ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .background(Color(.systemGroupedBackground).ignoresSafeArea())
-            .scrollDismissesKeyboard(.interactively)
-            .dismissKeyboardOnTap()
-            .navigationTitle("Retrospective")
+        }
+        .task {
+            guard !lock.isLocked else { return }
+            resolve()
+        }
+        .onChange(of: lock.isLocked) { _, locked in
+            if !locked { resolve() }
+        }
+    }
+
+    /// Two devices wrote today's retro offline; the person picks which one
+    /// to continue. Nothing is merged, nothing is discarded here.
+    private var conflictChooser: some View {
+        NavigationStack {
+            Group {
+                if lock.isLocked {
+                    JournalGate()
+                } else {
+                    List {
+                        if let error { Text(error).foregroundStyle(.red) }
+                        Section {
+                            ForEach(conflicts) { retro in
+                                Button {
+                                    do {
+                                        draft = try existingEditingDraft(for: retro.recordID ?? UUID(), in: drafts) ?? JournalDraft.editing(retro)
+                                    } catch {
+                                        self.error = String(localized: "Could not read the saved edit. The retrospective is unchanged.")
+                                    }
+                                } label: {
+                                    JournalRetroRow(retro: retro)
+                                }
+                                .buttonStyle(.plain)
+                                .disabled(retro.recordID == nil)
+                            }
+                        } footer: {
+                            Text("More than one retrospective exists for today. Choose one to edit; the others are kept and can be opened from the journal.")
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Which retrospective?")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") { save() }
-                        .disabled(!canSave)
-                }
+                ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() } }
             }
-            .onAppear(perform: loadExisting)
+            .accessibilityIdentifier("RetroConflictChooser")
         }
     }
 
-    private func retroField(
-        _ title: LocalizedStringKey,
-        systemImage: String,
-        placeholder: LocalizedStringKey,
-        text: Binding<String>
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Label {
-                Text(title)
-                    .foregroundStyle(.primary)
-            } icon: {
-                Image(systemName: systemImage)
-                    .foregroundStyle(Color.accentColor)
+    private func errorState(_ message: String) -> some View {
+        NavigationStack {
+            ContentUnavailableView {
+                Label("Could not open the retrospective", systemImage: "exclamationmark.triangle")
+            } description: {
+                Text(message)
+            } actions: {
+                Button("Try again") { error = nil; resolve() }
             }
-            .font(.subheadline.weight(.semibold))
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() } }
+            }
+        }
+    }
 
-            TextField(placeholder, text: text, axis: .vertical)
-                .lineLimit(2...5)
-                .textFieldStyle(.plain)
-                .padding(12)
-                .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-                .overlay {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(.separator.opacity(0.6), lineWidth: 1)
+    private func resolve() {
+        guard draft == nil, !lock.isLocked else { return }
+        let today = CivilDay.today()
+        let practice = ContentLibrary.dailyPractice()
+        do {
+            if try drafts.listing(kind: .retro).unreadableCount > 0 {
+                error = String(localized: "Some drafts could not be read. They were left untouched.")
+            }
+            if let selection = try repository.retro(for: today) {
+                if selection.hasConflicts {
+                    conflicts = selection.all
+                    return
                 }
+                if let recordID = selection.primary.recordID,
+                   let pending = try existingEditingDraft(for: recordID, in: drafts) {
+                    draft = pending
+                } else if let editing = JournalDraft.editing(selection.primary) {
+                    draft = editing
+                } else {
+                    error = String(localized: "Today's retrospective has no identity yet and cannot be edited.")
+                }
+                return
+            }
+            if let pending = try drafts.retroDraft(day: today) {
+                draft = pending
+                return
+            }
+            draft = JournalDraft(
+                kind: .retro,
+                context: JournalDraft.Context(
+                    civilDay: today,
+                    practiceID: practice.id,
+                    promptSnapshot: practice.question
+                )
+            )
+        } catch {
+            self.error = String(localized: "Today's retrospective could not be read. Nothing was changed.")
         }
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel(title)
     }
 
-    private func loadExisting() {
-        guard !loaded else { return }
-        loaded = true
-        if let retro = todaysRetro {
-            wentWell = retro.wentWell
-            improve = retro.improve
-            tomorrow = retro.tomorrow
-        }
+    private func beginBlank() {
+        let day = CivilDay.today()
+        let practice = ContentLibrary.dailyPractice()
+        draft = JournalDraft(kind: .retro, context: .init(civilDay: day, practiceID: practice.id, promptSnapshot: practice.question))
     }
-
-    private func save() {
-        let well = wentWell.trimmingCharacters(in: .whitespacesAndNewlines)
-        let better = improve.trimmingCharacters(in: .whitespacesAndNewlines)
-        let next = tomorrow.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !(well.isEmpty && better.isEmpty && next.isEmpty) else { return }
-
-        if let retro = todaysRetro {
-            retro.wentWell = well
-            retro.improve = better
-            retro.tomorrow = next
-        } else {
-            modelContext.insert(DailyRetro(wentWell: well, improve: better, tomorrow: next))
-        }
-        progress.markTodayComplete()
-        haptics.play(.success)
-        dismiss()
-    }
-}
-
-#Preview {
-    RetroSheet()
-        .environment(ProgressStore())
-        .modelContainer(for: [JournalEntry.self, DailyRetro.self], inMemory: true)
 }

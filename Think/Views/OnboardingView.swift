@@ -15,6 +15,7 @@ enum Onboarding {
 struct OnboardingView: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.haptics) private var haptics
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @AppStorage(Onboarding.completedKey) private var completed = false
     @AppStorage(DailyQuoteNotifier.enabledKey) private var dailyLineEnabled = false
     @AppStorage(DailyQuoteNotifier.minutesKey) private var dailyLineMinutes = DailyQuoteNotifier.defaultMinutes
@@ -47,15 +48,18 @@ struct OnboardingView: View {
             .padding(.horizontal, 24)
             .padding(.top, 16)
 
-            Group {
-                switch page {
-                case 0: practicePage
-                case 1: notificationPage
-                default: pathPage
+            ScrollView {
+                Group {
+                    switch page {
+                    case 0: practicePage
+                    case 1: notificationPage
+                    default: pathPage
+                    }
                 }
+                .padding(.vertical, 24)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .transition(.asymmetric(
+            .transition(reduceMotion ? .opacity : .asymmetric(
                 insertion: .move(edge: .trailing).combined(with: .opacity),
                 removal: .move(edge: .leading).combined(with: .opacity)
             ))
@@ -73,12 +77,12 @@ struct OnboardingView: View {
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
-            .tint(.accentColor)
+            .tint(Color("AccentColor"))
             .padding(.horizontal, 24)
             .padding(.bottom, 20)
         }
         .background(Color(.systemGroupedBackground).ignoresSafeArea())
-        .animation(.easeInOut(duration: 0.3), value: page)
+        .animation(ThinkMotion.stateAnimation(reduceMotion: reduceMotion), value: page)
     }
 
     private var pageDots: some View {
@@ -112,7 +116,7 @@ struct OnboardingView: View {
 
             VStack(alignment: .leading, spacing: 16) {
                 practiceRow(icon: "text.quote", title: "Read the daily line", detail: "One idea worth carrying all day.")
-                practiceRow(icon: "pencil.line", title: "Answer one question", detail: "A few private sentences. Stored on your device only.")
+                practiceRow(icon: "pencil.line", title: "Answer one question", detail: "Private writing on your device, with sync through your own iCloud when available.")
                 practiceRow(icon: "timer", title: "Train your attention", detail: "A path step or a focus session. Your streak grows.")
                 practiceRow(icon: "moon.stars", title: "Close the day", detail: "A two-minute evening retrospective: what went well, what's next.")
             }
@@ -169,7 +173,7 @@ struct OnboardingView: View {
                 Toggle(isOn: $dailyLineEnabled) {
                     onboardingLabel("Daily line notification", systemImage: "bell")
                 }
-                .tint(.accentColor)
+                .tint(Color("AccentColor"))
                 .padding(.vertical, 10)
 
                 if dailyLineEnabled {
@@ -177,7 +181,7 @@ struct OnboardingView: View {
                     DatePicker(selection: dailyLineTime, displayedComponents: .hourAndMinute) {
                         onboardingLabel("Time", systemImage: "clock")
                     }
-                    .tint(.accentColor)
+                    .tint(Color("AccentColor"))
                     .padding(.vertical, 10)
                 }
 
@@ -186,7 +190,7 @@ struct OnboardingView: View {
                 Toggle(isOn: $retroReminderEnabled) {
                     onboardingLabel("Evening retrospective reminder", systemImage: "moon.stars")
                 }
-                .tint(.accentColor)
+                .tint(Color("AccentColor"))
                 .padding(.vertical, 10)
 
                 if retroReminderEnabled {
@@ -194,7 +198,7 @@ struct OnboardingView: View {
                     DatePicker(selection: retroReminderTime, displayedComponents: .hourAndMinute) {
                         onboardingLabel("Time", systemImage: "clock")
                     }
-                    .tint(.accentColor)
+                    .tint(Color("AccentColor"))
                     .padding(.top, 10)
                 }
             }
@@ -204,8 +208,8 @@ struct OnboardingView: View {
                 RoundedRectangle(cornerRadius: 24, style: .continuous)
                     .stroke(.separator.opacity(0.6), lineWidth: 1)
             }
-            .animation(.default, value: dailyLineEnabled)
-            .animation(.default, value: retroReminderEnabled)
+            .animation(ThinkMotion.stateAnimation(reduceMotion: reduceMotion), value: dailyLineEnabled)
+            .animation(ThinkMotion.stateAnimation(reduceMotion: reduceMotion), value: retroReminderEnabled)
 
             Text("You can change this anytime in Profile.")
                 .font(.footnote)
@@ -229,7 +233,7 @@ struct OnboardingView: View {
             VStack(alignment: .leading, spacing: 10) {
                 Text("Start with \(PathLibrary.deepFocus.name)")
                     .font(.largeTitle.bold())
-                Text("\(PathLibrary.deepFocus.tagline). One short lesson and one concrete task per day, ten minutes at most.")
+                Text("One short lesson and one concrete task each day. Choose the full practice or its smaller alternative.")
                     .font(.body)
                     .foregroundStyle(.secondary)
             }

@@ -182,7 +182,7 @@ struct StreakShareSheet: View {
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
-            .tint(.accentColor)
+            .tint(Color("AccentColor"))
             .disabled(currentRenderedImage == nil)
             .simultaneousGesture(TapGesture().onEnded {
                 haptics.play(.selection)
@@ -200,7 +200,7 @@ struct StreakShareSheet: View {
             }
             .buttonStyle(.bordered)
             .controlSize(.large)
-            .tint(.accentColor)
+            .tint(Color("AccentColor"))
             .disabled(photoSaveState == .saving || photoSaveState == .saved)
         }
     }

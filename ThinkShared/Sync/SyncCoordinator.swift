@@ -66,6 +66,10 @@ final class SyncCoordinator: NSObject, SyncTransportDelegate {
         timer.onStateChange = { [weak self] state in
             self?.publishTimer(state)
         }
+        timer.onSessionRecorded = { [weak self] record in
+            guard !record.isCompleted else { return }
+            self?.progress.recordPartialFocusSession(record)
+        }
         timer.onWorkSessionComplete = { [weak self] endDate in
             self?.handleWorkSessionCompletion(at: endDate)
         }
@@ -94,6 +98,11 @@ final class SyncCoordinator: NSObject, SyncTransportDelegate {
     func syncTransport(_ transport: any SyncTransport, didReceive envelope: SyncInboundEnvelope) {
         guard isActivated else { return }
 
+        // The phone's deletion boundary must be installed before adopting its timer.
+        if role == .watch, let data = envelope.progressSnapshot,
+           let snapshot = try? SyncCodec.decode(ProgressSnapshot.self, from: data) {
+            applyProgressSnapshot(snapshot)
+        }
         if let timerData = envelope.timer,
            let state = try? SyncCodec.decode(TimerSyncState.self, from: timerData) {
             _ = timer.apply(state)
@@ -104,9 +113,6 @@ final class SyncCoordinator: NSObject, SyncTransportDelegate {
                let event = try? SyncCodec.decode(FocusSessionEvent.self, from: eventData) {
                 receiveFocusSessionEvent(event)
             }
-        } else if let progressData = envelope.progressSnapshot,
-                  let snapshot = try? SyncCodec.decode(ProgressSnapshot.self, from: progressData) {
-            applyProgressSnapshot(snapshot)
         }
     }
 
@@ -158,7 +164,11 @@ final class SyncCoordinator: NSObject, SyncTransportDelegate {
 
     private func handleWorkSessionCompletion(at endDate: Date) {
         let duration = timer.preset.workMinutes > 0 ? timer.preset.workMinutes : nil
-        let event = FocusSessionEvent(endDate: endDate, durationMinutes: duration)
+        let record = timer.lastSessionRecord
+        let event = FocusSessionEvent(id: record?.id ?? FocusSessionEvent.id(for: endDate),
+            completedAt: endDate, durationMinutes: duration, resetBoundary: timer.resetBoundary,
+            actualActiveSeconds: record?.actualActiveSeconds)
+        guard ledger.accepts(event) else { return }
 
         switch role {
         case .phone:
@@ -166,7 +176,8 @@ final class SyncCoordinator: NSObject, SyncTransportDelegate {
             progress.recordFocusSession(
                 at: event.completedAt,
                 durationMinutes: event.durationMinutes,
-                eventID: event.id
+                eventID: event.id,
+                actualActiveSeconds: event.actualActiveSeconds
             )
             completionSideEffect()
             if let durationMinutes = event.durationMinutes {
@@ -177,23 +188,27 @@ final class SyncCoordinator: NSObject, SyncTransportDelegate {
             guard ledger.addPending(event) else { return }
             // Keep the watch UI useful while the phone is away. The phone
             // remains the canonical writer and owns duration history.
-            progress.recordFocusSession(at: event.completedAt)
+            progress.recordFocusSession(at: event.completedAt, eventID: event.id)
             queue(event)
         }
     }
 
     private func receiveFocusSessionEvent(_ event: FocusSessionEvent) {
         guard role == .phone,
-              !event.id.isEmpty,
-              FocusSessionEvent.id(for: event.completedAt) == event.id,
-              ledger.recordApplied(event.id) else { return }
+              ledger.accepts(event) else { return }
+        guard ledger.recordApplied(event.id) else {
+            ledger.refreshAcknowledgement(event.id)
+            publishProgressSnapshot()
+            return
+        }
 
         // Record the ID before mutating progress so the mutation-triggered
         // snapshot already acknowledges the event.
         progress.recordFocusSession(
             at: event.completedAt,
             durationMinutes: event.durationMinutes,
-            eventID: event.id
+            eventID: event.id,
+            actualActiveSeconds: event.actualActiveSeconds
         )
         if let durationMinutes = event.durationMinutes, durationMinutes > 0 {
             focusSessionSideEffect(event.completedAt, durationMinutes)
@@ -202,7 +217,16 @@ final class SyncCoordinator: NSObject, SyncTransportDelegate {
 
     private func applyProgressSnapshot(_ snapshot: ProgressSnapshot) {
         guard role == .watch,
-              snapshot.publishedAt > latestAppliedProgressDate else { return }
+              snapshot.publishedAt > max(latestAppliedProgressDate, progress.latestAppliedSnapshotDate) else { return }
+        if snapshot.resetBoundary != progress.resetBoundary {
+            guard let incoming = snapshot.resetBoundary,
+                  incoming.date > (progress.resetBoundary?.date ?? .distantPast) else { return }
+            // Durable boundary first; no old pending work is replayed after deletion.
+            progress.installResetBoundary(incoming)
+            ledger.installResetBoundary(incoming)
+            timer.resetForDataDeletion(boundary: incoming)
+            progress.reset()
+        }
         latestAppliedProgressDate = snapshot.publishedAt
 
         isApplyingProgressSnapshot = true
@@ -217,8 +241,25 @@ final class SyncCoordinator: NSObject, SyncTransportDelegate {
         // Replay watch-local events that the snapshot has not acknowledged.
         // This path intentionally does not send user-info again.
         for event in ledger.pendingEvents {
-            progress.recordFocusSession(at: event.completedAt)
+            progress.recordFocusSession(at: event.completedAt, eventID: event.id)
         }
+    }
+
+    /// Root deletes private journal/drafts/metadata between these two calls.
+    /// This durable tombstone is never erased by progress reset or defaults migration.
+    @discardableResult
+    func prepareForDataReset(at date: Date = .now) -> SyncResetBoundary {
+        let boundary = SyncResetBoundary(date: max(date, (progress.resetBoundary?.date ?? .distantPast).addingTimeInterval(0.001)))
+        progress.installResetBoundary(boundary)
+        ledger.installResetBoundary(boundary)
+        timer.resetForDataDeletion(boundary: boundary)
+        return boundary
+    }
+
+    func finalizeDataReset() {
+        progress.reset()
+        latestTimerData = try? SyncCodec.encode(timer.syncState)
+        publishProgressSnapshot()
     }
 
     private func queue(_ event: FocusSessionEvent) {

@@ -1,0 +1,230 @@
+//
+//  CloudBackupState.swift
+//  Think
+//
+
+import CloudKit
+import CoreData
+import Foundation
+import Observation
+
+/// Reports what is known about the journal's iCloud backup, for display
+/// only.
+///
+/// Two independent signals feed it. `CKAccountStatus` says whether the
+/// account can be used at all; it never says that mirroring has actually
+/// run, so an available account is reported as *configured*, not as a
+/// completed backup. `NSPersistentCloudKitContainer.eventChangedNotification`
+/// — which SwiftData posts, because it mirrors through that container —
+/// carries the real outcome of each setup, import, and export, and a
+/// failure there downgrades the reported status.
+///
+/// There is no in-app on/off switch: SwiftData decides mirroring when the
+/// container is built, so a mid-run toggle would mean tearing the
+/// container down under a live `@Query`. iCloud settings are the switch;
+/// this type explains what those settings currently mean for Think.
+@Observable
+@MainActor
+final class CloudBackupState {
+    enum Status: Equatable {
+        /// The account is usable and the store is configured to mirror.
+        /// Says nothing about whether a given entry has reached iCloud.
+        case configured
+        /// Mirroring reported a failure.
+        case syncFailed
+        /// The store opened locally; CloudKit is not mirroring it.
+        case unavailable
+        /// No iCloud account is signed in on this device.
+        case signedOut
+        /// The account exists but iCloud is restricted (for example by
+        /// parental controls or a device management profile).
+        case restricted
+        /// Nothing on disk: the journal opened into a throwaway store.
+        case temporaryStore
+        /// Not applicable — tests and previews never mirror.
+        case disabled
+        /// Not looked up yet.
+        case unknown
+    }
+
+    struct MirroringEvent: Sendable {
+        enum Kind: Sendable { case setup, importRecords, exportRecords }
+        var id: UUID
+        var kind: Kind
+        var startedAt: Date
+        var endedAt: Date? = nil
+        var succeeded: Bool
+    }
+    private(set) var status: Status = .unknown
+    private(set) var lastSuccessfulExportDate: Date?
+    private(set) var lastSuccessfulImportDate: Date?
+    private(set) var lastFailureDate: Date?
+    private var activeEvents: Set<UUID> = []
+    var isSyncing: Bool { !activeEvents.isEmpty }
+
+    func recordMirroringEvent(_ event: MirroringEvent) {
+        guard storage == .cloudKit else { return }
+        guard let endedAt = event.endedAt else { activeEvents.insert(event.id); return }
+        activeEvents.remove(event.id)
+        if event.succeeded {
+            switch event.kind {
+            case .exportRecords: lastSuccessfulExportDate = max(lastSuccessfulExportDate ?? .distantPast, endedAt)
+            case .importRecords: lastSuccessfulImportDate = max(lastSuccessfulImportDate ?? .distantPast, endedAt)
+            case .setup: break
+            }
+        } else { lastFailureDate = max(lastFailureDate ?? .distantPast, endedAt) }
+        recordMirroringOutcome(succeeded: event.succeeded)
+    }
+
+    private let storage: JournalDataStore.Storage
+    private let accountStatusProvider: @Sendable () async throws -> CKAccountStatus
+    private var mirroringFailed = false
+    // Only `startObservingMirroringEvents` (MainActor) and `deinit`
+    // (exclusive by definition) ever touch this token.
+    private var eventObserver: (center: NotificationCenter, token: any NSObjectProtocol)?
+
+    init(
+        storage: JournalDataStore.Storage,
+        accountStatusProvider: (@Sendable () async throws -> CKAccountStatus)? = nil
+    ) {
+        self.storage = storage
+        let identifier = JournalDataStore.cloudKitContainerIdentifier
+        self.accountStatusProvider = accountStatusProvider ?? {
+            try await CKContainer(identifier: identifier).accountStatus()
+        }
+    }
+
+    isolated deinit {
+        if let eventObserver {
+            eventObserver.center.removeObserver(eventObserver.token)
+        }
+    }
+
+    func refresh() async {
+        switch storage {
+        case .inMemory:
+            status = .disabled
+            return
+        case .emergencyInMemory:
+            status = .temporaryStore
+            return
+        case .localOnly:
+            status = .unavailable
+            return
+        case .cloudKit:
+            break
+        }
+
+        do {
+            status = Self.status(
+                for: try await accountStatusProvider(),
+                mirroringFailed: mirroringFailed
+            )
+        } catch {
+            status = .unavailable
+        }
+    }
+
+    /// Starts watching the mirroring events SwiftData posts through
+    /// `NSPersistentCloudKitContainer`, so an account that looks fine but
+    /// cannot actually sync stops being reported as configured.
+    func startObservingMirroringEvents(center: NotificationCenter = .default) {
+        guard storage == .cloudKit, eventObserver == nil else { return }
+
+        let token = center.addObserver(
+            forName: NSPersistentCloudKitContainer.eventChangedNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            let event = notification.userInfo?[
+                NSPersistentCloudKitContainer.eventNotificationUserInfoKey
+            ] as? NSPersistentCloudKitContainer.Event
+            guard let event else { return }
+            let kind: MirroringEvent.Kind
+            switch event.type {
+            case .setup: kind = .setup
+            case .import: kind = .importRecords
+            case .export: kind = .exportRecords
+            @unknown default: return
+            }
+            let snapshot = MirroringEvent(id: event.identifier, kind: kind, startedAt: event.startDate,
+                                          endedAt: event.endDate, succeeded: event.succeeded)
+            MainActor.assumeIsolated { self?.recordMirroringEvent(snapshot) }
+        }
+        eventObserver = (center, token)
+    }
+
+    /// Applies the outcome of one finished mirroring event. A failure is
+    /// sticky until a later event succeeds, so a transient success does
+    /// not hide a backup that keeps failing right after it.
+    func recordMirroringOutcome(succeeded: Bool) {
+        mirroringFailed = !succeeded
+
+        switch status {
+        case .configured, .syncFailed:
+            status = succeeded ? .configured : .syncFailed
+        case .unavailable, .signedOut, .restricted, .temporaryStore, .disabled, .unknown:
+            // Account-level problems outrank event outcomes; the next
+            // refresh re-reads the account and picks this up.
+            break
+        }
+    }
+
+    static func status(
+        for accountStatus: CKAccountStatus,
+        mirroringFailed: Bool = false
+    ) -> Status {
+        switch accountStatus {
+        case .available: mirroringFailed ? .syncFailed : .configured
+        case .noAccount: .signedOut
+        case .restricted: .restricted
+        case .couldNotDetermine, .temporarilyUnavailable: .unavailable
+        @unknown default: .unavailable
+        }
+    }
+}
+
+extension CloudBackupState.Status {
+    var summary: String {
+        switch self {
+        case .configured:
+            String(localized: "Configured for iCloud sync")
+        case .syncFailed:
+            String(localized: "iCloud reported an error during the last sync")
+        case .unavailable:
+            // Covers a store that opened without CloudKit and an account
+            // lookup that failed or came back temporarily unavailable.
+            // None of those is the iCloud Drive switch, so the copy points
+            // at iCloud in Settings without promising which control fixes
+            // it.
+            String(localized: "Off — Think cannot reach iCloud. Check iCloud in Settings.")
+        case .signedOut:
+            String(localized: "Signed out of iCloud")
+        case .restricted:
+            String(localized: "iCloud is restricted on this device")
+        case .temporaryStore:
+            String(localized: "Off — this session is not being saved. Restart Think.")
+        case .disabled:
+            String(localized: "Off")
+        case .unknown:
+            String(localized: "Checking…")
+        }
+    }
+
+    /// Whether entries written now are headed for the user's iCloud.
+    var isCloudBacked: Bool {
+        switch self {
+        case .configured, .syncFailed: true
+        case .unavailable, .signedOut, .restricted, .temporaryStore, .disabled, .unknown: false
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .configured: "checkmark.icloud"
+        case .syncFailed, .unavailable, .restricted, .temporaryStore: "exclamationmark.icloud"
+        case .signedOut: "icloud.slash"
+        case .disabled, .unknown: "icloud"
+        }
+    }
+}

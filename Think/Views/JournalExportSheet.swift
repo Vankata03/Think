@@ -38,7 +38,7 @@ struct JournalExportSheet: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
-                .tint(.accentColor)
+                .tint(Color("AccentColor"))
 
                 Text(fileURL.lastPathComponent)
                     .font(.footnote.monospaced())

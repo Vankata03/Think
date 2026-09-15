@@ -7,6 +7,7 @@ import SwiftUI
 import SwiftData
 
 struct RootTabView: View {
+    @Environment(\.colorScheme) private var colorScheme
     @Environment(AppIntentRouter.self) private var appIntentRouter
 
     var body: some View {
@@ -30,7 +31,7 @@ struct RootTabView: View {
             }
             .accessibilityIdentifier("Tab.Profile")
         }
-        .tint(.accentColor)
+        .tint(Color.accessibleAccent(for: colorScheme))
     }
 }
 

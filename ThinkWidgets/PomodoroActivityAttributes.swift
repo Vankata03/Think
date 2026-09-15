@@ -20,12 +20,22 @@ nonisolated struct PomodoroActivityAttributes: ActivityAttributes {
         var startDate: Date
         var endDate: Date
         var restEndDate: Date?
+        /// What the person said this session is for. Absent for sessions
+        /// started without one, and for every activity encoded by 1.1.1.
+        var intention: String?
 
-        init(phase: Phase, startDate: Date, endDate: Date, restEndDate: Date? = nil) {
+        init(
+            phase: Phase,
+            startDate: Date,
+            endDate: Date,
+            restEndDate: Date? = nil,
+            intention: String? = nil
+        ) {
             self.phase = phase
             self.startDate = startDate
             self.endDate = endDate
             self.restEndDate = restEndDate
+            self.intention = intention
         }
 
         private enum CodingKeys: String, CodingKey {
@@ -33,6 +43,7 @@ nonisolated struct PomodoroActivityAttributes: ActivityAttributes {
             case startDate
             case endDate
             case restEndDate
+            case intention
         }
 
         init(from decoder: Decoder) throws {
@@ -41,6 +52,9 @@ nonisolated struct PomodoroActivityAttributes: ActivityAttributes {
             endDate = try container.decode(Date.self, forKey: .endDate)
             startDate = try container.decodeIfPresent(Date.self, forKey: .startDate) ?? endDate
             restEndDate = try container.decodeIfPresent(Date.self, forKey: .restEndDate)
+            // `decodeIfPresent`: an activity encoded by 1.1.1 carries no
+            // intention key and must still decode after the update.
+            intention = try container.decodeIfPresent(String.self, forKey: .intention)
         }
 
         func encode(to encoder: Encoder) throws {
@@ -49,6 +63,7 @@ nonisolated struct PomodoroActivityAttributes: ActivityAttributes {
             try container.encode(startDate, forKey: .startDate)
             try container.encode(endDate, forKey: .endDate)
             try container.encodeIfPresent(restEndDate, forKey: .restEndDate)
+            try container.encodeIfPresent(intention, forKey: .intention)
         }
 
         func presentationState(isStale: Bool) -> Self {

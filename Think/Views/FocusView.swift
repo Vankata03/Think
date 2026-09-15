@@ -4,13 +4,19 @@
 //
 
 import SwiftUI
+import SwiftData
 import AppIntents
 
-private enum FocusSheet: String, Identifiable {
+private enum FocusSheet: Identifiable {
     case focusTip
     case sessionDuration
 
-    var id: String { rawValue }
+    var id: String {
+        switch self {
+        case .focusTip: "focusTip"
+        case .sessionDuration: "sessionDuration"
+        }
+    }
 }
 
 struct FocusView: View {
@@ -19,8 +25,15 @@ struct FocusView: View {
     @Environment(\.haptics) private var haptics
     @Environment(\.scenePhase) private var scenePhase
     @Environment(PomodoroTimer.self) private var timer
+    @Environment(JournalLock.self) private var journalLock
+    @Environment(JournalRepository.self) private var repository
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @State private var saveError = false
     @State private var presentedSheet: FocusSheet?
     @State private var appeared = false
+    @State private var intentionDraft = ""
+    @FocusState private var intentionFocused: Bool
 
     private var sessionQuote: Quote { ContentLibrary.dailyQuote() }
     private var prominentButtonForeground: Color {
@@ -38,14 +51,22 @@ struct FocusView: View {
                     Spacer(minLength: 42)
 
                     VStack(spacing: 28) {
-                        ring
-                        focusCue
+                        FocusCountdownView()
+                        if !timer.isRunning { focusCue }
+                        protectedIntentionField
+                            .padding(.horizontal, 22)
                         controls
+                        if let session = timer.lastSessionRecord {
+                            NavigationLink { FocusSessionDetailView(session: session) } label: {
+                                Label("Reflect on your session", systemImage: "square.and.pencil")
+                            }
+                            .padding(.horizontal, 22)
+                        }
                         sessionDurationControl
                             .padding(.horizontal, 22)
                     }
                     .opacity(appeared ? 1 : 0)
-                    .scaleEffect(appeared ? 1 : 0.97)
+                    .scaleEffect(reduceMotion || appeared ? 1 : 0.97)
 
                     Spacer(minLength: 64)
                 }
@@ -75,6 +96,9 @@ struct FocusView: View {
                 }
             }
             .background(Color(.systemGroupedBackground).ignoresSafeArea())
+            // One presentation channel for all three sheets: two `.sheet`
+            // modifiers on the same view can race, and a work phase can
+            // finish while the duration sheet is open.
             .sheet(item: $presentedSheet) { sheet in
                 switch sheet {
                 case .focusTip:
@@ -85,13 +109,37 @@ struct FocusView: View {
             }
             .onAppear {
                 timer.resync()
-                withAnimation(.easeOut(duration: 0.45)) {
+                timer.discardStalePendingFocusNote()
+                if !journalLock.isLocked { intentionDraft = timer.intention ?? "" }
+                withAnimation(ThinkMotion.stateAnimation(reduceMotion: reduceMotion)) {
                     appeared = true
+                }
+            }
+            .onChange(of: journalLock.isLocked) { _, locked in
+                intentionDraft = locked ? "" : (timer.intention ?? "")
+            }
+            .alert("Could not save", isPresented: $saveError) {
+                Button("OK", role: .cancel) { }
+            } message: { Text("Your timer continues. Try saving your reflection again.") }
+            .onChange(of: intentionFocused) { _, focused in
+                // Leaving the field is a commit; the keyboard going away
+                // must not lose what was typed.
+                if !focused {
+                    commitIntention()
+                }
+            }
+            .onChange(of: timer.intention) { _, intention in
+                // Only follow the timer when it clears the intention at
+                // the end of a work phase. Following it while typing would
+                // fight the field over trimmed whitespace.
+                if intention == nil {
+                    intentionDraft = ""
                 }
             }
             .onChange(of: scenePhase) { _, newPhase in
                 if newPhase == .active {
                     timer.resync()
+                    timer.discardStalePendingFocusNote()
                 }
             }
             .onChange(of: timer.automaticTransitionCount) {
@@ -101,7 +149,10 @@ struct FocusView: View {
     }
 
     private var focusHeader: some View {
-        HStack(alignment: .center) {
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 12))
+            : AnyLayout(HStackLayout(alignment: .center))
+        return layout {
             VStack(alignment: .leading, spacing: 4) {
                 Text(timer.phase == .work
                      ? String(localized: "Deep work")
@@ -124,46 +175,6 @@ struct FocusView: View {
         }
     }
 
-    private var ring: some View {
-        ZStack {
-            Circle()
-                .fill(.regularMaterial)
-                .frame(width: 238, height: 238)
-                .shadow(
-                    color: timer.isRunning ? Color.accentColor.opacity(0.22) : .clear,
-                    radius: timer.isRunning ? 34 : 0
-                )
-
-            Circle()
-                .stroke(Color(.tertiarySystemFill), lineWidth: 12)
-            Circle()
-                .trim(from: 0, to: timer.progress)
-                .stroke(
-                    timer.phase == .work ? Color.accentColor : .green,
-                    style: StrokeStyle(lineWidth: 12, lineCap: .round)
-                )
-                .rotationEffect(.degrees(-90))
-                .shadow(
-                    color: (timer.phase == .work ? Color.accentColor : .green).opacity(0.35),
-                    radius: timer.isRunning ? 12 : 4
-                )
-                .animation(.linear(duration: 0.8), value: timer.progress)
-            VStack(spacing: 4) {
-                Text(timer.remainingLabel)
-                    .font(.system(size: 48, weight: .medium, design: .rounded))
-                    .monospacedDigit()
-                    .foregroundStyle(.primary)
-                Text(timer.phase.label)
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .frame(width: 250, height: 250)
-        .accessibilityElement(children: .combine)
-        .accessibilityIdentifier("FocusTimer\(timer.preset == .long ? ".50" : "")")
-        .animation(.easeInOut(duration: 0.25), value: timer.isRunning)
-    }
-
     private var focusCue: some View {
         VStack(spacing: 8) {
             Text("Focus cue")
@@ -179,8 +190,113 @@ struct FocusView: View {
         .padding(.horizontal, 34)
     }
 
+    /// Optional by construction: Start works untouched, and nothing here
+    /// blocks or delays it. The session gains a name only if someone wants
+    /// to give it one.
+    @ViewBuilder
+    private var protectedIntentionField: some View {
+        if journalLock.isLocked {
+            Button {
+                Task { if await journalLock.authenticate() { intentionDraft = timer.intention ?? "" } }
+            } label: { Label("Unlock private intention", systemImage: "lock") }
+        } else { intentionField }
+    }
+
+    private var intentionField: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 10) {
+                Image(systemName: "target")
+                    .font(.subheadline)
+                    .foregroundStyle(Color.accentColor)
+                TextField(String(localized: "What are you working on?"), text: intentionBinding)
+                    .font(.subheadline)
+                    .submitLabel(.done)
+                    .focused($intentionFocused)
+                    .onSubmit { commitIntention() }
+                    .accessibilityIdentifier("FocusIntention")
+                if !intentionDraft.isEmpty {
+                    Button {
+                        haptics.play(.selection)
+                        setIntention("")
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(.tertiary)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Clear intention")
+                }
+            }
+
+            if intentionDraft.isEmpty, let suggestion = timer.suggestedIntention() {
+                Button {
+                    haptics.play(.selection)
+                    setIntention(suggestion)
+                } label: {
+                    Label(suggestion, systemImage: "arrow.uturn.backward")
+                        .font(.caption)
+                        .foregroundStyle(Color.accentColor)
+                        .lineLimit(1)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(String(localized: "Reuse intention: \(suggestion)"))
+                .accessibilityIdentifier("FocusIntentionSuggestion")
+            }
+        }
+        .padding(14)
+        .frame(maxWidth: 360, alignment: .leading)
+        .background(
+            Color(.secondarySystemGroupedBackground),
+            in: RoundedRectangle(cornerRadius: 18, style: .continuous)
+        )
+        .overlay {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .stroke(Color(.separator).opacity(0.6), lineWidth: 1)
+        }
+    }
+
+    /// Typing only moves the draft. The timer — which persists and pushes
+    /// a Live Activity update — is written on submit, on focus loss, and
+    /// when a session starts, not once per keystroke.
+    private var intentionBinding: Binding<String> {
+        Binding(
+            get: { intentionDraft },
+            set: { text in
+                // Capped here rather than rejected on save, so the limit is
+                // felt as the field simply stopping.
+                intentionDraft = String(text.prefix(PomodoroTimer.intentionMaxLength))
+            }
+        )
+    }
+
+    /// For the clear button and the reuse suggestion, where the tap is the
+    /// whole gesture and there is no later submit to wait for.
+    private func setIntention(_ text: String) {
+        intentionDraft = String(text.prefix(PomodoroTimer.intentionMaxLength))
+        commitIntention()
+    }
+
+    private func commitIntention() {
+        guard !journalLock.isLocked else { return }
+        guard timer.intention != PomodoroTimer.normalizedIntention(intentionDraft) else { return }
+        timer.setIntention(intentionDraft)
+    }
+
+    private func saveSessionIntention() {
+        guard !journalLock.isLocked, let id = timer.currentSessionID else { return }
+        do {
+            let existing = try repository.sessionMetadata(sessionID: id)
+            try repository.upsertSessionMetadata(sessionID: id, intention: timer.intention,
+                outcome: existing?.outcome.flatMap(FocusOutcome.init(rawValue:)),
+                energy: existing?.energy.flatMap(EnergyLevel.init(rawValue:)),
+                closingNoteRecordID: existing?.closingNoteRecordID)
+        } catch { saveError = true }
+    }
+
     private var controls: some View {
-        HStack(spacing: 16) {
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(spacing: 16))
+            : AnyLayout(HStackLayout(spacing: 16))
+        return layout {
             Button {
                 haptics.play(.reset)
                 var transaction = Transaction()
@@ -188,7 +304,7 @@ struct FocusView: View {
                 withTransaction(transaction) { timer.reset() }
             } label: {
                 Image(systemName: "arrow.counterclockwise")
-                    .frame(width: 24, height: 24)
+                    .frame(minWidth: 20, minHeight: 24)
             }
             .buttonStyle(.bordered)
             .buttonBorderShape(.circle)
@@ -196,11 +312,15 @@ struct FocusView: View {
             .accessibilityLabel("Reset timer")
 
             Button {
+                // Start can be tapped with the keyboard still up, so the
+                // draft has to reach the timer before the session begins.
+                commitIntention()
                 let isManualStart = !timer.isRunning
                 let isManualWorkStart = isManualStart && timer.phase == .work
                 let donatedPreset = FocusSessionPreset(timer.preset)
                 haptics.play(isManualStart ? .start : .pause)
                 timer.toggle()
+                if isManualWorkStart { saveSessionIntention() }
                 if isManualWorkStart, let donatedPreset {
                     Task {
                         try? await StartFocusSessionIntent(preset: donatedPreset).donate()
@@ -209,12 +329,13 @@ struct FocusView: View {
             } label: {
                 Label(timer.isRunning ? String(localized: "Pause") : String(localized: "Start"),
                       systemImage: timer.isRunning ? "pause.fill" : "play.fill")
-                    .frame(minWidth: 132)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(minWidth: 100)
                     .foregroundStyle(prominentButtonForeground)
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
-            .tint(.accentColor)
+            .tint(Color("AccentColor"))
             .foregroundStyle(prominentButtonForeground)
 
             Button {
@@ -222,7 +343,7 @@ struct FocusView: View {
                 timer.skipPhase()
             } label: {
                 Image(systemName: "forward.end")
-                    .frame(width: 24, height: 24)
+                    .frame(minWidth: 20, minHeight: 24)
             }
             .buttonStyle(.bordered)
             .buttonBorderShape(.circle)
@@ -463,6 +584,44 @@ private func durationAccessibilityValue(focusMinutes: Int, breakMinutes: Int) ->
     return "\(focus): \(localizedMinutes(focusMinutes)); \(rest): \(localizedMinutes(breakMinutes))"
 }
 
+/// Countdown alone observes the ticking fields. Parent observes semantic state only.
+private struct FocusCountdownView: View {
+    @Environment(PomodoroTimer.self) private var timer
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @ScaledMetric(relativeTo: .largeTitle) private var countdownSize = 48.0
+
+    var body: some View {
+        VStack(spacing: 12) {
+            if !dynamicTypeSize.isAccessibilitySize {
+                ZStack {
+                    Circle().fill(.regularMaterial)
+                    Circle().stroke(Color(.tertiarySystemFill), lineWidth: 10)
+                    Circle().trim(from: 0, to: timer.progress)
+                        .stroke(timer.phase == .work ? Color.accentColor : .green,
+                                style: StrokeStyle(lineWidth: 10, lineCap: .round))
+                        .rotationEffect(.degrees(-90))
+                        .animation(reduceMotion ? nil : .linear(duration: 0.8), value: timer.progress)
+                    labels
+                }
+                .frame(maxWidth: 250)
+                .aspectRatio(1, contentMode: .fit)
+                .padding(.horizontal, 30)
+            } else { labels.padding(.horizontal, 20) }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("FocusTimer\(timer.preset == .long ? ".50" : "")")
+    }
+    private var labels: some View {
+        VStack(spacing: 4) {
+            Text(timer.remainingLabel)
+                .font(.system(size: countdownSize, weight: .medium, design: .rounded))
+                .monospacedDigit().minimumScaleFactor(0.5).lineLimit(1)
+            Text(timer.phase.label).font(.subheadline).foregroundStyle(.secondary)
+        }
+    }
+}
+
 private struct FocusTipSheet: View {
     @Environment(\.dismiss) private var dismiss
 
@@ -513,4 +672,5 @@ private struct FocusTipSheet: View {
     FocusView()
         .environment(ProgressStore())
         .environment(PomodoroTimer())
+        .modelContainer(for: [JournalEntry.self, DailyRetro.self], inMemory: true)
 }

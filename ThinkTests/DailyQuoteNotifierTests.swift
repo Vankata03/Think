@@ -267,6 +267,53 @@ struct DailyQuoteNotifierTests {
         #expect(adder.removedIdentifiers == [scheduledLine.identifier])
     }
 
+    @Test func unchangedRefreshKeepsInstalledRichRequestWithoutRendering() async throws {
+        let line = try #require(try scheduledLineFixture())
+        let prepared = await DailyQuoteNotifier.prepareRichRequest(for: line)
+        defer { prepared.removeTemporaryFiles() }
+        _ = try #require(prepared.request.content.attachments.first)
+        var additions = 0
+        var renders = 0
+        await DailyQuoteNotifier.schedule(
+            [line], existingRequests: [prepared.request], isCurrent: { true },
+            addRequest: { _ in additions += 1 },
+            richRequestBuilder: { _ in
+                renders += 1
+                return prepared
+            }
+        )
+        #expect(additions == 0)
+        #expect(renders == 0)
+    }
+
+    @Test func changedTimeAndTextFallbackRemainEligibleForRichDelivery() async throws {
+        let line = try #require(try scheduledLineFixture())
+        let prepared = await DailyQuoteNotifier.prepareRichRequest(for: line)
+        defer { prepared.removeTemporaryFiles() }
+        _ = try #require(prepared.request.content.attachments.first)
+        var components = line.trigger.dateComponents
+        components.minute = (components.minute ?? 0) + 1
+        let changed = DailyQuoteNotifier.ScheduledDailyLine(
+            identifier: line.identifier,
+            quote: line.quote,
+            trigger: UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
+        )
+        #expect(!DailyQuoteNotifier.matches(prepared.request, scheduledLine: changed))
+        #expect(!DailyQuoteNotifier.matches(DailyQuoteNotifier.notificationRequest(for: line), scheduledLine: line))
+        var additions = 0
+        var renders = 0
+        await DailyQuoteNotifier.schedule(
+            [changed], existingRequests: [prepared.request], isCurrent: { true },
+            addRequest: { _ in additions += 1 },
+            richRequestBuilder: { scheduled in
+                renders += 1
+                return .init(request: DailyQuoteNotifier.notificationRequest(for: scheduled))
+            }
+        )
+        #expect(additions == 2)
+        #expect(renders == 1)
+    }
+
     private func scheduledLineFixture() throws -> DailyQuoteNotifier.ScheduledDailyLine? {
         let calendar = utcCalendar()
         let now = try date(year: 2026, month: 7, day: 4, hour: 7, minute: 30, calendar: calendar)

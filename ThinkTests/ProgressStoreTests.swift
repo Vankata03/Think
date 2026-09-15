@@ -373,7 +373,7 @@ struct ProgressStoreTests {
         #expect(reloaded.hasCompleted(.now))
     }
 
-    @Test func missingHistoryBackfillsFromCurrentStreak() {
+    @Test func missingHistoryKeepsKnownDateWithoutInventingOlderDays() {
         let defaults = makeDefaults()
         let calendar = Calendar.current
         defaults.set(3, forKey: "streak")
@@ -384,7 +384,7 @@ struct ProgressStoreTests {
         #expect(!store.hasCompleted(.now))
         for offset in 1...3 {
             let day = calendar.date(byAdding: .day, value: -offset, to: .now)!
-            #expect(store.hasCompleted(day))
+            #expect(store.hasCompleted(day) == (offset == 1))
         }
         #expect(!store.hasCompleted(calendar.date(byAdding: .day, value: -4, to: .now)!))
     }
@@ -415,23 +415,23 @@ struct ProgressStoreTests {
         #expect(reloaded.openedToday)
     }
 
-    @Test func dailyPracticeProgressCountsFourIndependentSignals() {
+    @Test func dailyPracticeProgressCountsMeaningfulSignalsWithoutAppOpen() {
         let defaults = makeDefaults()
         let store = ProgressStore(defaults: defaults)
 
         store.recordAppOpen()
-        #expect(store.dailyPracticeProgressCount == 1)
+        #expect(store.dailyPracticeProgressCount == 0)
 
         store.recordDailyQuestionAnswer()
-        #expect(store.dailyPracticeProgressCount == 2)
+        #expect(store.dailyPracticeProgressCount == 1)
         #expect(store.answeredDailyQuestionToday)
 
         store.recordFocusSession()
-        #expect(store.dailyPracticeProgressCount == 3)
+        #expect(store.dailyPracticeProgressCount == 2)
 
         store.completePathStep()
-        #expect(store.dailyPracticeProgressCount == 4)
-        #expect(ProgressStore.storedDailyPracticeProgressCount(in: defaults) == 4)
+        #expect(store.dailyPracticeProgressCount == 3)
+        #expect(ProgressStore.storedDailyPracticeProgressCount(in: defaults) == 3)
     }
 
     @Test func focusSessionDoesNotDoubleCountGenericDayCompletion() {

@@ -14,6 +14,7 @@ struct ShareCardSheet: View {
     @Environment(\.haptics) private var haptics
     @Environment(\.openURL) private var openURL
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(FavoritesStore.self) private var favorites
 
     @State private var style: CardStyle = .paper
     @State private var photoSaveState = PhotoSaveState.idle
@@ -29,6 +30,7 @@ struct ShareCardSheet: View {
                 cardPreview
                 stylePicker
                 actions
+                favoriteButton
                 Spacer()
             }
             .padding()
@@ -116,7 +118,7 @@ struct ShareCardSheet: View {
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
-            .tint(.accentColor)
+            .tint(Color("AccentColor"))
             .foregroundStyle(prominentButtonForeground)
             .simultaneousGesture(TapGesture().onEnded {
                 haptics.play(.selection)
@@ -134,10 +136,33 @@ struct ShareCardSheet: View {
             }
             .buttonStyle(.bordered)
             .controlSize(.large)
-            .tint(.accentColor)
+            .tint(Color("AccentColor"))
             .disabled(photoSaveState == .saving || photoSaveState == .saved)
             .accessibilityIdentifier("SaveShareCard")
         }
+    }
+
+    /// A line is often worth keeping exactly when it is worth sharing, so
+    /// the affordance sits where that thought happens.
+    private var favoriteButton: some View {
+        let isFavorite = favorites.isFavorite(quote)
+
+        return Button {
+            haptics.play(.selection)
+            favorites.toggle(quote)
+        } label: {
+            Label(
+                isFavorite
+                    ? String(localized: "Saved to your lines")
+                    : String(localized: "Save this line"),
+                systemImage: isFavorite ? "heart.fill" : "heart"
+            )
+            .font(.subheadline.weight(.medium))
+        }
+        .buttonStyle(.plain)
+        .tint(Color("AccentColor"))
+        .foregroundStyle(Color.accentColor)
+        .accessibilityIdentifier("FavoriteFromShareCard")
     }
 
     private func renderedImage() -> Image {
@@ -184,4 +209,5 @@ struct ShareCardSheet: View {
 
 #Preview {
     ShareCardSheet(quote: ContentLibrary.dailyQuote())
+        .environment(FavoritesStore(defaults: .standard))
 }
