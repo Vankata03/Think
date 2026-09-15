@@ -1,0 +1,117 @@
+name: Release
+
+# Every merge into prod is a release. This workflow reads MARKETING_VERSION
+# from the Xcode project, tags the merge commit with it and publishes a
+# GitHub release. It is a no-op when a tag for that version already exists,
+# so hotfix or relink merges that do not bump the version stay silent.
+#
+# Release notes: the body of the merged PR (the "Release X to prod" PR from
+# release/**) when one is found, otherwise GitHub's generated notes. Edit the
+# release afterwards if the notes need polish.
+on:
+  push:
+    branches:
+      - prod
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: release
+    # Manual runs must be dispatched on prod; releasing from any other ref
+    # would tag a version early and make the real prod merge a silent no-op.
+    if: github.ref == 'refs/heads/prod'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Read version
+        id: version
+        run: |
+          set -euo pipefail
+          # Every build configuration declares MARKETING_VERSION; they must
+          # all agree, otherwise the tag could differ from the shipped archive.
+          VERSIONS="$(grep -E 'MARKETING_VERSION = ' Think.xcodeproj/project.pbxproj \
+            | sed -E 's/.*MARKETING_VERSION = ([^;]+);.*/\1/' | sort -u)"
+          if [ -z "$VERSIONS" ]; then
+            echo "::error::MARKETING_VERSION not found in Think.xcodeproj/project.pbxproj"
+            exit 1
+          fi
+          if [ "$(printf '%s\n' "$VERSIONS" | wc -l)" -ne 1 ]; then
+            echo "::error::MARKETING_VERSION differs between build configurations:"
+            printf '%s\n' "$VERSIONS"
+            exit 1
+          fi
+          VERSION="$VERSIONS"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Version: $VERSION"
+
+      - name: Check for existing tag
+        id: existing
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          if git rev-parse -q --verify "refs/tags/$VERSION" >/dev/null; then
+            echo "Tag $VERSION already exists; nothing to release."
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Collect release notes
+        if: steps.existing.outputs.exists != 'true'
+        id: notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          # The pushed commit is normally the merge commit of the release PR.
+          gh api "repos/${GITHUB_REPOSITORY}/commits/${SHA}/pulls" \
+            --jq '[.[] | select(.merged_at != null)][0].body // ""' > notes.md
+          if [ -s notes.md ] && grep -q '[^[:space:]]' notes.md; then
+            echo "Using merged PR body as release notes."
+            echo "source=pr" >> "$GITHUB_OUTPUT"
+          else
+            echo "No merged PR body found; falling back to generated notes."
+            echo "source=generated" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Tag and publish release
+        if: steps.existing.outputs.exists != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+          SHA: ${{ github.sha }}
+          NOTES_SOURCE: ${{ steps.notes.outputs.source }}
+        run: |
+          set -euo pipefail
+          # `--target` makes gh create the tag on the merge commit when it
+          # does not exist yet, so no separate git push of the tag is needed.
+          if [ "$NOTES_SOURCE" = "pr" ]; then
+            gh release create "$VERSION" \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$SHA" \
+              --title "$VERSION" \
+              --notes-file notes.md
+          else
+            gh release create "$VERSION" \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$SHA" \
+              --title "$VERSION" \
+              --generate-notes
+          fi
+          echo "Published release $VERSION at $SHA"

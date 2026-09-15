@@ -36,7 +36,7 @@ jobs:
       app: ${{ steps.filter.outputs.app }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           persist-credentials: false
           # PR checkouts are the merge commit; depth 2 gives HEAD^1 (the base).
@@ -107,7 +107,7 @@ jobs:
 
       - name: Checkout
         if: env.SKIP_ALL_TESTS != 'true'
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           persist-credentials: false
 
