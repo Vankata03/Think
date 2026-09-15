@@ -22,9 +22,9 @@ The product direction is captured in [PLAN.md](PLAN.md).
 - macOS with Xcode installed.
 - iOS Simulator runtime compatible with the project target.
 
-The app currently targets modern SwiftUI, WidgetKit, ActivityKit, and Swift Testing APIs. The iOS and watchOS apps run independently; cross-device timer and progress sync remains planned.
+The app currently targets modern SwiftUI, WidgetKit, ActivityKit, and Swift Testing APIs. The iPhone and Apple Watch apps sync the focus timer and progress over WatchConnectivity; the phone is the single authority for progress.
 
-Journal data stays on-device. Profile includes journal export, delete-all-data, and explicit notification-permission status when notifications are denied.
+Journal data lives in a local SwiftData store and, when an iCloud account is available, is mirrored into the user's own CloudKit private database (`iCloud.com.ivanterziev.Think`) with no Think account or server involved; deletions sync too. Profile includes journal export, delete-all-data, and explicit notification-permission status when notifications are denied.
 
 ## Build
 
@@ -88,7 +88,7 @@ Legal pages (privacy policy, support) are hosted at <https://thinkapp.tech/priva
 
 This repository uses a small solo-developer release flow:
 
-- `prod` - App Store production branch. This should match the latest shipped or approved build. Release tags live here, for example `v1.0.0`.
+- `prod` - App Store production branch. This should match the latest shipped or approved build. Release tags live here, for example `1.0.0`.
 - `develop` - active integration branch. Feature work merges here after build and test checks pass.
 - `release/<version>` - release stabilization branch, for example `release/1.0`. Use this for final fixes, version bumps, screenshots, signing, and App Store preparation.
 - `feature/<short-name>` - normal feature work branched from `develop`.
@@ -98,13 +98,13 @@ This repository uses a small solo-developer release flow:
 Normal flow:
 
 ```text
-feature/foo -> develop -> release/1.0 -> prod -> tag v1.0.0
+feature/foo -> develop -> release/1.0 -> prod -> tag 1.0.0
 ```
 
 Hotfix flow:
 
 ```text
-prod -> hotfix/crash-on-launch -> prod -> tag v1.0.1 -> develop
+prod -> hotfix/crash-on-launch -> prod -> tag 1.0.1 -> develop
 ```
 
 Branch protection should require build and test checks before merging into `develop`, `release/*`, or `prod`. `prod` should not receive direct pushes.
