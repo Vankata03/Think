@@ -4,7 +4,7 @@ Resolves [Design system: tokens, type roles, spacing scale and icon vocabulary](
 
 This document is the contract every screen brief in `design/` cites. It names tokens and the SwiftUI expression each one maps to, so the build tickets compile against shared names instead of restating values. HIG facts come from the research notes on branch `research/ios26-hig` (`research/ios26-hig.md`).
 
-Scope: the iOS app. Widgets and the Live Activity inherit the tokens (their own ticket covers the alignment). The Watch app, share cards and wallpapers (`QuoteCardView`) are out of scope and keep their current values.
+Scope: the iOS app. Widgets and the Live Activity inherit the tokens; [widgets.md](widgets.md) lists their substitutions. The Watch app, share cards and wallpapers (`QuoteCardView`) are out of scope and keep their current values.
 
 ## 1. Principles
 
@@ -28,12 +28,12 @@ Scope: the iOS app. Widgets and the Live Activity inherit the tokens (their own 
 | `surface` | `secondarySystemGroupedBackground` | `secondarySystemGroupedBackground` | List sections and the hero card. |
 | `surfaceRaised` | `tertiarySystemGroupedBackground` | `tertiarySystemGroupedBackground` | Elements nested inside a section or card (chips, inner tiles). |
 | `separator` | system | system | Row separators only; never drawn by hand. |
-| `success` | `.green` | `.green` | Done states (move completed, step confirmed). |
+| `success` | `.green` | `.green` | Done states (move completed, step confirmed) and the Focus break phase in the timer and Live Activity: rest reads as the same green because a break is the earned outcome of a work interval. Widgets.md section 2 relies on this; no separate break token exists. |
 | `destructive` | `.red` | `.red` | Delete and reset actions; via `Button(role: .destructive)`, not a colour literal. |
 
 The `accent` values are provisional. They are locked after the Today prototype runs on a device in both schemes; the brief that changes them updates this table.
 
-Removed by this document: the hand-rolled `accessibleAccent(for:)` and `prominentButtonForeground(for:)` in `Think/Views/ViewStyle.swift`, the literal `Color(red: 1.0, green: 0.83, blue: 0.20)` and `Color(red: 0.43, green: 0.36, blue: 0.02)` scattered through the views, and the orange streak flame. `Assets.xcassets/AccentColor` becomes `accent` (light `#F2C41C`, dark `#FFD433`); a new `AccentInk` colour set carries `accentInk`.
+Removed by this document: the hand-rolled `accessibleAccent(for:)` and `prominentButtonForeground(for:)` in `Think/Views/ViewStyle.swift`, the literal `Color(red: 1.0, green: 0.83, blue: 0.20)` and `Color(red: 0.43, green: 0.36, blue: 0.02)` scattered through the views, and the orange streak flame. `Think/Assets.xcassets/AccentColor` takes the `accent` values (light `#F2C41C`, dark `#FFD433`) and stays the app's global tint; the token colour sets themselves live in `ThinkShared/Design/ThinkColors.xcassets` (`ThinkAccent`, `ThinkAccentInk`) so the widget extension, which compiles no other catalog, can read them (section 10).
 
 ### 2.2 Rules
 
@@ -118,31 +118,31 @@ Removed: the custom circular chrome buttons, full-width filled yellow blocks in 
 
 One SF Symbol per concept. Outline variant in toolbars, lists and content; the tab bar and selected states take the fill variant, which the system applies. Monochrome rendering everywhere; a symbol is tinted `accent` only when it is the primary action or a done state, and `accentInk` only inside tappable text.
 
-| Concept | Symbol | Notes |
-| --- | --- | --- |
-| Daily line | `text.quote` | Also the Saved lines list section. |
-| Question of the day | `questionmark.bubble` | Replaces `doc.questionmark`. |
-| Move | `figure.walk` | Replaces the bare `checkmark`; the checkmark remains the done state. |
-| Path | `point.topleft.down.to.point.bottomright.curvepath` | Paths tab and path rows. |
-| Path step | `circle` / `checkmark.circle.fill` | Pending / confirmed. |
-| Focus session | `timer` | Focus tab, presets, history rows. |
-| Break | `cup.and.saucer` | Break state in the timer and Live Activity. |
-| Streak | `flame` | `accent` tint when the streak is alive; `secondaryLabel` when it reads "Begin again". |
-| Meaningful practice | `sparkle` | Activity log rows, weekly review counts. |
-| Journal | `book.closed` | Journal tab, entry rows. |
-| Mood | `face.smiling` | Mood picker and entry detail. |
-| Saved line | `bookmark` | Replaces `heart`. Save action on Today's card, toolbar item that opens Saved lines. `bookmark.fill` when saved. |
-| Achievement | `medal` | Progress section; custom medal art stays for the medals themselves. |
-| Retro | `moon.stars` | Evening retro card and entry rows. |
-| Weekly review | `calendar.badge.checkmark` | Progress card and reflection rows. |
-| Settings | `gearshape` | Gear toolbar item on Progress. |
-| iCloud | `icloud` | Settings row and sync status. |
-| Lock | `lock` / `lock.open` | Journal gate and Privacy settings. |
-| Share | `square.and.arrow.up` | Toolbar and card action. |
-| Edit | `pencil` | Entry detail toolbar. |
-| Add | `plus` | New note. |
-| Delete | `trash` | Row swipe and destructive rows. |
-| Done state | `checkmark.circle.fill` | Tinted `success`. |
+| Concept | `ThinkSymbol` | Symbol | Notes |
+| --- | --- | --- | --- |
+| Daily line | `dailyLine` | `text.quote` | Also the Saved lines list section. |
+| Question of the day | `question` | `questionmark.bubble` | Replaces `doc.questionmark`. |
+| Move | `move` | `figure.walk` | Replaces the bare `checkmark`; the checkmark remains the done state. |
+| Path | `path` | `point.topleft.down.to.point.bottomright.curvepath` | Paths tab and path rows. |
+| Path step | `pathStepPending` / `pathStepDone` | `circle` / `checkmark.circle.fill` | Pending / confirmed. |
+| Focus session | `focus` | `timer` | Focus tab, presets, history rows. |
+| Break | `breakPhase` | `cup.and.saucer` | Break state in the timer and Live Activity. |
+| Streak | `streak` | `flame` | `accent` tint when the streak is alive; `secondaryLabel` when it reads "Begin again". |
+| Meaningful practice | `practice` | `sparkle` | Activity log rows, weekly review counts. |
+| Journal | `journal` | `book.closed` | Journal tab, entry rows. |
+| Mood | `mood` | `face.smiling` | Mood picker and entry detail. |
+| Saved line | `savedLine` | `bookmark` | Replaces `heart`. Save action on Today's card, toolbar item that opens Saved lines. `bookmark.fill` when saved. |
+| Achievement | `achievement` | `medal` | Progress section; custom medal art stays for the medals themselves. |
+| Retro | `retro` | `moon.stars` | Evening retro card and entry rows. |
+| Weekly review | `weeklyReview` | `calendar.badge.checkmark` | Progress card and reflection rows. |
+| Settings | `settings` | `gearshape` | Gear toolbar item on Progress. |
+| iCloud | `icloud` | `icloud` | Settings row and sync status. |
+| Lock | `lock` / `lockOpen` | `lock` / `lock.open` | Journal gate and Privacy settings. |
+| Share | `share` | `square.and.arrow.up` | Toolbar and card action. |
+| Edit | `edit` | `pencil` | Entry detail toolbar. |
+| Add | `add` | `plus` | New note. |
+| Delete | `delete` | `trash` | Row swipe and destructive rows. |
+| Done state | `done` | `checkmark.circle.fill` | Tinted `success`. |
 
 Tab bar:
 
@@ -154,13 +154,59 @@ Tab bar:
 | Journal | `book.closed` |
 | Progress | `chart.bar` |
 
+`ThinkSymbol` has exactly the members in the `ThinkSymbol` column; a new concept adds a row here before it adds a member. The tab bar reuses `path`, `focus` and `journal` and adds `today` (`sun.max`) and `progress` (`chart.bar`).
+
 Symbols scale with the text style they sit beside. Symbols that must stay small (tab bar items) get `.accessibilityShowsLargeContentViewer()`.
 
-## 8. Motion
+## 8. States
+
+Resolves [Empty states and Begin-again states across screens](https://github.com/Vankata03/Think/issues/79). Five state classes, defined in `CONTEXT.md`, cover every screen that can have nothing to show. Each brief names the class a screen uses and cites this section rather than restating it.
+
+| Class | When | Presentation | Symbol | Action |
+| --- | --- | --- | --- | --- |
+| Empty | The user has not created anything yet | Whole screen empty: `ContentUnavailableView` with the concept symbol, one line, one `secondary` button. One section of a populated screen empty: a single `secondaryLabel` row, no symbol. | The concept's own symbol from section 7, `secondaryLabel` | One `secondary` action that does the thing. Section rows carry a `tertiary` link only when the fix lives on another screen; none when the screen's primary already is the fix. |
+| No-match | Content exists, search or filters hide it | Search: `ContentUnavailableView.search(text:)`. Filters: one `secondaryLabel` row. | System | Filters: `tertiary` "Clear filters". Search: none. |
+| Begin-again | Something ended and can restart | Same layout as Empty | Concept symbol in `secondaryLabel` (`flame` for the streak, path symbol for a completed path) | One `secondary` "Begin again". The lapsed streak has no button: today's practice is the restart. |
+| Locked | Content exists behind a gate | Full screen for the journal gate and a locked path's detail; a dimmed row or medal inside a list | `lock` for gates; medals keep their art, dimmed | One `secondary` action that opens the gate ("Unlock", "Open <previous path>"). Locked rows stay tappable and lead to the explaining detail; a dead row reads as a bug. |
+| Unavailable | Load or lookup failed | `ContentUnavailableView` with the cause as description. Never replaces content that did load: a storage warning is a row above the list. | `exclamationmark.triangle` | "Try again" where a retry exists, otherwise "Close". |
+
+Rules:
+
+- One sentence per state, present tense, no exclamation mark, under 60 English characters so `bg` and `de` fit two lines at AX3. The line names the thing, never the chrome ("Nothing written yet.", not "Tap + to start."). Button labels are verb phrases.
+- Two-state copy (never practised versus lapsed: "Start today" / "Begin again") exists only for the streak. Every other empty state has one line.
+- A whole-journal empty state shows the journal line whatever filter is active; the five filter-specific lines in `JournalView` collapse to one.
+- Unearned achievements stay visible, dimmed, with the unlock condition as a secondary line and as the accessibility hint. Locked medals are the motivation.
+- A week with zero practice days renders the weekly review with zeros and a writable reflection; it has no empty state.
+- Never `.glassProminent` inside a state view; the screen's primary stays in the toolbar or hero card.
+- System components carry Dynamic Type, both appearances and Reduce Motion; no custom art, no illustration.
+
+Lines and actions per screen (briefs may tune wording, not shape):
+
+| Screen | Class | Line | Action |
+| --- | --- | --- | --- |
+| Journal, whole journal | Empty | Nothing written yet. | Write a note |
+| Journal, search | No-match | system | none |
+| Journal, filters | No-match | No entries match. | Clear filters |
+| Journal gate | Locked | Your journal is locked. | Unlock |
+| Journal entry or retro | Unavailable | Entry not found. | Close |
+| Journal storage | Unavailable | Could not load your journal. | Try again |
+| Saved lines | Empty | Lines you keep appear here. | Go to Today |
+| Focus history (Progress) | Empty | No focus sessions yet. | Start a session |
+| Focus "Last session" row | Empty | No focus sessions yet. | none |
+| Today streak, lapsed | Begin-again | Begin again. | none |
+| Today streak, never practised | Begin-again | Start today. | none |
+| Path detail, completed | Begin-again | Path completed. | Begin again |
+| Path detail, locked | Locked | Finish <previous path> first. | Open <previous path> |
+| Achievements, unearned | Locked | unlock condition | none |
+| Practice detail | Unavailable | Practice unavailable. | Close |
+
+Widgets and the Live Activity take their placeholder and empty treatment from [widgets.md](widgets.md) section 7; onboarding has no state views.
+
+## 9. Motion
 
 Unchanged by this document. `ThinkMotion` in `Think/Views/ViewStyle.swift` keeps its curves and its Reduce Motion fallbacks. Whether the redesign defines a motion and haptics language is an open map question.
 
-## 9. Swift naming
+## 10. Swift naming
 
 The build introduces one file, `ThinkShared/Design/ThinkTheme.swift`, that holds every token above. Briefs and tickets refer to these names.
 
@@ -171,12 +217,12 @@ The build introduces one file, `ThinkShared/Design/ThinkTheme.swift`, that holds
 | Spacing | `ThinkSpacing` static `CGFloat` steps, plus `@ScaledMetric` wrappers where they sit next to text | `.padding(ThinkSpacing.l)` |
 | Radius | `ThinkRadius.card` | `RoundedRectangle(cornerRadius: ThinkRadius.card, style: .continuous)` |
 | Card | `View.thinkCard()` modifier | `VStack { ... }.thinkCard()` |
-| Symbol | `ThinkSymbol` static strings, one per concept | `Image(systemName: ThinkSymbol.savedLine)` |
+| Symbol | `ThinkSymbol` static strings, one per concept, the members enumerated in the section 7 table | `Image(systemName: ThinkSymbol.savedLine)`, `ThinkSymbol.focus`, `ThinkSymbol.streak` |
 | Button role | `View.thinkButton(_ role: ThinkButtonRole)` mapping to the styles in section 6 | `.thinkButton(.primary)` |
 
-Widgets and the Watch app compile `ThinkShared` into their own targets, so the tokens are reachable there; the widget alignment ticket decides which ones they adopt.
+Widgets and the Watch app compile `ThinkShared` into their own targets, so the tokens are reachable there. Colour sets must sit in a catalog inside `ThinkShared/` for that to hold: `ThinkWidgetsExtension` compiles no other asset catalog. The widgets adopt `ThinkColor` (`surface`, `label`, `secondaryLabel`, `accent`, `accentInk`, `accentOnFill`, `success`), `ThinkSpacing`, `ThinkSymbol` and the rounded numeral design; their type styles stay their own because widget frames cannot grow ([widgets.md](widgets.md)). The Watch app adopts nothing yet.
 
-## 10. Acceptance floor for every brief
+## 11. Acceptance floor for every brief
 
 Restated here so no brief omits it:
 
@@ -187,7 +233,7 @@ Restated here so no brief omits it:
 - Reduce Motion honoured through `ThinkMotion`.
 - The screen's bugs from the UI bug inventory are listed and absorbed.
 
-## 11. Open
+## 12. Open
 
 - `accent` values and `card` radius: lock after the Today prototype on device.
 - Black surfaces and yellow on section header symbols: black-surfaces prototype ticket.
