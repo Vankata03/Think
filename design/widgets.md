@@ -30,7 +30,7 @@ Scope: `ThinkWidgets/DailyQuoteWidget.swift` (Daily line: small, medium, lock-sc
 | `StreakWidget`, circular `Gauge` | `.tint(brandYellow)` | `.tint(ThinkColor.accent)` (keeps `.widgetAccentable()`) |
 | `StreakWidget`, Start focus button | `.tint(brandYellow)`, `.foregroundStyle(ink)` | `.tint(ThinkColor.accent)`, `.foregroundStyle(ThinkColor.accentOnFill)`, `.widgetAccentable()` |
 | `PomodoroLiveActivity`, `LiveActivityStyle.work` | `#FFE45C` (a third yellow) | `ThinkColor.accent` |
-| `PomodoroLiveActivity`, `LiveActivityStyle.rest` | `.green` | `ThinkColor.success` |
+| `PomodoroLiveActivity`, `LiveActivityStyle.rest` | `.green` | `ThinkColor.success` (section 2.1 of the design system names the Focus break phase as a use of this token; there is no separate break token) |
 | `PomodoroLiveActivity`, progress bar end dots | phase colour | same token as the bar (`accent` or `success`) |
 | `PomodoroLiveActivity`, background | system (no `activityBackgroundTint`) | unchanged: system material, no tint |
 | `StartFocusControl` | system | unchanged; Control Center owns its colours |
@@ -83,14 +83,14 @@ Widgets do not wrap these in `@ScaledMetric`; the system caps widget text scalin
 | `StreakWidget`, streak label (small, rectangular) | `flame.fill` | `streak` (`flame`, outline; content variant per section 7) |
 | `StreakWidget`, circular gauge label | `figure.mind.and.body` | `practice` (`sparkle`): the gauge measures meaningful practice |
 | `StreakWidget`, circular gauge complete | `checkmark` | unchanged: the gauge ring is the circle, so the bare checkmark is the done state here |
-| `StreakWidget`, rectangular today row | `checkmark.circle.fill` / `circle.dotted` | `done` (`checkmark.circle.fill`) / `pathStepPending` (`circle`), the pending and confirmed pair from section 7 |
+| `StreakWidget`, rectangular today row | `checkmark.circle.fill` / `circle.dotted` | `done` (`checkmark.circle.fill`) / `pathStepPending` (`circle`) |
 | `StreakWidget`, Start focus button | `timer` | `focus` (`timer`) |
 | `PomodoroLiveActivity`, work phase | `brain.head.profile` | `focus` (`timer`) |
 | `PomodoroLiveActivity`, rest phase | `cup.and.saucer` | `breakPhase` (`cup.and.saucer`), unchanged |
 | `PomodoroLiveActivity`, minimal island | `timer` | `focus` (`timer`), unchanged |
 | `StartFocusControl` | `timer` | `focus` (`timer`), unchanged |
 
-`ThinkSymbol` members are named after the concept column of section 7 in lowerCamelCase. The Daily line widget carries no symbol and gains none; the serif line is its identifier. `PomodoroLiveActivityPresentation.symbol(for:)` keeps its signature and returns the `ThinkSymbol` names, so `ThinkWidgetsTests.workPhaseUsesDeepWorkPresentation` changes its expected string from `brain.head.profile` to `timer`.
+The `ThinkSymbol` member names above are the ones enumerated in the section 7 table of the design system. The Daily line widget carries no symbol and gains none; the serif line is its identifier. `PomodoroLiveActivityPresentation.symbol(for:)` keeps its signature and returns the `ThinkSymbol` names, so `ThinkWidgetsTests.workPhaseUsesDeepWorkPresentation` changes its expected string from `brain.head.profile` to `timer`.
 
 ## 6. Accessibility
 
@@ -122,7 +122,7 @@ No widget has an Empty, No-match, Locked or Unavailable state: the Daily line al
 
 ## 9. Build notes
 
-- **Where the colour sets live.** `ThinkWidgetsExtension` has no asset catalog and does not compile `Think/Assets.xcassets`, so a colour set there is unreachable from a widget. `ThinkShared/` is a synchronized folder in every target (app, widgets, Watch, Watch widgets, tests), so the token colour sets go in `ThinkShared/Design/ThinkColors.xcassets` (`ThinkAccent`, `ThinkAccentInk`) and `ThinkColor` reads them from `Bundle.main`. `Think/Assets.xcassets/AccentColor` stays as the app's global tint with the same values. Section 10 of the design system records this.
+- **Where the colour sets live.** `ThinkWidgetsExtension` has no asset catalog and does not compile `Think/Assets.xcassets`, so a colour set there is unreachable from a widget. `ThinkShared/` is a synchronized folder in the four product targets (`Think`, `ThinkWidgetsExtension`, `ThinkWatchApp`, `ThinkWatchWidgetsExtension`); the test targets do not compile it and reach its symbols through `@testable import` of their host module. The token colour sets therefore go in `ThinkShared/Design/ThinkColors.xcassets` (`ThinkAccent`, `ThinkAccentInk`) and `ThinkColor` reads them from `Bundle.main`. `Think/Assets.xcassets/AccentColor` stays as the app's global tint with the same values. Section 10 of the design system records this.
 - **Files touched by the build:** `ThinkWidgets/DailyQuoteWidget.swift`, `ThinkWidgets/StreakWidget.swift`, `ThinkWidgets/PomodoroLiveActivity.swift`, `ThinkWidgetsTests/ThinkWidgetsTests.swift` (symbol expectation). `StartFocusControl.swift` changes only its symbol constant.
 - **Tests to keep green:** `ThinkWidgetsTests` builds every family and configuration; the two presentation tests assert titles and symbols. No colour or spacing assertion exists, so none is added; the previews in each widget file are the visual check, in both appearances.
 - **Order:** this lands with or after `ThinkShared/Design/ThinkTheme.swift`, since every substitution names a `ThinkColor`, `ThinkSpacing` or `ThinkSymbol` member.

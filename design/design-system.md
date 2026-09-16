@@ -28,7 +28,7 @@ Scope: the iOS app. Widgets and the Live Activity inherit the tokens; [widgets.m
 | `surface` | `secondarySystemGroupedBackground` | `secondarySystemGroupedBackground` | List sections and the hero card. |
 | `surfaceRaised` | `tertiarySystemGroupedBackground` | `tertiarySystemGroupedBackground` | Elements nested inside a section or card (chips, inner tiles). |
 | `separator` | system | system | Row separators only; never drawn by hand. |
-| `success` | `.green` | `.green` | Done states (move completed, step confirmed). |
+| `success` | `.green` | `.green` | Done states (move completed, step confirmed) and the Focus break phase in the timer and Live Activity: rest reads as the same green because a break is the earned outcome of a work interval. Widgets.md section 2 relies on this; no separate break token exists. |
 | `destructive` | `.red` | `.red` | Delete and reset actions; via `Button(role: .destructive)`, not a colour literal. |
 
 The `accent` values are provisional. They are locked after the Today prototype runs on a device in both schemes; the brief that changes them updates this table.
@@ -118,31 +118,31 @@ Removed: the custom circular chrome buttons, full-width filled yellow blocks in 
 
 One SF Symbol per concept. Outline variant in toolbars, lists and content; the tab bar and selected states take the fill variant, which the system applies. Monochrome rendering everywhere; a symbol is tinted `accent` only when it is the primary action or a done state, and `accentInk` only inside tappable text.
 
-| Concept | Symbol | Notes |
-| --- | --- | --- |
-| Daily line | `text.quote` | Also the Saved lines list section. |
-| Question of the day | `questionmark.bubble` | Replaces `doc.questionmark`. |
-| Move | `figure.walk` | Replaces the bare `checkmark`; the checkmark remains the done state. |
-| Path | `point.topleft.down.to.point.bottomright.curvepath` | Paths tab and path rows. |
-| Path step | `circle` / `checkmark.circle.fill` | Pending / confirmed. |
-| Focus session | `timer` | Focus tab, presets, history rows. |
-| Break | `cup.and.saucer` | Break state in the timer and Live Activity. |
-| Streak | `flame` | `accent` tint when the streak is alive; `secondaryLabel` when it reads "Begin again". |
-| Meaningful practice | `sparkle` | Activity log rows, weekly review counts. |
-| Journal | `book.closed` | Journal tab, entry rows. |
-| Mood | `face.smiling` | Mood picker and entry detail. |
-| Saved line | `bookmark` | Replaces `heart`. Save action on Today's card, toolbar item that opens Saved lines. `bookmark.fill` when saved. |
-| Achievement | `medal` | Progress section; custom medal art stays for the medals themselves. |
-| Retro | `moon.stars` | Evening retro card and entry rows. |
-| Weekly review | `calendar.badge.checkmark` | Progress card and reflection rows. |
-| Settings | `gearshape` | Gear toolbar item on Progress. |
-| iCloud | `icloud` | Settings row and sync status. |
-| Lock | `lock` / `lock.open` | Journal gate and Privacy settings. |
-| Share | `square.and.arrow.up` | Toolbar and card action. |
-| Edit | `pencil` | Entry detail toolbar. |
-| Add | `plus` | New note. |
-| Delete | `trash` | Row swipe and destructive rows. |
-| Done state | `checkmark.circle.fill` | Tinted `success`. |
+| Concept | `ThinkSymbol` | Symbol | Notes |
+| --- | --- | --- | --- |
+| Daily line | `dailyLine` | `text.quote` | Also the Saved lines list section. |
+| Question of the day | `question` | `questionmark.bubble` | Replaces `doc.questionmark`. |
+| Move | `move` | `figure.walk` | Replaces the bare `checkmark`; the checkmark remains the done state. |
+| Path | `path` | `point.topleft.down.to.point.bottomright.curvepath` | Paths tab and path rows. |
+| Path step | `pathStepPending` / `pathStepDone` | `circle` / `checkmark.circle.fill` | Pending / confirmed. |
+| Focus session | `focus` | `timer` | Focus tab, presets, history rows. |
+| Break | `breakPhase` | `cup.and.saucer` | Break state in the timer and Live Activity. |
+| Streak | `streak` | `flame` | `accent` tint when the streak is alive; `secondaryLabel` when it reads "Begin again". |
+| Meaningful practice | `practice` | `sparkle` | Activity log rows, weekly review counts. |
+| Journal | `journal` | `book.closed` | Journal tab, entry rows. |
+| Mood | `mood` | `face.smiling` | Mood picker and entry detail. |
+| Saved line | `savedLine` | `bookmark` | Replaces `heart`. Save action on Today's card, toolbar item that opens Saved lines. `bookmark.fill` when saved. |
+| Achievement | `achievement` | `medal` | Progress section; custom medal art stays for the medals themselves. |
+| Retro | `retro` | `moon.stars` | Evening retro card and entry rows. |
+| Weekly review | `weeklyReview` | `calendar.badge.checkmark` | Progress card and reflection rows. |
+| Settings | `settings` | `gearshape` | Gear toolbar item on Progress. |
+| iCloud | `icloud` | `icloud` | Settings row and sync status. |
+| Lock | `lock` / `lockOpen` | `lock` / `lock.open` | Journal gate and Privacy settings. |
+| Share | `share` | `square.and.arrow.up` | Toolbar and card action. |
+| Edit | `edit` | `pencil` | Entry detail toolbar. |
+| Add | `add` | `plus` | New note. |
+| Delete | `delete` | `trash` | Row swipe and destructive rows. |
+| Done state | `done` | `checkmark.circle.fill` | Tinted `success`. |
 
 Tab bar:
 
@@ -153,6 +153,8 @@ Tab bar:
 | Focus | `timer` |
 | Journal | `book.closed` |
 | Progress | `chart.bar` |
+
+`ThinkSymbol` has exactly the members in the `ThinkSymbol` column; a new concept adds a row here before it adds a member. The tab bar reuses `path`, `focus` and `journal` and adds `today` (`sun.max`) and `progress` (`chart.bar`).
 
 Symbols scale with the text style they sit beside. Symbols that must stay small (tab bar items) get `.accessibilityShowsLargeContentViewer()`.
 
@@ -215,7 +217,7 @@ The build introduces one file, `ThinkShared/Design/ThinkTheme.swift`, that holds
 | Spacing | `ThinkSpacing` static `CGFloat` steps, plus `@ScaledMetric` wrappers where they sit next to text | `.padding(ThinkSpacing.l)` |
 | Radius | `ThinkRadius.card` | `RoundedRectangle(cornerRadius: ThinkRadius.card, style: .continuous)` |
 | Card | `View.thinkCard()` modifier | `VStack { ... }.thinkCard()` |
-| Symbol | `ThinkSymbol` static strings, one per concept, named after the concept column of section 7 in lowerCamelCase | `Image(systemName: ThinkSymbol.savedLine)`, `ThinkSymbol.focus`, `ThinkSymbol.streak` |
+| Symbol | `ThinkSymbol` static strings, one per concept, the members enumerated in the section 7 table | `Image(systemName: ThinkSymbol.savedLine)`, `ThinkSymbol.focus`, `ThinkSymbol.streak` |
 | Button role | `View.thinkButton(_ role: ThinkButtonRole)` mapping to the styles in section 6 | `.thinkButton(.primary)` |
 
 Widgets and the Watch app compile `ThinkShared` into their own targets, so the tokens are reachable there. Colour sets must sit in a catalog inside `ThinkShared/` for that to hold: `ThinkWidgetsExtension` compiles no other asset catalog. The widgets adopt `ThinkColor` (`surface`, `label`, `secondaryLabel`, `accent`, `accentInk`, `accentOnFill`, `success`), `ThinkSpacing`, `ThinkSymbol` and the rounded numeral design; their type styles stay their own because widget frames cannot grow ([widgets.md](widgets.md)). The Watch app adopts nothing yet.
