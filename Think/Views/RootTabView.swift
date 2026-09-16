@@ -15,7 +15,7 @@ struct RootTabView: View {
 
         TabView(selection: $appIntentRouter.selectedTab) {
             Tab("Today", systemImage: "sun.max", value: ThinkAppTab.today) {
-                TodayView()
+                TodayPrototypeView()
             }
             .accessibilityIdentifier("Tab.Today")
             Tab("Paths", systemImage: "point.topleft.down.to.point.bottomright.curvepath", value: ThinkAppTab.paths) {
