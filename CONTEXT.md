@@ -32,6 +32,14 @@ _Avoid_: Favourite, bookmark, liked quote
 The evening retrospective entry for a day.
 _Avoid_: Evening review, reflection
 
+**Ritual**:
+The three daily acts of a practice: answering the question, doing the move and writing the retro. What Today walks the person through.
+_Avoid_: Routine, checklist, daily tasks
+
+**Day rail**:
+The three-glyph indicator on Today that shows which acts of the ritual are done. Replaces the activity log.
+_Avoid_: Activity log, progress bar, tracker
+
 **Weekly review**:
 A once-a-week practice summary plus one reflection; the summary lives on Progress, the reflection in the Journal.
 _Avoid_: Weekly report, recap
