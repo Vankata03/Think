@@ -124,6 +124,15 @@ struct ProfileView: View {
                             .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 20))
                     }
                     .accessibilityIdentifier("OpenWeeklyReview")
+                    #if DEBUG
+                    // PROTOTYPE entry point (wayfinder #62); remove with the prototype.
+                    if #available(iOS 27, *) { NavigationLink(destination: WeeklyReviewAIPrototypeView()) {
+                        Label("AI weekly review (prototype)", systemImage: "sparkles")
+                            .font(.headline).foregroundStyle(.primary)
+                            .frame(maxWidth: .infinity, alignment: .leading).padding(18)
+                            .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 20))
+                    } }
+                    #endif
                     NavigationLink {
                         ScrollView {
                             VStack(alignment: .leading, spacing: 20) {

@@ -1,0 +1,11 @@
+  question: What did the repetition of 'talk' across several days reveal about your rhythm?  [E1 E2 E3]
+  question: What does it mean to have the shape there while also cutting four slides and finishing the outline?  [E1 E3]
+  question: Why does the word 'tired' appear on three days when everything feels heavier when you're exhausted?  [E1 E2 E3]
+  question: Why does the feeling of being tired appear on three different days when everything takes twice as long?  [E1 E2 E3]
+  question: What did it feel like to keep Mum in the mind across the different moments—from the calls to the waiting rooms?  [E1 E2 E3]
+  question: What did it mean to sit with the coffee going cold across the entries where 'mum' came up five times?  [E1 E2 E3]
+  question: What does reading for an hour mean for you, especially after returning from the trip?  [E1 E2]
+  question: What does the silence between the moments of reading and returning from the trip mean for you?  [E1 E2]
+  question: What does it mean when you say 'Everything feels pointless' on several days?  [E1 E2 E3]
+  question: What does it mean when the feeling of everything being pointless shows up again, like in the moments when you wonder if anyone would notice if you just disappeared?  [E1 E2 E6]
+TALLY ok=10 guardrail=0 refusal=0 other=0
