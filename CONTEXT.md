@@ -79,3 +79,15 @@ _Avoid_: Disabled, unavailable, greyed out
 **Unavailable state**:
 Content or storage could not be loaded or found; distinct from empty, which is a normal condition.
 _Avoid_: Error screen, empty state
+
+**Chrome**:
+The navigation layer the system draws: tab bar, navigation bar, toolbar items, floating action, sheet dismissal. Distinct from content, which Think designs.
+_Avoid_: Header, custom bar, nav
+
+**Hero**:
+The one piece of content a screen exists for, shown in a card at the top: the daily line on Today, the timer on Focus, the streak on Progress.
+_Avoid_: Featured card, banner, header card
+
+**Primary action**:
+The single yellow action on a screen. Lives floating bottom-trailing, inside the hero, or in the trailing toolbar; never more than one per screen.
+_Avoid_: CTA, main button, call to action
