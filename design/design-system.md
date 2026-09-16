@@ -38,9 +38,10 @@ Removed by this document: the hand-rolled `accessibleAccent(for:)` and `prominen
 ### 2.2 Rules
 
 - Bars (tab bar, navigation bar, toolbars) are monochrome, with two identity marks: the selected tab and the streak toolbar item on Today, both `accentInk`; and the one `.glassProminent` primary action, tinted `accent`. Nothing else in a bar carries colour (section 13).
-- No yellow on section header symbols, list row symbols or links, other than `accentInk` on tappable text. The black-surfaces prototype ticket may test yellow on section header symbols; until it decides, this rule stands.
-- Near-black appears nowhere as a surface. Black is the ink on yellow, the app icon and the wordmark. Whether a black hero card or black primary buttons earn a place is the question of the black-surfaces prototype ticket; this document does not pre-empt it.
-- Custom surfaces (cream papers, tinted cards) are out. The `CardStyle` palette stays inside the share-card renderer, which is out of scope.
+- No yellow on section header symbols, list row symbols or links, other than `accentInk` on tappable text. Tested and rejected in the black-surfaces prototype (owner, 2026-09-16): bars, headers and row symbols stay monochrome.
+- Near-black appears nowhere as a surface, and black is never a button fill. Black is the ink on yellow, the app icon and the wordmark. Decided in the black-surfaces prototype (owner, 2026-09-16): a near-black hero card vanishes on the dark `background` and needs a border to read at all, and a black primary button ghosts on the dark `surface`; system surfaces with the `accent` primary (variant A) won in both schemes.
+- Custom surfaces (cream papers, tinted cards) are out; a cream hero surface was drawn in the same prototype and rejected. The `CardStyle` palette stays inside the share-card renderer, which is out of scope.
+- The prototype canvas and `research/visual-language.md` (branch `research/visual-language`: Stoic, Waking Up, Apple Journal and Books, HIG dark-mode and colour pages, gold accent candidates with contrast figures) are kept for a later revisit of the accent and surfaces; the owner chose A "for now".
 - Colour never carries meaning alone: a done state has a checkmark, a locked state has a lock, a streak has a number.
 
 ## 3. Typography
@@ -236,7 +237,6 @@ Restated here so no brief omits it:
 ## 12. Open
 
 - `accent` values and `card` radius: lock after the Today prototype on device.
-- Black surfaces and yellow on section header symbols: black-surfaces prototype ticket.
 - Motion and haptics language: map fog.
 - Chrome at AX3 (section 13.7): the Focus prototype shows the ring-to-bar switch and the Settings prototype the inline Appearance picker before the rules are locked.
 
