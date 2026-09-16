@@ -45,8 +45,10 @@ struct TodayPrototypeView: View {
 
     private enum Act: CaseIterable { case question, move, retro }
     private enum OpenRecord: Identifiable, Hashable {
-        case answer(UUID, String, String, Date), retro(UUID, String, String, String, Date)
-        var id: UUID { switch self { case .answer(let id, _, _, _), .retro(let id, _, _, _, _): id } }
+        case answer(JournalRepository.EntrySnapshot), retro(JournalRepository.RetroSnapshot)
+        var id: PersistentIdentifier { switch self { case .answer(let e): e.id; case .retro(let r): r.id } }
+        static func == (a: Self, b: Self) -> Bool { a.id == b.id }
+        func hash(into h: inout Hasher) { h.combine(id) }
     }
 
     private var now: Date {
@@ -142,10 +144,13 @@ struct TodayPrototypeView: View {
             .sheet(isPresented: $showingStreak) { StreakCalendarSheet() }
             .navigationDestination(item: $openRecord) { record in
                 switch record {
-                case .answer(_, let prompt, let text, let date):
-                    RecordPrototypeDetail(title: "Question of the day", sections: [(prompt, text)], date: date)
-                case .retro(_, let well, let improve, let tomorrow, let date):
-                    RecordPrototypeDetail(title: "Evening retro", sections: [("What went well", well), ("What to improve", improve), ("Tomorrow", tomorrow)], date: date)
+                case .answer(let e):
+                    RecordPrototypeDetail(title: "Question of the day", sections: [(e.prompt, e.text)],
+                                          date: e.updatedAt ?? e.date, draft: JournalDraft.editing(e))
+                case .retro(let r):
+                    RecordPrototypeDetail(title: "Evening retro",
+                                          sections: [("What went well", r.wentWell), ("What to improve", r.improve), ("Tomorrow", r.tomorrow)],
+                                          date: r.updatedAt ?? r.date, draft: JournalDraft.editing(r))
                 }
             }
         }
@@ -285,15 +290,12 @@ struct TodayPrototypeView: View {
             switch act {
             case .question:
                 // One answer a day: the newest edit is the answer, older versions are not shown.
-                if let a = try? repository.answer(for: day), let id = a.primary.recordID {
+                if let a = try? repository.answer(for: day) {
                     let latest = a.all.max { ($0.updatedAt ?? $0.date) < ($1.updatedAt ?? $1.date) } ?? a.primary
-                    openRecord = .answer(id, latest.prompt, latest.text, latest.updatedAt ?? latest.date)
+                    openRecord = .answer(latest)
                 }
             case .retro:
-                if let r = try? repository.retro(for: day), let id = r.primary.recordID {
-                    let p = r.primary
-                    openRecord = .retro(id, p.wentWell, p.improve, p.tomorrow, p.updatedAt ?? p.date)
-                }
+                if let r = try? repository.retro(for: day) { openRecord = .retro(r.primary) }
             case .move: break
             }
         }
@@ -531,6 +533,8 @@ struct RecordPrototypeDetail: View {
     var title: LocalizedStringKey
     var sections: [(String, String)]
     var date: Date
+    var draft: JournalDraft?
+    @State private var editing: JournalDraft?
 
     var body: some View {
         List {
@@ -551,6 +555,11 @@ struct RecordPrototypeDetail: View {
         }
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Edit", systemImage: "pencil") {} } }
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Edit", systemImage: "pencil") { editing = draft }.disabled(draft == nil)
+            }
+        }
+        .sheet(item: $editing) { JournalEditor(draft: $0) }
     }
 }
