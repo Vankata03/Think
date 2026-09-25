@@ -21,7 +21,7 @@ The private prompt whose answer becomes a journal entry.
 _Avoid_: Reflection prompt, daily question
 
 **Journal**:
-Everything the user wrote: answers, notes, retros, focus notes and weekly-review reflections. Never holds saved lines.
+Everything the user wrote: answers, notes, retros and weekly-review reflections, plus focus notes written before the close flow was removed. Never holds saved lines.
 _Avoid_: Diary, notes app, history
 
 **Saved line**:
@@ -49,8 +49,12 @@ A multi-step programme (Deep focus, Clear thinking) with independent, repeatable
 _Avoid_: Course, programme, track
 
 **Focus session**:
-A timed work interval with an intention and a close flow; completing one counts as practice.
+A timed work interval, with an optional intention, followed by a break; completing the work interval counts as practice. Ending early keeps the time as partial effort. Nothing is asked after a session.
 _Avoid_: Pomodoro, timer run
+
+**Partial effort**:
+The work time of a focus session ended before its interval ran out. Kept in history; does not count as practice.
+_Avoid_: Incomplete session, abandoned session, failed session
 
 **Meaningful practice**:
 What completes a day and feeds the streak: an answer, a move, a path step or a focus session, never merely opening the app.
@@ -93,9 +97,9 @@ The navigation layer the system draws: tab bar, navigation bar, toolbar items, f
 _Avoid_: Header, custom bar, nav
 
 **Hero**:
-The one piece of content a screen exists for, shown in a card at the top: the daily line on Today, the timer on Focus, the streak on Progress.
+The one piece of content a screen exists for, shown first: the daily line on Today, the session arc on Focus, the streak on Progress.
 _Avoid_: Featured card, banner, header card
 
 **Primary action**:
-The single yellow action on a screen. Lives floating bottom-trailing, inside the hero, or in the trailing toolbar; never more than one per screen.
+The single yellow action on a screen. Lives floating bottom-trailing for list creation, inside Today's next-act panel, centred in Focus's bottom safe-area bar, or in the trailing toolbar; never more than one per screen.
 _Avoid_: CTA, main button, call to action
