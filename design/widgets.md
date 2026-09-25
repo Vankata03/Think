@@ -8,7 +8,7 @@ Scope: `ThinkWidgets/DailyQuoteWidget.swift` (Daily line: small, medium, lock-sc
 
 ## 1. Rules for the widget surface
 
-1. **System container, Think content.** The home-screen widgets drop the hand-rolled near-black container (`Color(red: 0.07, green: 0.07, blue: 0.08)`). The container is `ThinkColor.surface`, the same surface as the hero card in the app, so a widget is the hero card off-app: white in light, dark grey in dark. Design-system rule 2.2 ("near-black appears nowhere as a surface") applies to widgets as it does to screens; the black-surfaces prototype may revisit the app, not the widgets.
+1. **System container, Think content.** The home-screen widgets drop the hand-rolled near-black container (`Color(red: 0.07, green: 0.07, blue: 0.08)`). The container is `ThinkColor.surface`, the same surface as the hero card in the app, so a widget is the hero card off-app: white in light, dark grey in dark. Design-system rule 2.2 ("near-black appears nowhere as a surface") applies to widgets as it does to screens; the black-surfaces prototype ([#84](https://github.com/Vankata03/Think/issues/84)) kept system surfaces in the app too, and a later revisit of the app's surfaces would not reopen the widget container.
 2. **Both appearances.** Nothing in a widget forces a colour scheme. `label`, `secondaryLabel`, `accent` and `accentInk` resolve per appearance, so the light widget is a light widget. Dark remains the reference scheme for mockups.
 3. **Yellow is a fill or a done state.** The accent rule, the progress bar, the gauge, the Live Activity progress and the one primary button are `accent` fills. Text is `label` or `secondaryLabel`; the only yellow text is the attribution on the Daily line widget, in `accentInk`.
 4. **One primary per widget.** The Start focus button on the small Streak widget is that widget's primary and keeps `.borderedProminent` (widgets do not host `.glassProminent`), tinted `accent` with `accentOnFill` ink.
@@ -129,5 +129,4 @@ No widget has an Empty, No-match, Locked or Unavailable state: the Daily line al
 
 ## 10. Open
 
-- If the black-surfaces prototype rules a near-black hero card into the app, the widget container stays `surface`; the owner chose the system container for widgets independently of that outcome.
 - The Watch widgets (`ThinkWatchWidgets/`) still carry the old yellow and `flame.fill`. Out of scope with the Watch app; token drift is a map question.
