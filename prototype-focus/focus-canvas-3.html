@@ -1,0 +1,267 @@
+<!doctype html>
+<!-- PROTOTYPE, throwaway. Focus canvas round 3 for "Focus: timer screen and session close flow" (#76).
+     P3 Stage layout; five interactive duration mechanisms. Drag inside the phone. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PROTOTYPE · Focus duration, round 3</title>
+<style>
+  :root {
+    --bg:#000; --surface:#1C1C1E; --raised:#2C2C2E; --label:#fff;
+    --sec:rgba(235,235,245,.6); --ter:rgba(235,235,245,.3); --sep:rgba(84,84,88,.65);
+    --accent:#FFD433; --accentInk:#FFD433; --onFill:#000; --green:#30D158;
+    --glass:rgba(40,40,44,.72); --glassEdge:rgba(255,255,255,.14); --page:#111;
+  }
+  body.light {
+    --bg:#F2F2F7; --surface:#fff; --raised:#E5E5EA; --label:#000;
+    --sec:rgba(60,60,67,.6); --ter:rgba(60,60,67,.3); --sep:rgba(60,60,67,.29);
+    --accent:#F2C41C; --accentInk:#6E5C05; --green:#34C759;
+    --glass:rgba(250,250,252,.78); --glassEdge:rgba(0,0,0,.08); --page:#d9d9de;
+  }
+  * { box-sizing:border-box; -webkit-user-select:none; user-select:none; }
+  body { margin:0; background:var(--page); font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif; color:var(--label); padding:24px 24px 110px; }
+  h1 { font-size:18px; margin:0 0 4px; }
+  .wrap { display:flex; gap:32px; align-items:flex-start; flex-wrap:wrap; }
+  .side { max-width:380px; font-size:13.5px; color:var(--sec); line-height:1.5; }
+  .side b { color:var(--label); }
+  .side .how { margin-top:12px; padding:12px 14px; border-radius:12px; background:var(--surface); color:var(--label); }
+  .readout { margin-top:14px; font-family:ui-monospace,Menlo,monospace; font-size:12.5px; color:var(--label); background:var(--surface); border-radius:12px; padding:12px 14px; line-height:1.7; }
+  .tickdot { display:inline-block; width:10px; height:10px; border-radius:50%; background:var(--ter); vertical-align:middle; margin-left:6px; transition:background .05s; }
+  .tickdot.on { background:var(--accent); }
+
+  .phone { width:360px; height:760px; border-radius:48px; background:var(--bg); position:relative; overflow:hidden; flex:none;
+           box-shadow:0 0 0 10px #2a2a2c, 0 20px 50px rgba(0,0,0,.4); touch-action:none; }
+  .status { height:50px; display:flex; justify-content:space-between; align-items:flex-end; padding:0 34px 6px; font-size:15px; font-weight:600; }
+  .nav { height:44px; display:flex; align-items:center; justify-content:center; font-size:17px; font-weight:600; }
+  .content { position:absolute; top:94px; left:0; right:0; bottom:92px; display:flex; flex-direction:column; align-items:center; padding:0 20px; }
+  .serifTitle { font-family:"New York",ui-serif,Georgia,serif; font-size:24px; text-align:center; color:var(--ter); margin-top:18px; }
+  .reuse { font-size:14px; color:var(--accentInk); margin-top:6px; }
+  .num { font-family:ui-rounded,"SF Pro Rounded",-apple-system,sans-serif; font-weight:500; font-variant-numeric:tabular-nums; letter-spacing:-1px; }
+  .count { font-size:58px; line-height:1; }
+  .cap { font-size:15px; color:var(--sec); margin-top:6px; text-align:center; }
+  .cap .y { color:var(--accentInk); font-weight:600; } .cap .g { color:var(--green); font-weight:600; }
+  .links { font-size:14px; color:var(--sec); text-align:center; margin-top:10px; }
+  .links a { color:var(--accentInk); }
+  .btn { position:absolute; left:50%; transform:translateX(-50%); bottom:104px; border-radius:999px; padding:13px 26px; font-size:17px; font-weight:600;
+         background:var(--accent); color:var(--onFill); min-width:160px; text-align:center; box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 4px 14px rgba(0,0,0,.25); }
+  .tabbar { position:absolute; left:14px; right:14px; bottom:22px; height:62px; border-radius:31px; background:var(--glass); border:1px solid var(--glassEdge);
+            display:flex; justify-content:space-around; align-items:center; font-size:10px; backdrop-filter:blur(20px); }
+  .tabbar div { display:flex; flex-direction:column; align-items:center; gap:3px; } .tabbar span { font-size:19px; } .tabbar .on { color:var(--accentInk); }
+
+  .arcbox { position:relative; width:320px; height:205px; margin-top:22px; }
+  .arcbox svg { position:absolute; top:0; left:0; overflow:visible; }
+  .centre { position:absolute; left:0; right:0; top:70px; display:flex; flex-direction:column; align-items:center; }
+  .grab { cursor:grab; } .grab:active { cursor:grabbing; }
+  .hint { font-size:12px; color:var(--ter); margin-top:4px; text-align:center; }
+
+  .dial { width:118px; height:118px; border-radius:50%; margin-top:6px; position:relative; cursor:grab;
+          background:radial-gradient(circle at 50% 35%, var(--raised), var(--surface)); border:1px solid var(--glassEdge);
+          box-shadow:0 8px 24px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.12); }
+  .dial .notch { position:absolute; left:50%; top:8px; width:4px; height:18px; margin-left:-2px; border-radius:2px; background:var(--accent); transform-origin:2px 51px; }
+  .dial .ridges { position:absolute; inset:0; border-radius:50%;
+          background:repeating-conic-gradient(from 0deg, transparent 0 7deg, rgba(127,127,127,.18) 7deg 8deg); mask:radial-gradient(circle, transparent 44px, #000 45px); -webkit-mask:radial-gradient(circle, transparent 44px, #000 45px); }
+
+  .ruler { width:320px; height:58px; position:relative; overflow:hidden; margin-top:12px; cursor:grab;
+           mask:linear-gradient(90deg,transparent,#000 22%,#000 78%,transparent); -webkit-mask:linear-gradient(90deg,transparent,#000 22%,#000 78%,transparent); }
+  .ruler .tape { position:absolute; top:0; left:0; height:100%; }
+  .ruler .t { position:absolute; bottom:18px; width:1.5px; background:var(--ter); }
+  .ruler .l { position:absolute; bottom:0; font-size:11px; color:var(--sec); transform:translateX(-50%); }
+  .ruler .needle { position:absolute; left:50%; top:2px; bottom:16px; width:3px; margin-left:-1.5px; border-radius:2px; }
+  .ruler.small { height:44px; }
+
+  .switch { position:fixed; left:50%; bottom:18px; transform:translateX(-50%); background:rgba(20,20,22,.92); color:#fff; border-radius:18px; padding:10px 14px;
+            display:flex; gap:6px; align-items:center; font-size:13px; z-index:9; box-shadow:0 10px 30px rgba(0,0,0,.5); border:1px solid rgba(255,255,255,.12); }
+  .switch button { background:#2c2c2e; color:#fff; border:0; border-radius:9px; padding:6px 10px; font-size:13px; cursor:pointer; }
+  .switch button.on { background:#FFD433; color:#000; font-weight:600; }
+  .switch .lab { color:#aaa; margin:0 4px; }
+</style>
+</head>
+<body>
+<h1>PROTOTYPE · Focus duration, round 3: interactive (drag inside the phone)</h1>
+<div class="wrap"><div id="phone"></div><div class="side" id="side"></div></div>
+<div class="switch"><span class="lab">Duration</span>
+  <button data-v="E1">E1 Two handles</button><button data-v="E2">E2 Scrub numerals</button><button data-v="E3">E3 Wind the dial</button>
+  <button data-v="E4">E4 Ruler</button><button data-v="E5">E5 Until a time</button>
+  <span class="lab">·</span><button id="scheme">Light</button><button id="reset">Reset</button></div>
+
+<script>
+const q = new URLSearchParams(location.search);
+let V = q.get('v') || 'E1', scheme = q.get('scheme') || 'dark';
+let f = 25, b = 5, ticks = 0, untilIdx = null;
+const NOW = { h:14, m:12 };
+const clamp = (x,a,z) => Math.max(a, Math.min(z, x));
+const hhmm = mins => { const t = NOW.h*60 + NOW.m + mins; return `${String(Math.floor(t/60)%24).padStart(2,'0')}:${String(t%60).padStart(2,'0')}`; };
+
+const INFO = {
+  E1:['E1 Two handles', 'The arc is a fixed scale, 0 to 150 minutes from now. The yellow knob marks where focus ends, and the green knob where the break ends. Drag either one. Focus snaps to 5 minutes (5–120), break to 1 minute (1–30). Clock times follow the knobs.',
+      'Drag the <b>yellow knob</b> along the arc. Then drag the <b>green knob</b>.'],
+  E2:['E2 Scrub the numerals', 'The big numerals are the control. Drag up to add time and down to take it away, 5 minutes per step, and the digits roll. The break caption under them scrubs the same way in 1-minute steps. The arc stays a pure picture of the split.',
+      'Drag <b>up/down on 25:00</b>. Then drag up/down on the <b>green break</b> caption.'],
+  E3:['E3 Wind the dial', 'A kitchen-timer knob under the arc. Twist it clockwise to add focus time: every 30° is 5 minutes, and each detent ticks. The arc fills as you wind. Tapping the break caption cycles it through 5, 10 and 15.',
+      'Grab the <b>dial</b> and turn it around its centre. Tap the <b>break</b> caption.'],
+  E4:['E4 Ruler', 'A tape measure under the numerals. Slide it sideways and the tick under the yellow needle is your focus length, snapping to 5 minutes. A smaller green tape under it sets the break. It\'s like the weight and height pickers in Health, but flat and horizontal.',
+      'Drag the <b>yellow tape</b> left or right. Then the <b>green tape</b>.'],
+  E5:['E5 Until a clock time', 'The arc is the next two hours, with a tick at every quarter hour and a label every half hour. You don\'t choose a length, you choose when to stop: "until 15:00". Length is derived, and snaps to the quarter hour (at least 5 minutes away). This is the "day as time" idea from Today. Tapping break cycles it through 5, 10 and 15.',
+      'Drag the <b>yellow knob</b> to a clock time, or <b>tap a label</b>.'],
+};
+
+function tick() { ticks++; const d = document.getElementById('td'); if (d) { d.classList.add('on'); setTimeout(()=>d.classList.remove('on'), 90); } }
+function setF(v) { v = clamp(v,5,120); if (v!==f) { f=v; tick(); return true; } return false; }
+function setB(v) { v = clamp(v,1,30); if (v!==b) { b=v; tick(); return true; } return false; }
+
+// arc geometry
+const R=132, CX=160, CY=150;
+const pt = t => { const a=Math.PI*(1-t); return [CX+R*Math.cos(a), CY-R*Math.sin(a)]; };
+const seg = (a,z,col,w=3,op=1,dash='') => { if (z-a<0.002) return ''; const [x1,y1]=pt(a),[x2,y2]=pt(z);
+  return `<path d="M${x1} ${y1} A${R} ${R} 0 0 1 ${x2} ${y2}" fill="none" stroke="${col}" stroke-width="${w}" stroke-opacity="${op}" stroke-linecap="round" ${dash?`stroke-dasharray="${dash}"`:''}/>`; };
+function tFromEvent(e, svg) { const r = svg.getBoundingClientRect(); const x = e.clientX - r.left - CX, y = CY - (e.clientY - r.top);
+  let a = Math.atan2(Math.max(y,-40), x); if (a < 0) a = x < 0 ? Math.PI : 0; return clamp(1 - a/Math.PI, 0, 1); }
+
+function arcSVG() {
+  let s = '', labels = '';
+  if (V==='E1') {
+    const SC=150, tf=f/SC, tb=(f+b)/SC;
+    for (let m=0;m<=SC;m+=15) { const [x1,y1]=pt(m/SC); const a=Math.PI*(1-m/SC);
+      s += `<line x1="${CX+(R-5)*Math.cos(a)}" y1="${CY-(R-5)*Math.sin(a)}" x2="${CX+(R+5)*Math.cos(a)}" y2="${CY-(R+5)*Math.sin(a)}" stroke="var(--ter)" stroke-width="${m%30?1:1.5}"/>`; }
+    s += seg(0,1,'var(--sep)') + seg(0,tf,'var(--accent)',5) + seg(tf+0.01,tb,'var(--green)',5);
+    const [fx,fy]=pt(tf),[bx,by]=pt(tb);
+    s += `<circle cx="${bx}" cy="${by}" r="20" fill="transparent" class="grab" data-h="b"/><circle cx="${bx}" cy="${by}" r="10" fill="var(--green)" pointer-events="none"/>`;
+    s += `<circle cx="${fx}" cy="${fy}" r="24" fill="var(--accent)" opacity=".18" pointer-events="none"/><circle cx="${fx}" cy="${fy}" r="22" fill="transparent" class="grab" data-h="f"/><circle cx="${fx}" cy="${fy}" r="13" fill="var(--accent)" pointer-events="none"/>`;
+    labels = `<div style="position:absolute;left:${fx-22}px;top:${fy-36}px;font-size:11px;font-weight:600;color:var(--accentInk);width:44px;text-align:center">${hhmm(f)}</div>
+              <div style="position:absolute;left:${bx-22}px;top:${by+14}px;font-size:11px;font-weight:600;color:var(--green);width:44px;text-align:center">${hhmm(f+b)}</div>`;
+  } else if (V==='E5') {
+    const SC=120; const first = 15 - (NOW.m % 15); // minutes to next quarter
+    for (let m=first; m<=SC; m+=15) { const t=m/SC, a=Math.PI*(1-t); const lab = ((NOW.m+m)%30===0);
+      s += `<line x1="${CX+(R-6)*Math.cos(a)}" y1="${CY-(R-6)*Math.sin(a)}" x2="${CX+(R+6)*Math.cos(a)}" y2="${CY-(R+6)*Math.sin(a)}" stroke="var(--ter)" stroke-width="${lab?2:1}"/>`;
+      if (lab) labels += `<div class="lab" data-m="${m}" style="position:absolute;left:${CX+(R+24)*Math.cos(a)-22}px;top:${CY-(R+24)*Math.sin(a)-8}px;width:44px;text-align:center;font-size:11px;color:${m===f?'var(--accentInk)':'var(--sec)'};font-weight:${m===f?700:400};cursor:pointer">${hhmm(m)}</div>`; }
+    const tf=f/SC, tb=Math.min(1,(f+b)/SC);
+    s += seg(0,1,'var(--sep)') + seg(0,tf,'var(--accent)',5) + seg(tf+0.01,tb,'var(--green)',5,.6);
+    const [fx,fy]=pt(tf);
+    s += `<circle cx="${fx}" cy="${fy}" r="24" fill="var(--accent)" opacity=".18" pointer-events="none"/><circle cx="${fx}" cy="${fy}" r="22" fill="transparent" class="grab" data-h="u"/><circle cx="${fx}" cy="${fy}" r="13" fill="var(--accent)" pointer-events="none"/>`;
+  } else if (V==='E3') {
+    const tf = f/150, tb = (f+b)/150;
+    s += seg(0,1,'var(--sep)') + seg(0,tf,'var(--accent)',5) + seg(tf+0.01,tb,'var(--green)',5,.6);
+    const [sx,sy]=pt(tf);
+    s += `<circle cx="${sx}" cy="${sy}" r="22" fill="var(--accent)" opacity=".18"/><circle cx="${sx}" cy="${sy}" r="12" fill="var(--accent)"/>`;
+    labels = `<div style="position:absolute;left:10px;top:182px;font-size:11px;color:var(--sec)">now</div><div style="position:absolute;right:10px;top:182px;font-size:11px;color:var(--sec)">+2½ h</div>`;
+  } else {
+    const w = f/(f+b);
+    s += seg(0,w,'var(--sep)') + seg(w+0.02,1,'var(--green)',3,.45,'4 5');
+    if (V==='E3') s += seg(0,w,'var(--accent)',3);
+    const [sx,sy]=pt(V==='E3'?w:0);
+    s += `<circle cx="${sx}" cy="${sy}" r="22" fill="var(--accent)" opacity=".18"/><circle cx="${sx}" cy="${sy}" r="12" fill="var(--accent)"/>`;
+    const [gx,gy]=pt(w); s += `<circle cx="${gx}" cy="${gy}" r="4" fill="var(--bg)" stroke="var(--green)" stroke-width="1.5"/>`;
+    labels = `<div style="position:absolute;left:10px;top:182px;font-size:11px;color:var(--sec)">now</div><div style="position:absolute;right:10px;top:182px;font-size:11px;color:var(--sec)">${hhmm(f+b)}</div>`;
+  }
+  return `<svg id="arc" width="320" height="175" viewBox="0 0 320 175">${s}</svg>${labels}`;
+}
+
+function centre() {
+  if (V==='E5') return `<div class="num count">${f}:00</div><div class="cap">until <span class="y">${hhmm(f)}</span> · <span class="g" id="brk" style="cursor:pointer">${b} min break</span></div>`;
+  if (V==='E2') return `<div class="num count grab" id="scrubF" style="padding:4px 14px">${f}:00</div>
+      <div class="cap"><span class="g grab" id="scrubB" style="padding:4px 6px">${b} min break ⇅</span></div><div class="hint">drag the numbers ↑↓</div>`;
+  if (V==='E3') return `<div class="num count">${f}:00</div><div class="cap">Deep work · <span class="g" id="brk" style="cursor:pointer">${b} min break</span></div>`;
+  return `<div class="num count">${f}:00</div><div class="cap">Deep work · <span class="g">${b} min break</span></div>`;
+}
+
+function ruler(id, val, min, max, step, px, col, small) {
+  const W = (max-min)*px; let t='';
+  for (let m=min; m<=max; m++) { const big = m%step===0; if (!big && step>1 && m%1!==0) continue;
+    t += `<div class="t" style="left:${(m-min)*px}px;height:${big? (small?14:22):(small?7:11)}px;${big?'background:var(--sec)':''}"></div>`;
+    if (m % (step*3)===0 || (small && m%5===0)) t += `<div class="l" style="left:${(m-min)*px}px">${m}</div>`; }
+  const off = 160 - (val-min)*px;
+  return `<div class="ruler ${small?'small':''}" id="${id}"><div class="tape" style="width:${W}px;transform:translateX(${off}px)">${t}</div><div class="needle" style="background:${col}"></div></div>`;
+}
+
+function render() {
+  document.body.classList.toggle('light', scheme==='light');
+  document.querySelectorAll('.switch button[data-v]').forEach(b=>b.classList.toggle('on', b.dataset.v===V));
+  document.getElementById('scheme').classList.toggle('on', scheme==='light');
+  let under = '';
+  if (V==='E3') under = `<div class="dial" id="dial"><div class="ridges"></div><div class="notch" style="transform:rotate(${(f-25)/5*30}deg)"></div></div><div class="hint">twist to wind</div>`;
+  if (V==='E4') under = ruler('rF', f, 5, 120, 5, 7, 'var(--accent)') + ruler('rB', b, 1, 30, 1, 9, 'var(--green)', true);
+  document.getElementById('phone').innerHTML = `<div class="phone"><div class="status"><span>14:12</span><span>●●● ▮</span></div><div class="nav">Focus</div>
+    <div class="content">
+      <div class="serifTitle">What are you working on?</div><div class="reuse">↺ Write chapter 3</div>
+      <div class="arcbox">${arcSVG()}<div class="centre" style="${V==='E2'?'':'pointer-events:none'}">${centre()}</div></div>
+      ${under}
+      <div class="links">Last session · 25 min · 11:40 › · <a>Notify me</a> · <a>Silence distractions</a></div>
+    </div>
+    <div class="btn">▶ Start</div>
+    <div class="tabbar">${[['☀','Today'],['↗','Paths'],['⏱','Focus'],['✎','Journal'],['▮▮','Progress']].map(([i,n])=>`<div class="${n==='Focus'?'on':''}"><span>${i}</span>${n}</div>`).join('')}</div></div>`;
+  const [title, body, how] = INFO[V];
+  document.getElementById('side').innerHTML = `<b>${title}</b><br>${body}<div class="how">Try it: ${how}</div>
+    <div class="readout">focus  ${f} min<br>break  ${b} min<br>ends   ${hhmm(f)} → break ends ${hhmm(f+b)}<br>haptic ticks  ${ticks} <span class="tickdot" id="td"></span></div>`;
+  wire();
+  history.replaceState(null,'','?'+new URLSearchParams({v:V,scheme}).toString());
+}
+
+function drag(el, onMove) {
+  if (!el) return;
+  el.addEventListener('pointerdown', e => { e.preventDefault(); el.setPointerCapture(e.pointerId);
+    const start = { x:e.clientX, y:e.clientY };
+    const move = ev => { if (onMove(ev, start)) softRender(); };
+    const up = () => { el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', up); render(); };
+    el.addEventListener('pointermove', move); el.addEventListener('pointerup', up); });
+}
+// re-render without losing the captured pointer: patch only the pieces that change
+function softRender() {
+  const arc = document.querySelector('.arcbox'); const keep = document.getElementById('arc');
+  const c = document.querySelector('.centre');
+  if (V==='E2') { document.getElementById('scrubF').textContent = `${f}:00`; document.getElementById('scrubB').textContent = `${b} min break ⇅`; }
+  else c.innerHTML = centre();
+  const tmp = document.createElement('div'); tmp.innerHTML = arcSVG();
+  if (V==='E1' || V==='E5') { keep.innerHTML = tmp.querySelector('svg').innerHTML; arc.querySelectorAll(':scope > div:not(.centre)').forEach(n=>n.remove());
+    [...tmp.children].filter(n=>n.tagName!=='svg').forEach(n=>arc.insertBefore(n, c)); }
+  else { arc.innerHTML = arcSVG() + `<div class="centre" style="${V==='E2'?'':'pointer-events:none'}">${c.innerHTML}</div>`; if (V==='E2') wireScrub(); }
+  if (V==='E3') document.querySelector('.notch').style.transform = `rotate(${(f-25)/5*30}deg)`;
+  if (V==='E4') { document.querySelector('#rF .tape').style.transform = `translateX(${160-(f-5)*7}px)`; document.querySelector('#rB .tape').style.transform = `translateX(${160-(b-1)*9}px)`; }
+  const r = document.querySelector('.readout'); r.innerHTML = `focus  ${f} min<br>break  ${b} min<br>ends   ${hhmm(f)} → break ends ${hhmm(f+b)}<br>haptic ticks  ${ticks} <span class="tickdot on" id="td"></span>`;
+  setTimeout(()=>{ const d=document.getElementById('td'); d && d.classList.remove('on'); }, 90);
+}
+function wireScrub() {
+  let bf = f, bb = b;
+  drag(document.getElementById('scrubF'), (e,s) => setF(Math.round((bf + Math.round((s.y-e.clientY)/14)*5)/5)*5));
+  document.getElementById('scrubF')?.addEventListener('pointerdown', ()=>{ bf=f; });
+  drag(document.getElementById('scrubB'), (e,s) => setB(bb + Math.round((s.y-e.clientY)/12)));
+  document.getElementById('scrubB')?.addEventListener('pointerdown', ()=>{ bb=b; });
+}
+function wire() {
+  const svg = document.getElementById('arc');
+  if (V==='E1') {
+    svg.addEventListener('pointerdown', e => { const h = e.target.dataset?.h; if (!h) return; e.preventDefault(); svg.setPointerCapture(e.pointerId);
+      const move = ev => { const t = tFromEvent(ev, svg)*150; if (h==='f' ? setF(Math.round(t/5)*5) : setB(Math.round(t - f))) softRender(); };
+      const up = () => { svg.removeEventListener('pointermove', move); svg.removeEventListener('pointerup', up); render(); };
+      svg.addEventListener('pointermove', move); svg.addEventListener('pointerup', up); });
+  }
+  if (V==='E5') {
+    const first = 15 - (NOW.m % 15); const snap = m => { let s = first + Math.round((m-first)/15)*15; if (s < 5) s += 15; return clamp(s, first<5?first+15:first, 120 - (120-first)%15); };
+    svg.addEventListener('pointerdown', e => { if (e.target.dataset?.h!=='u') return; e.preventDefault(); svg.setPointerCapture(e.pointerId);
+      const move = ev => { if (setFraw(snap(tFromEvent(ev, svg)*120))) softRender(); };
+      const up = () => { svg.removeEventListener('pointermove', move); svg.removeEventListener('pointerup', up); render(); };
+      svg.addEventListener('pointermove', move); svg.addEventListener('pointerup', up); });
+    document.querySelectorAll('.lab').forEach(l => l.onclick = () => { setFraw(+l.dataset.m); render(); });
+  }
+  if (V==='E2') wireScrub();
+  if (V==='E3') { const dial = document.getElementById('dial'); let base=f, a0=0, acc=0, prev=0;
+    const ang = e => { const r = dial.getBoundingClientRect(); return Math.atan2(e.clientY-(r.top+r.height/2), e.clientX-(r.left+r.width/2))*180/Math.PI; };
+    dial.addEventListener('pointerdown', e => { base=f; prev=ang(e); acc=0; });
+    drag(dial, e => { const a = ang(e); let d = a-prev; if (d>180) d-=360; if (d<-180) d+=360; prev=a; acc+=d; return setF(base + Math.round(acc/30)*5); }); }
+  if (V==='E4') { let bf=f, bb=b;
+    const rF=document.getElementById('rF'), rB=document.getElementById('rB');
+    rF.addEventListener('pointerdown', ()=>{bf=f;}); rB.addEventListener('pointerdown', ()=>{bb=b;});
+    drag(rF, (e,s) => setF(Math.round((bf + (s.x-e.clientX)/7)/5)*5));
+    drag(rB, (e,s) => setB(Math.round(bb + (s.x-e.clientX)/9))); }
+  const brk = document.getElementById('brk'); if (brk) brk.onclick = () => { b = b>=15 ? 5 : (b<5 ? 5 : b+5); tick(); render(); };
+}
+function setFraw(v) { if (v!==f) { f=v; tick(); return true; } return false; }
+
+document.querySelectorAll('.switch button[data-v]').forEach(bt => bt.onclick = () => { V = bt.dataset.v; f=25; b=5; ticks=0;
+  if (V==='E5') { const first = 15-(NOW.m%15); f = first + 15; } render(); });
+document.getElementById('scheme').onclick = () => { scheme = scheme==='light'?'dark':'light'; render(); };
+document.getElementById('reset').onclick = () => { f=25; b=5; ticks=0; if (V==='E5') f = 15-(NOW.m%15)+15; render(); };
+if (V==='E5') f = 15-(NOW.m%15)+15;
+render();
+</script>
+</body>
+</html>

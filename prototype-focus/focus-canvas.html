@@ -1,0 +1,316 @@
+<!doctype html>
+<!-- PROTOTYPE, throwaway. Focus redesign canvas for "Focus: timer screen and session close flow" (#76).
+     Hero variants A/B/C x duration variants 1-4, switchable from the bottom bar. Open directly in a browser. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PROTOTYPE · Focus canvas</title>
+<style>
+  :root {
+    --bg:#000; --surface:#1C1C1E; --raised:#2C2C2E; --label:#fff;
+    --sec:rgba(235,235,245,.6); --ter:rgba(235,235,245,.3); --sep:rgba(84,84,88,.65);
+    --accent:#FFD433; --accentInk:#FFD433; --onFill:#000; --green:#30D158; --red:#FF453A;
+    --glass:rgba(40,40,44,.72); --glassEdge:rgba(255,255,255,.14); --page:#111;
+  }
+  body.light {
+    --bg:#F2F2F7; --surface:#fff; --raised:#F2F2F7; --label:#000;
+    --sec:rgba(60,60,67,.6); --ter:rgba(60,60,67,.3); --sep:rgba(60,60,67,.29);
+    --accent:#F2C41C; --accentInk:#6E5C05; --green:#34C759; --red:#FF3B30;
+    --glass:rgba(250,250,252,.78); --glassEdge:rgba(0,0,0,.08); --page:#d9d9de;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--page); font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;
+         color:var(--label); padding:24px 24px 110px; --fs:1; }
+  body.ax { --fs:1.75; }
+  h1 { font-size:18px; margin:0 0 4px; color:var(--label); }
+  .intro { color:var(--sec); font-size:13px; max-width:1100px; margin-bottom:18px; line-height:1.45; }
+  .row { display:flex; gap:28px; flex-wrap:wrap; align-items:flex-start; }
+  .col { display:flex; flex-direction:column; gap:8px; }
+  .cap { font-size:12px; color:var(--sec); width:360px; line-height:1.4; }
+  .cap b { color:var(--label); }
+
+  .phone { width:360px; height:760px; border-radius:48px; background:var(--bg); position:relative; overflow:hidden;
+           box-shadow:0 0 0 10px #2a2a2c, 0 20px 50px rgba(0,0,0,.4); }
+  .status { height:50px; display:flex; justify-content:space-between; align-items:flex-end; padding:0 34px 6px; font-size:15px; font-weight:600; }
+  .nav { height:44px; display:flex; align-items:center; justify-content:center; font-size:17px; font-weight:600; position:relative; }
+  .nav.large { justify-content:flex-start; padding:0 20px; font-size:32px; font-weight:700; height:52px; }
+  .scroll { position:absolute; top:94px; bottom:0; left:0; right:0; overflow-y:auto; padding:6px 16px 120px; scrollbar-width:none; }
+  .scroll::-webkit-scrollbar { display:none; }
+
+  .card { background:var(--surface); border-radius:26px; padding:20px 18px; margin-bottom:22px; }
+  .section { background:var(--surface); border-radius:26px; margin-bottom:6px; overflow:hidden; }
+  .sh { font-size:calc(13px*var(--fs)); color:var(--sec); padding:14px 16px 6px; font-weight:600; }
+  .foot { font-size:calc(12.5px*var(--fs)); color:var(--sec); padding:6px 16px 18px; line-height:1.35; }
+  .r { display:flex; align-items:center; gap:12px; padding:12px 16px; min-height:46px; font-size:calc(16px*var(--fs)); position:relative; }
+  .r + .r::before { content:""; position:absolute; top:0; left:52px; right:0; height:.5px; background:var(--sep); }
+  .r .sym { width:24px; text-align:center; color:var(--accentInk); font-size:calc(16px*var(--fs)); flex:none; }
+  .r .v { margin-left:auto; color:var(--sec); text-align:right; }
+  .r .chev { color:var(--ter); font-weight:600; }
+  .r.dim { opacity:.4; }
+  body.ax .r.pair { flex-wrap:wrap; } body.ax .r.pair .v { margin-left:36px; text-align:left; width:100%; }
+  .ph { color:var(--ter); }
+  .sub { font-size:calc(13px*var(--fs)); color:var(--sec); }
+
+  .num { font-family:ui-rounded,"SF Pro Rounded",-apple-system,sans-serif; font-weight:500; font-variant-numeric:tabular-nums; letter-spacing:-1px; }
+  .count { font-size:calc(64px*min(var(--fs),1.35)); line-height:1; }
+  .phase { font-size:calc(15px*var(--fs)); color:var(--sec); text-align:center; margin-top:6px; }
+  .intent { font-size:calc(15px*var(--fs)); color:var(--label); text-align:center; margin-top:6px; }
+  .center { display:flex; flex-direction:column; align-items:center; }
+
+  .btns { display:flex; gap:10px; justify-content:center; margin-top:18px; align-items:center; }
+  body.ax .btns { flex-direction:column; align-items:stretch; }
+  .btn { border-radius:999px; padding:12px 22px; font-size:calc(17px*var(--fs)); font-weight:600; border:1px solid var(--glassEdge);
+         background:var(--raised); color:var(--label); text-align:center; white-space:nowrap; }
+  .btn.p { background:var(--accent); color:var(--onFill); border-color:transparent; min-width:140px;
+           box-shadow:inset 0 1px 0 rgba(255,255,255,.5), 0 4px 14px rgba(0,0,0,.25); }
+  .btn.s { font-size:calc(15px*var(--fs)); padding:11px 16px; }
+
+  .done { display:flex; align-items:center; gap:8px; font-size:calc(15px*var(--fs)); margin-bottom:14px; padding:10px 12px;
+          background:var(--raised); border-radius:14px; }
+  .done .ok { color:var(--green); } .done .lnk { margin-left:auto; color:var(--accentInk); font-weight:600; }
+  body.ax .done { flex-wrap:wrap; } body.ax .done .lnk { margin-left:26px; }
+
+  .bar { height:10px; border-radius:6px; background:var(--raised); overflow:hidden; width:100%; position:relative; }
+  .bar i { position:absolute; left:0; top:0; bottom:0; border-radius:6px; }
+  .ends { display:flex; justify-content:space-between; font-size:calc(12px*var(--fs)); color:var(--sec); margin-top:6px; width:100%; }
+
+  .chips { display:flex; gap:6px; margin-top:16px; background:var(--raised); border-radius:12px; padding:3px; }
+  body.ax .chips { flex-direction:column; }
+  .chip { flex:1; text-align:center; padding:8px 6px; border-radius:9px; font-size:calc(14px*var(--fs)); color:var(--label); }
+  .chip.on { background:var(--surface); box-shadow:0 1px 4px rgba(0,0,0,.25); font-weight:600; }
+  .chip small { display:block; font-size:calc(11px*var(--fs)); color:var(--sec); font-weight:400; }
+
+  .step { width:44px; height:44px; border-radius:50%; background:var(--raised); display:grid; place-items:center; font-size:24px; color:var(--label); flex:none; }
+  .wheel { display:flex; gap:10px; width:100%; margin-top:4px; }
+  .wh { flex:1; background:var(--raised); border-radius:14px; height:150px; position:relative; overflow:hidden;
+        display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .wh div { font-size:calc(20px*var(--fs)); color:var(--ter); line-height:34px; } .wh div.on { color:var(--label); font-size:calc(24px*var(--fs)); }
+  .wh::after { content:""; position:absolute; left:6px; right:6px; top:58px; height:34px; border-radius:8px; background:rgba(127,127,127,.18); }
+  .wh b { position:absolute; top:6px; font-size:11px; color:var(--sec); font-weight:600; }
+
+  .tabbar { position:absolute; left:14px; right:14px; bottom:22px; height:62px; border-radius:31px; background:var(--glass);
+            backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border:1px solid var(--glassEdge);
+            display:flex; justify-content:space-around; align-items:center; font-size:10px; color:var(--label); }
+  .tabbar div { display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .tabbar span { font-size:19px; } .tabbar .on { color:var(--accentInk); }
+  .acc { position:absolute; left:14px; right:14px; bottom:92px; height:48px; border-radius:24px; background:var(--glass);
+         backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border:1px solid var(--glassEdge);
+         display:flex; align-items:center; gap:10px; padding:0 8px 0 16px; font-size:15px; }
+  .acc .t { font-weight:600; } .acc .i { color:var(--sec); flex:1; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+  .acc .pb { width:34px; height:34px; border-radius:50%; display:grid; place-items:center; background:var(--raised); }
+
+  .sheetdim { position:absolute; inset:0; background:rgba(0,0,0,.45); }
+  .sheet { position:absolute; left:0; right:0; bottom:0; top:300px; background:var(--bg); border-radius:34px 34px 0 0; padding:10px 16px; }
+  .grab { width:36px; height:5px; border-radius:3px; background:var(--ter); margin:0 auto 10px; }
+  .sheetnav { display:flex; justify-content:space-between; align-items:center; font-weight:600; font-size:17px; margin-bottom:12px; }
+  .sheetnav .x { color:var(--accentInk); font-weight:600; }
+  .menu { position:absolute; right:26px; width:250px; background:var(--glass); backdrop-filter:blur(30px); -webkit-backdrop-filter:blur(30px);
+          border:1px solid var(--glassEdge); border-radius:22px; box-shadow:0 16px 40px rgba(0,0,0,.45); overflow:hidden; font-size:16px; }
+  .menu div { padding:12px 16px; display:flex; gap:10px; } .menu div + div { border-top:.5px solid var(--sep); }
+  .menu .ck { width:16px; color:var(--label); }
+  .ghost { background:var(--surface); border-radius:26px; height:120px; margin-bottom:18px; opacity:.55; }
+  .ann { position:absolute; right:10px; bottom:146px; font-size:11px; background:#E0457B; color:#fff; padding:4px 8px; border-radius:8px; }
+
+  .switch { position:fixed; left:50%; bottom:18px; transform:translateX(-50%); background:rgba(20,20,22,.92); color:#fff;
+            border-radius:18px; padding:10px 14px; display:flex; gap:16px; align-items:center; font-size:13px; z-index:9;
+            box-shadow:0 10px 30px rgba(0,0,0,.5); border:1px solid rgba(255,255,255,.12); }
+  .switch .g { display:flex; gap:4px; align-items:center; }
+  .switch button { background:#2c2c2e; color:#fff; border:0; border-radius:9px; padding:6px 10px; font-size:13px; cursor:pointer; }
+  .switch button.on { background:#FFD433; color:#000; font-weight:600; }
+  .switch .lab { color:#aaa; margin-right:2px; }
+</style>
+</head>
+<body>
+<h1>PROTOTYPE · Focus: timer screen and session close flow</h1>
+<div class="intro" id="intro"></div>
+<div class="row" id="stage"></div>
+
+<div class="switch">
+  <div class="g"><span class="lab">Hero</span><button data-k="hero" data-v="A">A Ring</button><button data-k="hero" data-v="B">B Bar</button><button data-k="hero" data-v="C">C Arc</button></div>
+  <div class="g"><span class="lab">Duration</span><button data-k="dur" data-v="1">1 Menu row</button><button data-k="dur" data-v="2">2 Chips</button><button data-k="dur" data-v="3">3 Adjust in place</button><button data-k="dur" data-v="4">4 Wheel</button></div>
+  <div class="g"><button data-k="scheme" data-v="light">Light</button><button data-k="ax" data-v="ax">AX3</button></div>
+</div>
+
+<script>
+const q = new URLSearchParams(location.search);
+const S = { hero:q.get('hero')||'A', dur:q.get('dur')||'1', scheme:q.get('scheme')||'dark', ax:q.get('ax')||'' };
+
+const HERO = {
+  A:'<b>A Ring.</b> The current ring, fixed so the arc fills. Time and phase sit inside. At AX3 it turns into a bar (the rule from §13.7).',
+  B:'<b>B Bar.</b> Big numerals over a linear bar with start and end clock times. Same form at every size, so AX3 needs no switch.',
+  C:'<b>C Arc.</b> Echoes Today\'s day arc. The session is a span of time: a yellow work arc, a short green break tail, a dot at now, and clock times at the ends.'
+};
+const DUR = {
+  1:'<b>1 Menu row.</b> A Duration row under the hero opens a pull-down: Classic, Long, Custom… (Custom pushes a Form with two pickers).',
+  2:'<b>2 Chips.</b> A segmented control inside the hero, right under the time it sets. Custom opens a sheet with two wheels.',
+  3:'<b>3 Adjust in place.</b> No presets. − and + flank the numerals in 5-minute steps (5–120), and a Break stepper row sits below. The time itself is the control.',
+  4:'<b>4 Wheel.</b> Like the Clock app\'s Timers tab. When idle, the hero is two wheels (Focus | Break) with preset chips under them. Starting swaps the wheels for the countdown.'
+};
+
+function ring(p, color, time, cap) {
+  const r = 100, c = 2*Math.PI*r;
+  return `<div style="position:relative;width:230px;height:230px">
+    <svg width="230" height="230" viewBox="0 0 230 230" style="position:absolute;inset:0">
+      <circle cx="115" cy="115" r="${r}" fill="none" stroke="var(--raised)" stroke-width="12"/>
+      <circle cx="115" cy="115" r="${r}" fill="none" stroke="${color}" stroke-width="12" stroke-linecap="round"
+        stroke-dasharray="${c*p} ${c}" transform="rotate(-90 115 115)"/>
+    </svg>
+    <div class="center" style="position:absolute;inset:0;justify-content:center">
+      <div class="num count">${time}</div>${cap}
+    </div></div>`;
+}
+function bar(p, color, time, cap, from, to) {
+  return `<div class="center" style="width:100%">
+    <div class="num count" style="font-size:calc(76px*min(var(--fs),1.3))">${time}</div>${cap}
+    <div style="height:16px"></div>
+    <div class="bar"><i style="width:${p*100}%;background:${color}"></i></div>
+    <div class="ends"><span>${from}</span><span>${to}</span></div></div>`;
+}
+function arc(p, phase, time, cap, from, to, brk) {
+  // half circle; work portion 0..w, break w..1
+  const w = 0.83, R = 130, cx = 150, cy = 150;
+  const pt = t => { const a = Math.PI*(1-t); return [cx + R*Math.cos(a), cy - R*Math.sin(a)]; };
+  const path = (a,b) => { const [x1,y1]=pt(a),[x2,y2]=pt(b); return `M${x1} ${y1} A${R} ${R} 0 0 1 ${x2} ${y2}`; };
+  const now = phase==='work' ? p*w : w + p*(1-w);
+  const [nx,ny] = pt(now);
+  return `<div style="position:relative;width:300px;height:190px">
+    <svg width="300" height="170" viewBox="0 0 300 170" style="position:absolute;top:0;left:0">
+      <path d="${path(0,w)}" fill="none" stroke="var(--raised)" stroke-width="6" stroke-linecap="round"/>
+      <path d="${path(w+0.015,1)}" fill="none" stroke="var(--green)" stroke-opacity=".35" stroke-width="6" stroke-linecap="round"/>
+      ${now>0.001 ? `<path d="${path(0,Math.min(now,w))}" fill="none" stroke="var(--accent)" stroke-width="6" stroke-linecap="round"/>`:''}
+      ${now>w ? `<path d="${path(w+0.015,now)}" fill="none" stroke="var(--green)" stroke-width="6" stroke-linecap="round"/>`:''}
+      <circle cx="${nx}" cy="${ny}" r="11" fill="${phase==='work'?'var(--accent)':'var(--green)'}"/>
+      <circle cx="${nx}" cy="${ny}" r="17" fill="none" stroke="${phase==='work'?'var(--accent)':'var(--green)'}" stroke-opacity=".3" stroke-width="5"/>
+    </svg>
+    <div class="center" style="position:absolute;left:0;right:0;top:70px">
+      <div class="num count" style="font-size:calc(58px*min(var(--fs),1.3))">${time}</div>${cap}</div>
+    <div style="position:absolute;left:4px;top:160px;font-size:11px;color:var(--sec)">${from}</div>
+    <div style="position:absolute;right:0;top:92px;font-size:11px;color:var(--green)">${brk}</div>
+    <div style="position:absolute;right:4px;top:160px;font-size:11px;color:var(--sec)">${to}</div>
+  </div>`;
+}
+
+// state: idle | run | brk
+function heroTimer(state) {
+  const ax = S.ax === 'ax';
+  const d = durNow();
+  const T = { idle:{p:0, t:`${d.f}:00`, cap:`<div class="phase">Deep work · ${d.f} min</div>`, ph:'work'},
+              run:{p:0.28, t:'18:02', cap:'<div class="intent">Write chapter 3</div>', ph:'work'},
+              brk:{p:0.35, t:'03:14', cap:'<div class="phase" style="color:var(--green)">Break</div>', ph:'rest'} }[state];
+  const col = T.ph==='work' ? 'var(--accent)' : 'var(--green)';
+  const from = state==='brk' ? '14:30' : state==='run' ? '14:05' : 'now';
+  const to = state==='brk' ? '14:35' : state==='run' ? '14:30' : `+${d.f} min`;
+  let h = S.hero;
+  if (ax && h !== 'B') h = 'B'; // accessibility sizes: linear
+  if (h==='A') return ring(T.p, col, T.t, T.cap);
+  if (h==='B') return bar(T.p, col, T.t, T.cap, from, to);
+  return arc(T.p, T.ph, T.t, T.cap, state==='idle'?'now':'14:05', state==='idle'?`+${d.f+d.b}`:'14:35', state==='idle'?'break':'break');
+}
+function durNow(){ return S.dur==='3' ? {f:40,b:5} : {f:25,b:5}; }
+
+function heroCard(state, opts={}) {
+  const ax = S.ax === 'ax';
+  let top = '', timer = heroTimer(state), under = '';
+  if (state==='brk') top = `<div class="done"><span class="ok">✓</span><span>Session done · 25 min</span><span class="lnk">Reflect ›</span></div>`;
+  if (state==='idle' && S.dur==='2') under = `<div class="chips" style="width:100%">
+      <div class="chip on">25 / 5<small>Classic</small></div><div class="chip">50 / 10<small>Long</small></div><div class="chip">Custom<small>30 / 5</small></div></div>`;
+  if (state==='idle' && S.dur==='3') {
+    timer = ax ? `${timer}<div class="btns" style="flex-direction:row;justify-content:center"><div class="step">−</div><div class="step">+</div></div>`
+               : `<div style="display:flex;align-items:center;gap:8px;width:100%;justify-content:space-between"><div class="step">−</div><div style="flex:1;display:flex;justify-content:center">${timer}</div><div class="step">+</div></div>`;
+  }
+  if (state==='idle' && S.dur==='4') {
+    timer = `<div class="wheel">
+      <div class="wh"><b>FOCUS</b><div>20</div><div class="on">25 min</div><div>30</div></div>
+      <div class="wh"><b>BREAK</b><div>4</div><div class="on">5 min</div><div>6</div></div></div>`;
+    under = `<div class="chips" style="width:100%"><div class="chip on">25 / 5</div><div class="chip">50 / 10</div></div>`;
+  }
+  const btns = state==='idle' ? `<div class="btn p">▶ Start</div>`
+    : state==='run' ? `<div class="btn s">End</div><div class="btn p">❚❚ Pause</div><div class="btn s">Skip</div>`
+    : `<div class="btn p">❚❚ Pause</div><div class="btn s">Skip to work</div>`;
+  return `<div class="card"><div class="center">${top ? `<div style="width:100%">${top}</div>`:''}${timer}${under}</div><div class="btns">${btns}</div></div>`;
+}
+
+function durationSection(state) {
+  if (state !== 'idle') return '';
+  if (S.dur==='1') return `<div class="section"><div class="r pair"><span class="sym">⏱</span>Duration<span class="v">25 min · 5 min break ⌃⌄</span></div></div><div style="height:16px"></div>`;
+  if (S.dur==='3') return `<div class="section"><div class="r pair"><span class="sym">☾</span>Break<span class="v"><span class="btn s" style="padding:4px 12px">−</span> 5 min <span class="btn s" style="padding:4px 12px">+</span></span></div></div><div style="height:16px"></div>`;
+  return '';
+}
+
+function focusScreen(state, overlay='') {
+  const intention = state==='idle' ? `<div class="section">
+      <div class="r"><span class="sym">◎</span><span class="ph">What are you working on?</span></div>
+      <div class="r"><span class="sym">↺</span><span style="color:var(--accentInk)">Write chapter 3</span></div></div>
+      <div class="foot">Optional. Only you see it; it stays behind the journal lock.</div>` : '';
+  const last = `<div class="section"><div class="r pair"><span class="sym">⏱</span>Last session<span class="v">${state==='brk'?'25 min · just now':'25 min · 11:40'} <span class="chev">›</span></span></div></div><div style="height:16px"></div>`;
+  const extras = state==='idle' ? `<div class="section">
+      <div class="r"><span class="sym">🔔</span><span style="color:var(--accentInk)">Notify me when a session ends</span></div>
+      <div class="r"><span class="sym">☾</span>Silence distractions<span class="v chev">›</span></div></div>
+      <div class="foot">Set up a Deep Work Focus once and your phone goes quiet whenever a session starts.</div>` : '';
+  return `<div class="phone"><div class="status"><span>14:12</span><span>●●● ▮</span></div>
+    <div class="nav">Focus</div>
+    <div class="scroll">${heroCard(state)}${intention}${durationSection(state)}${last}${extras}</div>
+    ${tabbar('Focus')}${overlay}</div>`;
+}
+
+function tabbar(sel) {
+  const t = [['☀','Today'],['↗','Paths'],['⏱','Focus'],['✎','Journal'],['▮▮','Progress']];
+  return `<div class="tabbar">${t.map(([i,n])=>`<div class="${n===sel?'on':''}"><span>${i}</span>${n}</div>`).join('')}</div>`;
+}
+
+function interaction() {
+  if (S.dur==='1') return { cap:'<b>Duration menu open.</b> A native pull-down anchored to the row. Choosing an item closes it. "Custom…" pushes a two-picker Form.',
+    html: focusScreen('idle', `<div class="menu" style="top:${S.ax==='ax'?520:470}px">
+      <div><span class="ck">✓</span>Classic · 25 / 5</div><div><span class="ck"></span>Long · 50 / 10</div><div><span class="ck"></span>Custom… · 30 / 5</div></div>`) };
+  if (S.dur==='2') return { cap:'<b>Custom chip tapped.</b> A medium-detent sheet with two wheels. Done applies the change, and the chip then reads the new pair.',
+    html: focusScreen('idle', `<div class="sheetdim"></div><div class="sheet"><div class="grab"></div>
+      <div class="sheetnav"><span class="x" style="font-weight:400">Cancel</span><span>Custom</span><span class="x">Done</span></div>
+      <div class="wheel"><div class="wh"><b>FOCUS</b><div>25</div><div class="on">30 min</div><div>35</div></div>
+      <div class="wh"><b>BREAK</b><div>4</div><div class="on">5 min</div><div>6</div></div></div></div>`) };
+  if (S.dur==='3') return { cap:'<b>Adjusting.</b> Each − or + tap moves 5 minutes with a selection haptic, and the numerals roll. Long-press repeats. The value is remembered for next time.',
+    html: focusScreen('idle') };
+  return { cap:'<b>Wheel scrolled to 40 / 8.</b> No chip is selected, since it\'s a custom pair. Start reads the wheels.',
+    html: focusScreen('idle').replace('<div class="on">25 min</div>','<div class="on">40 min</div>').replace('<div>20</div>','<div>35</div>').replace('<div>30</div>','<div>45</div>')
+      .replace('<div class="on">5 min</div>','<div class="on">8 min</div>').replace('<div>4</div>','<div>7</div>').replace('<div>6</div>','<div>9</div>').replace('chip on">25 / 5','chip">25 / 5') };
+}
+
+function accessoryPhone() {
+  return `<div class="phone"><div class="status"><span>14:12</span><span>●●● ▮</span></div>
+    <div class="nav large">Today</div>
+    <div class="scroll" style="top:102px"><div class="ghost" style="height:170px"></div><div class="ghost"></div><div class="ghost"></div></div>
+    <div class="acc"><span style="color:var(--accent)">⏱</span><span class="num t">18:02</span><span class="i">Write chapter 3</span><span class="pb">❚❚</span></div>
+    <div class="ann">bottom accessory (Q9)</div>
+    ${tabbar('Today')}</div>`;
+}
+
+function render() {
+  document.body.classList.toggle('light', S.scheme==='light');
+  document.body.classList.toggle('ax', S.ax==='ax');
+  document.querySelectorAll('.switch button').forEach(b => {
+    const k=b.dataset.k, v=b.dataset.v;
+    b.classList.toggle('on', k==='scheme' ? S.scheme==='light' : k==='ax' ? S.ax==='ax' : S[k]===v);
+  });
+  document.getElementById('intro').innerHTML = `${HERO[S.hero]}<br>${DUR[S.dur]}${S.ax==='ax' && S.hero!=='B' ? '<br><i>AX3: the hero falls back to the bar form, per §13.7.</i>':''}
+    <br>Settled in round 1 and shown in every variant: no focus cue, no "today" pill, and Start/Pause is the one prominent button. End and Skip are secondary and only appear once a session has started. While a session runs, the intention moves into the hero and every row except Last session hides. The break state offers Reflect in the hero. The notification row hides once permission is decided. The tip is a row.`;
+  const inter = interaction();
+  const cols = [
+    ['<b>Idle.</b> The intention and duration controls are only here.', focusScreen('idle')],
+    ['<b>Running, work.</b> Hero plus Last session, nothing else.', focusScreen('run')],
+    ['<b>Break.</b> The session is done. Reflect opens the close sheet, and Last session updates.', focusScreen('brk')],
+    [inter.cap, inter.html],
+    ['<b>Another tab while running (Q9).</b> The glass bar sits above the tab bar: countdown, intention, Pause. Tapping it opens Focus.', accessoryPhone()],
+  ];
+  document.getElementById('stage').innerHTML = cols.map(([c,h])=>`<div class="col"><div class="cap">${c}</div>${h}</div>`).join('');
+  const u = new URLSearchParams(S); history.replaceState(null,'','?'+u.toString());
+}
+document.querySelectorAll('.switch button').forEach(b => b.onclick = () => {
+  const k=b.dataset.k, v=b.dataset.v;
+  if (k==='scheme') S.scheme = S.scheme==='light' ? 'dark' : 'light';
+  else if (k==='ax') S.ax = S.ax==='ax' ? '' : 'ax';
+  else S[k]=v;
+  render();
+});
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,197 @@
+<!doctype html>
+<!-- PROTOTYPE, throwaway. Focus canvas round 5 for "Focus: timer screen and session close flow" (#76).
+     Apple Timer-style two-column wheel (work | break), P3 Stage layout. Scroll with trackpad/mouse wheel or drag. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PROTOTYPE · Focus duration, round 5 (wheel)</title>
+<style>
+  :root {
+    --bg:#000; --surface:#1C1C1E; --raised:#2C2C2E; --label:#fff;
+    --sec:rgba(235,235,245,.6); --ter:rgba(235,235,245,.3); --sep:rgba(84,84,88,.65);
+    --accent:#FFD433; --accentInk:#FFD433; --onFill:#000; --green:#30D158;
+    --glass:rgba(40,40,44,.72); --glassEdge:rgba(255,255,255,.14); --page:#111; --band:rgba(118,118,128,.24);
+  }
+  body.light {
+    --bg:#F2F2F7; --surface:#fff; --raised:#E5E5EA; --label:#000;
+    --sec:rgba(60,60,67,.6); --ter:rgba(60,60,67,.3); --sep:rgba(60,60,67,.29);
+    --accent:#F2C41C; --accentInk:#6E5C05; --green:#34C759;
+    --glass:rgba(250,250,252,.78); --glassEdge:rgba(0,0,0,.08); --page:#d9d9de; --band:rgba(118,118,128,.14);
+  }
+  * { box-sizing:border-box; -webkit-user-select:none; user-select:none; }
+  body { margin:0; background:var(--page); font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif; color:var(--label); padding:24px 24px 110px; }
+  h1 { font-size:18px; margin:0 0 4px; }
+  .wrap { display:flex; gap:32px; align-items:flex-start; flex-wrap:wrap; }
+  .side { max-width:390px; font-size:13.5px; color:var(--sec); line-height:1.5; }
+  .side b { color:var(--label); }
+  .side .how { margin-top:12px; padding:12px 14px; border-radius:12px; background:var(--surface); color:var(--label); }
+  .readout { margin-top:14px; font-family:ui-monospace,Menlo,monospace; font-size:12.5px; color:var(--label); background:var(--surface); border-radius:12px; padding:12px 14px; line-height:1.7; }
+  .tickdot { display:inline-block; width:10px; height:10px; border-radius:50%; background:var(--ter); vertical-align:middle; margin-left:6px; }
+  .tickdot.on { background:var(--accent); }
+
+  .phone { width:360px; height:760px; border-radius:48px; background:var(--bg); position:relative; overflow:hidden; flex:none; box-shadow:0 0 0 10px #2a2a2c, 0 20px 50px rgba(0,0,0,.4); }
+  .status { height:50px; display:flex; justify-content:space-between; align-items:flex-end; padding:0 34px 6px; font-size:15px; font-weight:600; }
+  .nav { height:44px; display:flex; align-items:center; justify-content:center; font-size:17px; font-weight:600; }
+  .content { position:absolute; top:94px; left:0; right:0; bottom:92px; display:flex; flex-direction:column; align-items:center; padding:0 20px; }
+  .serifTitle { font-family:"New York",ui-serif,Georgia,serif; font-size:24px; text-align:center; color:var(--ter); margin-top:18px; }
+  .serifTitle.on { color:var(--label); }
+  .reuse { font-size:14px; color:var(--accentInk); margin-top:6px; }
+  .num { font-family:ui-rounded,"SF Pro Rounded",-apple-system,sans-serif; font-weight:500; font-variant-numeric:tabular-nums; letter-spacing:-1px; }
+  .count { font-size:58px; line-height:1; }
+  .cap { font-size:15px; color:var(--sec); margin-top:6px; text-align:center; }
+  .cap .y { color:var(--accentInk); font-weight:600; } .cap .g { color:var(--green); font-weight:600; }
+  .links { font-size:14px; color:var(--sec); text-align:center; margin-top:12px; }
+  .links a { color:var(--accentInk); }
+  .btnrow { position:absolute; left:0; right:0; bottom:104px; display:flex; justify-content:center; gap:10px; }
+  .btn { border-radius:999px; padding:13px 26px; font-size:17px; font-weight:600; background:var(--accent); color:var(--onFill); min-width:160px; text-align:center;
+         box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 4px 14px rgba(0,0,0,.25); cursor:pointer; }
+  .btn.s { background:var(--glass); color:var(--label); border:1px solid var(--glassEdge); min-width:0; box-shadow:none; font-size:15px; padding:12px 16px; }
+  .tabbar { position:absolute; left:14px; right:14px; bottom:22px; height:62px; border-radius:31px; background:var(--glass); border:1px solid var(--glassEdge);
+            display:flex; justify-content:space-around; align-items:center; font-size:10px; backdrop-filter:blur(20px); }
+  .tabbar div { display:flex; flex-direction:column; align-items:center; gap:3px; } .tabbar span { font-size:19px; } .tabbar .on { color:var(--accentInk); }
+
+  .arcbox { position:relative; width:320px; height:205px; margin-top:22px; transition:opacity .35s; }
+  .arcbox svg { position:absolute; top:0; left:0; overflow:visible; }
+  .centre { position:absolute; left:0; right:0; top:70px; display:flex; flex-direction:column; align-items:center; }
+
+  /* wheel */
+  .wheelwrap { position:relative; width:320px; display:flex; justify-content:center; gap:0; transition:opacity .3s, transform .3s; }
+  .band { position:absolute; left:6px; right:6px; border-radius:10px; background:var(--band); pointer-events:none; }
+  .colw { position:relative; width:150px; }
+  .wheel { overflow-y:scroll; scroll-snap-type:y mandatory; scrollbar-width:none; cursor:grab; position:relative;
+           mask:linear-gradient(transparent, #000 30%, #000 70%, transparent); -webkit-mask:linear-gradient(transparent, #000 30%, #000 70%, transparent); }
+  .wheel::-webkit-scrollbar { display:none; }
+  .wheel div { scroll-snap-align:center; text-align:right; padding-right:62px; font-variant-numeric:tabular-nums; }
+  .unit { position:absolute; right:10px; pointer-events:none; font-weight:600; }
+  .unit.w { color:var(--accentInk); } .unit.b { color:var(--green); }
+  .colhead { text-align:center; font-size:12px; font-weight:600; color:var(--sec); margin-bottom:4px; letter-spacing:.3px; }
+  .preview { font-size:14px; color:var(--sec); margin-top:12px; text-align:center; }
+  .preview b { color:var(--label); font-weight:600; }
+  .recents { display:flex; gap:8px; margin-top:14px; }
+  .recents span { padding:7px 12px; border-radius:999px; border:1px solid var(--glassEdge); font-size:13px; color:var(--label); cursor:pointer; }
+
+  .switch { position:fixed; left:50%; bottom:18px; transform:translateX(-50%); background:rgba(20,20,22,.92); color:#fff; border-radius:18px; padding:10px 14px;
+            display:flex; gap:6px; align-items:center; font-size:13px; z-index:9; box-shadow:0 10px 30px rgba(0,0,0,.5); border:1px solid rgba(255,255,255,.12); }
+  .switch button { background:#2c2c2e; color:#fff; border:0; border-radius:9px; padding:6px 10px; font-size:13px; cursor:pointer; }
+  .switch button.on { background:#FFD433; color:#000; font-weight:600; }
+  .switch .lab { color:#aaa; margin:0 4px; }
+</style>
+</head>
+<body>
+<h1>PROTOTYPE · Focus duration, round 5: Apple Timer-style wheel, work | break</h1>
+<div class="wrap"><div id="phone"></div><div class="side" id="side"></div></div>
+<div class="switch"><span class="lab">Variant</span>
+  <button data-v="W1">W1 Apple exact</button><button data-v="W2">W2 Arc + wheel</button>
+  <span class="lab">·</span><button id="recents">Recents row</button><button id="scheme">Light</button><button id="reset">Reset</button></div>
+
+<script>
+const q = new URLSearchParams(location.search);
+let V = q.get('v') || 'W2', scheme = q.get('scheme') || 'dark', showRecents = q.get('recents') === '1';
+const NOW = 14*60 + 12;
+let f = 25, b = 5, ticks = 0, running = false;
+const WORK = Array.from({length:24}, (_,i)=>(i+1)*5);   // 5, 10 ... 120
+const BRK  = Array.from({length:30}, (_,i)=>i+1);    // 1...30
+const hhmm = m => { const t = NOW + m; return `${String(Math.floor(t/60)%24).padStart(2,'0')}:${String(t%60).padStart(2,'0')}`; };
+
+const INFO = {
+  W1:['W1 Apple exact', 'Same as the Clock app\'s Timers tab. When idle, a two-column wheel owns the hero: <b>work</b> minutes on the left (5–120) and <b>break</b> minutes on the right (1–30). Every minute is a row, and each row change ticks. Under the wheel, one line previews the clock: "until 14:37 · break until 14:42". <b>Start</b> fades the wheel out and draws the sun arc in its place. Ending or finishing brings the wheel back.'],
+  W2:['W2 Arc + wheel', 'The arc stays on screen as a live preview. As you scroll, its yellow work part and green break tail resize, and the end times move along it. A shorter, three-row wheel sits under it. Start hides the wheel and the arc starts running. Less of Apple\'s look, but it keeps the sun on screen at all times.'],
+};
+
+const R=132, CX=160, CY=150;
+const pt = t => { const a=Math.PI*(1-t); return [CX+R*Math.cos(a), CY-R*Math.sin(a)]; };
+const seg = (a,z,col,w=3,op=1,dash='') => { if (z-a<0.002) return ''; const [x1,y1]=pt(a),[x2,y2]=pt(z);
+  return `<path d="M${x1} ${y1} A${R} ${R} 0 0 1 ${x2} ${y2}" fill="none" stroke="${col}" stroke-width="${w}" stroke-opacity="${op}" stroke-linecap="round" ${dash?`stroke-dasharray="${dash}"`:''}/>`; };
+function arcSVG(progress) {
+  const w = f/(f+b); let s = '';
+  s += seg(0,w,'var(--sep)') + seg(w+0.02,1,'var(--green)',3,.45, running ? '' : '4 5');
+  const now = running ? progress*w : 0;
+  s += seg(0,now,'var(--accent)',3);
+  const [sx,sy]=pt(now); s += `<circle cx="${sx}" cy="${sy}" r="22" fill="var(--accent)" opacity=".18"/><circle cx="${sx}" cy="${sy}" r="12" fill="var(--accent)"/>`;
+  const [gx,gy]=pt(w); s += `<circle cx="${gx}" cy="${gy}" r="4" fill="var(--bg)" stroke="var(--green)" stroke-width="1.5"/>`;
+  const [lx,ly]=pt(w);
+  return `<svg width="320" height="175" viewBox="0 0 320 175">${s}</svg>
+    <div style="position:absolute;left:${lx-24}px;top:${ly-30}px;width:48px;text-align:center;font-size:11px;font-weight:600;color:var(--accentInk)">${hhmm(f)}</div>
+    <div style="position:absolute;left:10px;top:182px;font-size:11px;color:var(--sec)">${running?'14:12':'now'}</div>
+    <div style="position:absolute;right:10px;top:182px;font-size:11px;color:var(--green)">${hhmm(f+b)}</div>`;
+}
+function arcCentre() {
+  return running ? `<div class="num count">${String(f-7).padStart(2,'0')}:${'41'}</div><div class="cap">Deep work · until <span class="y">${hhmm(f)}</span></div>`
+                 : `<div class="num count">${f}:00</div><div class="cap">then <span class="g">${b} min break</span></div>`;
+}
+function wheelHTML(rows) {
+  const RH = rows===5 ? 38 : 34, H = RH*rows, pad = (H-RH)/2;
+  const col = (id, arr, val, unit, cls, head) => `<div class="colw"><div class="colhead">${head}</div>
+    <div class="wheel" id="${id}" style="height:${H}px;font-size:${rows===5?24:21}px;line-height:${RH}px">
+      <div style="height:${pad}px;scroll-snap-align:none"></div>${arr.map(v=>`<div data-v="${v}" style="height:${RH}px">${v}</div>`).join('')}<div style="height:${pad}px;scroll-snap-align:none"></div></div>
+    <div class="unit ${cls}" style="top:${18+pad}px;line-height:${RH}px;font-size:${rows===5?17:15}px">${unit}</div></div>`;
+  return `<div class="wheelwrap" id="ww"><div class="band" style="top:${18+pad}px;height:${RH}px"></div>
+    ${col('wW', WORK, f, 'min', 'w', 'WORK')}${col('wB', BRK, b, 'min', 'b', 'BREAK')}</div>`;
+}
+function preview() { return `<div class="preview" id="pv">Focus until <b>${hhmm(f)}</b> · break until <b>${hhmm(f+b)}</b></div>`; }
+
+function render() {
+  document.body.classList.toggle('light', scheme==='light');
+  document.querySelectorAll('.switch button[data-v]').forEach(x=>x.classList.toggle('on', x.dataset.v===V));
+  document.getElementById('scheme').classList.toggle('on', scheme==='light');
+  document.getElementById('recents').classList.toggle('on', showRecents);
+  let hero = '';
+  if (running) hero = `<div class="arcbox">${arcSVG(0.28)}<div class="centre">${arcCentre()}</div></div>`;
+  else if (V==='W1') hero = `<div style="height:34px"></div>${wheelHTML(5)}${preview()}`;
+  else hero = `<div class="arcbox" id="ab" style="height:195px">${arcSVG(0)}<div class="centre">${arcCentre()}</div></div>${wheelHTML(3)}`;
+  const recents = !running && showRecents ? `<div class="recents"><span data-p="25,5">25 · 5</span><span data-p="50,10">50 · 10</span><span data-p="40,8">40 · 8</span></div>` : '';
+  document.getElementById('phone').innerHTML = `<div class="phone"><div class="status"><span>14:12</span><span>●●● ▮</span></div><div class="nav">Focus</div>
+    <div class="content">
+      ${running ? `<div class="serifTitle on">Write chapter 3</div>` : `<div class="serifTitle">What are you working on?</div><div class="reuse">↺ Write chapter 3</div>`}
+      ${hero}${recents}
+      ${running ? `<div class="links">Last session · 25 min · 11:40 ›</div>` : `<div class="links">Last session · 25 min · 11:40 ›</div>`}
+    </div>
+    <div class="btnrow">${running ? `<div class="btn s" id="end">End</div><div class="btn" id="start">❚❚ Pause</div><div class="btn s">Skip</div>` : `<div class="btn" id="start">▶ Start</div>`}</div>
+    <div class="tabbar">${[['☀','Today'],['↗','Paths'],['⏱','Focus'],['✎','Journal'],['▮▮','Progress']].map(([i,n])=>`<div class="${n==='Focus'?'on':''}"><span>${i}</span>${n}</div>`).join('')}</div></div>`;
+  const [title, body] = INFO[V];
+  document.getElementById('side').innerHTML = `<b>${title}</b><br>${body}
+    <div class="how">Try it: scroll each column with the trackpad or mouse wheel, or drag it. Press Start, then End to come back. The Recents toggle adds Clock's recents as chips.</div>
+    <div class="readout" id="ro"></div>`;
+  readout();
+  wire();
+  history.replaceState(null,'','?'+new URLSearchParams({v:V,scheme,recents:showRecents?'1':'0'}).toString());
+}
+function readout(flash) { const r = document.getElementById('ro'); if (r) r.innerHTML = `work   ${f} min → until ${hhmm(f)}<br>break  ${b} min → until ${hhmm(f+b)}<br>state  ${running?'running':'idle'}<br>haptic ticks  ${ticks} <span class="tickdot ${flash?'on':''}"></span>`; }
+
+function setupWheel(el, arr, get, set) {
+  if (!el) return;
+  const RH = parseFloat(el.querySelector('[data-v]').style.height);
+  el.scrollTop = arr.indexOf(get()) * RH;
+  let last = get();
+  el.addEventListener('scroll', () => {
+    const i = Math.round(el.scrollTop / RH); const v = arr[Math.max(0, Math.min(arr.length-1, i))];
+    if (v !== last) { last = v; set(v); ticks++; update(); }
+  });
+  // drag to scroll on desktop
+  el.addEventListener('pointerdown', e => { if (e.pointerType === 'touch') return; e.preventDefault(); const y0 = e.clientY, s0 = el.scrollTop; el.style.scrollSnapType = 'none';
+    el.setPointerCapture(e.pointerId);
+    const move = ev => { el.scrollTop = s0 - (ev.clientY - y0); };
+    const up = () => { el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', up); el.style.scrollSnapType = '';
+      el.scrollTo({ top: Math.round(el.scrollTop / RH) * RH, behavior:'smooth' }); };
+    el.addEventListener('pointermove', move); el.addEventListener('pointerup', up); });
+}
+function update() {
+  readout(true); setTimeout(()=>readout(false), 90);
+  const pv = document.getElementById('pv'); if (pv) pv.outerHTML = preview();
+  const ab = document.getElementById('ab'); if (ab) ab.innerHTML = `${arcSVG(0)}<div class="centre">${arcCentre()}</div>`;
+}
+function wire() {
+  setupWheel(document.getElementById('wW'), WORK, ()=>f, v=>{ f=v; });
+  setupWheel(document.getElementById('wB'), BRK, ()=>b, v=>{ b=v; });
+  const s = document.getElementById('start'); if (s) s.onclick = () => { if (!running) { running = true; render(); } };
+  const e = document.getElementById('end'); if (e) e.onclick = () => { running = false; render(); };
+  document.querySelectorAll('.recents span').forEach(x => x.onclick = () => { const [a,c] = x.dataset.p.split(',').map(Number); f=a; b=c; ticks++; render(); });
+}
+document.querySelectorAll('.switch button[data-v]').forEach(x => x.onclick = () => { V = x.dataset.v; running = false; render(); });
+document.getElementById('scheme').onclick = () => { scheme = scheme==='light'?'dark':'light'; render(); };
+document.getElementById('recents').onclick = () => { showRecents = !showRecents; render(); };
+document.getElementById('reset').onclick = () => { f=25; b=5; ticks=0; running=false; render(); };
+render();
+</script>
+</body>
+</html>

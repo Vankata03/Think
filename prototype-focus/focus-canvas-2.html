@@ -1,0 +1,298 @@
+<!doctype html>
+<!-- PROTOTYPE, throwaway. Focus canvas round 2 for "Focus: timer screen and session close flow" (#76).
+     Arc hero on the plain background (no card), three placements x three duration controls without wheel pickers. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PROTOTYPE · Focus canvas round 2</title>
+<style>
+  :root {
+    --bg:#000; --surface:#1C1C1E; --raised:#2C2C2E; --label:#fff;
+    --sec:rgba(235,235,245,.6); --ter:rgba(235,235,245,.3); --sep:rgba(84,84,88,.65);
+    --accent:#FFD433; --accentInk:#FFD433; --onFill:#000; --green:#30D158;
+    --glass:rgba(40,40,44,.72); --glassEdge:rgba(255,255,255,.14); --page:#111;
+  }
+  body.light {
+    --bg:#F2F2F7; --surface:#fff; --raised:#E5E5EA; --label:#000;
+    --sec:rgba(60,60,67,.6); --ter:rgba(60,60,67,.3); --sep:rgba(60,60,67,.29);
+    --accent:#F2C41C; --accentInk:#6E5C05; --green:#34C759;
+    --glass:rgba(250,250,252,.78); --glassEdge:rgba(0,0,0,.08); --page:#d9d9de;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--page); font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+         color:var(--label); padding:24px 24px 110px; --fs:1; }
+  body.ax { --fs:1.75; }
+  h1 { font-size:18px; margin:0 0 4px; }
+  .intro { color:var(--sec); font-size:13px; max-width:1150px; margin-bottom:18px; line-height:1.45; }
+  .intro b { color:var(--label); }
+  .row { display:flex; gap:28px; flex-wrap:wrap; align-items:flex-start; }
+  .col { display:flex; flex-direction:column; gap:8px; }
+  .cap { font-size:12px; color:var(--sec); width:360px; line-height:1.4; min-height:34px; }
+  .cap b { color:var(--label); }
+
+  .phone { width:360px; height:760px; border-radius:48px; background:var(--bg); position:relative; overflow:hidden;
+           box-shadow:0 0 0 10px #2a2a2c, 0 20px 50px rgba(0,0,0,.4); }
+  .status { height:50px; display:flex; justify-content:space-between; align-items:flex-end; padding:0 34px 6px; font-size:15px; font-weight:600; }
+  .nav { height:44px; display:flex; align-items:center; justify-content:center; font-size:17px; font-weight:600; }
+  .nav.large { justify-content:flex-start; padding:0 20px; font-size:32px; font-weight:700; height:52px; }
+  .body { position:absolute; top:94px; bottom:92px; left:0; right:0; overflow-y:auto; padding:0 20px; scrollbar-width:none; display:flex; flex-direction:column; }
+  .body::-webkit-scrollbar { display:none; }
+  .center { display:flex; flex-direction:column; align-items:center; }
+  .grow { flex:1; }
+
+  .num { font-family:ui-rounded,"SF Pro Rounded",-apple-system,sans-serif; font-weight:500; font-variant-numeric:tabular-nums; letter-spacing:-1px; }
+  .count { font-size:calc(58px*min(var(--fs),1.3)); line-height:1; }
+  .phase { font-size:calc(15px*var(--fs)); color:var(--sec); text-align:center; margin-top:6px; }
+  .intent { font-size:calc(15px*var(--fs)); text-align:center; margin-top:6px; }
+  .serifTitle { font-family:"New York",ui-serif,Georgia,serif; font-size:calc(24px*var(--fs)); text-align:center; line-height:1.2; }
+  .serifTitle.ph { color:var(--ter); }
+  .durcap { font-size:calc(15px*var(--fs)); color:var(--accentInk); margin-top:8px; font-weight:600; }
+
+  .btns { display:flex; gap:10px; justify-content:center; align-items:center; }
+  body.ax .btns { flex-direction:column; align-items:stretch; }
+  .btn { border-radius:999px; padding:12px 22px; font-size:calc(17px*var(--fs)); font-weight:600; border:1px solid var(--glassEdge);
+         background:var(--glass); color:var(--label); text-align:center; white-space:nowrap; backdrop-filter:blur(10px); }
+  .btn.p { background:var(--accent); color:var(--onFill); border-color:transparent; min-width:150px;
+           box-shadow:inset 0 1px 0 rgba(255,255,255,.5), 0 4px 14px rgba(0,0,0,.25); }
+  .btn.s { font-size:calc(15px*var(--fs)); padding:11px 16px; }
+  .pill { border-radius:999px; padding:8px 16px; font-size:calc(15px*var(--fs)); border:1px solid var(--glassEdge); color:var(--label); }
+  .pill.on { background:var(--accent); color:var(--onFill); border-color:transparent; font-weight:600; }
+
+  .field { border-bottom:1px solid var(--sep); padding:10px 2px; font-size:calc(16px*var(--fs)); color:var(--ter); text-align:center; width:100%; }
+  .reuse { font-size:calc(14px*var(--fs)); color:var(--accentInk); margin-top:8px; text-align:center; }
+  .links { font-size:calc(14px*var(--fs)); color:var(--sec); text-align:center; line-height:1.9; }
+  .links a { color:var(--accentInk); text-decoration:none; }
+
+  /* plain list rows, no grouped background */
+  .pl { width:100%; }
+  .pr { display:flex; align-items:center; gap:12px; padding:13px 0; font-size:calc(16px*var(--fs)); border-top:.5px solid var(--sep); }
+  .pr:last-child { border-bottom:.5px solid var(--sep); }
+  .pr .sym { width:22px; text-align:center; color:var(--accentInk); flex:none; }
+  .pr .v { margin-left:auto; color:var(--sec); text-align:right; }
+  .pr .chev { color:var(--ter); font-weight:600; }
+  body.ax .pr { flex-wrap:wrap; } body.ax .pr .v { margin-left:34px; text-align:left; width:100%; }
+
+  .done { display:flex; align-items:center; gap:8px; font-size:calc(15px*var(--fs)); justify-content:center; }
+  .done .ok { color:var(--green); } .done a { color:var(--accentInk); font-weight:600; text-decoration:none; }
+  body.ax .done { flex-direction:column; gap:2px; }
+
+  .bar { height:8px; border-radius:6px; background:var(--raised); overflow:hidden; width:100%; position:relative; }
+  .bar i { position:absolute; left:0; top:0; bottom:0; border-radius:6px; }
+  .ends { display:flex; justify-content:space-between; font-size:calc(12px*var(--fs)); color:var(--sec); margin-top:6px; width:100%; }
+
+  .tabbar { position:absolute; left:14px; right:14px; bottom:22px; height:62px; border-radius:31px; background:var(--glass);
+            backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border:1px solid var(--glassEdge);
+            display:flex; justify-content:space-around; align-items:center; font-size:10px; }
+  .tabbar div { display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .tabbar span { font-size:19px; } .tabbar .on { color:var(--accentInk); }
+  .acc { position:absolute; left:14px; right:14px; bottom:92px; height:48px; border-radius:24px; background:var(--glass);
+         backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border:1px solid var(--glassEdge);
+         display:flex; align-items:center; gap:10px; padding:0 8px 0 16px; font-size:15px; }
+  .acc .i { color:var(--sec); flex:1; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+  .acc .pb { width:34px; height:34px; border-radius:50%; display:grid; place-items:center; background:var(--raised); }
+  .ghost { border-bottom:.5px solid var(--sep); height:90px; }
+
+  .menu { position:absolute; left:50%; transform:translateX(-50%); width:250px; background:var(--glass); backdrop-filter:blur(30px); -webkit-backdrop-filter:blur(30px);
+          border:1px solid var(--glassEdge); border-radius:22px; box-shadow:0 16px 40px rgba(0,0,0,.5); overflow:hidden; font-size:16px; z-index:3; }
+  .menu div { padding:12px 16px; display:flex; gap:10px; } .menu div + div { border-top:.5px solid var(--sep); }
+  .menu .ck { width:16px; }
+  .sheetdim { position:absolute; inset:0; background:rgba(0,0,0,.45); z-index:4; }
+  .sheet { position:absolute; left:0; right:0; bottom:0; height:330px; background:var(--surface); border-radius:34px 34px 0 0; padding:10px 20px; z-index:5; }
+  .grab { width:36px; height:5px; border-radius:3px; background:var(--ter); margin:0 auto 10px; }
+  .sheetnav { display:flex; justify-content:space-between; align-items:center; font-weight:600; font-size:17px; margin-bottom:14px; }
+  .sheetnav .x { color:var(--accentInk); }
+  .stepper { display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-top:.5px solid var(--sep); font-size:16px; }
+  .stepper .ctl { display:flex; align-items:center; gap:14px; }
+  .stepper .ctl span.b { width:44px; height:32px; border-radius:9px; background:var(--raised); display:grid; place-items:center; font-size:20px; }
+  .hint { font-size:12px; color:var(--sec); text-align:center; margin-top:4px; }
+
+  .switch { position:fixed; left:50%; bottom:18px; transform:translateX(-50%); background:rgba(20,20,22,.92); color:#fff;
+            border-radius:18px; padding:10px 14px; display:flex; gap:16px; align-items:center; font-size:13px; z-index:9;
+            box-shadow:0 10px 30px rgba(0,0,0,.5); border:1px solid rgba(255,255,255,.12); }
+  .switch .g { display:flex; gap:4px; align-items:center; }
+  .switch button { background:#2c2c2e; color:#fff; border:0; border-radius:9px; padding:6px 10px; font-size:13px; cursor:pointer; }
+  .switch button.on { background:#FFD433; color:#000; font-weight:600; }
+  .switch .lab { color:#aaa; margin-right:2px; }
+</style>
+</head>
+<body>
+<h1>PROTOTYPE · Focus canvas, round 2: the arc without a card</h1>
+<div class="intro" id="intro"></div>
+<div class="row" id="stage"></div>
+
+<div class="switch">
+  <div class="g"><span class="lab">Placement</span><button data-k="lay" data-v="P1">P1 Centred</button><button data-k="lay" data-v="P2">P2 Like Today</button><button data-k="lay" data-v="P3">P3 Stage</button></div>
+  <div class="g"><span class="lab">Duration</span><button data-k="dur" data-v="D1">D1 Tap the time</button><button data-k="dur" data-v="D2">D2 Drag the sun</button><button data-k="dur" data-v="D3">D3 Pills</button></div>
+  <div class="g"><button data-k="scheme">Light</button><button data-k="ax">AX3</button></div>
+</div>
+
+<script>
+const q = new URLSearchParams(location.search);
+const S = { lay:q.get('lay')||'P1', dur:q.get('dur')||'D1', scheme:q.get('scheme')||'dark', ax:q.get('ax')||'' };
+
+const LAY = {
+  P1:'<b>P1 Centred.</b> No list and no cards. The arc sits in the middle of the screen with the buttons under it. The intention is a plain underlined field. Last session and the extras are small links at the bottom. It reads like a clock face.',
+  P2:'<b>P2 Like Today.</b> The same structure as the Today brief: arc at the top on a clear background, buttons, then plain list rows with hairline separators (no grey sections) for intention, Last session and the extras.',
+  P3:'<b>P3 Stage.</b> The intention is the headline in serif, the identity type, above the arc. Buttons are pinned just above the tab bar. Everything else collapses to one line under the arc.'
+};
+const DUR = {
+  D1:'<b>D1 Tap the time.</b> The caption under the numerals ("25 min · 5 break ⌄") is a pull-down menu: Classic, Long, Custom…. Custom opens a small sheet with −/+ steppers, not wheels.',
+  D2:'<b>D2 Drag the sun.</b> When idle, drag the sun along the arc to set the focus length, with a tick and haptic every 5 minutes (5–120). The green break tail follows at 1 minute per 5 of focus. That changes the model: break is derived, no longer set.',
+  D3:'<b>D3 Pills.</b> Three glass capsules under the arc: 25 min, 50 min, Custom. Custom opens the same stepper sheet as D1.'
+};
+
+function arc(p, phase, time, cap, from, to, idle) {
+  const w = 0.83, R = 132, cx = 160, cy = 150;
+  const pt = t => { const a = Math.PI*(1-t); return [cx + R*Math.cos(a), cy - R*Math.sin(a)]; };
+  const path = (a,b) => { const [x1,y1]=pt(a),[x2,y2]=pt(b); return `M${x1} ${y1} A${R} ${R} 0 0 1 ${x2} ${y2}`; };
+  let now = idle ? 0 : (phase==='work' ? p*w : w + p*(1-w));
+  if (idle && S.dur==='D2') now = w;
+  const [nx,ny] = pt(now);
+  const [bx,by] = pt(w);
+  const sun = (phase==='work') ? 'var(--accent)' : 'var(--green)';
+  let ticks = '';
+  if (idle && S.dur==='D2') for (let i=1;i<24;i++){ const t=i/24*w; const a=Math.PI*(1-t);
+    const x1=cx+(R-7)*Math.cos(a), y1=cy-(R-7)*Math.sin(a), x2=cx+(R+7)*Math.cos(a), y2=cy-(R+7)*Math.sin(a);
+    ticks += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--ter)" stroke-width="${i%6?1:2}"/>`; }
+  return `<div style="position:relative;width:320px;height:200px">
+    <svg width="320" height="175" viewBox="0 0 320 175" style="position:absolute;top:0;left:0;overflow:visible">
+      ${ticks}
+      <path d="${path(0,w)}" fill="none" stroke="var(--sep)" stroke-width="3" stroke-linecap="round"/>
+      <path d="${path(w+0.02,1)}" fill="none" stroke="var(--green)" stroke-opacity=".45" stroke-width="3" stroke-linecap="round" stroke-dasharray="${idle?'4 5':'0'}"/>
+      ${!idle && now>0.001 ? `<path d="${path(0,Math.min(now,w))}" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round"/>`:''}
+      ${!idle && now>w ? `<path d="${path(w+0.02,now)}" fill="none" stroke="var(--green)" stroke-width="3" stroke-linecap="round"/>`:''}
+      ${idle && S.dur==='D2' ? `<path d="${path(0,w)}" fill="none" stroke="var(--accent)" stroke-opacity=".35" stroke-width="3" stroke-linecap="round"/>`:''}
+      <circle cx="${bx}" cy="${by}" r="4" fill="var(--bg)" stroke="var(--green)" stroke-width="1.5"/>
+      <circle cx="${nx}" cy="${ny}" r="22" fill="${sun}" opacity=".18"/>
+      <circle cx="${nx}" cy="${ny}" r="12" fill="${sun}"/>
+    </svg>
+    <div style="position:absolute;right:-6px;top:${by-150+118}px;font-size:11px;font-weight:600;color:var(--green)">Break</div>
+    <div class="center" style="position:absolute;left:0;right:0;top:66px">
+      <div class="num count">${time}</div>${cap}</div>
+    <div style="position:absolute;left:14px;top:178px;font-size:11px;color:var(--sec)">${from}</div>
+    <div style="position:absolute;right:14px;top:178px;font-size:11px;color:var(--sec)">${to}</div>
+  </div>`;
+}
+function linear(p, phase, time, cap, from, to) {
+  return `<div class="center" style="width:100%"><div class="num count">${time}</div>${cap}<div style="height:14px"></div>
+    <div class="bar"><i style="width:${p*100}%;background:${phase==='work'?'var(--accent)':'var(--green)'}"></i></div>
+    <div class="ends"><span>${from}</span><span>${to}</span></div></div>`;
+}
+
+const F = () => S.dur==='D2' && S.drag ? 40 : 25;
+function hero(state, captionOverride) {
+  const f = state==='idle' && S.drag ? 40 : 25, b = f/5;
+  const idleCap = S.dur==='D1' ? `<div class="durcap">${f} min · ${b} break ⌄</div>`
+               : S.dur==='D2' ? `<div class="phase">${S.drag ? `<span style="color:var(--accentInk);font-weight:600">${f} min</span> · ${b} break` : 'Drag the sun to set time'}</div>`
+               : `<div class="phase">Deep work</div>`;
+  const T = { idle:{p:0, t:`${f}:00`, cap: (S.lay==='P3' ? idleCap : idleCap), ph:'work'},
+              run:{p:0.28, t:'18:02', cap: S.lay==='P3' ? '<div class="phase">Deep work</div>' : '<div class="intent">Write chapter 3</div>', ph:'work'},
+              brk:{p:0.35, t:'03:14', cap:'<div class="phase" style="color:var(--green)">Break</div>', ph:'rest'} }[state];
+  const from = state==='idle' ? 'now' : '14:05', to = state==='idle' ? `+${f+b} min` : '14:35';
+  if (S.ax==='ax') return linear(T.p, T.ph, T.t, T.cap, from, to);
+  return arc(T.p, T.ph, T.t, T.cap, from, to, state==='idle');
+}
+function pills(state) {
+  if (state!=='idle' || S.dur!=='D3') return '';
+  return `<div class="btns" style="margin-top:14px;flex-direction:row;flex-wrap:wrap"><span class="pill on">25 min</span><span class="pill">50 min</span><span class="pill">Custom</span></div>`;
+}
+function buttons(state) {
+  return state==='idle' ? `<div class="btns"><div class="btn p">▶ Start</div></div>`
+    : state==='run' ? `<div class="btns"><div class="btn s">End</div><div class="btn p">❚❚ Pause</div><div class="btn s">Skip</div></div>`
+    : `<div class="btns"><div class="btn p">❚❚ Pause</div><div class="btn s">Skip to work</div></div>`;
+}
+const doneLine = `<div class="done"><span class="ok">✓</span><span>Session done · 25 min</span><a>Reflect ›</a></div>`;
+
+function screen(state, overlay='') {
+  let inner = '';
+  if (S.lay==='P1') {
+    inner = `<div class="grow"></div>
+      ${state==='brk' ? doneLine+'<div style="height:14px"></div>' : ''}
+      <div class="center">${hero(state)}${pills(state)}</div>
+      <div style="height:20px"></div>${buttons(state)}
+      ${state==='idle' ? `<div style="height:26px"></div><div class="field">What are you working on?</div><div class="reuse">↺ Write chapter 3</div>` : ''}
+      <div class="grow"></div>
+      <div class="links">${state==='idle' ? `<a>Notify me when a session ends</a><br>` : ''}Last session · 25 min · ${state==='brk'?'just now':'11:40'} ›${state==='idle' ? `<br><a>Silence distractions</a>` : ''}</div>
+      <div style="height:14px"></div>`;
+  } else if (S.lay==='P2') {
+    inner = `<div style="height:8px"></div>
+      ${state==='brk' ? doneLine+'<div style="height:10px"></div>' : ''}
+      <div class="center">${hero(state)}${pills(state)}</div>
+      <div style="height:16px"></div>${buttons(state)}<div style="height:24px"></div>
+      <div class="pl">
+        ${state==='idle' ? `<div class="pr"><span class="sym">◎</span><span style="color:var(--ter)">What are you working on?</span></div>
+          <div class="pr"><span class="sym">↺</span><span style="color:var(--accentInk)">Write chapter 3</span></div>` : ''}
+        <div class="pr"><span class="sym">⏱</span>Last session<span class="v">25 min · ${state==='brk'?'just now':'11:40'} <span class="chev">›</span></span></div>
+        ${state==='idle' ? `<div class="pr"><span class="sym">🔔</span><span style="color:var(--accentInk)">Notify me when a session ends</span></div>
+          <div class="pr"><span class="sym">☾</span>Silence distractions<span class="v chev">›</span></div>` : ''}
+      </div><div style="height:16px"></div>`;
+  } else {
+    const title = state==='idle' ? `<div class="serifTitle ph">What are you working on?</div><div class="reuse">↺ Write chapter 3</div>`
+                                 : `<div class="serifTitle">Write chapter 3</div>`;
+    inner = `<div style="height:18px"></div>${title}<div style="height:26px"></div>
+      <div class="center">${hero(state)}${pills(state)}</div>
+      ${state==='brk' ? '<div style="height:10px"></div>'+doneLine : ''}
+      <div style="height:10px"></div>
+      <div class="links">Last session · 25 min · ${state==='brk'?'just now':'11:40'} ›${state==='idle' ? ` · <a>Notify me</a> · <a>Silence distractions</a>` : ''}</div>
+      <div class="grow"></div>${buttons(state)}<div style="height:14px"></div>`;
+  }
+  return `<div class="phone"><div class="status"><span>14:12</span><span>●●● ▮</span></div><div class="nav">Focus</div>
+    <div class="body">${inner}</div>${tabbar('Focus')}${overlay}</div>`;
+}
+function tabbar(sel) {
+  const t = [['☀','Today'],['↗','Paths'],['⏱','Focus'],['✎','Journal'],['▮▮','Progress']];
+  return `<div class="tabbar">${t.map(([i,n])=>`<div class="${n===sel?'on':''}"><span>${i}</span>${n}</div>`).join('')}</div>`;
+}
+const stepperSheet = `<div class="sheetdim"></div><div class="sheet"><div class="grab"></div>
+  <div class="sheetnav"><span class="x" style="font-weight:400">Cancel</span><span>Custom</span><span class="x">Done</span></div>
+  <div class="stepper"><span>Focus</span><span class="ctl"><span class="b">−</span><span class="num" style="font-size:20px;min-width:64px;text-align:center">30 min</span><span class="b">+</span></span></div>
+  <div class="stepper"><span>Break</span><span class="ctl"><span class="b">−</span><span class="num" style="font-size:20px;min-width:64px;text-align:center">5 min</span><span class="b">+</span></span></div>
+  <div class="hint">Steps of 5 minutes for focus, 1 minute for break. Hold to repeat.</div></div>`;
+
+function interaction() {
+  if (S.dur==='D1') {
+    const top = S.lay==='P1' ? 400 : S.lay==='P2' ? 300 : 360;
+    return [['<b>Caption tapped.</b> A native pull-down anchored to the caption. Custom… opens the stepper sheet (next phone).',
+      screen('idle', `<div class="menu" style="top:${top}px"><div><span class="ck">✓</span>Classic · 25 / 5</div><div><span class="ck"></span>Long · 50 / 10</div><div><span class="ck"></span>Custom… · 30 / 5</div></div>`)],
+      ['<b>Custom sheet.</b> Two steppers, no wheels. Done applies.', screen('idle', stepperSheet)]];
+  }
+  if (S.dur==='D2') { S.drag = true; const h = screen('idle'); S.drag = false;
+    return [['<b>Dragging the sun.</b> Ticks show while dragging, and the numerals and caption follow the finger (40 min, 8 break). Release keeps the value for next time.', h]]; }
+  return [['<b>Custom pill tapped.</b> The same stepper sheet as D1.', screen('idle', stepperSheet)]];
+}
+function accessoryPhone() {
+  return `<div class="phone"><div class="status"><span>14:12</span><span>●●● ▮</span></div><div class="nav large">Today</div>
+    <div class="body" style="top:102px"><div class="ghost" style="height:170px"></div><div class="ghost"></div><div class="ghost"></div></div>
+    <div class="acc"><span style="color:var(--accent)">⏱</span><span class="num" style="font-weight:600">18:02</span><span class="i">Write chapter 3</span><span class="pb">❚❚</span></div>
+    ${tabbar('Today')}</div>`;
+}
+
+function render() {
+  document.body.classList.toggle('light', S.scheme==='light');
+  document.body.classList.toggle('ax', S.ax==='ax');
+  document.querySelectorAll('.switch button').forEach(b => {
+    const k=b.dataset.k, v=b.dataset.v;
+    b.classList.toggle('on', k==='scheme' ? S.scheme==='light' : k==='ax' ? S.ax==='ax' : S[k]===v);
+  });
+  document.getElementById('intro').innerHTML = `${LAY[S.lay]}<br>${DUR[S.dur]}<br>The arc takes Today's style: a thin <code>separator</code> track, the elapsed part in <code>accent</code>, a sun disc at now, a green break tail (dashed while idle), and clock times at the ends. There are no cards anywhere. At AX3 it becomes the numeral plus a linear bar, per §13.7. The bottom accessory (Q12) is kept.`;
+  const cols = [
+    ['<b>Idle.</b>', screen('idle')],
+    ['<b>Running, work.</b>', screen('run')],
+    ['<b>Break.</b> Reflect opens the close sheet.', screen('brk')],
+    ...interaction(),
+    ['<b>Another tab while running.</b> Bottom accessory.', accessoryPhone()],
+  ];
+  document.getElementById('stage').innerHTML = cols.map(([c,h])=>`<div class="col"><div class="cap">${c}</div>${h}</div>`).join('');
+  history.replaceState(null,'','?'+new URLSearchParams({lay:S.lay,dur:S.dur,scheme:S.scheme,ax:S.ax}).toString());
+}
+document.querySelectorAll('.switch button').forEach(b => b.onclick = () => {
+  const k=b.dataset.k, v=b.dataset.v;
+  if (k==='scheme') S.scheme = S.scheme==='light' ? 'dark' : 'light';
+  else if (k==='ax') S.ax = S.ax==='ax' ? '' : 'ax';
+  else S[k]=v;
+  render();
+});
+render();
+</script>
+</body>
+</html>
