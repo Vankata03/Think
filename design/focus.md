@@ -45,7 +45,7 @@ Two system wheels side by side, as in the Clock app's Timers tab: `Picker` with 
 
 - Work: 5 to 120 minutes in steps of 5. Break: 1 to 30 minutes in steps of 1. Each row reads "*n* min", the unit in `accentInk` for work and `success` for break.
 - Turning either wheel sets the duration at once; there is no Done. The pair 25/5 selects the classic preset and 50/10 the long one, so Siri, the Control and the Watch keep their names; every other pair is the custom preset. Presets are not named anywhere on the screen.
-- A stored custom work length that is not a multiple of 5 (possible from the old pickers) shows at the nearest step; it is rewritten only when the wheel turns.
+- A stored custom work length that is not a multiple of 5 (possible from the old pickers) initializes the wheel at the nearest step, clamped to 5–120 minutes. Start uses that displayed wheel value, never the old stored value, and saves it as the new work length before starting the session. Turning the wheel still saves the selected duration at once. The displayed and started lengths must always agree.
 - The wheel exists only while idle. The duration cannot change mid-session, so changing it can no longer end a session silently (the old sheet recorded partial effort without saying so).
 - At accessibility sizes the columns stack vertically. The wheel rows keep the system wheel's type size, as in Clock.
 
@@ -62,7 +62,7 @@ In the bottom safe-area bar, centred, `ThinkSpacing` between buttons; stacked ve
 
 While a session is running or paused and another tab is selected, the tab view shows `tabViewBottomAccessory(isEnabled:)` (section 13.2):
 
-- Content: the `focus` symbol (`accentInk`, `success` in the break), the countdown in the `countdown` design at `.subheadline` semibold with monospaced digits, the intention or "Deep work"/"Break" in `secondaryLabel` on one line, and a trailing Pause/Resume button created with its title.
+- Content: the `focus` symbol (`accentInk`, `success` in the break), the countdown in the `countdown` design at `.subheadline` semibold with monospaced digits, one line in `secondaryLabel`, and a trailing Pause/Resume button created with its title. The line reads "Break" during a break, the intention during work only while the journal is unlocked, and "Deep work" during work while locked or when there is no intention. Apply the same lock check to the accessory's accessibility label and update it as soon as the lock state changes; no private intention appears across tabs while locked.
 - Tapping anywhere else on the accessory selects the Focus tab.
 - One form only: the tab bar never minimises (section 13.2), so the inline placement never occurs.
 - `isEnabled:` needs iOS 26.1. The app targets 26.0, where an accessory cannot be hidden; on 26.0 there is no accessory. The Live Activity carries the session there.
