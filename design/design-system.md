@@ -239,7 +239,7 @@ Restated here so no brief omits it:
 
 - `card` radius: Today and Focus do not use `thinkCard()`, so the radius is still unmeasured; measure it against a system section before a future brief uses it.
 - Motion and haptics language: map fog.
-- Chrome at AX3 (section 13.7): rule 3 is locked; the Focus prototype showed the arc-to-bar switch at AX3 on 2026-09-25. Rule 2 waits for the Settings prototype's inline Appearance picker.
+- Chrome at AX3 (section 13.7): rules 2 and 3 were shown on device on 2026-09-25. The Settings prototype kept the inline Appearance choices readable at AX3; the Focus prototype switched the arc to a bar. Production bindings and localizations still need build checks.
 
 ## 13. Screen chrome
 
@@ -256,8 +256,8 @@ Every screen is a `NavigationStack` whose root is a `List` or a `Form`, except F
 | Path detail | `List` | Header section with progress, one row per step, history section. |
 | Focus | `ScrollView` stage | The exception to this section: no `List`, no card. A centred column on the plain background (intention, arc, wheel, last session) with the controls in a bottom safe-area bar ([focus.md](focus.md) section 2). |
 | Journal | `List` | Already a `List`; keeps `.searchable`. |
-| Progress | `List` | Streak card as hero section, then achievements, stats, history, weekly review. |
-| Settings | `Form` | Grouped, `.insetGrouped` by default. |
+| Progress | `List` | Streak hero, weekly review, Practice stats and chart, compact earned achievements, then two recent Focus sessions and See all. Full spec in [progress-settings.md](progress-settings.md). |
+| Settings | `Form` | Grouped, `.insetGrouped` by default; the gear on Progress pushes it. Full spec in [progress-settings.md](progress-settings.md). |
 | Pushed detail screens | `List` or `Form` | Same rule; editors keep their `TextEditor` inside a `Form`. |
 | Sheets | `NavigationStack` with `List`/`Form` | See 13.5. |
 
@@ -320,7 +320,7 @@ No screen uses a `.bottomBar` toolbar placement: it would stack a second full-wi
 2. Segmented pickers are not used in Settings. Appearance is a `Picker` with `.pickerStyle(.inline)` inside the `Form`, one row per choice, as in the system Settings app. Absorbs `SET-7`.
 3. Fixed-geometry graphics (the Focus session arc, progress rings, the weekly chart) take their size through `@ScaledMetric` with a ceiling. When `dynamicTypeSize.isAccessibilitySize` they switch to a linear form: the arc becomes the numeral over a `ProgressView(value:)` bar, the chart becomes rows. The numeral is the information; the arc is decoration and yields first. Absorbs `FOC-4`.
 
-Rule 3 was shown on device in the Focus prototype and is locked; the Settings prototype shows rule 2 before it is locked (section 12).
+Rules 2 and 3 were shown on device in the Settings and Focus prototypes and are locked as layout rules (section 12).
 
 ### 13.8 Tab bar
 
