@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Think Progress and Settings — throwaway layout study</title>
+  <style>
+    :root { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #191919; color: #f5f5f7; }
+    body.light { background: #f2f2f7; color: #171719; color-scheme: light; }
+    button { font: inherit; cursor: pointer; }
+    .study { max-width: 930px; margin: 22px auto; padding: 0 18px 24px; }
+    .study h1 { font-size: 19px; margin: 0 0 4px; }
+    .study p { font-size: 13px; color: #a2a2a9; line-height: 1.4; margin: 0 0 13px; }
+    .light .study p { color: #62626a; }
+    .controls { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+    .controls button { border: 1px solid #5b5b61; background: #2d2d30; color: inherit; border-radius: 10px; padding: 8px 11px; }
+    .light .controls button { background: #fff; border-color: #d4d4db; }
+    .controls button[aria-pressed="true"] { background: #ffd433; border-color: #ffd433; color: #000; }
+    .phone { position: relative; max-width: 402px; min-height: 760px; margin: auto; border: 1px solid #57575d; border-radius: 34px; overflow: hidden; background: #000; box-shadow: 0 18px 60px #0008; }
+    .light .phone { background: #f2f2f7; border-color: #cdced2; }
+    .status { height: 42px; display: flex; align-items: center; justify-content: space-between; padding: 0 26px; font-size: 14px; font-weight: 650; }
+    .nav { height: 42px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; }
+    .nav button { border: 0; background: none; color: inherit; min-width: 44px; min-height: 44px; font-size: 20px; }
+    .nav .back { color: #ffd433; font-size: 16px; text-align: left; padding: 0; }
+    .light .nav .back { color: #6e5c05; }
+    .scroll { height: 594px; overflow-y: auto; padding: 0 19px 24px; scrollbar-width: none; }
+    .scroll::-webkit-scrollbar { display: none; }
+    h2 { font-size: 34px; line-height: 1.1; margin: 8px 0 24px; letter-spacing: -.7px; }
+    .section { margin-bottom: 26px; }
+    .section h3 { color: #aaaab1; font-size: 14px; font-weight: 580; margin: 0 0 8px 12px; }
+    .light .section h3 { color: #666670; }
+    .surface { background: #1c1c1e; border-radius: 24px; overflow: hidden; }
+    .light .surface { background: #fff; }
+    .hero { padding: 18px; }
+    .hero-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .hero .eyebrow { color: #aaaab1; font-size: 14px; margin: 0 0 4px; }
+    .light .hero .eyebrow { color: #666670; }
+    .hero .number { font-size: 45px; font-weight: 630; letter-spacing: -2px; color: #ffd433; font-variant-numeric: tabular-nums; }
+    .light .hero .number { color: #6e5c05; }
+    .hero .unit { font-size: 17px; font-weight: 590; }
+    .hero .hint { color: #aaaab1; font-size: 14px; margin: 8px 0 0; }
+    .light .hero .hint { color: #666670; }
+    .hero .flame { font-size: 32px; color: #ffd433; }
+    .light .hero .flame { color: #b89208; }
+    .row { min-height: 54px; padding: 11px 16px; display: flex; align-items: center; gap: 12px; border: 0; border-bottom: 1px solid #3a3a3c; background: none; color: inherit; width: 100%; text-align: left; }
+    .row:last-child { border-bottom: 0; }
+    .light .row { border-bottom-color: #dcdce0; }
+    .row .symbol { color: #d2d2d7; width: 23px; font-size: 18px; text-align: center; flex: none; }
+    .light .row .symbol { color: #45454a; }
+    .row .body { flex: 1; min-width: 0; }
+    .row .name { font-size: 16px; line-height: 1.25; }
+    .row .detail { color: #aaaab1; font-size: 13px; line-height: 1.25; margin-top: 3px; }
+    .light .row .detail { color: #666670; }
+    .row .value { color: #aaaab1; font-size: 14px; font-variant-numeric: tabular-nums; }
+    .light .row .value { color: #666670; }
+    .row .chev { color: #77777c; font-size: 21px; line-height: 1; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); padding: 16px 10px; text-align: center; }
+    .stats div + div { border-left: 1px solid #3a3a3c; }
+    .light .stats div + div { border-color: #dcdce0; }
+    .stats strong { display: block; font-size: 25px; font-weight: 610; font-variant-numeric: tabular-nums; }
+    .stats span { display: block; color: #aaaab1; font-size: 12px; padding-top: 5px; }
+    .light .stats span { color: #666670; }
+    .medals { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 14px; }
+    .medal { border-radius: 16px; background: #2c2c2e; text-align: center; min-height: 96px; padding: 12px 5px; }
+    .light .medal { background: #f2f2f7; }
+    .medal .glyph { display: block; font-size: 26px; color: #ffd433; }
+    .light .medal .glyph { color: #6e5c05; }
+    .medal strong { display: block; font-size: 16px; margin-top: 3px; }
+    .medal small { color: #aaaab1; font-size: 11px; }
+    .light .medal small { color: #666670; }
+    .medal.locked { opacity: .48; }
+    .mini-medals { display: flex; gap: 9px; padding: 15px 15px 5px; }
+    .mini-medal { flex: 1; text-align: center; font-size: 12px; line-height: 1.25; }
+    .mini-medal b { display: block; font-size: 23px; color: #ffd433; margin-bottom: 5px; }
+    .light .mini-medal b { color: #6e5c05; }
+    .week { padding: 15px 16px; }
+    .week strong { font-size: 21px; }
+    .week p { color: #aaaab1; margin: 4px 0 0; font-size: 13px; }
+    .light .week p { color: #666670; }
+    .tabbar { height: 82px; display: flex; align-items: start; justify-content: space-around; gap: 3px; padding: 10px 12px 0; border-top: 1px solid #48484b; background: #202022ed; backdrop-filter: blur(16px); }
+    .light .tabbar { background: #f9f9fbef; border-color: #d6d6dc; }
+    .tabbar div { font-size: 11px; color: #a2a2a9; text-align: center; width: 20%; }
+    .tabbar .selected { color: #ffd433; }
+    .light .tabbar .selected { color: #6e5c05; }
+    .tabbar b { display: block; font-size: 20px; font-weight: 450; margin-bottom: 3px; }
+    .sheet { position: absolute; inset: 90px 8px 0; background: #1c1c1e; border-radius: 20px 20px 0 0; box-shadow: 0 -20px 50px #000a; padding: 20px 16px; overflow: auto; }
+    .light .sheet { background: #f2f2f7; }
+    .sheet .handle { width: 36px; height: 5px; background: #77777c; border-radius: 5px; margin: -9px auto 17px; }
+    .sheet .head { display: flex; justify-content: space-between; align-items: center; }
+    .sheet h2 { font-size: 24px; margin: 0 0 15px; }
+    .sheet button { border: 0; background: none; color: #ffd433; }
+    .light .sheet button { color: #6e5c05; }
+    .sheet .medals { background: #2c2c2e; border-radius: 18px; }
+    .light .sheet .medals { background: #fff; }
+    .sheet .medal { background: #1c1c1e; }
+    .light .sheet .medal { background: #f2f2f7; }
+    .setting-foot { color: #aaaab1; font-size: 12px; margin: 7px 12px 0; line-height: 1.35; }
+    .light .setting-foot { color: #666670; }
+    .study-foot { max-width: 402px; margin: 14px auto; color: #aaaab1; font-size: 12px; line-height: 1.4; }
+    .light .study-foot { color: #666670; }
+    body.large .scroll { font-size: 125%; }
+    body.large .row .name { font-size: 21px; }
+    body.large .row .detail { font-size: 17px; }
+    body.large .medals { grid-template-columns: repeat(2, 1fr); }
+    body.large .stats { grid-template-columns: 1fr; text-align: left; gap: 9px; }
+    body.large .stats div + div { border-left: 0; border-top: 1px solid #3a3a3c; padding-top: 9px; }
+    @media (max-width: 440px) { .study { margin: 10px auto; padding: 0 6px 12px; } .phone { border-radius: 0; border-left: 0; border-right: 0; } }
+  </style>
+</head>
+<body>
+  <main class="study">
+    <h1>Progress + Settings layout study</h1>
+    <p>Throwaway hierarchy mockup. Sample numbers and symbol stand-ins are illustrative. Use the controls to compare three achievement treatments, Settings, appearance, and larger text.</p>
+    <div class="controls" aria-label="Prototype controls">
+      <button data-variant="a">A · Full inline</button>
+      <button data-variant="b">B · Compact inline</button>
+      <button data-variant="c">C · Current sheet</button>
+      <button id="screen" type="button">Settings</button>
+      <button id="scheme" type="button">Light</button>
+      <button id="type" type="button">Larger text</button>
+    </div>
+    <div class="phone" id="phone"></div>
+    <p class="study-foot" id="caption"></p>
+  </main>
+  <script>
+    let variant = new URLSearchParams(location.search).get('variant') || 'a';
+    if (!['a','b','c'].includes(variant)) variant = 'a';
+    let screen = 'progress';
+    let sheet = false;
+    const row = (icon, name, detail = '', value = '', arrow = false) => `<div class="row"><span class="symbol">${icon}</span><div class="body"><div class="name">${name}</div>${detail ? `<div class="detail">${detail}</div>` : ''}</div>${value ? `<span class="value">${value}</span>` : ''}${arrow ? '<span class="chev">›</span>' : ''}</div>`;
+    const section = (title, body) => `<section class="section"><h3>${title}</h3><div class="surface">${body}</div></section>`;
+    const medal = (icon, number, label, locked = false) => `<div class="medal ${locked ? 'locked' : ''}"><span class="glyph">${icon}</span><strong>${number}</strong><small>${label}${locked ? ' · Locked' : ' · Earned'}</small></div>`;
+    const allMedals = `${medal('♕','7','Streak')}${medal('♕','21','Streak',true)}${medal('♕','100','Streak',true)}${medal('◇','1','Path')}${medal('◷','1','Focus')}${medal('◷','10','Focus',true)}${medal('◷','50','Focus',true)}${medal('◷','100','Focus',true)}`;
+    const hero = `<section class="section"><div class="surface hero"><div class="hero-top"><div><p class="eyebrow">Current streak</p><div><span class="number">7</span> <span class="unit">days</span></div></div><span class="flame">♨</span></div><p class="hint">7 days of deliberate thinking · View calendar ›</p></div></section>`;
+    const stats = section('Practice', `<div class="stats"><div><strong>18</strong><span>Practice days</span></div><div><strong>6</strong><span>Path steps</span></div><div><strong>12</strong><span>Focus sessions</span></div></div>`);
+    const week = section('Weekly review', `<div class="week"><strong>4 of 7 days</strong><p>Practised this week · Open review ›</p></div>`);
+    const focusHistoryHtml = section('Focus history', `${row('◷','25 min · Completed','Today, 9:40 AM · Write project outline')}${row('◷','13 min · Partial effort','Yesterday, 4:15 PM · Read chapter 2')}${row('◷','See all sessions','Last 365 days','',true)}`);
+    const achievementA = section('Achievements', `<div class="medals">${allMedals}</div>`);
+    const achievementB = section('Achievements', `<div class="mini-medals"><div class="mini-medal"><b>♕</b>7-day streak</div><div class="mini-medal"><b>◇</b>First path</div><div class="mini-medal"><b>◷</b>First focus</div></div>${row('♕','All achievements','3 earned · 5 still to earn','',true)}`);
+    const achievementC = section('Achievements', row('♕','3 achievements earned','Open the toolbar medal to see all'));
+    function progress() {
+      const achievements = variant === 'a' ? achievementA : variant === 'b' ? achievementB : achievementC;
+      const order = variant === 'b' ? hero + week + stats + achievements + focusHistoryHtml : hero + achievements + stats + week + focusHistoryHtml;
+      return `<div class="status"><span>9:41</span><span>▮▮▮ ▰</span></div><div class="nav"><span></span><button id="gear" aria-label="Settings" title="Settings">⚙</button>${variant === 'c' ? '<button id="medal" aria-label="Achievements" title="Achievements">♕</button>' : ''}</div><div class="scroll"><h2>Progress</h2>${order}</div>${tabs()}`;
+    }
+    function tabs() { return '<div class="tabbar"><div><b>☀</b>Today</div><div><b>⌁</b>Paths</div><div><b>◷</b>Focus</div><div><b>▤</b>Journal</div><div class="selected"><b>▥</b>Progress</div></div>'; }
+    function settings() {
+      return `<div class="status"><span>9:41</span><span>▮▮▮ ▰</span></div><div class="nav"><button class="back" id="back">‹ Progress</button><span></span></div><div class="scroll"><h2>Settings</h2>${section('Appearance', row('◐','Appearance','Dark · Auto · Light','Dark',true))}${section('Reminders',row('♧','Daily line','9:00 AM','On',true)+row('☾','Evening reflection','8:00 PM','Off',true))}${section('Focus',row('◷','Silence distractions','Guide for Focus sessions','',true)+row('♧','Session end alerts','Notifications when a phase ends','On',true))}${section('iCloud',row('☁','iCloud sync','Status: Available','',true))}<p class="setting-foot">Journal changes, including deletions, sync through your own iCloud when available.</p>${section('Privacy and lock',row('♙','Lock journal','','Off',true)+row('◉','Show intention in Live Activity','','Off',true))}${section('Data',row('⇧','Export journal','','',true)+row('⌫','Delete all data','','',true))}${section('Feedback',row('✎','Share an idea','','',true)+row('!','Report a problem','','',true)+row('☆','Rate Think','','',true))}${section('About',row('?','Help & Support','','',true)+row('ⓘ','Privacy Policy','','',true)+row('▤','Think','Version 1.3.0'))}</div>${tabs()}`;
+    }
+    function render() {
+      document.querySelectorAll('[data-variant]').forEach(b => b.setAttribute('aria-pressed', b.dataset.variant === variant));
+      const phone = document.getElementById('phone');
+      phone.innerHTML = screen === 'settings' ? settings() : progress();
+      if (screen === 'progress' && sheet) phone.innerHTML += `<div class="sheet"><div class="handle"></div><div class="head"><h2>Achievements</h2><button id="done">Done</button></div><p>Milestones stay here after you earn them.</p><div class="medals">${allMedals}</div></div>`;
+      document.getElementById('screen').textContent = screen === 'progress' ? 'Settings' : 'Progress';
+      document.getElementById('scheme').textContent = document.body.classList.contains('light') ? 'Dark' : 'Light';
+      document.getElementById('type').textContent = document.body.classList.contains('large') ? 'Standard text' : 'Larger text';
+      document.getElementById('caption').textContent = ({a:'A shows every locked and earned medal in Progress. Long, but no hidden destination.',b:'B keeps earned medals visible and opens a full list from one row. Weekly review moves above the metrics.',c:'C reproduces the toolbar sheet for comparison. It conflicts with the accepted chrome rule that achievements live in content.'})[variant];
+      document.getElementById('gear')?.addEventListener('click', () => { screen='settings'; sheet=false; render(); });
+      document.getElementById('back')?.addEventListener('click', () => { screen='progress'; render(); });
+      document.getElementById('medal')?.addEventListener('click', () => { sheet=true; render(); });
+      document.getElementById('done')?.addEventListener('click', () => { sheet=false; render(); });
+    }
+    document.querySelectorAll('[data-variant]').forEach(b => b.addEventListener('click', () => { variant=b.dataset.variant; history.replaceState({},'',`?variant=${variant}`); sheet=false; screen='progress'; render(); }));
+    document.getElementById('screen').addEventListener('click', () => { screen=screen==='progress'?'settings':'progress'; sheet=false; render(); });
+    document.getElementById('scheme').addEventListener('click', () => { document.body.classList.toggle('light'); render(); });
+    document.getElementById('type').addEventListener('click', () => { document.body.classList.toggle('large'); render(); });
+    render();
+  </script>
+</body>
+</html>
