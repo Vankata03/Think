@@ -12,7 +12,7 @@ Scope: the iOS app. Widgets and the Live Activity inherit the tokens; [widgets.m
 2. **Dark is the reference.** Dark is the shipped default appearance and the scheme mockups are drawn in first. Light is first-class: every token carries both values and every brief passes the acceptance floor in both. Onboarding offers Auto and Light so the choice is visible once.
 3. **Yellow means "do this now" or "evidence of practice".** One primary action per screen, the streak, progress rings, achievements. Everything else uses system label colours; bars stay monochrome.
 4. **Text styles, never point sizes.** Every text role is a Dynamic Type text style. Numeric layout values that sit next to text go through `@ScaledMetric`. The timer countdown is the single fixed-origin size, and it scales too.
-5. **Lists by default.** Screens are `List` or `Form` with `.insetGrouped`; that gives the tab-bar inset, section radius, scroll-edge effect and accessibility layout for free. A custom card appears only for hero content (the daily line on Today, the Focus timer) and uses the one card modifier so it matches the sections beside it.
+5. **Lists by default.** Screens are `List` or `Form` with `.insetGrouped`; that gives the tab-bar inset, section radius, scroll-edge effect and accessibility layout for free. A custom card appears only for hero content (the Focus timer) and uses the one card modifier so it matches the sections beside it.
 
 ## 2. Colour
 
@@ -31,7 +31,7 @@ Scope: the iOS app. Widgets and the Live Activity inherit the tokens; [widgets.m
 | `success` | `.green` | `.green` | Done states (move completed, step confirmed) and the Focus break phase in the timer and Live Activity: rest reads as the same green because a break is the earned outcome of a work interval. Widgets.md section 2 relies on this; no separate break token exists. |
 | `destructive` | `.red` | `.red` | Delete and reset actions; via `Button(role: .destructive)`, not a colour literal. |
 
-The `accent` values are provisional. They are locked after the Today prototype runs on a device in both schemes; the brief that changes them updates this table.
+The `accent` values were confirmed on device by the Today prototype ([today.md](today.md)) in both schemes: dark `#FFD433`, light `#F2C41C` as a fill with black ink. Light must use the fill, not the ink, on graphics such as the day arc.
 
 Removed by this document: the hand-rolled `accessibleAccent(for:)` and `prominentButtonForeground(for:)` in `Think/Views/ViewStyle.swift`, the literal `Color(red: 1.0, green: 0.83, blue: 0.20)` and `Color(red: 0.43, green: 0.36, blue: 0.02)` scattered through the views, and the orange streak flame. `Think/Assets.xcassets/AccentColor` takes the `accent` values (light `#F2C41C`, dark `#FFD433`) and stays the app's global tint; the token colour sets themselves live in `ThinkShared/Design/ThinkColors.xcassets` (`ThinkAccent`, `ThinkAccentInk`) so the widget extension, which compiles no other catalog, can read them (section 10).
 
@@ -52,8 +52,9 @@ System fonts only. The serif is the system serif (New York) through `.fontDesign
 
 | Role | Text style | Design | Weight | Where |
 | --- | --- | --- | --- | --- |
-| `lineLarge` | `.largeTitle` | serif | regular | The daily line on Today's hero card. |
-| `line` | `.title2` | serif | regular | The daily line everywhere else: practice detail, Saved lines rows, share sheet preview. |
+| `lineLarge` | `.title` | serif | regular | The daily line on Today. Was `.largeTitle`; on device the larger size plus the day arc pushed the next act below the fold ([today.md](today.md) section 8). |
+| `line` | `.title2` | serif | regular | The daily line everywhere else: Saved lines rows, share sheet preview. |
+| `question` | `.title3` | serif | regular | The question of the day in Today's next-act panel and its answer detail. |
 | `lesson` | `.body` | serif | regular | Path step lesson text, `lineSpacing(4)` scaled. |
 | `title` | `.largeTitle` | system | bold | Screen titles, supplied by the navigation bar. Never set by hand in content. |
 | `heading` | `.headline` | system | semibold | Section headers inside custom cards; `List` section headers use the system style (title-case text). |
@@ -96,7 +97,7 @@ Rules:
 | Token | Value | Use |
 | --- | --- | --- |
 | `section` | system | `List` and `Form` sections keep the iOS 26 radius. Not set by hand. |
-| `card` | 26, continuous | The hero card modifier. Provisional: measured against a real iOS 26 section in the Today prototype and adjusted so both read as one radius. |
+| `card` | 26, continuous | The hero card modifier. Provisional: measured against a real iOS 26 section in the Focus prototype and adjusted so both read as one radius. |
 | `nested` | concentric | Anything inside a card or section that has its own corners uses `ConcentricRectangle` (or `.rect(corners: .concentric)`) with `card` as the fallback so inner radii derive from the container. |
 | `control` | system | Buttons, chips and text fields keep their system shapes. No custom capsules. |
 
@@ -108,7 +109,7 @@ A section that used to be a custom card becomes a `Section` with a title-case he
 
 | Role | Style | Rule |
 | --- | --- | --- |
-| `primary` | `.buttonStyle(.glassProminent)` tinted `accent`, label `accentOnFill` | At most one per screen. Three homes, decided by the test in section 13.6: floating bottom-trailing (`.safeAreaBar`) for creating something new from a list screen, the hero card when the action is the screen's reason to exist (Today's move, Focus start), the trailing toolbar otherwise. |
+| `primary` | `.buttonStyle(.glassProminent)` tinted `accent`, label `accentOnFill` | At most one per screen. Three homes, decided by the test in section 13.6: floating bottom-trailing (`.safeAreaBar`) for creating something new from a list screen, the hero when the action is the screen's reason to exist (Today's next-act panel, Focus start), the trailing toolbar otherwise. |
 | `secondary` | `.buttonStyle(.bordered)` | Everything that is an action but not the primary one. |
 | `tertiary` | `.buttonStyle(.plain)`, text in `accentInk` | Inline links and "See all" rows. |
 | `destructive` | `.buttonStyle(.bordered)` with `role: .destructive` | Delete entry, reset streak, delete all data. Confirmed through a `confirmationDialog`. |
@@ -132,9 +133,10 @@ One SF Symbol per concept. Outline variant in toolbars, lists and content; the t
 | Meaningful practice | `practice` | `sparkle` | Activity log rows, weekly review counts. |
 | Journal | `journal` | `book.closed` | Journal tab, entry rows. |
 | Mood | `mood` | `face.smiling` | Mood picker and entry detail. |
-| Saved line | `savedLine` | `bookmark` | Replaces `heart`. Save action on Today's card, toolbar item that opens Saved lines. `bookmark.fill` when saved. |
+| Saved line | `savedLine` | `bookmark` | Replaces `heart`. Save action beside Today's daily line, toolbar item that opens Saved lines. `bookmark.fill` when saved. |
 | Achievement | `achievement` | `medal` | Progress section; custom medal art stays for the medals themselves. |
-| Retro | `retro` | `moon.stars` | Evening retro card and entry rows. |
+| Retro | `retro` | `moon.stars` | Evening retro panel, arc marker and entry rows. |
+| Today | `today` | `sun.max` | The Today tab. The sun on the day arc is a drawn disc, not a symbol. |
 | Weekly review | `weeklyReview` | `calendar.badge.checkmark` | Progress card and reflection rows. |
 | Settings | `settings` | `gearshape` | Gear toolbar item on Progress. |
 | iCloud | `icloud` | `icloud` | Settings row and sync status. |
@@ -191,7 +193,7 @@ Lines and actions per screen (briefs may tune wording, not shape):
 | Journal gate | Locked | Your journal is locked. | Unlock |
 | Journal entry or retro | Unavailable | Entry not found. | Close |
 | Journal storage | Unavailable | Could not load your journal. | Try again |
-| Saved lines | Empty | Lines you keep appear here. | Go to Today |
+| Saved lines | Empty | Lines you keep appear here. | none (pushed from Today; back is the action) |
 | Focus history (Progress) | Empty | No focus sessions yet. | Start a session |
 | Focus "Last session" row | Empty | No focus sessions yet. | none |
 | Today streak, lapsed | Begin-again | Begin again. | none |
@@ -199,7 +201,6 @@ Lines and actions per screen (briefs may tune wording, not shape):
 | Path detail, completed | Begin-again | Path completed. | Begin again |
 | Path detail, locked | Locked | Finish <previous path> first. | Open <previous path> |
 | Achievements, unearned | Locked | unlock condition | none |
-| Practice detail | Unavailable | Practice unavailable. | Close |
 
 Widgets and the Live Activity take their placeholder and empty treatment from [widgets.md](widgets.md) section 7; onboarding has no state views.
 
@@ -236,7 +237,7 @@ Restated here so no brief omits it:
 
 ## 12. Open
 
-- `accent` values and `card` radius: lock after the Today prototype on device.
+- `card` radius: Today uses `List` sections and no `thinkCard()`, so the radius is still unmeasured; lock in the Focus prototype.
 - Motion and haptics language: map fog.
 - Chrome at AX3 (section 13.7): the Focus prototype shows the ring-to-bar switch and the Settings prototype the inline Appearance picker before the rules are locked.
 
@@ -250,10 +251,9 @@ Every screen is a `NavigationStack` whose root is a `List` or a `Form`. No tab r
 
 | Screen | Container | Notes |
 | --- | --- | --- |
-| Today | `List` | Hero section: the daily line in `thinkCard()`. Then sections for the question, the move, the evening retro, the activity log. |
+| Today | `List` | Clear rows for the day arc and the daily line, then one `surface` section for the next act and one for the other acts. No `thinkCard()`, no activity log. Full spec in [today.md](today.md). |
 | Paths | `List` | One row per path; "In development" as its own section. |
 | Path detail | `List` | Header section with progress, one row per step, history section. |
-| Practice detail | `List` | Sections decided in the practice-detail prototype. |
 | Focus | `List` | Hero section: the timer in `thinkCard()`, with the start button inside it. Presets, intention and "Last session" as rows. |
 | Journal | `List` | Already a `List`; keeps `.searchable`. |
 | Progress | `List` | Streak card as hero section, then achievements, stats, history, weekly review. |
@@ -294,7 +294,7 @@ Where the elements that lived in that chrome land:
 | Every pushed screen | Inline. |
 | Every sheet | Inline. |
 
-Path detail is titled with the path name, practice detail with the practice title, both inline. A long `de` or `bg` name truncates in the bar and appears in full as the first content row, so nothing is lost to truncation. Content always scrolls under the bar behind the scroll-edge effect; nothing is pinned above the bar and nothing pads the top to avoid it.
+Path detail is titled with the path name, inline. A long `de` or `bg` name truncates in the bar and appears in full as the first content row, so nothing is lost to truncation. Content always scrolls under the bar behind the scroll-edge effect; nothing is pinned above the bar and nothing pads the top to avoid it.
 
 ### 13.5 Back navigation and sheets
 
@@ -308,7 +308,7 @@ Path detail is titled with the path name, practice detail with the practice titl
 The primary action has three legal homes. The test, in order:
 
 1. **Floating bottom-trailing** when the action creates something new from a list screen. Built with `.safeAreaBar(edge: .bottom, alignment: .trailing)` holding one `.glassProminent` button, created as `Button("New note", systemImage: ThinkSymbol.add)` with `.labelStyle(.iconOnly)` so the accessibility label comes from the title. The bar floats above the tab bar, extends the scroll-edge effect and insets the list by itself. It coexists with the Focus accessory (13.2): the accessory rides in the tab-bar area, the bar sits above it. Today only Journal's new-note action qualifies; Saved lines, Paths and Progress create nothing.
-2. **Inside the hero card** when the action is the screen's reason to exist: Today's move, Focus start.
+2. **Inside the hero** when the action is the screen's reason to exist: Today's next act (question, move or retro, one panel), Focus start.
 3. **Trailing toolbar** otherwise: Share on share sheets, Done on editors, Confirm step on path detail (with a row button at the end of the lesson as well).
 
 No screen uses a `.bottomBar` toolbar placement: it would stack a second full-width glass bar over the tab bar. `.overlay(alignment: .bottomTrailing)` with padding is the pattern the bug inventory retires and is not used.
@@ -325,3 +325,16 @@ The Focus and Settings prototypes show rules 2 and 3 on device before they are l
 
 - Five tabs, symbols in section 7. Selected tab tinted `accentInk` through `.tint` on the `TabView`; unselected items are system label colour. This and the streak item are the two identity marks a bar may carry.
 - No search tab, no badges, no hidden or disabled tabs.
+
+## 14. Day arc
+
+Resolves the graphic decision of [Today: above the fold and glance readability](https://github.com/Vankata03/Think/issues/73). One component, `DayArcView(hour:states:)` in `ThinkShared/Design`, drawn only on Today for now.
+
+- A half circle from 06:00 to 22:00: `separator` track, `accent` elapsed stroke, an `accent` sun at the current hour, three markers for the ritual acts (question 08:00, move 14:00, retro 20:00) in `success` / `accent` / dashed `secondaryLabel` for done / next / later, captions in the marker's colour outside the curve, the weekday, count and time in the centre.
+- Motion animates the hour fraction along the curve, never the point; Reduce Motion cuts.
+- At accessibility sizes the arc becomes "*n* of 3" over a `ProgressView` bar (13.7).
+- Sizes, offsets and the accessibility label are in [today.md](today.md) section 3. Widgets may adopt it later through [widgets.md](widgets.md); no other screen draws it.
+
+## 15. Removed screens
+
+Practice detail is out of the app (owner, 2026-09-16, [today.md](today.md) section 5): the line, Saved lines and the answer detail carry no door to it, and `PracticeDetailView` is deleted in the Today build together with `TodayView` and `FavoritesView`. Every brief lists the views its build deletes; nothing stays behind a flag.
