@@ -52,7 +52,8 @@ System fonts only. The serif is the system serif (New York) through `.fontDesign
 | Role | Text style | Design | Weight | Where |
 | --- | --- | --- | --- | --- |
 | `lineLarge` | `.title` | serif | regular | The daily line on Today. Was `.largeTitle`; on device the larger size plus the day arc pushed the next act below the fold ([today.md](today.md) section 8). |
-| `line` | `.title2` | serif | regular | The daily line everywhere else: Saved lines rows, share sheet preview. Also the question of the day inside Today's next-act panel, at `.title3`. |
+| `line` | `.title2` | serif | regular | The daily line everywhere else: Saved lines rows, share sheet preview. |
+| `question` | `.title3` | serif | regular | The question of the day in Today's next-act panel and its answer detail. |
 | `lesson` | `.body` | serif | regular | Path step lesson text, `lineSpacing(4)` scaled. |
 | `title` | `.largeTitle` | system | bold | Screen titles, supplied by the navigation bar. Never set by hand in content. |
 | `heading` | `.headline` | system | semibold | Section headers inside custom cards; `List` section headers use the system style (title-case text). |
@@ -95,7 +96,7 @@ Rules:
 | Token | Value | Use |
 | --- | --- | --- |
 | `section` | system | `List` and `Form` sections keep the iOS 26 radius. Not set by hand. |
-| `card` | 26, continuous | The hero card modifier. Provisional: measured against a real iOS 26 section in the Today prototype and adjusted so both read as one radius. |
+| `card` | 26, continuous | The hero card modifier. Provisional: measured against a real iOS 26 section in the Focus prototype and adjusted so both read as one radius. |
 | `nested` | concentric | Anything inside a card or section that has its own corners uses `ConcentricRectangle` (or `.rect(corners: .concentric)`) with `card` as the fallback so inner radii derive from the container. |
 | `control` | system | Buttons, chips and text fields keep their system shapes. No custom capsules. |
 
@@ -107,7 +108,7 @@ A section that used to be a custom card becomes a `Section` with a title-case he
 
 | Role | Style | Rule |
 | --- | --- | --- |
-| `primary` | `.buttonStyle(.glassProminent)` tinted `accent`, label `accentOnFill` | At most one per screen. Three homes, decided by the test in section 13.6: floating bottom-trailing (`.safeAreaBar`) for creating something new from a list screen, the hero card when the action is the screen's reason to exist (Today's move, Focus start), the trailing toolbar otherwise. |
+| `primary` | `.buttonStyle(.glassProminent)` tinted `accent`, label `accentOnFill` | At most one per screen. Three homes, decided by the test in section 13.6: floating bottom-trailing (`.safeAreaBar`) for creating something new from a list screen, the hero when the action is the screen's reason to exist (Today's next-act panel, Focus start), the trailing toolbar otherwise. |
 | `secondary` | `.buttonStyle(.bordered)` | Everything that is an action but not the primary one. |
 | `tertiary` | `.buttonStyle(.plain)`, text in `accentInk` | Inline links and "See all" rows. |
 | `destructive` | `.buttonStyle(.bordered)` with `role: .destructive` | Delete entry, reset streak, delete all data. Confirmed through a `confirmationDialog`. |
@@ -131,7 +132,7 @@ One SF Symbol per concept. Outline variant in toolbars, lists and content; the t
 | Meaningful practice | `practice` | `sparkle` | Activity log rows, weekly review counts. |
 | Journal | `journal` | `book.closed` | Journal tab, entry rows. |
 | Mood | `mood` | `face.smiling` | Mood picker and entry detail. |
-| Saved line | `savedLine` | `bookmark` | Replaces `heart`. Save action on Today's card, toolbar item that opens Saved lines. `bookmark.fill` when saved. |
+| Saved line | `savedLine` | `bookmark` | Replaces `heart`. Save action beside Today's daily line, toolbar item that opens Saved lines. `bookmark.fill` when saved. |
 | Achievement | `achievement` | `medal` | Progress section; custom medal art stays for the medals themselves. |
 | Retro | `retro` | `moon.stars` | Evening retro panel, arc marker and entry rows. |
 | Today | `today` | `sun.max` | The Today tab. The sun on the day arc is a drawn disc, not a symbol. |
@@ -329,7 +330,7 @@ The Focus and Settings prototypes show rules 2 and 3 on device before they are l
 
 Resolves the graphic decision of [Today: above the fold and glance readability](https://github.com/Vankata03/Think/issues/73). One component, `DayArcView(hour:states:)` in `ThinkShared/Design`, drawn only on Today for now.
 
-- A half circle from 06:00 to 22:00: `separator` track, `accent` elapsed stroke, an `accent` sun at the current hour, three markers for the ritual acts (question 08:00, move 14:00, retro 19:00) in `success` / `accent` / dashed `secondaryLabel` for done / next / later, captions in the marker's colour outside the curve, the weekday, count and time in the centre.
+- A half circle from 06:00 to 22:00: `separator` track, `accent` elapsed stroke, an `accent` sun at the current hour, three markers for the ritual acts (question 08:00, move 14:00, retro 20:00) in `success` / `accent` / dashed `secondaryLabel` for done / next / later, captions in the marker's colour outside the curve, the weekday, count and time in the centre.
 - Motion animates the hour fraction along the curve, never the point; Reduce Motion cuts.
 - At accessibility sizes the arc becomes "*n* of 3" over a `ProgressView` bar (13.7).
 - Sizes, offsets and the accessibility label are in [today.md](today.md) section 3. Widgets may adopt it later through [widgets.md](widgets.md); no other screen draws it.

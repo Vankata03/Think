@@ -6,7 +6,7 @@ This brief inherits [design-system.md](design-system.md): tokens (section 2), ty
 
 ## 1. What Today is
 
-Today walks the person through the **ritual**: the three acts of a practice, in order: answer the question, do the move, write the retro. The screen shows the day as time, the daily line, and one act at a time. Everything else the old screen carried (date header, carried intention as a header, activity log with six kinds, stats tiles, Journal shortcut, Find a practice) is gone; the IA decision and the glossary (`CONTEXT.md`: Ritual, Day rail) name what replaces it.
+Today walks the person through the **ritual**: the three acts of a practice, in order: answer the question, do the move, write the retro. The screen shows the day as time, the daily line, and one act at a time. Everything else the old screen carried (date header, carried intention as a header, activity log with six kinds, stats tiles, Journal shortcut, Find a practice) is gone; the IA decision and the glossary (`CONTEXT.md`: Ritual, Day arc) name what replaces it.
 
 ## 2. Structure
 
@@ -15,8 +15,8 @@ Today walks the person through the **ritual**: the three acts of a practice, in 
 | Row | Content | Background |
 | --- | --- | --- |
 | Day arc | The day as a half circle, 06:00 to 22:00 (section 3 below). | clear |
-| Daily line | The line in `line` role (`.title`, serif), then a row with the attribution as plain text on the left and two icon-only buttons on the right: save (`bookmark` / `bookmark.fill`) and share. No link anywhere on the line. | clear |
-| Next act | One panel (`surface` section) for the act that is next: caption `Next · <act>` in `accentInk` with the act's symbol, the text (question in `line`-style serif at `.title3`; move and retro in `body`), and the screen's one `primary` button: "Write answer", "Done", "Begin retro". When every act is done the panel becomes one row: green check, "Practice complete", "Day *n* of your streak." | `surface` |
+| Daily line | The line in `lineLarge` role (`.title`, serif), then a row with the attribution as plain text on the left and two icon-only buttons on the right: save (`bookmark` / `bookmark.fill`) and share. No link anywhere on the line. | clear |
+| Next act | One panel (`surface` section) for the act that is next: caption `Next · <act>` in `accentInk` with the act's symbol, the text (question in `question` role, `.title3` serif; move and retro in `body`), and the screen's one `primary` button: "Write answer", "Done", "Begin retro". When every act is done the panel becomes one row: green check, "Practice complete", "Day *n* of your streak." | `surface` |
 | Acts done or later | One section, one row per remaining act in ritual order. Done: green `checkmark.circle.fill`, "Question answered" / "Move done" / "Retro written". Later: the act's symbol in `secondaryLabel`, "Today's move · after the question" / "Evening retro · 20:00". | `surface` |
 
 The retro act appears at 20:00 (owner, Q6 (b)); before that it exists only as the dashed marker on the arc and the later row. Nothing else appears or disappears during the day; the panel's content rotates.
@@ -29,7 +29,7 @@ The one graphic on the screen. A half circle whose diameter is the content width
 
 - Track: `separator`, 3pt, round caps. Elapsed: `accent`, same stroke, from 06:00 to now. Before 06:00 the elapsed arc is empty; after 22:00 it is full.
 - Sun: 18pt `accent` disc with a 30pt `accent` at 25% halo, at the current hour. Drawn under the markers.
-- Markers at 08:00 (question), 14:00 (move) and 19:00 (retro): 28pt discs. Done: `success` fill, black check. Next: `accent` fill, the act's symbol in `accentOnFill`. Later: `background` fill, 1.5pt dashed `secondaryLabel` ring, symbol in `secondaryLabel`.
+- Markers at 08:00 (question), 14:00 (move) and 20:00 (retro, the hour the retro act opens), symmetric about the top of the arc: 28pt discs. Done: `success` fill, black check. Next: `accent` fill, the act's symbol in `accentOnFill`. Later: `background` fill, 1.5pt dashed `secondaryLabel` ring, symbol in `secondaryLabel`.
 - Captions: `caption2` semibold, in the marker's colour (`success`, `accentInk`, `secondaryLabel`), outside the curve: above and 16pt left of the question marker, above the move marker, above and 16pt right of the retro marker. Captions never cross the arc.
 - Centre: "<Weekday> · *n* of 3" in `footnote` semibold `secondaryLabel`, and the time in `numeral` (`.title` rounded bold, monospaced digits). "06:00" and "22:00" in `caption2` under the arc ends, in the device's clock format.
 - Motion: the elapsed arc and the sun move along the curve (the animatable value is the hour fraction, never the point), 0.8s ease-in-out on an hour change; a marker's state change uses `ThinkMotion.stateAnimation`. Reduce Motion: no animation.
@@ -38,7 +38,7 @@ The one graphic on the screen. A half circle whose diameter is the content width
 
 ## 4. Behaviour
 
-- **One answer a day.** "Write answer" opens the editor for a new answer; once one exists, the done row opens a read-only detail (question in serif, the answer, "Written <time>", Edit in the trailing slot) and Edit opens the same editor on that record. The newest edit is the answer. There is no version list on Today or in its detail; how iCloud conflicts collapse to one record is the Journal brief's decision, under the assumption "latest edit wins".
+- **One answer a day.** "Write answer" opens the editor for a new answer; once one exists, the done row opens a read-only detail (question in serif, the answer, "Written <time>", Edit in the trailing slot) and Edit opens the same editor on that record. Edit changes that record in place. When two devices write the day's answer offline, both records survive the sync: Today shows the primary that `JournalIdentity.select` picks (earliest `date`, then smallest record ID, the same on every device), and the others stay as conflict variants in the Journal entry (`JournalDayVariantsView`). There is no version list on Today or in its detail; whether the selection should change (for example to latest edit) is the Journal brief's decision.
 - **Move.** "Done" marks the move and moves the panel on. The done row is static: no chevron, no tap. A trailing swipe reveals "Undo" for a mistaken tap; the reversal stays possible without being advertised.
 - **Retro.** "Begin retro" opens the retro sheet; the done row opens the retro detail (three prompts, three answers, time, Edit).
 - **Locked journal.** Writing needs no unlock. Opening an answer or retro asks Face ID first; the row text never shows journal content.
@@ -82,4 +82,5 @@ Section 11 applies. Specific to Today:
 ## 8. Open for the build
 
 - The sun overlaps a marker when the hour is within about 20 minutes of it (seen at 08:30 against the question at 08:00). Either shift the question marker to 07:30, or hide the sun's halo within 20pt of a marker. Decide in the build ticket after both are tried.
-- `line` role on Today is `.title`, not `.largeTitle` as section 3.1 said; the doc is updated. `.largeTitle` plus the arc pushed the panel below the fold on device.
+- The retro marker sits at 20:00, when the retro act opens; the prototype drew it near 19:00, before the act was available. Check that the right-hand caption ("Rückblick", "Ретро") still clears the arc end at the default size.
+- `lineLarge` is `.title`, not `.largeTitle` as design-system section 3.1 said; that table is updated. `.largeTitle` plus the arc pushed the panel below the fold on device.
