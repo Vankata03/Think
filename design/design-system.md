@@ -12,7 +12,7 @@ Scope: the iOS app. Widgets and the Live Activity inherit the tokens; [widgets.m
 2. **Dark is the reference.** Dark is the shipped default appearance and the scheme mockups are drawn in first. Light is first-class: every token carries both values and every brief passes the acceptance floor in both. Onboarding offers Auto and Light so the choice is visible once.
 3. **Yellow means "do this now" or "evidence of practice".** One primary action per screen, the streak, progress rings, achievements. Everything else uses system label colours; bars stay monochrome.
 4. **Text styles, never point sizes.** Every text role is a Dynamic Type text style. Numeric layout values that sit next to text go through `@ScaledMetric`. The timer countdown is the single fixed-origin size, and it scales too.
-5. **Lists by default.** Screens are `List` or `Form` with `.insetGrouped`; that gives the tab-bar inset, section radius, scroll-edge effect and accessibility layout for free. A custom card appears only for hero content (the daily line on Today, the Focus timer) and uses the one card modifier so it matches the sections beside it.
+5. **Lists by default.** Screens are `List` or `Form` with `.insetGrouped`; that gives the tab-bar inset, section radius, scroll-edge effect and accessibility layout for free. A custom card appears only for hero content (the daily line on Today) and uses the one card modifier so it matches the sections beside it. Focus is the one exception: a stage with no cards and no list ([focus.md](focus.md) section 2).
 
 ## 2. Colour
 
@@ -60,7 +60,7 @@ System fonts only. The serif is the system serif (New York) through `.fontDesign
 | `secondary` | `.subheadline` | system | regular | Supporting text under a row or card title, coloured `secondaryLabel`. |
 | `caption` | `.footnote` | system | regular | Timestamps, counts, helper text, coloured `secondaryLabel`. |
 | `numeral` | `.title` | rounded | semibold | Streak count, statistics, path day number. Always `.monospacedDigit()`. |
-| `countdown` | `@ScaledMetric(relativeTo: .largeTitle) 64` | rounded | medium | The Focus timer only. Scales with Dynamic Type but is clamped so it never pushes the controls off screen; the Focus brief sets the clamp. |
+| `countdown` | `@ScaledMetric(relativeTo: .largeTitle) 64` | rounded | medium | The Focus timer only. Scales with Dynamic Type up to `.xxxLarge`; at accessibility sizes Focus switches to its linear form ([focus.md](focus.md) section 3). |
 
 ### 3.2 Rules
 
@@ -107,7 +107,7 @@ A section that used to be a custom card becomes a `Section` with a title-case he
 
 | Role | Style | Rule |
 | --- | --- | --- |
-| `primary` | `.buttonStyle(.glassProminent)` tinted `accent`, label `accentOnFill` | At most one per screen. Three homes, decided by the test in section 13.6: floating bottom-trailing (`.safeAreaBar`) for creating something new from a list screen, the hero card when the action is the screen's reason to exist (Today's move, Focus start), the trailing toolbar otherwise. |
+| `primary` | `.buttonStyle(.glassProminent)` tinted `accent`, label `accentOnFill` | At most one per screen. Three homes, decided by the test in section 13.6: floating bottom-trailing (`.safeAreaBar`) for creating something new from a list screen, the hero card when the action is the screen's reason to exist (Today's move), the trailing toolbar otherwise. Focus's Start/Pause is the exception: centred in its bottom safe-area bar (section 13.6). |
 | `secondary` | `.buttonStyle(.bordered)` | Everything that is an action but not the primary one. |
 | `tertiary` | `.buttonStyle(.plain)`, text in `accentInk` | Inline links and "See all" rows. |
 | `destructive` | `.buttonStyle(.bordered)` with `role: .destructive` | Delete entry, reset streak, delete all data. Confirmed through a `confirmationDialog`. |
@@ -125,7 +125,7 @@ One SF Symbol per concept. Outline variant in toolbars, lists and content; the t
 | Move | `move` | `figure.walk` | Replaces the bare `checkmark`; the checkmark remains the done state. |
 | Path | `path` | `point.topleft.down.to.point.bottomright.curvepath` | Paths tab and path rows. |
 | Path step | `pathStepPending` / `pathStepDone` | `circle` / `checkmark.circle.fill` | Pending / confirmed. |
-| Focus session | `focus` | `timer` | Focus tab, presets, history rows. |
+| Focus session | `focus` | `timer` | Focus tab, the bottom accessory, history rows. |
 | Break | `breakPhase` | `cup.and.saucer` | Break state in the timer and Live Activity. |
 | Streak | `streak` | `flame` | `accent` tint when the streak is alive; `secondaryLabel` when it reads "Begin again". |
 | Meaningful practice | `practice` | `sparkle` | Activity log rows, weekly review counts. |
@@ -192,7 +192,7 @@ Lines and actions per screen (briefs may tune wording, not shape):
 | Journal storage | Unavailable | Could not load your journal. | Try again |
 | Saved lines | Empty | Lines you keep appear here. | Go to Today |
 | Focus history (Progress) | Empty | No focus sessions yet. | Start a session |
-| Focus "Last session" row | Empty | No focus sessions yet. | none |
+| Focus "Last session" line | Empty | Not shown until the first session. | none |
 | Today streak, lapsed | Begin-again | Begin again. | none |
 | Today streak, never practised | Begin-again | Start today. | none |
 | Path detail, completed | Begin-again | Path completed. | Begin again |
@@ -238,7 +238,7 @@ Restated here so no brief omits it:
 - `accent` values and `card` radius: lock after the Today prototype on device.
 - Black surfaces and yellow on section header symbols: black-surfaces prototype ticket.
 - Motion and haptics language: map fog.
-- Chrome at AX3 (section 13.7): the Focus prototype shows the ring-to-bar switch and the Settings prototype the inline Appearance picker before the rules are locked.
+- Chrome at AX3 (section 13.7): rule 3 is locked; the Focus prototype showed the arc-to-bar switch at AX3 on 2026-09-25. Rule 2 waits for the Settings prototype's inline Appearance picker.
 
 ## 13. Screen chrome
 
@@ -246,7 +246,7 @@ Resolves [Screen chrome baseline: navigation bars, toolbar items and tab-bar ins
 
 ### 13.1 Container per screen
 
-Every screen is a `NavigationStack` whose root is a `List` or a `Form`. No tab root is a `ScrollView`; the `ScrollView` plus `VStack` card stack, with its per-view horizontal insets, is retired. Hero content rides inside the `List` as one row with `.listRowBackground(Color.clear)` and `.listRowInsets(EdgeInsets())`, wrapped in `thinkCard()`, so it shares the list's margins and inset behaviour.
+Every screen is a `NavigationStack` whose root is a `List` or a `Form`. No tab root is a `ScrollView` except Focus, which is a stage and has no cards; the `ScrollView` plus `VStack` card stack, with its per-view horizontal insets, is retired. Hero content rides inside the `List` as one row with `.listRowBackground(Color.clear)` and `.listRowInsets(EdgeInsets())`, wrapped in `thinkCard()`, so it shares the list's margins and inset behaviour.
 
 | Screen | Container | Notes |
 | --- | --- | --- |
@@ -254,7 +254,7 @@ Every screen is a `NavigationStack` whose root is a `List` or a `Form`. No tab r
 | Paths | `List` | One row per path; "In development" as its own section. |
 | Path detail | `List` | Header section with progress, one row per step, history section. |
 | Practice detail | `List` | Sections decided in the practice-detail prototype. |
-| Focus | `List` | Hero section: the timer in `thinkCard()`, with the start button inside it. Presets, intention and "Last session" as rows. |
+| Focus | `ScrollView` stage | The exception to this section: no `List`, no card. A centred column on the plain background (intention, arc, wheel, last session) with the controls in a bottom safe-area bar ([focus.md](focus.md) section 2). |
 | Journal | `List` | Already a `List`; keeps `.searchable`. |
 | Progress | `List` | Streak card as hero section, then achievements, stats, history, weekly review. |
 | Settings | `Form` | Grouped, `.insetGrouped` by default. |
@@ -267,7 +267,7 @@ Every screen is a `NavigationStack` whose root is a `List` or a `Form`. No tab r
 - `.toolbarBackground(.hidden, for: .navigationBar)` is banned. It is the cause of the ghosted text behind bars on Today, Focus and Profile: it removes the scroll-edge effect, so content scrolls under bare glass. The scroll-edge effect stays `.automatic` (soft) and is never hidden.
 - Anything that must sit above the tab bar uses `.safeAreaBar(edge: .bottom)` (13.6) or `.safeAreaInset`, never an overlay with padding.
 - `.tabBarMinimizeBehavior` stays at its default: the bar never minimises. Think's screens are short; a shrinking bar would add motion for nothing.
-- `.tabViewBottomAccessory` is reserved for exactly one thing: a running Focus session shown while another tab is selected, in the way Music shows the current track. The Focus brief designs the accessory (its inline and expanded forms via `tabViewBottomAccessoryPlacement`); no other feature may claim the slot.
+- `.tabViewBottomAccessory` is reserved for exactly one thing: a running Focus session shown while another tab is selected, in the way Music shows the current track. [focus.md](focus.md) section 6 designs it: one form, shown through `tabViewBottomAccessory(isEnabled:)`, which needs iOS 26.1, so iOS 26.0 has none. No other feature may claim the slot.
 
 ### 13.3 Toolbar items and identity elements
 
@@ -281,8 +281,8 @@ Where the elements that lived in that chrome land:
 | Saved lines bookmark | Today, trailing toolbar, `ThinkSymbol.savedLine`, its own group (a symbol-only item never shares a group with the text-and-symbol streak item). Today's trailing bar reads: bookmark, fixed spacer, streak. |
 | Journal shortcut on Today | Removed; the Journal tab replaces it (IA decision). |
 | Settings gear | Progress, trailing toolbar, `ThinkSymbol.settings`. |
-| Focus tip (lightbulb) | Content: a row or footer text in the Focus list, not chrome. |
-| Focus stats | Leaves the Focus tab; history lives on Progress (IA decision). Focus keeps its "Last session" row. |
+| Focus tip (lightbulb) | Leaves Focus: a "Silence distractions" row in Settings, in a Focus section. |
+| Focus stats | Leaves the Focus tab; history lives on Progress (IA decision). Focus keeps a plain-text "Last session" line, not a link. |
 | Achievements medal, stats | Content on Progress, never chrome. |
 
 ### 13.4 Titles and what scrolls under the bar
@@ -308,7 +308,7 @@ Path detail is titled with the path name, practice detail with the practice titl
 The primary action has three legal homes. The test, in order:
 
 1. **Floating bottom-trailing** when the action creates something new from a list screen. Built with `.safeAreaBar(edge: .bottom, alignment: .trailing)` holding one `.glassProminent` button, created as `Button("New note", systemImage: ThinkSymbol.add)` with `.labelStyle(.iconOnly)` so the accessibility label comes from the title. The bar floats above the tab bar, extends the scroll-edge effect and insets the list by itself. It coexists with the Focus accessory (13.2): the accessory rides in the tab-bar area, the bar sits above it. Today only Journal's new-note action qualifies; Saved lines, Paths and Progress create nothing.
-2. **Inside the hero card** when the action is the screen's reason to exist: Today's move, Focus start.
+2. **Inside the hero card** when the action is the screen's reason to exist: Today's move. Focus has no card; its Start/Pause is centred in a `.safeAreaBar(edge: .bottom)` with End and Skip beside it as `.glass`, so the controls stay reachable at every size ([focus.md](focus.md) section 5).
 3. **Trailing toolbar** otherwise: Share on share sheets, Done on editors, Confirm step on path detail (with a row button at the end of the lesson as well).
 
 No screen uses a `.bottomBar` toolbar placement: it would stack a second full-width glass bar over the tab bar. `.overlay(alignment: .bottomTrailing)` with padding is the pattern the bug inventory retires and is not used.
@@ -319,7 +319,7 @@ No screen uses a `.bottomBar` toolbar placement: it would stack a second full-wi
 2. Segmented pickers are not used in Settings. Appearance is a `Picker` with `.pickerStyle(.inline)` inside the `Form`, one row per choice, as in the system Settings app. Absorbs `SET-7`.
 3. Fixed-geometry graphics (the timer ring, progress rings, the weekly chart) take their size through `@ScaledMetric` with a ceiling. When `dynamicTypeSize.isAccessibilitySize` they switch to a linear form: the ring becomes the numeral over a `ProgressView(value:)` bar, the chart becomes rows. The numeral is the information; the ring is decoration and yields first. Absorbs `FOC-4`.
 
-The Focus and Settings prototypes show rules 2 and 3 on device before they are locked (section 12).
+Rule 3 was shown on device in the Focus prototype and is locked; the Settings prototype shows rule 2 before it is locked (section 12).
 
 ### 13.8 Tab bar
 
