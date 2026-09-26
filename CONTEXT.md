@@ -53,8 +53,16 @@ A once-a-week practice summary plus one reflection; the summary lives on Progres
 _Avoid_: Weekly report, recap
 
 **Path**:
-A multi-step programme (Deep focus, Clear thinking) with independent, repeatable runs.
+A multi-step programme (Deep focus, Clear thinking) with independent, repeatable runs. A path opens once a run of the path before it is finished.
 _Avoid_: Course, programme, track
+
+**Path step**:
+One unit of a path: a short lesson and the task that goes with it. The person completes a step explicitly; the next step opens at 06:00 on the following day and waits, however long, until it is done. Missed days advance nothing.
+_Avoid_: Day, lesson (the lesson is the text inside a step), exercise
+
+**Run**:
+One pass through a path from its first step to its last. Finishing a run lets the person begin again, which starts a new run at step one; earlier runs are kept as a count, not as history the person browses.
+_Avoid_: Attempt, cycle, round
 
 **Focus session**:
 A timed work interval, with an optional intention, followed by a break; completing the work interval counts as practice. Ending early keeps the time as partial effort. Nothing is asked after a session.
@@ -93,7 +101,7 @@ Something ended and can be restarted without guilt: a lapsed streak, a completed
 _Avoid_: Reset state, failed state, broken streak
 
 **Locked state**:
-Content exists but is gated: the journal behind its lock, a path behind the previous one, an achievement not yet earned.
+Content exists but is gated: the journal behind its lock, a path behind the previous one, a path step that has not opened yet, an achievement not yet earned.
 _Avoid_: Disabled, unavailable, greyed out
 
 **Unavailable state**:
@@ -109,5 +117,5 @@ The one piece of content a screen exists for, shown first: the daily line on Tod
 _Avoid_: Featured card, banner, header card
 
 **Primary action**:
-The single yellow action on a screen. Lives floating bottom-trailing for list creation, inside Today's next-act panel, centred in Focus's bottom safe-area bar, or in the trailing toolbar; never more than one per screen.
+The single yellow action on a screen. Lives floating bottom-trailing for list creation, inside Today's next-act panel or a path's step card, centred in Focus's bottom safe-area bar, or in the trailing toolbar; never more than one per screen.
 _Avoid_: CTA, main button, call to action
