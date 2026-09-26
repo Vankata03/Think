@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PROTOTYPE · Think onboarding · throwaway</title>
+<!--
+  PROTOTYPE, throwaway. Answers "Onboarding aligned to the new IA" (#80, map #68).
+  Four structurally different first-run flows, switchable via ?variant=A|B|C|D and the
+  floating bar (or ← →). Each variant shows its whole flow as a filmstrip of phones.
+  Settled before drawing (round 1): short promise then setup then Today; no path page;
+  one notification ask (grant turns daily line 08:00, retro 20:00 and session end alerts on);
+  retro reminder default 20:00; appearance its own last step (Dark default, applied live);
+  Skip on every step; AI step is a reserved slot; no re-run for existing users.
+  Open: the optional extras step (Health, Journal lock) — toggle it to judge.
+-->
+<style>
+  :root {
+    --bg:#000; --surface:#1c1c1e; --raised:#2c2c2e; --label:#fff; --sec:#98989f; --ter:#5a5a5f;
+    --sep:#38383a; --accent:#ffd433; --ink:#ffd433; --onfill:#000; --green:#30d158; --scrim:#000a;
+    --page:#161616; --pagetext:#f5f5f7; --fs:1;
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif; color-scheme:dark;
+  }
+  body.light {
+    --bg:#f2f2f7; --surface:#fff; --raised:#e9e9ee; --label:#000; --sec:#6c6c70; --ter:#b0b0b5;
+    --sep:#c6c6c8; --accent:#f2c41c; --ink:#6e5c05; --green:#34c759; --scrim:#0005;
+    --page:#e4e4ea; --pagetext:#171719; color-scheme:light;
+  }
+  body.large { --fs:1.45; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--page); color:var(--pagetext); padding-bottom:90px; }
+  button { font:inherit; cursor:pointer; }
+  header.study { max-width:1200px; margin:20px auto 8px; padding:0 20px; }
+  header h1 { font-size:19px; margin:0 0 4px; }
+  header p { font-size:13px; opacity:.7; line-height:1.45; margin:0 0 12px; max-width:880px; }
+  .controls { display:flex; flex-wrap:wrap; gap:8px; }
+  .controls button { border:1px solid #5b5b61; background:transparent; color:inherit; border-radius:10px; padding:7px 11px; font-size:13px; }
+  .controls button[aria-pressed="true"] { background:#ffd433; border-color:#ffd433; color:#000; }
+  .vtitle { max-width:1200px; margin:18px auto 0; padding:0 20px; font-size:15px; }
+  .vtitle b { font-size:17px; }
+  .vtitle span { opacity:.7; display:block; margin-top:3px; font-size:13px; line-height:1.4; max-width:880px; }
+  .strip { display:flex; gap:22px; overflow-x:auto; padding:18px 20px 10px; }
+  figure { margin:0; flex:none; }
+  figcaption { font-size:12px; opacity:.75; margin-top:8px; max-width:330px; line-height:1.35; }
+  figcaption b { opacity:1; }
+
+  /* phone */
+  .phone { position:relative; width:330px; height:700px; border-radius:44px; overflow:hidden; background:var(--bg); color:var(--label);
+           border:1px solid #57575d; box-shadow:0 16px 50px #0007; display:flex; flex-direction:column; font-size:calc(17px * var(--fs)); }
+  body.light .phone { border-color:#c9c9cf; box-shadow:0 12px 36px #0002; }
+  .status { height:46px; flex:none; display:flex; align-items:center; justify-content:space-between; padding:6px 30px 0; font-size:15px; font-weight:600; }
+  .nav { height:44px; flex:none; display:flex; align-items:center; justify-content:space-between; padding:0 16px; font-size:17px; }
+  .nav .l, .nav .r { min-width:60px; }
+  .nav .r { text-align:right; }
+  .nav .t { font-weight:600; }
+  .glass { display:inline-flex; align-items:center; justify-content:center; min-width:44px; height:44px; padding:0 14px; border-radius:22px;
+           background:color-mix(in srgb, var(--raised) 70%, transparent); border:1px solid color-mix(in srgb, var(--label) 12%, transparent); color:var(--label); font-size:16px; }
+  .glass.round { width:44px; padding:0; font-size:20px; }
+  .content { flex:1; overflow:hidden; padding:0 16px; display:flex; flex-direction:column; }
+  .content.scroll { overflow-y:auto; scrollbar-width:none; }
+  .content > * { flex-shrink:0; }
+  .content.center { justify-content:center; }
+  .big { font-size:calc(34px * var(--fs)); font-weight:700; letter-spacing:-.5px; margin:4px 4px 14px; line-height:1.1; }
+  .serif { font-family:"New York",ui-serif,Georgia,serif; }
+  .promise { font-size:calc(28px * var(--fs)); line-height:1.2; margin:6px 4px 12px; font-weight:400; }
+  .body { color:var(--sec); font-size:calc(17px * var(--fs)); line-height:1.35; margin:0 4px 18px; }
+  .foot { color:var(--sec); font-size:calc(13px * var(--fs)); line-height:1.35; margin:7px 16px 18px; }
+  .hdr { color:var(--sec); font-size:calc(13px * var(--fs)); margin:6px 16px 7px; }
+  .sect { background:var(--surface); border-radius:24px; overflow:hidden; }
+  .row { display:flex; align-items:center; gap:12px; min-height:48px; padding:10px 16px; position:relative; }
+  .row + .row::before { content:""; position:absolute; top:0; right:0; left:52px; border-top:.5px solid var(--sep); }
+  .row .sym { width:24px; text-align:center; color:var(--label); flex:none; font-size:calc(18px * var(--fs)); }
+  .row .n { flex:1; line-height:1.25; }
+  .row .d { display:block; color:var(--sec); font-size:calc(14px * var(--fs)); margin-top:2px; }
+  .row .v { color:var(--sec); font-variant-numeric:tabular-nums; }
+  .row .chk { color:var(--ink); font-weight:600; }
+  .row.tap { cursor:pointer; }
+  .row.btn .n { color:var(--ink); }
+  body.large .row.stack { flex-wrap:wrap; }
+  body.large .row.stack .n { flex-basis:calc(100% - 40px); }
+  body.large .row.stack .tg, body.large .row.stack .v { margin-left:36px; }
+  .tg { width:51px; height:31px; border-radius:16px; background:color-mix(in srgb, var(--label) 16%, transparent); position:relative; flex:none; }
+  .tg::after { content:""; position:absolute; top:2px; left:2px; width:27px; height:27px; border-radius:50%; background:#fff; box-shadow:0 2px 4px #0003; }
+  .tg.on { background:var(--green); }
+  .tg.on::after { left:22px; }
+  .bottom { flex:none; padding:10px 16px 30px; display:flex; flex-direction:column; align-items:stretch; gap:6px; }
+  .primary { border:0; border-radius:26px; min-height:52px; background:var(--accent); color:var(--onfill); font-weight:600; font-size:calc(17px * var(--fs)); padding:12px 18px;
+             box-shadow:inset 0 1px 0 #fff6, 0 4px 14px #0003; }
+  .plain { border:0; background:none; color:var(--label); min-height:44px; font-size:calc(17px * var(--fs)); }
+  .dots { display:flex; gap:8px; justify-content:center; padding:4px 0 10px; }
+  .dots i { width:7px; height:7px; border-radius:50%; background:var(--ter); }
+  .dots i.on { background:var(--label); }
+  .list-row-sym { display:flex; gap:14px; align-items:flex-start; margin:0 4px 16px; }
+  .list-row-sym .sym { width:28px; text-align:center; font-size:calc(21px * var(--fs)); flex:none; }
+  .list-row-sym b { display:block; font-weight:600; }
+  .list-row-sym span { color:var(--sec); font-size:calc(15px * var(--fs)); line-height:1.3; }
+  .slot { border:1.5px dashed var(--ter); border-radius:24px; padding:18px; color:var(--sec); font-size:calc(15px * var(--fs)); line-height:1.4; }
+  .arcbox { display:flex; justify-content:center; margin:6px 0 10px; }
+  .arcbox svg text { font-family:-apple-system,sans-serif; }
+  body.large .arcbox.adapt svg { display:none; }
+  .linear { display:none; margin:6px 4px 12px; }
+  body.large .arcbox.adapt + .linear { display:block; }
+  .linear .num { font-size:calc(28px * var(--fs)); font-weight:600; font-family:ui-rounded,-apple-system,sans-serif; }
+  .linear .bar { height:6px; background:var(--raised); border-radius:3px; margin-top:6px; }
+  .linear .bar i { display:block; height:100%; width:0; background:var(--accent); border-radius:3px; }
+  .tabbar { flex:none; margin:0 14px 24px; height:62px; border-radius:31px; display:flex; align-items:center; justify-content:space-around;
+            background:color-mix(in srgb, var(--raised) 80%, transparent); border:1px solid color-mix(in srgb, var(--label) 10%, transparent); font-size:10px; }
+  .tabbar div { text-align:center; color:var(--label); width:20%; }
+  .tabbar div b { display:block; font-size:19px; font-weight:400; margin-bottom:2px; }
+  .tabbar .sel { color:var(--ink); }
+  .next { background:var(--surface); border-radius:24px; padding:16px; margin-top:10px; }
+  .next .cap { color:var(--ink); font-size:calc(14px * var(--fs)); font-weight:600; margin-bottom:6px; }
+  .next .q { font-size:calc(20px * var(--fs)); line-height:1.25; margin-bottom:14px; }
+  .next .primary { width:100%; }
+  .hint { color:var(--sec); font-size:calc(13px * var(--fs)); margin:8px 4px 0; line-height:1.35; }
+  .sheetwrap { position:absolute; inset:0; background:var(--scrim); display:flex; flex-direction:column; justify-content:flex-end; }
+  .sheet { background:var(--surface); border-radius:34px 34px 0 0; height:var(--h,78%); display:flex; flex-direction:column; }
+  body.light .sheet { background:var(--bg); }
+  .sheet .grab { width:36px; height:5px; border-radius:3px; background:var(--ter); margin:7px auto 0; }
+  .sheet .content { padding:0 16px; }
+  .sheet .sect { background:var(--raised); }
+  body.light .sheet .sect { background:var(--surface); }
+  .note { position:absolute; top:52px; left:50%; transform:translateX(-50%); background:#ff375f; color:#fff; font-size:11px; padding:3px 8px; border-radius:8px; white-space:nowrap; }
+
+  /* appearance tiles (variant E) */
+  .tiles { display:flex; gap:10px; padding:16px 12px 14px; justify-content:space-between; }
+  .tile { flex:1; display:flex; flex-direction:column; align-items:center; gap:8px; cursor:pointer; min-width:0; }
+  .tile .lbl { font-size:calc(14px * var(--fs)); }
+  .tile .radio { width:22px; height:22px; border-radius:50%; border:1.5px solid var(--ter); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; }
+  .tile.sel .radio { background:var(--accent); border-color:var(--accent); color:var(--onfill); }
+  .thumb { width:62px; height:112px; border-radius:13px; overflow:hidden; border:1.5px solid color-mix(in srgb, var(--label) 18%, transparent); position:relative; display:flex; }
+  .tile.sel .thumb, .tile.sel .glyph { outline:2.5px solid var(--accent); outline-offset:3px; }
+  .thumb > div { flex:1; padding:12px 6px 0; display:flex; flex-direction:column; gap:5px; align-items:center; }
+  .thumb .d { background:#000; } .thumb .l { background:#f2f2f7; }
+  .thumb .a { width:34px; height:17px; border:2px solid #555; border-bottom:0; border-radius:17px 17px 0 0; position:relative; }
+  .thumb .l .a { border-color:#c6c6c8; }
+  .thumb .a::after { content:""; position:absolute; left:3px; top:3px; width:6px; height:6px; border-radius:50%; background:#ffd433; }
+  .thumb .l .a::after { background:#f2c41c; }
+  .thumb i { display:block; height:4px; border-radius:2px; width:80%; background:#3a3a3c; }
+  .thumb .l i { background:#c7c7cc; }
+  .thumb .card { width:88%; height:22px; border-radius:6px; background:#1c1c1e; margin-top:3px; display:flex; align-items:flex-end; justify-content:center; padding-bottom:4px; }
+  .thumb .l .card { background:#fff; }
+  .thumb .card b { width:70%; height:6px; border-radius:3px; background:#ffd433; }
+  .thumb .l .card b { background:#f2c41c; }
+  .thumb.split > div { padding-left:0; padding-right:0; overflow:hidden; }
+  .glyph { width:72px; height:72px; border-radius:20px; background:var(--raised); display:flex; align-items:center; justify-content:center; font-size:30px; }
+  .tile.sel .glyph { color:var(--ink); }
+  body.large .tiles { flex-direction:column; gap:14px; }
+  body.large .tile { flex-direction:row; gap:14px; }
+  body.large .tile .lbl { flex:1; }
+  body.large .thumb { width:44px; height:80px; }
+  .perm { color:var(--sec); font-size:calc(13px * var(--fs)); line-height:1.35; margin:0 16px 12px; }
+  .syspop { position:absolute; left:50%; top:46%; transform:translate(-50%,-50%); width:250px; border-radius:22px; background:color-mix(in srgb, var(--raised) 94%, transparent);
+            text-align:center; overflow:hidden; box-shadow:0 20px 60px #0008; backdrop-filter:blur(20px); }
+  .syspop p { margin:0; padding:16px 16px 12px; font-size:14px; line-height:1.3; }
+  .syspop p b { display:block; font-size:15px; margin-bottom:4px; }
+  .syspop div { display:flex; border-top:.5px solid var(--sep); }
+  .syspop span { flex:1; padding:11px; font-size:16px; color:#0a84ff; }
+  .syspop span + span { border-left:.5px solid var(--sep); font-weight:600; }
+
+  /* floating switcher — prototype chrome, not part of the design */
+  #switcher { position:fixed; left:50%; bottom:18px; transform:translateX(-50%); display:flex; align-items:center; gap:4px; z-index:9;
+              background:#ff375f; color:#fff; border-radius:999px; padding:6px; box-shadow:0 8px 30px #0006; font-size:14px; font-weight:600; }
+  #switcher button { border:0; background:#fff3; color:#fff; width:36px; height:36px; border-radius:50%; font-size:17px; }
+  #switcher span { padding:0 14px; min-width:250px; text-align:center; }
+</style>
+</head>
+<body>
+<header class="study">
+  <h1>PROTOTYPE · Onboarding aligned to the new IA</h1>
+  <p>Throwaway canvas for #80. Four structurally different first-run flows; each shows its whole flow left to right. Round-1 decisions are baked in; the open question is the optional <b>extras step</b> (Health, Journal lock). The appearance rows are live: tapping one repaints the canvas. Symbols are text stand-ins for SF Symbols.</p>
+  <div class="controls">
+    <button id="extras" aria-pressed="true">Extras step</button>
+    <button id="ai" aria-pressed="false">AI slot (eligible device)</button>
+    <button id="scheme" aria-pressed="false">Light</button>
+    <button id="large" aria-pressed="false">Larger text (AX-ish)</button>
+    <button id="tiles" aria-pressed="false">Tiles: symbols</button>
+  </div>
+</header>
+<div id="stage"></div>
+<div id="switcher"><button id="prev" aria-label="Previous variant">←</button><span id="vlabel"></span><button id="next" aria-label="Next variant">→</button></div>
+
+<script>
+const VARIANTS = {
+  E: 'A revised (owner round 2)',
+  A: 'Paged',
+  B: 'Pushed forms',
+  C: 'One scrolling form',
+  D: 'Today first, setup sheet',
+};
+const keys = Object.keys(VARIANTS);
+const qs = new URLSearchParams(location.search);
+let variant = keys.includes(qs.get('variant')) ? qs.get('variant') : 'E';
+let tileStyle = 'thumb';
+let showExtras = true, showAI = false;
+let appearance = 'Dark';
+
+const S = { quote:'❝', pencil:'✎', check:'✓', moon:'☾', timer:'◷', bell:'🔔︎', heart:'♥︎', lock:'🔒︎', cloud:'☁︎', spark:'✦', bookmark:'⌑', flame:'♨', back:'‹', paths:'◇', focus:'◷', journal:'✎', progress:'▲', today:'☀︎', sun:'◐', circle:'◯', gear:'⚙︎' };
+
+/* ---------- pieces ---------- */
+const status = () => `<div class="status"><span>9:41</span><span>●●● ▮</span></div>`;
+const nav = (l = '', t = '', r = '') => `<div class="nav"><div class="l">${l}</div><div class="t">${t}</div><div class="r">${r}</div></div>`;
+const skip = `<span class="glass">Skip</span>`;
+const backBtn = `<span class="glass round">${S.back}</span>`;
+const primary = (t) => `<button class="primary">${t}</button>`;
+const plain = (t) => `<button class="plain">${t}</button>`;
+const bottom = (...b) => `<div class="bottom">${b.join('')}</div>`;
+const dots = (n, i) => `<div class="dots">${Array.from({length:n}, (_, k) => `<i class="${k === i ? 'on' : ''}"></i>`).join('')}</div>`;
+const tg = (on) => `<span class="tg ${on ? 'on' : ''}"></span>`;
+const row = (sym, n, d = '', tail = '', cls = '') => `<div class="row ${cls}"><span class="sym">${sym}</span><span class="n">${n}${d ? `<span class="d">${d}</span>` : ''}</span>${tail}</div>`;
+const sect = (hdr, rows, foot = '') => `${hdr ? `<div class="hdr">${hdr}</div>` : ''}<div class="sect">${rows.join('')}</div>${foot ? `<div class="foot">${foot}</div>` : '<div style="height:18px"></div>'}`;
+const phone = (inner, cap, extra = '') => `<figure><div class="phone">${inner}${extra}</div><figcaption>${cap}</figcaption></figure>`;
+const tabbar = () => `<div class="tabbar"><div class="sel"><b>${S.today}</b>Today</div><div><b>${S.paths}</b>Paths</div><div><b>${S.focus}</b>Focus</div><div><b>${S.journal}</b>Journal</div><div><b>${S.progress}</b>Progress</div></div>`;
+
+function arc({ done = 0, sunAt = 8.5, labels = true, w = 260 } = {}) {
+  const r = Math.min(w / 2 - 30, 112), cx = w / 2, cy = r + 34, h = r + 64;
+  const pt = (hour) => { const f = (hour - 6) / 16, a = Math.PI * (1 - f); return [cx + r * Math.cos(a), cy - r * Math.sin(a)]; };
+  const [sx, sy] = pt(sunAt);
+  const path = (from, to) => { const [x1, y1] = pt(from), [x2, y2] = pt(to); return `M${x1},${y1} A${r},${r} 0 0 1 ${x2},${y2}`; };
+  const acts = [[8, S.pencil, 'Question'], [14, S.check, 'Move'], [20, S.moon, 'Retro']];
+  const marks = acts.map(([hr, sym, name], i) => {
+    const [x, y] = pt(hr); const st = i < done ? 'done' : i === done ? 'next' : 'later';
+    const fill = st === 'done' ? 'var(--green)' : st === 'next' ? 'var(--accent)' : 'var(--bg)';
+    const stroke = st === 'later' ? 'stroke="var(--sec)" stroke-width="1.5" stroke-dasharray="3 3"' : '';
+    const ink = st === 'later' ? 'var(--sec)' : '#000';
+    const capColor = st === 'done' ? 'var(--green)' : st === 'next' ? 'var(--ink)' : 'var(--sec)';
+    const dx = i === 0 ? -16 : i === 2 ? 16 : 0;
+    return `<circle cx="${x}" cy="${y}" r="14" fill="${fill}" ${stroke}/><text x="${x}" y="${y + 5}" text-anchor="middle" font-size="13" fill="${ink}">${st === 'done' ? '✓' : sym}</text>`
+      + (labels ? `<text x="${x + dx}" y="${y - 22}" text-anchor="middle" font-size="11" font-weight="600" fill="${capColor}">${name}</text>` : '');
+  }).join('');
+  return `<div class="arcbox adapt"><svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+    <path d="${path(6, 22)}" fill="none" stroke="var(--sep)" stroke-width="3" stroke-linecap="round"/>
+    <path d="${path(6, sunAt)}" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="${sx}" cy="${sy}" r="15" fill="var(--accent)" opacity=".25"/><circle cx="${sx}" cy="${sy}" r="9" fill="var(--accent)"/>
+    ${marks}
+    <text x="${cx}" y="${cy - 18}" text-anchor="middle" font-size="12" font-weight="600" fill="var(--sec)">Saturday · ${done} of 3</text>
+    <text x="${cx}" y="${cy + 8}" text-anchor="middle" font-size="26" font-weight="700" fill="var(--label)" style="font-family:ui-rounded,-apple-system">08:30</text>
+    <text x="${cx - r}" y="${cy + 20}" text-anchor="middle" font-size="10" fill="var(--sec)">06:00</text>
+    <text x="${cx + r}" y="${cy + 20}" text-anchor="middle" font-size="10" fill="var(--sec)">22:00</text>
+  </svg></div><div class="linear"><div class="num">${done} of 3</div><div class="bar"><i style="width:${done / 3 * 100}%"></i></div></div>`;
+}
+
+/* ---------- shared step bodies ---------- */
+const promiseText = `One line, one question, one move a day.`;
+const promiseBody = `A few honest minutes. What you write stays on your device and in your own iCloud.`;
+const askRows = [
+  row(S.quote, 'The daily line', 'Each morning at 08:00', '', ''),
+  row(S.moon, 'Evening retro', 'Each evening at 20:00', '', ''),
+  row(S.timer, 'Focus session ends', 'When a work or break interval is over', '', ''),
+];
+const grantedRows = [
+  row(S.quote, 'Daily line', '', `<span class="v">08:00</span>${tg(true)}`, 'stack'),
+  row(S.moon, 'Evening retro', '', `<span class="v">20:00</span>${tg(true)}`, 'stack'),
+  row(S.timer, 'Session end alerts', '', tg(true), 'stack'),
+];
+const grantedFoot = `Times and switches live in Settings, behind the gear on Progress.`;
+const extrasRows = [
+  row(S.heart, 'Log focus to Health', 'Completed sessions become Mindful Minutes', tg(false), 'stack'),
+  row(S.lock, 'Lock journal', 'Face ID before your writing opens', tg(false), 'stack'),
+];
+const extrasFoot = `Both are off unless you turn them on, and both stay in Settings. iCloud sync needs nothing: it follows your Apple Account.`;
+const appearanceRows = () => ['Dark', 'Automatic', 'Light'].map((a) =>
+  row('', a, a === 'Dark' ? 'Think is drawn dark first' : a === 'Automatic' ? 'Follows the system' : '', a === appearance ? '<span class="chk">✓</span>' : '', `tap appear" data-a="${a}`)).join('');
+const aiSlot = `<div class="slot"><b>Reserved: on-device AI step</b><br>Eligible devices only (iPhone, iOS 27, model available, locale supported). Copy, default and wording are owned by “Onboarding step, Profile toggle and privacy wording for on-device AI” (#67).</div>`;
+
+function today({ hint = false } = {}) {
+  return status() + nav('', '', `<span class="glass" style="gap:10px">${S.bookmark} <span style="color:var(--ink)">${S.flame} 0</span></span>`)
+    + `<div class="content"><div class="big" style="margin-top:0">Today</div>${arc({ done: 0 })}
+      <div class="serif" style="font-size:calc(22px * var(--fs));line-height:1.3;margin:0 4px">The impediment to action advances action. What stands in the way becomes the way.</div>
+      <div style="display:flex;justify-content:space-between;color:var(--sec);font-size:13px;margin:8px 4px 0"><span>Marcus Aurelius</span><span>${S.bookmark} &nbsp; ⇪</span></div>
+      <div class="next"><div class="cap">${S.pencil} Next · Question</div><div class="q serif">What are you avoiding because it is hard, not because it is wrong?</div>${primary('Write answer')}</div>
+      ${hint ? `<div class="hint">Start here. One act at a time; the arc fills as you go.</div>` : ''}
+    </div>` + tabbar();
+}
+
+/* ---------- variants ---------- */
+function stepsCount() { return 3 + (showAI ? 1 : 0) + (showExtras ? 1 : 0); }
+
+function variantA() {
+  const n = stepsCount(); let i = 0; const f = [];
+  f.push(phone(status() + nav('', '', skip) + `<div class="content center">${arc({ done: 0, sunAt: 11 })}
+      <div class="promise serif">${promiseText}</div><div class="body">${promiseBody}</div></div>` + bottom(dots(n, i++), primary('Continue')),
+    `<b>1 · Promise.</b> The day arc is the teaching graphic: the ritual's three acts on the day, nothing to read.`));
+  f.push(phone(status() + nav('', '', skip) + `<div class="content"><div class="big" style="margin-top:40px">Reminders</div>
+      <div class="body">One permission covers three things:</div>${sect('', askRows)}</div>` + bottom(dots(n, i), primary('Allow notifications'), plain('Not now')),
+    `<b>2 · Ask.</b> Reason first, then the system prompt on “Allow notifications”. “Not now” leaves all three off.`));
+  f.push(phone(status() + nav('', '', skip) + `<div class="content"><div class="big" style="margin-top:40px">Reminders</div>
+      <div class="body">You're set. Change any of these later.</div>${sect('', grantedRows, grantedFoot)}</div>` + bottom(dots(n, i++), primary('Continue')),
+    `<b>2b · After Allow.</b> Same step, rows become switches with times; all on because the person just said yes.`));
+  if (showAI) f.push(phone(status() + nav('', '', skip) + `<div class="content center">${aiSlot}</div>` + bottom(dots(n, i++), primary('Continue')), `<b>AI slot.</b> Only on eligible devices; content from the AI map.`));
+  if (showExtras) f.push(phone(status() + nav('', '', skip) + `<div class="content"><div class="big" style="margin-top:40px">Optional</div>
+      <div class="body">Two things some people want from the start.</div>${sect('', extrasRows, extrasFoot)}</div>` + bottom(dots(n, i++), primary('Continue')),
+    `<b>Extras (open Q9).</b> Health and Journal lock as switches; each fires its own system prompt when turned on.`));
+  f.push(phone(status() + nav('', '', '') + `<div class="content"><div class="big" style="margin-top:40px">Appearance</div>
+      <div class="body">Tap to preview.</div>${sect('', [appearanceRows()])}</div>` + bottom(dots(n, i++), primary('Begin practice')),
+    `<b>Last · Appearance.</b> Inline rows, Dark checked, applied live. No Skip: “Begin practice” is the only way out.`));
+  f.push(phone(today(), `<b>Lands on Today.</b> The next-act panel is the lesson.`));
+  return f;
+}
+
+function variantB() {
+  const f = [];
+  f.push(phone(status() + nav('', '', skip) + `<div class="content scroll"><div class="big">Welcome</div>
+      <div class="promise serif" style="font-size:calc(24px * var(--fs))">${promiseText}</div>
+      ${sect('Each day', [row(S.quote, 'Read the line'), row(S.pencil, 'Answer the question'), row(S.check, 'Do the move'), row(S.moon, 'Write the retro', 'From 20:00')], promiseBody)}</div>` + bottom(primary('Continue')),
+    `<b>1 · Welcome.</b> A grouped Form, the ritual as four plain rows. Teaches in words, not a graphic.`));
+  f.push(phone(status() + nav(backBtn, '', skip) + `<div class="content scroll"><div class="big">Reminders</div>
+      ${sect('Notifications', [...askRows, row('', 'Allow notifications', '', '', 'btn')], 'One permission. Nothing is sent until you allow it.')}</div>` + bottom(primary('Continue')),
+    `<b>2 · Ask.</b> The permission is a button row inside the Form; Continue works without it.`));
+  f.push(phone(status() + nav(backBtn, '', skip) + `<div class="content scroll"><div class="big">Reminders</div>
+      ${sect('Notifications', grantedRows, grantedFoot)}</div>` + bottom(primary('Continue')),
+    `<b>2b · After Allow.</b> The button row is replaced by the three switches.`));
+  if (showAI) f.push(phone(status() + nav(backBtn, '', skip) + `<div class="content scroll"><div class="big">Themes</div>${aiSlot}</div>` + bottom(primary('Continue')), `<b>AI slot.</b>`));
+  if (showExtras) f.push(phone(status() + nav(backBtn, '', skip) + `<div class="content scroll"><div class="big">Optional</div>
+      ${sect('Health', [extrasRows[0]])}${sect('Privacy', [extrasRows[1]], extrasFoot)}</div>` + bottom(primary('Continue')),
+    `<b>Extras (open Q9).</b> Same rows as Settings, same sections — the person meets Settings early.`));
+  f.push(phone(status() + nav(backBtn, '', '') + `<div class="content scroll"><div class="big">Appearance</div>
+      ${sect('', [appearanceRows()], 'Dark is how Think is drawn. You can change this in Settings.')}</div>` + bottom(primary('Begin practice')),
+    `<b>Last · Appearance.</b> Exactly the Settings picker, live.`));
+  f.push(phone(today(), `<b>Lands on Today.</b>`));
+  return f;
+}
+
+function variantC() {
+  const top = `<div class="content scroll"><div class="big" style="margin-top:8px">Set up Think</div>
+      <div class="promise serif" style="font-size:calc(22px * var(--fs))">${promiseText}</div><div class="body" style="margin-bottom:10px">${promiseBody}</div>
+      ${sect('Reminders', [...askRows, row('', 'Allow notifications', '', '', 'btn')], 'One permission covers all three.')}
+      ${showAI ? `<div class="hdr">On-device AI</div>${aiSlot}<div style="height:18px"></div>` : ''}
+      ${showExtras ? sect('Optional', extrasRows, extrasFoot) : ''}
+      ${sect('Appearance', [appearanceRows()])}</div>`;
+  const scrolled = `<div class="content scroll" style="justify-content:flex-end">
+      ${sect('Reminders', grantedRows, grantedFoot)}
+      ${showAI ? `<div class="hdr">On-device AI</div>${aiSlot}<div style="height:18px"></div>` : ''}
+      ${showExtras ? sect('Optional', extrasRows) : ''}
+      ${sect('Appearance', [appearanceRows()])}</div>`;
+  return [
+    phone(status() + nav('', '', skip) + top + bottom(primary('Begin practice')), `<b>1 · One page.</b> Everything on a single Form, like a Settings subset. “Begin practice” pinned in a safe-area bar.`),
+    phone(status() + nav('', 'Set up Think', skip) + scrolled + bottom(primary('Begin practice')), `<b>1 · Scrolled, after Allow.</b> Inline title once scrolled. The page grows with every optional section.`),
+    phone(today(), `<b>Lands on Today.</b>`),
+  ];
+}
+
+function variantD() {
+  const sheet = (inner, h = '82%') => `<div class="sheetwrap"><div class="sheet" style="--h:${h}"><div class="grab"></div>${inner}</div></div>`;
+  const f = [];
+  f.push(phone(today(), `<b>1 · Promise on Today.</b> The real Today is already behind the sheet; the arc on screen is the teaching graphic.`,
+    sheet(nav('', '', skip) + `<div class="content"><div class="promise serif" style="margin-top:8px">${promiseText}</div><div class="body">${promiseBody}</div>
+      <div class="list-row-sym"><span class="sym">${S.sun}</span><div><b>The arc is your day</b><span>Question in the morning, the move by afternoon, a retro from 20:00.</span></div></div></div>` + bottom(primary('Continue')), '58%')));
+  f.push(phone(today(), `<b>2 · Ask, in the sheet.</b> Sheet grows to the large detent.`,
+    sheet(nav('', 'Reminders', skip) + `<div class="content">${sect('', askRows, 'One permission covers all three.')}</div>` + bottom(primary('Allow notifications'), plain('Not now')))));
+  if (showAI) f.push(phone(today(), `<b>AI slot.</b>`, sheet(nav(backBtn, 'Themes', skip) + `<div class="content">${aiSlot}</div>` + bottom(primary('Continue')))));
+  const tail = `${showExtras ? sect('Optional', extrasRows) : ''}${sect('Appearance', [appearanceRows()])}`;
+  f.push(phone(today(), `<b>3 · After Allow: the rest together.</b> ${showExtras ? 'Extras and ' : ''}Appearance on one sheet page, live behind the sheet.`,
+    sheet(nav(backBtn, 'Almost done', '') + `<div class="content scroll">${sect('Reminders', grantedRows)}${tail}</div>` + bottom(primary('Begin practice')), '90%')));
+  f.push(phone(today({ hint: true }), `<b>Sheet gone.</b> One first-day hint under the panel, shown once, gone after the first act.`));
+  return f;
+}
+
+const thumb = (a) => {
+  const pane = (c) => `<div class="${c}"><span class="a"></span><i></i><i style="width:60%"></i><span class="card"><b></b></span></div>`;
+  return a === 'Automatic'
+    ? `<div class="thumb split">${pane('d')}${pane('l')}</div>`
+    : `<div class="thumb">${pane(a === 'Dark' ? 'd' : 'l')}</div>`;
+};
+const GLYPH = { Dark: '☾', Automatic: '◐', Light: '☀︎' };
+const appearanceTiles = () => `<div class="tiles">${['Dark', 'Automatic', 'Light'].map((a) =>
+  `<div class="tile appear ${a === appearance ? 'sel' : ''}" data-a="${a}" role="radio" aria-checked="${a === appearance}" aria-label="${a}">
+     ${tileStyle === 'thumb' ? thumb(a) : `<div class="glyph">${GLYPH[a]}</div>`}
+     <span class="lbl">${a}</span><span class="radio">${a === appearance ? '✓' : ''}</span></div>`).join('')}</div>`;
+
+function variantE() {
+  const n = 3 + (showAI ? 1 : 0); let i = 0; const f = [];
+  const reminderRows = (on) => [
+    row(S.quote, 'Daily line', on ? '' : 'Off', on ? `<span class="v">08:00</span>${tg(true)}` : tg(false), 'stack'),
+    row(S.moon, 'Evening retro', on ? '' : 'Off', on ? `<span class="v">20:00</span>${tg(true)}` : tg(false), 'stack'),
+    row(S.timer, 'Session end alerts', on ? 'When a focus or break interval ends' : 'Off', tg(on), 'stack'),
+  ];
+  const remindersPage = (on, pop = false) => status() + nav('', '', skip) + `<div class="content scroll"><div class="big" style="margin-top:40px">Reminders</div>
+      ${sect('Notifications', reminderRows(on), on ? 'Change times and switches later in Settings, behind the gear on Progress.' : 'Turn any of these on in Settings, behind the gear on Progress.')}</div>`
+      + bottom(dots(n, 1), primary('Continue'))
+      + (pop ? `<div class="syspop"><p><b>“Think” Would Like to Send You Notifications</b>Notifications may include alerts, sounds and icon badges.</p><div><span>Don't Allow</span><span>Allow</span></div></div>` : '');
+  f.push(phone(status() + nav('', '', skip) + `<div class="content center">${arc({ done: 0, sunAt: 11 })}
+      <div class="promise serif">${promiseText}</div><div class="body">${promiseBody}</div></div>` + bottom(dots(n, i++), primary('Continue')),
+    `<b>1 · Promise.</b> Unchanged from A: the arc teaches the ritual.`));
+  f.push(phone(remindersPage(true), `<b>2 · Reminders, B's Form with switches.</b> All three on, times shown. Nothing is asked yet.`));
+  f.push(phone(remindersPage(true, true), `<b>2 · Continue with any switch on</b> fires the one system prompt. Allow keeps them; Don't Allow turns all three off.`));
+  f.push(phone(remindersPage(false), `<b>2 · Everything switched off.</b> Continue asks nothing; Settings is the way back.`));
+  i++;
+  const last = !showAI;
+  const extras = status() + nav('', '', last ? '' : skip) + `<div class="content scroll"><div class="big" style="margin-top:40px">Make it yours</div>
+      <div class="hdr">Appearance</div><div class="sect">${appearanceTiles()}</div><div style="height:18px"></div>
+      ${showExtras ? sect('Optional', extrasRows, 'Both stay in Settings. Each asks its own permission when turned on.') : ''}</div>`
+      + bottom(dots(n, i++), primary(last ? 'Begin practice' : 'Continue'));
+  f.push(phone(extras, `<b>3 · Appearance + extras.</b> Tiles (${tileStyle === 'thumb' ? 'thumbnails' : 'symbols'}), Dark selected, applied live. ${showExtras ? 'Health and Lock journal below.' : 'Extras hidden.'} ${last ? 'Last step here: no Skip.' : ''}`));
+  if (showAI) f.push(phone(status() + nav('', '', '') + `<div class="content center">${aiSlot}</div>` + bottom(dots(n, i++), primary('Begin practice')),
+    `<b>4 · AI slot, after extras.</b> Eligible devices only, so it becomes the last step there: “Begin practice” moves here.`));
+  f.push(phone(today(), `<b>Lands on Today.</b>`));
+  return f;
+}
+
+const BLURBS = {
+  E: 'Owner round 2: A\'s paged flow; Reminders as B\'s Form with switches; appearance as tiles on the extras step; AI slot after extras. Use “Tiles” to flip thumbnails / symbols.',
+  A: 'Full-screen pages, page dots and one primary at the bottom, Skip as a glass toolbar item. Closest to the current flow, minus the path page.',
+  B: 'A NavigationStack of grouped Forms: large titles, Back and Skip in the toolbar, the ritual taught as rows. Onboarding looks like the Settings it seeds.',
+  C: 'No steps: a single scrolling Form with every choice and one pinned primary. Fastest to finish; heaviest to read.',
+  D: 'No onboarding screen at all: Today is live from the first second and setup rides in a sheet over it. Dismissing the sheet is the hand-off.',
+};
+
+function render() {
+  document.getElementById('stage').innerHTML = `<div class="vtitle"><b>${variant} · ${VARIANTS[variant]}</b><span>${BLURBS[variant]}</span></div>
+    <div class="strip">${({ E: variantE, A: variantA, B: variantB, C: variantC, D: variantD })[variant]().join('')}</div>`;
+  document.getElementById('vlabel').textContent = `${variant} (${VARIANTS[variant]}) · ${keys.indexOf(variant) + 1}/${keys.length}`;
+  document.querySelectorAll('.appear').forEach((el) => el.addEventListener('click', () => {
+    appearance = el.dataset.a;
+    const light = appearance === 'Light' || (appearance === 'Automatic' && matchMedia('(prefers-color-scheme: light)').matches);
+    document.body.classList.toggle('light', light);
+    document.getElementById('scheme').setAttribute('aria-pressed', light);
+    render();
+  }));
+}
+function go(d) {
+  variant = keys[(keys.indexOf(variant) + d + keys.length) % keys.length];
+  const u = new URL(location); u.searchParams.set('variant', variant); history.replaceState(null, '', u);
+  render();
+}
+document.getElementById('prev').onclick = () => go(-1);
+document.getElementById('next').onclick = () => go(1);
+addEventListener('keydown', (e) => {
+  if (e.target.closest('input,textarea,[contenteditable]')) return;
+  if (e.key === 'ArrowLeft') go(-1); if (e.key === 'ArrowRight') go(1);
+});
+const flip = (id, fn) => { const b = document.getElementById(id); b.onclick = () => { const v = b.getAttribute('aria-pressed') !== 'true'; b.setAttribute('aria-pressed', v); fn(v); render(); }; };
+flip('extras', (v) => showExtras = v);
+flip('ai', (v) => showAI = v);
+flip('scheme', (v) => { document.body.classList.toggle('light', v); appearance = v ? 'Light' : 'Dark'; });
+flip('large', (v) => document.body.classList.toggle('large', v));
+flip('tiles', (v) => tileStyle = v ? 'glyph' : 'thumb');
+render();
+</script>
+</body>
+</html>

@@ -39,7 +39,7 @@ struct ThinkApp: App {
     @State private var dataReset: AppDataResetCoordinator
     @State private var practicePreferences: PracticePreferencesStore
     @State private var privacyShield = AppPrivacyShield()
-    @AppStorage(Appearance.storageKey) private var appearance = Appearance.system
+    @AppStorage(Appearance.storageKey) private var appearance = Appearance.dark
     @AppStorage(Onboarding.completedKey) private var completedOnboarding = false
     private let isUITesting: Bool
     private let journalContainer: ModelContainer
@@ -235,7 +235,7 @@ struct ThinkApp: App {
                 if isUITesting || completedOnboarding {
                     RootTabView()
                 } else {
-                    OnboardingView()
+                    OnboardingPrototypeView()
                 }
             }
             .id(dataReset.generation)
