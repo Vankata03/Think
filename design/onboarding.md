@@ -32,9 +32,9 @@ Chrome on every step:
 
 ## 3. Step 1: Promise
 
-- **Day arc.** `DayArcView` (design system section 14) with the hour fixed at 11:00 and no act done: the elapsed stroke and the sun run from 06:00 to 11:00, the question marker is next (`accent`, caption in `accentInk`), the move and retro markers are later (dashed). The centre shows no weekday, count or time; the arc here is a picture of a day, not a clock. It is one accessibility element: "Your day: a question in the morning, a move by afternoon, a retro in the evening." At accessibility sizes the arc is dropped entirely rather than turned into the linear bar, because "0 of 3" teaches nothing before the first day.
+- **Day arc.** `DayArcView` (design system section 14) with the hour fixed at 07:00 and no act done: the elapsed stroke and the sun run from 06:00 to 07:00, just short of the question marker at 08:00, which is next (`accent`, caption in `accentInk`), the move and retro markers are later (dashed). The centre shows no weekday, count or time; the arc here is a picture of a day, not a clock. It is one accessibility element: "Your day: a question in the morning, a move by afternoon, a retro in the evening." At accessibility sizes the arc is dropped entirely rather than turned into the linear bar, because "0 of 3" teaches nothing before the first day.
 - **Promise**: "One line, one question, one move a day." in the `lineLarge` role (`.title`, serif). The owner confirmed `.title` over `.largeTitle` on device, so onboarding adds no type role.
-- **Supporting line**: "A few honest minutes. What you write stays on your device and in your own iCloud." in `body`, `secondaryLabel`.
+- **Supporting line**: "A few honest minutes. What you write stays on your device, and syncs through your own iCloud when available." in `body`, `secondaryLabel`.
 - The block is centred vertically in the space above the bottom bar and scrolls when the type is large. This retires the dead space of `ONB-4`.
 
 ## 4. Step 2: Reminders
@@ -82,7 +82,7 @@ One section, header "Optional", two switch rows, both off by default. Same row p
 
 - Footer: "Both stay in Settings." The prototype's footer also said each switch asks its own permission; that is true only of Health, so the sentence is dropped.
 - Each row is shown only where it can work: Health where `HKHealthStore.isHealthDataAvailable()` is true, Lock journal where `JournalLock.availability.canEnable` is true. Settings keeps its unavailable explanations; onboarding simply omits the row. When neither row can be shown, the whole section is omitted.
-- iCloud is not offered: mirroring follows the Apple Account and has no switch ([progress-settings.md](progress-settings.md) section 3). The promise sentence in step 1 is the only mention.
+- iCloud is not offered: mirroring follows the Apple Account and has no switch ([progress-settings.md](progress-settings.md) section 3). The supporting line in step 1 is the only mention, and it says "when available" because mirroring needs an iCloud account.
 
 ## 6. Skip and finish
 
@@ -96,7 +96,7 @@ One section, header "Optional", two switch rows, both off by default. Same row p
 New or changed strings for `Localizable.xcstrings`, to be translated into all seven locales and length-checked in `bg` and `de`:
 
 - "One line, one question, one move a day."
-- "A few honest minutes. What you write stays on your device and in your own iCloud."
+- "A few honest minutes. What you write stays on your device, and syncs through your own iCloud when available."
 - "Your day: a question in the morning, a move by afternoon, a retro in the evening." (accessibility label)
 - "Reminders", "Notifications", "Daily line", "Evening retro", "Session end alerts", "When a focus or break interval ends"
 - "Change times and switches later in Settings, behind the gear on Progress." / "Turn any of these on in Settings, behind the gear on Progress."

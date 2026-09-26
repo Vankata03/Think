@@ -339,7 +339,7 @@ Resolves the graphic decision of [Today: above the fold and glance readability](
 - A half circle from 06:00 to 22:00: `separator` track, `accent` elapsed stroke, an `accent` sun at the current hour, three markers for the ritual acts (question 08:00, move 14:00, retro 20:00) in `success` / `accent` / dashed `secondaryLabel` for done / next / later, captions in the marker's colour outside the curve, the weekday, count and time in the centre.
 - Motion animates the hour fraction along the curve, never the point; Reduce Motion cuts.
 - At accessibility sizes the arc becomes "*n* of 3" over a `ProgressView` bar (13.7).
-- Sizes, offsets and the accessibility label are in [today.md](today.md) section 3. Onboarding draws it at a fixed 11:00 with no act done and no centre text ([onboarding.md](onboarding.md) section 3). Widgets may adopt it later through [widgets.md](widgets.md); no other screen draws it.
+- Sizes, offsets and the accessibility label are in [today.md](today.md) section 3. Onboarding draws it at a fixed 07:00, before the first marker, with no act done and no centre text ([onboarding.md](onboarding.md) section 3). Widgets may adopt it later through [widgets.md](widgets.md); no other screen draws it.
 
 ## 15. Removed screens
 
