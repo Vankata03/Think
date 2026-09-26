@@ -211,7 +211,7 @@ Widgets and the Live Activity take their placeholder and empty treatment from [w
 
 ## 9. Motion
 
-Unchanged by this document. `ThinkMotion` in `Think/Views/ViewStyle.swift` keeps its curves and its Reduce Motion fallbacks. Whether the redesign defines a motion and haptics language is an open map question.
+Unchanged by this document. `ThinkMotion` in `Think/Views/ViewStyle.swift` keeps its curves and its Reduce Motion fallbacks, and the existing haptic events stay as they are. The redesign defines no shared motion or haptics language: each brief states its own motion and its Reduce Motion behaviour, and those statements are the contract (owner, 2026-09-26).
 
 ## 10. Swift naming
 
@@ -243,7 +243,6 @@ Restated here so no brief omits it:
 ## 12. Open
 
 - `card` radius: Today and Focus do not use `thinkCard()`, so the radius is still unmeasured; measure it against a system section before a future brief uses it.
-- Motion and haptics language: map fog.
 - Chrome at AX3 (section 13.7): rules 2 and 3 were shown on device on 2026-09-25. The Settings prototype kept the inline Appearance choices readable at AX3; the Focus prototype switched the arc to a bar. Production bindings and localizations still need build checks.
 
 ## 13. Screen chrome
