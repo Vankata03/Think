@@ -204,7 +204,7 @@ Lines and actions per screen (briefs may tune wording, not shape):
 | Today streak, never practised | Begin-again | Start today. | none |
 | Path detail, completed | Begin-again, as a section above the step trail | Path completed. | Begin again |
 | Path detail, locked | Locked | Finish <previous path> first. | Open <previous path> |
-| Path step, not open yet | Locked, full screen on the step page | Opens tomorrow at 06:00. / Opens after step <n>. | none |
+| Path step, not open yet | Locked, full screen on the step page | Opens tomorrow at 06:00. / Opens after step <n − 1>. | none |
 | Achievements, unearned | Locked | unlock condition | none |
 
 Widgets and the Live Activity take their placeholder and empty treatment from [widgets.md](widgets.md) section 7; onboarding has no state views.

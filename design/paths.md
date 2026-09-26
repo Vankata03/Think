@@ -17,7 +17,7 @@ These are product rules settled in this ticket. The build changes `ProgressStore
 - **One step, then wait.** A person completes a step explicitly. The next step opens at **06:00 local time on the day after** the completion, the hour the day arc starts. It then waits, however long, until it is done; missed days advance nothing. This replaces the calendar-day rule in `ProgressStore.canCompletePathStep`, which opened the next step at midnight.
 - **Paths unlock in order.** Clear thinking stays locked until a Deep focus run is finished (owner, 2026-09-26). Any finished run keeps the next path open, including while the earlier path is repeated.
 - **No run history in the interface.** Runs stay in the data. The interface shows only that a path was finished ("Completed *n* times") and offers Begin again on a finished path. There is no mid-run restart and no way to browse an earlier run.
-- **Same-day undo.** A completed step can be undone by a trailing swipe on its done row until midnight of the day it was completed, as Today's move does. The last step of a run cannot be undone: finishing a run unlocks the next path and can earn an achievement, and neither is taken back.
+- **Same-day undo.** A completed step can be undone by a trailing swipe on its done row until midnight of the day it was completed, as Today's move does. The last step of a run cannot be undone: finishing a run unlocks the next path and can earn an achievement, and neither is taken back. Undo takes back everything the completion did, not just the step (section 9). A step carried over from before dated completions existed has no date, so it has no undo.
 - **Unit and numbers.** The unit is "Step", never "Day" or "Lesson". Progress reads "Step *n* of *m*" everywhere, which retires the inventory observation that the list said "Day 2 of 21" while detail said "1 of 21 days".
 
 ## 3. The step trail
@@ -55,7 +55,7 @@ The first section holds one row, the hero, on `surface`. It is a `NavigationLink
 
 Which step the hero shows:
 
-1. **A step is open.** The open step of the path practised most recently; on a tie, library order (Deep focus first). A path that is unlocked but not started counts as having step 1 open, so a person who finishes Deep focus sees Clear thinking's first step next. A second path with an open step says "Step *n* today" on its row in section 4.2.
+1. **A step is open.** The open step of the path practised most recently, by its last completion date (section 9 gives the fallback for runs carried over without dates; a path with no date at all ranks last); on a tie, library order (Deep focus first). A path that is unlocked but not started counts as having step 1 open, so a person who finishes Deep focus sees Clear thinking's first step next. A second path with an open step says "Step *n* today" on its row in section 4.2.
 2. **No step is open, one was done today.** The hero stays and changes to its done form: caption "Step *n* done" with the `done` symbol in `success`, the next step's title in `secondaryLabel`, and "Opens tomorrow at 06:00". The window shows the step just done and no today disc.
 3. **Every available path is finished.** No hero. The list starts with "All paths".
 
@@ -112,7 +112,7 @@ A section headed "Steps".
 
 | State | Presentation |
 | --- | --- |
-| Run finished | Instead of the step card, one section: the path symbol and "Path completed." in `heading`, "Completed *n* times · last on *date*" in `secondary`, and "Begin again" as a `secondary` button in `accentInk`. The Begin-again state (design system section 8) is a section here, not the whole screen, because the finished steps stay readable in the trail below. Begin again starts a new run at step 1 immediately; step 1 is open at once. For Clear thinking the path's `continuation` text sits under the count. |
+| Run finished | Instead of the step card, one section: the path symbol and "Path completed." in `heading`, "Completed *n* times · last on *date*" in `secondary` (just "Completed *n* times" when the finished run has no date, section 9), and "Begin again" as a `secondary` button in `accentInk`. The Begin-again state (design system section 8) is a section here, not the whole screen, because the finished steps stay readable in the trail below. Begin again starts a new run at step 1 immediately; step 1 is open at once. For Clear thinking the path's `continuation` text sits under the count. |
 | Locked path | The Locked state full screen (design system section 8): `ContentUnavailableView` with `lock`, "Finish *previous path* first." and one `secondary` "Open *previous path*", which replaces the stack with the previous path's detail. |
 
 ## 6. Step page
@@ -121,7 +121,7 @@ Pushed from a trail disc, a step row or the next row in 5.2. A `List`, inline ti
 
 - First row, clear background: the step title in `.title` bold, "Step *n* of *m* · *path*" under it in `secondary`.
 - **Done or today's step:** one section with the lesson in the `lesson` role and the task under "Task". A done step adds a row "Completed *date*" with the `done` symbol in `success`. Read only: the action for today's step lives on path detail, never here.
-- **Not open yet:** the Locked state (design system section 8) as a `ContentUnavailableView` with `lock` and one line: "Opens tomorrow at 06:00." for the next step after today's is done, "Opens after step *n*." for any later step. No lesson, no task, no action. The title stays visible so the run's shape can be read ahead; the content waits (owner, 2026-09-26).
+- **Not open yet:** the Locked state (design system section 8) as a `ContentUnavailableView` with `lock` and one line: "Opens tomorrow at 06:00." for the next step after today's is done, "Opens after step *n − 1*." for any later step, naming the step before the one on screen (step 7's page reads "Opens after step 6."). No lesson, no task, no action. The title stays visible so the run's shape can be read ahead; the content waits (owner, 2026-09-26).
 
 ## 7. Strings
 
@@ -141,7 +141,7 @@ Pushed from a trail disc, a step row or the next row in 5.2. A `List`, inline ti
 | Done row | Step %lld done | |
 | Next row | Step %lld · %@ | |
 | Finished | Path completed. / Completed %lld times · last on %@ / Begin again | |
-| Step page, locked | Opens after step %lld. | |
+| Step page, locked | Opens after step %lld. | The number of the preceding step, *n − 1*. |
 
 `bg` and `de` were checked on the canvas with the German set ("Schritt abschließen", "Öffnet sich morgen um 06:00", "Schließe zuerst „Tiefe Konzentration“ ab"): every string wraps inside its row at the default size. The build measures them again at AX3.
 
@@ -156,9 +156,9 @@ The build that ships this brief deletes what it replaces; nothing stays behind a
 ## 9. Data and build work
 
 - `ProgressStore.canCompletePathStep` opens the next step at 06:00 on the day after the last completion, not at midnight (section 2). The Deep focus legacy fields and `canCompletePathStepToday` follow the same rule; `ProgressStoreTests` cover 05:59 and 06:00 on the next day, a completion at 23:30, and a gap of several days.
-- `ProgressStore` gains a same-day undo for a path step that removes the completion and its practice activity, refused for the last step of a run (section 2).
-- The hero's choice (section 4.1) needs the date of each path's last completion, which `PathRunProgress.lastCompletionDate` already carries.
-- "Completed *n* times" counts finished runs per path; "last on" is the last completion date of the latest finished run. No new storage.
+- `ProgressStore` gains a same-day undo for a path step, refused for the last step of a run and for a run's legacy, undated steps (section 2). It reverses everything `completePathStep` did, following `setMoveCompleted(false)`: remove the step's `PathStepCompletion` and its `.path` practice activity; if the day is not a legacy day and no other activity remains on it, remove it from the completed days and recompute the streak, otherwise the day stays credited by the other activity; call `updateLegacyPathFields` so Deep focus's `pathCompletedDays` and `lastPathCompletionDay` fall back to the previous completion; persist and emit a path change so widgets and sync see the reversal. Tests cover an undo on a day with no other practice (the day and streak drop) and on a day with a move done (both stay).
+- **Last completion date.** A path's last completion is its active run's `lastCompletionDate`. A Deep focus run carried over from before dated completions (`startedAt == nil`, empty `completions`, a `legacyCompletedSteps` count) has none; it falls back to `lastPathCompletionDay`, the same fallback `canCompletePathStep` already uses. With no date either way, the path ranks last in the hero's choice (section 4.1) and the 06:00 rule treats its next step as open.
+- "Completed *n* times" counts finished runs per path; "last on" is the last completion date of the latest finished run under the same fallback, and is omitted when there is no date. No new storage.
 - `startNewRun` is called only from Begin again on a finished path.
 - No other target calls the completion rule. The Watch app's Today shows Deep focus's next step read-only from the legacy `pathCompletedDays` field, with "Day *n*" wording; the Watch is out of the redesign's scope, so the wording and the 06:00 opening on the Watch are left to the map's Watch question.
 
