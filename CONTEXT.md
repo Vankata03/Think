@@ -32,6 +32,10 @@ _Avoid_: Favourite, bookmark, liked quote
 The evening retrospective entry for a day.
 _Avoid_: Evening review, reflection
 
+**Version**:
+One of several records that claim the same day's answer or retro after two devices wrote it offline. The latest edit is the day's record; the others are kept, never merged, and reached from it.
+_Avoid_: Conflict, variant, duplicate, copy
+
 **Ritual**:
 The three daily acts of a practice: answering the question, doing the move and writing the retro. What Today walks the person through.
 _Avoid_: Routine, checklist, daily tasks
