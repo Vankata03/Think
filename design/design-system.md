@@ -61,7 +61,7 @@ System fonts only. The serif is the system serif (New York) through `.fontDesign
 | `body` | `.body` | system | regular | Interface text, journal entries, settings rows. |
 | `secondary` | `.subheadline` | system | regular | Supporting text under a row or card title, coloured `secondaryLabel`. |
 | `caption` | `.footnote` | system | regular | Timestamps, counts, helper text, coloured `secondaryLabel`. |
-| `numeral` | `.title` | rounded | semibold | Streak count, statistics, path day number. Always `.monospacedDigit()`. |
+| `numeral` | `.title` | rounded | semibold | Streak count, statistics, path step counts. Always `.monospacedDigit()`. |
 | `countdown` | `@ScaledMetric(relativeTo: .largeTitle) 64` | rounded | medium | The Focus timer only. Scales with Dynamic Type up to `.xxxLarge`; at accessibility sizes Focus switches to its linear form ([focus.md](focus.md) section 3). |
 
 ### 3.2 Rules
@@ -109,7 +109,7 @@ A section that used to be a custom card becomes a `Section` with a title-case he
 
 | Role | Style | Rule |
 | --- | --- | --- |
-| `primary` | `.buttonStyle(.glassProminent)` tinted `accent`, label `accentOnFill` | At most one per screen. Section 13.6 places it floating bottom-trailing for list creation, inside Today's next-act panel, centred in Focus's bottom safe-area bar, or in the trailing toolbar otherwise. |
+| `primary` | `.buttonStyle(.glassProminent)` tinted `accent`, label `accentOnFill` | At most one per screen. Section 13.6 places it floating bottom-trailing for list creation, inside Today's next-act panel or path detail's step card, centred in Focus's bottom safe-area bar, or in the trailing toolbar otherwise. |
 | `secondary` | `.buttonStyle(.bordered)` | Everything that is an action but not the primary one. |
 | `tertiary` | `.buttonStyle(.plain)`, text in `accentInk` | Inline links and "See all" rows. |
 | `destructive` | `.buttonStyle(.bordered)` with `role: .destructive` | Delete entry, reset streak, delete all data. Confirmed through a `confirmationDialog`. |
@@ -126,7 +126,7 @@ One SF Symbol per concept. Outline variant in toolbars, lists and content; the t
 | Question of the day | `question` | `questionmark.bubble` | Replaces `doc.questionmark`. |
 | Move | `move` | `figure.walk` | Replaces the bare `checkmark`; the checkmark remains the done state. |
 | Path | `path` | `point.topleft.down.to.point.bottomright.curvepath` | Paths tab and path rows. |
-| Path step | `pathStepPending` / `pathStepDone` | `circle` / `checkmark.circle.fill` | Pending / confirmed. |
+| Path step | `pathStepPending` / `pathStepToday` / `pathStepDone` | `circle` / `circle.inset.filled` / `checkmark.circle.fill` | Pending (widgets) / open today (Paths captions and rows) / confirmed. A step that has not opened yet uses `lock`. The discs of the step trail are drawn, not symbols ([paths.md](paths.md) section 3). |
 | Focus session | `focus` | `timer` | Focus tab, the bottom accessory, history rows. |
 | Break | `breakPhase` | `cup.and.saucer` | Break state in the timer and Live Activity. |
 | Apple Health | `health` | `heart` | "Log focus to Health" in onboarding and Settings. Free for this since saved lines moved to `bookmark`; it means Apple Health and nothing else. |
@@ -202,8 +202,9 @@ Lines and actions per screen (briefs may tune wording, not shape):
 | Focus "Last session" line | Empty | Not shown until the first session. | none |
 | Today streak, lapsed | Begin-again | Begin again. | none |
 | Today streak, never practised | Begin-again | Start today. | none |
-| Path detail, completed | Begin-again | Path completed. | Begin again |
+| Path detail, completed | Begin-again, as a section above the step trail | Path completed. | Begin again |
 | Path detail, locked | Locked | Finish <previous path> first. | Open <previous path> |
+| Path step, not open yet | Locked, full screen on the step page | Opens tomorrow at 06:00. / Opens after step <n>. | none |
 | Achievements, unearned | Locked | unlock condition | none |
 
 Widgets and the Live Activity take their placeholder and empty treatment from [widgets.md](widgets.md) section 7; onboarding has no state views.
@@ -256,8 +257,8 @@ Every screen is a `NavigationStack` whose root is a `List` or a `Form`, with two
 | Screen | Container | Notes |
 | --- | --- | --- |
 | Today | `List` | Clear rows for the day arc and the daily line, then one `surface` section for the next act and one for the other acts. No `thinkCard()`, no activity log. Full spec in [today.md](today.md). |
-| Paths | `List` | One row per path; "In development" as its own section. |
-| Path detail | `List` | Header section with progress, one row per step, history section. |
+| Paths | `List` | Today's step as a hero row with the trail window, then an "All paths" section; unavailable paths as one footer line. Full spec in [paths.md](paths.md). |
+| Path detail | `List` | Path name row, today's step card with the screen's primary, then the full step trail as the index of steps. No progress header, no history section. Full spec in [paths.md](paths.md). |
 | Focus | `ScrollView` stage | The exception to this section: no `List`, no card. A centred column on the plain background (intention, arc, wheel, last session) with the controls in a bottom safe-area bar ([focus.md](focus.md) section 2). |
 | Journal | `List` | Day sections, `.searchable` under the title. Full spec in [journal.md](journal.md). |
 | Progress | `List` | Streak hero, weekly review, Practice stats and chart, compact earned achievements, then two recent Focus sessions and See all. Full spec in [progress-settings.md](progress-settings.md). |
@@ -313,9 +314,9 @@ Path detail is titled with the path name, inline. A long `de` or `bg` name trunc
 The primary action has four legal homes. The test, in order:
 
 1. **Floating bottom-trailing** when the action creates something new from a list screen. Built with `.safeAreaBar(edge: .bottom, alignment: .trailing)` holding one `.glassProminent` button, created as `Button("New note", systemImage: ThinkSymbol.add)` with `.labelStyle(.iconOnly)` so the accessibility label comes from the title. The bar floats above the tab bar, extends the scroll-edge effect and insets the list by itself. It coexists with the Focus accessory (13.2): the accessory rides in the tab-bar area, the bar sits above it. Today only Journal's new-note action qualifies; Saved lines, Paths and Progress create nothing.
-2. **Inside Today's next-act panel** for the question, move or retro action ([today.md](today.md) section 2).
+2. **Inside the content panel it acts on**: Today's next-act panel for the question, move or retro action ([today.md](today.md) section 2), and path detail's step card for "Complete step" ([paths.md](paths.md) section 5.1).
 3. **Centred in a bottom safe-area bar** for Focus's Start/Pause, with End and Skip beside it as `.glass`, so the controls stay reachable at every size ([focus.md](focus.md) section 5). Onboarding uses the same home at full width for Continue and Begin practice, under its page dots ([onboarding.md](onboarding.md) section 2).
-4. **Trailing toolbar** otherwise: Share on share sheets, Done on editors, Confirm step on path detail (with a row button at the end of the lesson as well).
+4. **Trailing toolbar** otherwise: Share on share sheets, Done on editors. Path detail has no toolbar Confirm; its one action lives in the step card (rule 2, owner 2026-09-26).
 
 No screen uses a `.bottomBar` toolbar placement: it would stack a second full-width glass bar over the tab bar. `.overlay(alignment: .bottomTrailing)` with padding is the pattern the bug inventory retires and is not used.
 

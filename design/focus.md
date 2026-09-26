@@ -45,6 +45,7 @@ Two system wheels side by side, as in the Clock app's Timers tab: `Picker` with 
 
 - Work: 5 to 120 minutes in steps of 5. Break: 1 to 30 minutes in steps of 1. Each row reads "*n* min", the unit in `accentInk` for work and `success` for break.
 - Turning either wheel sets the duration at once; there is no Done. The pair 25/5 selects the classic preset and 50/10 the long one, so Siri, the Control and the Watch keep their names; every other pair is the custom preset. Presets are not named anywhere on the screen.
+- A path step's "Focus for *n* min" arrives here with the wheel set to *n* minutes of work and 5 of break and the intention set to the step title unless the journal is locked; the timer does not start. A running session is left alone and the tab simply switches ([paths.md](paths.md) section 5.1).
 - A stored custom work length that is not a multiple of 5 (possible from the old pickers) initializes the wheel at the nearest step, clamped to 5–120 minutes. Start uses that displayed wheel value, never the old stored value, and saves it as the new work length before starting the session. Turning the wheel still saves the selected duration at once. The displayed and started lengths must always agree.
 - The wheel exists only while idle. The duration cannot change mid-session, so changing it can no longer end a session silently (the old sheet recorded partial effort without saying so).
 - At accessibility sizes the columns stack vertically. The wheel rows keep the system wheel's type size, as in Clock.
