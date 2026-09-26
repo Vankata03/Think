@@ -8,28 +8,31 @@ import SwiftData
 
 struct RootTabView: View {
     @Environment(\.colorScheme) private var colorScheme
-    @Environment(AppIntentRouter.self) private var appIntentRouter
+    @State private var prototypeTab = 3
 
     var body: some View {
-        @Bindable var appIntentRouter = appIntentRouter
-
-        TabView(selection: $appIntentRouter.selectedTab) {
-            Tab("Today", systemImage: "sun.max", value: ThinkAppTab.today) {
+        // Throwaway Journal prototype (#78): five-tab chrome, open on Journal.
+        TabView(selection: $prototypeTab) {
+            Tab("Today", systemImage: "sun.max", value: 0) {
                 TodayView()
             }
             .accessibilityIdentifier("Tab.Today")
-            Tab("Paths", systemImage: "point.topleft.down.to.point.bottomright.curvepath", value: ThinkAppTab.paths) {
+            Tab("Paths", systemImage: "point.topleft.down.to.point.bottomright.curvepath", value: 1) {
                 PathsView()
             }
             .accessibilityIdentifier("Tab.Paths")
-            Tab("Focus", systemImage: "timer", value: ThinkAppTab.focus) {
+            Tab("Focus", systemImage: "timer", value: 2) {
                 FocusView()
             }
             .accessibilityIdentifier("Tab.Focus")
-            Tab("Profile", systemImage: "person", value: ThinkAppTab.profile) {
+            Tab("Journal", systemImage: "book.closed", value: 3) {
+                JournalPrototypeView()
+            }
+            .accessibilityIdentifier("Tab.Journal")
+            Tab("Progress", systemImage: "chart.bar", value: 4) {
                 ProfileView()
             }
-            .accessibilityIdentifier("Tab.Profile")
+            .accessibilityIdentifier("Tab.Progress")
         }
         .tint(Color.accessibleAccent(for: colorScheme))
     }
