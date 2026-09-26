@@ -19,7 +19,7 @@ struct RootTabView: View {
             }
             .accessibilityIdentifier("Tab.Today")
             Tab("Paths", systemImage: "point.topleft.down.to.point.bottomright.curvepath", value: ThinkAppTab.paths) {
-                PathsView()
+                PathsPrototypeView() // PROTOTYPE (#75)
             }
             .accessibilityIdentifier("Tab.Paths")
             Tab("Focus", systemImage: "timer", value: ThinkAppTab.focus) {
@@ -32,6 +32,9 @@ struct RootTabView: View {
             .accessibilityIdentifier("Tab.Profile")
         }
         .tint(Color.accessibleAccent(for: colorScheme))
+        .onAppear { // PROTOTYPE (#75): open on Paths when launched with a prototype route
+            if UserDefaults.standard.string(forKey: "proto.route") != nil { appIntentRouter.selectedTab = .paths }
+        }
     }
 }
 

@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PROTOTYPE · Think Paths · throwaway</title>
+<!--
+  PROTOTYPE, throwaway. Answers "Paths list and Path detail: step progress legibility" (#75, map #68).
+  Four structurally different ways to show a run's progress and today's step, switchable via
+  ?variant=A|B|C|D, the floating bar, or ← →. Each variant is a filmstrip of the same states.
+  Settled before drawing (rounds 1–2, owner 2026-09-26): unit is "Step"; Clear thinking stays locked
+  until a Deep focus run is finished; nothing on Today, no tab badge; one primary "Complete step" in
+  today's step card, no toolbar Confirm; next step opens 06:00 the day after completion and waits;
+  future steps show titles, rows stay tappable, the step page explains the lock; same-day swipe Undo;
+  no run history, "Completed n times" plus Begin again on a finished path; no mid-run restart;
+  unavailable paths as one footer line; "Focus for n min" secondary presets Focus.
+  Open: the progress mark and where today's step sits (list vs detail).
+-->
+<style>
+  :root {
+    --bg:#000; --surface:#1c1c1e; --raised:#2c2c2e; --label:#fff; --sec:#98989f; --ter:#5a5a5f;
+    --sep:#38383a; --accent:#ffd433; --ink:#ffd433; --onfill:#000; --green:#30d158;
+    --page:#161616; --pagetext:#f5f5f7; --fs:1;
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif; color-scheme:dark;
+  }
+  body.light {
+    --bg:#f2f2f7; --surface:#fff; --raised:#e5e5ea; --label:#000; --sec:#6c6c70; --ter:#b0b0b5;
+    --sep:#c6c6c8; --accent:#f2c41c; --ink:#6e5c05; --green:#34c759;
+    --page:#e4e4ea; --pagetext:#171719; color-scheme:light;
+  }
+  body.large { --fs:1.45; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--page); color:var(--pagetext); padding-bottom:90px; }
+  button { font:inherit; cursor:pointer; }
+  header.study { max-width:1200px; margin:20px auto 8px; padding:0 20px; }
+  header h1 { font-size:19px; margin:0 0 4px; }
+  header p { font-size:13px; opacity:.7; line-height:1.45; margin:0 0 12px; max-width:900px; }
+  .controls { display:flex; flex-wrap:wrap; gap:8px; }
+  .controls button { border:1px solid #5b5b61; background:transparent; color:inherit; border-radius:10px; padding:7px 11px; font-size:13px; }
+  .controls button[aria-pressed="true"] { background:#ffd433; border-color:#ffd433; color:#000; }
+  .vtitle { max-width:1200px; margin:18px auto 0; padding:0 20px; font-size:15px; }
+  .vtitle b { font-size:17px; }
+  .vtitle span { opacity:.7; display:block; margin-top:3px; font-size:13px; line-height:1.4; max-width:900px; }
+  .strip { display:flex; gap:22px; overflow-x:auto; padding:18px 20px 10px; }
+  figure { margin:0; flex:none; }
+  figcaption { font-size:12px; opacity:.75; margin-top:8px; max-width:330px; line-height:1.35; }
+
+  .phone { position:relative; width:330px; height:700px; border-radius:44px; overflow:hidden; background:var(--bg); color:var(--label);
+           border:1px solid #57575d; box-shadow:0 16px 50px #0007; display:flex; flex-direction:column; font-size:calc(17px * var(--fs)); }
+  body.light .phone { border-color:#c9c9cf; box-shadow:0 12px 36px #0002; }
+  .status { height:46px; flex:none; display:flex; align-items:center; justify-content:space-between; padding:6px 30px 0; font-size:15px; font-weight:600; }
+  .nav { height:44px; flex:none; display:flex; align-items:center; justify-content:space-between; padding:0 12px; font-size:17px; gap:8px; }
+  .nav .t { font-weight:600; flex:1; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .nav .side { width:64px; display:flex; }
+  .nav .side.r { justify-content:flex-end; }
+  .glass { display:inline-flex; align-items:center; justify-content:center; height:40px; min-width:40px; padding:0 12px; border-radius:20px;
+           background:color-mix(in srgb, var(--raised) 70%, transparent); border:1px solid color-mix(in srgb, var(--label) 12%, transparent); color:var(--label); font-size:17px; }
+  .content { flex:1; overflow-y:auto; scrollbar-width:none; padding:0 16px 20px; }
+  .big { font-size:calc(34px * var(--fs)); font-weight:700; letter-spacing:-.5px; margin:2px 4px 12px; line-height:1.1; }
+  .serif { font-family:"New York",ui-serif,Georgia,serif; }
+  .round { font-family:ui-rounded,-apple-system,sans-serif; font-variant-numeric:tabular-nums; }
+  .hdr { color:var(--sec); font-size:calc(13px * var(--fs)); margin:18px 16px 7px; }
+  .foot { color:var(--sec); font-size:calc(13px * var(--fs)); line-height:1.35; margin:7px 16px 0; }
+  .sect { background:var(--surface); border-radius:24px; overflow:hidden; }
+  .row { display:flex; align-items:center; gap:12px; min-height:48px; padding:11px 16px; position:relative; }
+  .row + .row::before { content:""; position:absolute; top:0; right:0; left:52px; border-top:.5px solid var(--sep); }
+  .row.nosym + .row::before, .row + .row.nosym::before { left:16px; }
+  .row .sym { width:24px; flex:none; display:flex; justify-content:center; color:var(--label); }
+  .row .n { flex:1; line-height:1.25; min-width:0; }
+  .row .d { display:block; color:var(--sec); font-size:calc(15px * var(--fs)); margin-top:3px; }
+  .row .v { color:var(--sec); font-size:calc(15px * var(--fs)); text-align:right; flex:none; }
+  .row .chev { color:var(--ter); flex:none; font-size:calc(15px * var(--fs)); }
+  .row.dim .n { color:var(--sec); }
+  .row.cur .n b { font-weight:600; }
+  body.large .row.stack { flex-wrap:wrap; }
+  body.large .row.stack .v { flex-basis:100%; text-align:left; margin-left:36px; }
+  .ico { width:calc(22px * var(--fs)); height:calc(22px * var(--fs)); display:block; }
+  .card { background:var(--surface); border-radius:24px; padding:18px 16px 16px; }
+  .cap { color:var(--ink); font-size:calc(14px * var(--fs)); font-weight:600; display:flex; align-items:center; gap:6px; margin-bottom:8px; }
+  .stitle { font-size:calc(22px * var(--fs)); font-weight:600; line-height:1.2; margin:0 0 10px; }
+  .lesson { font-size:calc(17px * var(--fs)); line-height:1.45; margin:0 0 14px; }
+  .sub { color:var(--sec); font-size:calc(13px * var(--fs)); font-weight:600; margin:0 0 4px; }
+  .task { font-size:calc(17px * var(--fs)); line-height:1.35; margin:0 0 12px; }
+  .disc { color:var(--ink); font-size:calc(15px * var(--fs)); margin:0 0 14px; }
+  .btns { display:flex; flex-direction:column; gap:8px; }
+  .primary { border:0; border-radius:26px; min-height:50px; background:var(--accent); color:var(--onfill); font-weight:600; font-size:calc(17px * var(--fs)); padding:12px 18px;
+             box-shadow:inset 0 1px 0 #fff6, 0 4px 14px #0003; width:100%; }
+  .secondary { border:0; border-radius:26px; min-height:50px; background:color-mix(in srgb, var(--label) 12%, transparent); color:var(--label); font-size:calc(17px * var(--fs)); padding:12px 18px; width:100%; }
+  .secondary.ink { color:var(--ink); }
+  .bar { height:6px; background:var(--raised); border-radius:3px; overflow:hidden; }
+  .bar i { display:block; height:100%; background:var(--accent); border-radius:3px; }
+  .seg { display:flex; gap:3px; }
+  .seg i { flex:1; height:8px; border-radius:2px; background:var(--raised); }
+  .seg i.done { background:var(--accent); }
+  .seg i.cur { background:transparent; box-shadow:inset 0 0 0 1.5px var(--accent); }
+  .seg.thin i { height:5px; }
+  .numeral { font-size:calc(34px * var(--fs)); font-weight:600; line-height:1; }
+  .ofn { color:var(--sec); font-size:calc(17px * var(--fs)); }
+  .clear { padding:6px 4px 4px; }
+  .fullname { font-size:calc(28px * var(--fs)); font-weight:700; line-height:1.15; margin:0 4px 4px; }
+  .tagline { color:var(--sec); font-size:calc(15px * var(--fs)); margin:0 4px 14px; line-height:1.35; }
+  .trail svg { display:block; margin:0 auto; }
+  body.large .trail svg, body.large .graphic { display:none; }
+  .linear { display:none; }
+  body.large .linear { display:block; }
+  .donebar { display:flex; gap:12px; align-items:center; }
+  .cua { text-align:center; padding:70px 24px 0; }
+  .cua .ico { width:calc(46px * var(--fs)); height:calc(46px * var(--fs)); margin:0 auto 14px; color:var(--sec); }
+  .cua h2 { font-size:calc(22px * var(--fs)); margin:0 0 8px; }
+  .cua p { color:var(--sec); margin:0 0 18px; font-size:calc(17px * var(--fs)); line-height:1.35; }
+  .cua .secondary { width:auto; padding:10px 20px; min-height:44px; }
+  .tabbar { flex:none; margin:0 14px 24px; height:62px; border-radius:31px; display:flex; align-items:center; justify-content:space-around;
+            background:color-mix(in srgb, var(--raised) 80%, transparent); border:1px solid color-mix(in srgb, var(--label) 10%, transparent); font-size:10px; }
+  .tabbar div { text-align:center; color:var(--label); width:20%; display:flex; flex-direction:column; align-items:center; gap:2px; }
+  .tabbar .sel { color:var(--ink); }
+  .tabbar .ico { width:22px; height:22px; }
+  .swipe { position:relative; }
+  .swipe .undo { position:absolute; right:0; top:0; bottom:0; width:84px; background:#ff9f0a; color:#000; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:15px; }
+  .swipe .row { background:var(--surface); transform:translateX(-84px); }
+  .hero { background:var(--surface); border-radius:24px; padding:16px; }
+  .hero .top { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .hero .top .n { flex:1; }
+  .hero .first { font-size:calc(17px * var(--fs)); line-height:1.4; color:var(--sec); margin:0; }
+  .pill { font-size:calc(13px * var(--fs)); color:var(--ink); font-weight:600; }
+  .gridmini { display:grid; grid-template-columns:repeat(7, 7px); gap:3px; flex:none; }
+  .gridmini i { width:7px; height:7px; border-radius:50%; background:var(--raised); }
+  .gridmini i.done { background:var(--accent); }
+  .gridmini i.cur { background:transparent; box-shadow:inset 0 0 0 1.5px var(--accent); }
+  body.large .gridmini { display:none; }
+
+  .dock { position:fixed; left:50%; bottom:16px; transform:translateX(-50%); display:flex; gap:6px; padding:6px; border-radius:18px; background:#26262aee; border:1px solid #444; z-index:9; backdrop-filter:blur(10px); }
+  .dock button { border:0; border-radius:12px; background:transparent; color:#fff; padding:8px 14px; font-size:14px; }
+  .dock button[aria-pressed="true"] { background:#ffd433; color:#000; font-weight:600; }
+</style>
+</head>
+<body>
+<header class="study">
+  <h1>PROTOTYPE · Paths list and Path detail (throwaway, #75)</h1>
+  <p>Deep focus run: steps 1–4 done, step 5 “Single-tab work” open today. Clear thinking locked behind Deep focus. Scroll inside each phone. Toggles: scheme, AX-size approximation (fixed graphics yield to the linear form), German copy length.</p>
+  <div class="controls">
+    <button id="tLight" aria-pressed="false">Light</button>
+    <button id="tLarge" aria-pressed="false">AX3 (approx.)</button>
+    <button id="tDe" aria-pressed="false">de copy</button>
+  </div>
+</header>
+<div id="out"></div>
+<div class="dock" id="dock"></div>
+
+<script>
+const DF = ["Notice the pull","One thing","Distance beats willpower","The two-minute start","Single-tab work","Boredom training","Environment design","Two sessions","Notification audit","The longer block","The shutdown note","Attention diet","Returning is the skill","Hardest thing first","Batch the shallow","Rest is part of work","Two deep blocks","Say no once","The review","Design tomorrow","Own your attention"];
+const DATES = ["19 Sep","20 Sep","22 Sep","25 Sep","26 Sep"];
+const DONE = 4; // steps done before today
+const state = { v: new URLSearchParams(location.search).get("variant") || "A", light:false, large:false, de:false };
+
+const EN = {
+  paths:"Paths", step:"Step", of:"of", today:"Today", tomorrow:"Tomorrow, 06:00", done:"done",
+  complete:"Complete step", focus:"Focus for 25 min", task:"Task", smaller:"A smaller version",
+  openTomorrow:"Opens tomorrow at 06:00", nextStep:"Step 6 · Boredom training",
+  locked:"Finish Deep focus first", open:"Open Deep focus", indev:"Two more paths are in development.",
+  steps:"Steps", doneToday:"Step 5 done", completed:"Path completed.", again:"Begin again", times:"Completed 1 time",
+  opensAfter:"Opens after step 6.", todayOn:"Today on Deep focus", allPaths:"All paths", back:"Paths",
+};
+const DE = {
+  paths:"Pfade", step:"Schritt", of:"von", today:"Heute", tomorrow:"Morgen, 06:00", done:"erledigt",
+  complete:"Schritt abschließen", focus:"25 Min. fokussieren", task:"Aufgabe", smaller:"Eine kleinere Version",
+  openTomorrow:"Öffnet sich morgen um 06:00", nextStep:"Schritt 6 · Langeweile-Training",
+  locked:"Schließe zuerst „Tiefe Konzentration“ ab", open:"„Tiefe Konzentration“ öffnen", indev:"Zwei weitere Pfade sind in Entwicklung.",
+  steps:"Schritte", doneToday:"Schritt 5 erledigt", completed:"Pfad abgeschlossen.", again:"Neu beginnen", times:"1-mal abgeschlossen",
+  opensAfter:"Öffnet sich nach Schritt 6.", todayOn:"Heute bei „Tiefe Konzentration“", allPaths:"Alle Pfade", back:"Pfade",
+};
+const T = () => state.de ? DE : EN;
+const DFNAME = () => state.de ? "Tiefe Konzentration" : "Deep focus";
+const CTNAME = () => state.de ? "Klares Denken" : "Clear thinking";
+
+// icons (rough SF Symbol stand-ins)
+const I = {
+  check:`<svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="var(--green)"/><path d="M7.5 12.3l3 3 6-6.3" stroke="#000" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  circle:`<svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" stroke="var(--sec)" stroke-width="1.6" fill="none"/></svg>`,
+  cur:`<svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="var(--accent)"/><circle cx="12" cy="12" r="3.5" fill="#000"/></svg>`,
+  lock:`<svg class="ico" viewBox="0 0 24 24"><rect x="5.5" y="10.5" width="13" height="10" rx="2.5" fill="var(--sec)"/><path d="M8.5 10.5V8a3.5 3.5 0 017 0v2.5" stroke="var(--sec)" stroke-width="1.8" fill="none"/></svg>`,
+  scope:`<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 1.5v5M12 17.5v5M1.5 12h5M17.5 12h5"/></svg>`,
+  bulb:`<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 18h6M10 21h4M12 3a6 6 0 00-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0012 3z"/></svg>`,
+  path:`<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="5" cy="5" r="2"/><circle cx="19" cy="19" r="2"/><path d="M7 5h7a3.5 3.5 0 010 7h-4a3.5 3.5 0 000 7h7"/></svg>`,
+  sun:`<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>`,
+  timer:`<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="13" r="8"/><path d="M12 13V9M10 2h4"/></svg>`,
+  book:`<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z M4 5v16"/></svg>`,
+  chart:`<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 20V11M12 20V5M18 20v-6"/></svg>`,
+  more:`<svg class="ico" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>`,
+};
+const TAB = () => `<div class="tabbar"><div>${I.sun}Today</div><div class="sel">${I.path}Paths</div><div>${I.timer}Focus</div><div>${I.book}Journal</div><div>${I.chart}Progress</div></div>`;
+const phone = (nav, body, cap) => `<figure><div class="phone"><div class="status"><span>9:41</span><span>▮▮▮</span></div>${nav}<div class="content">${body}</div>${TAB()}</div><figcaption>${cap}</figcaption></figure>`;
+const navLarge = () => `<div class="nav"></div>`;
+const navPush = (title, trailing="") => `<div class="nav"><div class="side"><span class="glass">‹</span></div><div class="t">${title}</div><div class="side r">${trailing}</div></div>`;
+
+// shared pieces
+const stepCard = (caption) => `<div class="card">
+  <div class="cap">${I.cur.replace('class="ico"','class="ico" style="width:16px;height:16px"')}${caption}</div>
+  <div class="stitle">${DF[4]}</div>
+  <p class="lesson serif">Every open tab is a promise to interrupt yourself.</p>
+  <p class="sub">${T().task}</p>
+  <p class="task">Do one 25-minute session with a single window and a single tab open.</p>
+  <p class="disc">${T().smaller} ›</p>
+  <div class="btns"><button class="secondary">${T().focus}</button><button class="primary">${T().complete}</button></div></div>`;
+const doneRows = (withUndo) => `<div class="sect">
+  ${withUndo ? `<div class="swipe"><div class="undo">Undo</div><div class="row">${`<span class="sym">${I.check}</span>`}<span class="n">${T().doneToday}<span class="d">${DF[4]}</span></span></div></div>` :
+  `<div class="row"><span class="sym">${I.check}</span><span class="n">${T().doneToday}<span class="d">${DF[4]}</span></span></div>`}
+  <div class="row"><span class="sym">${I.lock}</span><span class="n">${T().nextStep}<span class="d">${T().openTomorrow}</span></span><span class="chev">›</span></div></div>`;
+function stepRows(doneToday, from=0, to=21) {
+  const n = doneToday ? DONE + 1 : DONE;
+  let h = "";
+  for (let i = from; i < to; i++) {
+    let sym, cls = "row stack", v = "";
+    if (i < n) { sym = I.check; v = DATES[i] || ""; }
+    else if (i === n && !doneToday) { sym = I.cur; cls += " cur"; v = `<span style="color:var(--ink);font-weight:600">${T().today}</span>`; }
+    else if (i === n) { sym = I.lock; cls += " dim"; v = T().tomorrow; }
+    else { sym = I.lock; cls += " dim"; }
+    h += `<div class="${cls}"><span class="sym">${sym}</span><span class="n"><span class="round" style="color:var(--sec)">${i+1}</span>&nbsp; ${i === n && !doneToday ? `<b>${DF[i]}</b>` : DF[i]}</span><span class="v">${v}</span><span class="chev">›</span></div>`;
+  }
+  return h;
+}
+const lockedRow = () => `<div class="row"><span class="sym">${I.lock}</span><span class="n">${CTNAME()}<span class="d">${T().locked}</span></span><span class="chev">›</span></div>`;
+const footer = () => `<p class="foot">${T().indev}</p>`;
+const lockedStep = (mark) => phone(navPush(`${T().step} 7`), `
+  <div class="clear"><div class="fullname" style="font-size:calc(24px * var(--fs))">${DF[6]}</div><p class="tagline">${T().step} 7 ${T().of} 21 · ${DFNAME()}</p></div>
+  ${mark}
+  <div class="cua" style="padding-top:40px">${I.lock}<h2>${T().opensAfter}</h2><p>${state.de ? "Ein Schritt am Tag. Er wartet, bis du so weit bist." : "One step a day. It waits until you are ready."}</p></div>`,
+  "Locked step page: title visible, lesson hidden, the lock explained. Reached from any future row.");
+const lockedPath = () => phone(navPush(CTNAME()), `
+  <div class="cua">${I.lock}<h2>${state.de ? "Schließe zuerst „Tiefe Konzentration“ ab." : "Finish Deep focus first."}</h2><p>${state.de ? "Sieben Schritte zu klareren Entscheidungen." : "A seven-step introduction to clearer decisions."}</p><button class="secondary ink">${T().open}</button></div>`,
+  "Clear thinking, locked: section 8 Locked state, same in every variant.");
+const finished = (mark) => phone(navPush(DFNAME()), `
+  <div class="clear"><div class="fullname">${DFNAME()}</div><p class="tagline">${state.de ? "21 Schritte, um Aufmerksamkeit zu üben" : "21 steps to practise attention at your pace"}</p></div>
+  ${mark}
+  <div class="sect" style="margin-top:12px"><div class="row nosym" style="flex-direction:column;align-items:flex-start;gap:4px;padding:16px">
+    <span style="display:flex;gap:8px;align-items:center;color:var(--sec)">${I.path}<b style="color:var(--label)">${T().completed}</b></span>
+    <span class="d" style="margin:0">${T().times} · ${state.de ? "zuletzt am 11. Okt." : "last on 11 Oct"}</span>
+    <button class="secondary ink" style="margin-top:8px">${T().again}</button></div></div>
+  <div class="hdr">${T().steps}</div><div class="sect">${stepRows(false, 0, 0)}${Array.from({length:21},(_,i)=>`<div class="row stack"><span class="sym">${I.check}</span><span class="n"><span class="round" style="color:var(--sec)">${i+1}</span>&nbsp; ${DF[i]}</span><span class="chev">›</span></div>`).join("")}</div>`,
+  "Finished run: Begin-again as a section (steps stay readable), “Completed n times”, no run history.");
+
+// progress marks
+const barMark = (done) => `<div class="clear"><div style="display:flex;align-items:baseline;gap:6px;margin-bottom:8px"><span class="numeral round">${done}</span><span class="ofn">${T().of} 21 ${T().done}</span></div><div class="bar"><i style="width:${done/21*100}%"></i></div></div>`;
+const segMark = (done, cur, total=21, thin=false) => `<div class="seg${thin?" thin":""} graphic">${Array.from({length:total},(_,i)=>`<i class="${i<done?"done":i===cur?"cur":""}"></i>`).join("")}</div><div class="linear"><div class="bar"><i style="width:${done/total*100}%"></i></div></div>`;
+function trail(done, cur, total=21) {
+  const cols = 7, rows = Math.ceil(total/cols), w = 298, gx = (w-28)/(cols-1), gy = 52, r = 14;
+  let pts = [];
+  for (let i=0;i<total;i++){ const row=Math.floor(i/cols), c=i%cols, x=14+(row%2? (cols-1-c):c)*gx, y=16+row*gy; pts.push([x,y]); }
+  let d = `M${pts[0][0]},${pts[0][1]}`;
+  for (let i=1;i<total;i++){ const [x0,y0]=pts[i-1],[x,y]=pts[i]; if (y!==y0){ const dir = x0>150?1:-1; d+=` C${x0+dir*40},${y0} ${x+dir*40},${y} ${x},${y}`; } else d+=` L${x},${y}`; }
+  let s = `<svg width="${w}" height="${16+ (rows-1)*gy + 30}" viewBox="0 0 ${w} ${16+(rows-1)*gy+30}"><path d="${d}" stroke="var(--raised)" stroke-width="3" fill="none"/>`;
+  const dd = pts.slice(0, done+1).reduce((a,[x,y],i)=>a,"");
+  pts.forEach(([x,y],i)=>{
+    if (i<done) s+=`<circle cx="${x}" cy="${y}" r="${r}" fill="var(--green)"/><path d="M${x-5},${y} l3.5,3.5 l6.5,-7" stroke="#000" stroke-width="2.2" fill="none" stroke-linecap="round"/>`;
+    else if (i===cur) s+=`<circle cx="${x}" cy="${y}" r="${r+5}" fill="var(--accent)" opacity=".25"/><circle cx="${x}" cy="${y}" r="${r}" fill="var(--accent)"/><text x="${x}" y="${y+5}" text-anchor="middle" font-size="14" font-weight="700" fill="#000">${i+1}</text>`;
+    else s+=`<circle cx="${x}" cy="${y}" r="${r}" fill="var(--bg)" stroke="var(--sec)" stroke-width="1.5" stroke-dasharray="3 3"/><text x="${x}" y="${y+4.5}" text-anchor="middle" font-size="12" fill="var(--sec)">${i+1}</text>`;
+  });
+  return `<div class="trail">${s}</svg></div><div class="linear"><div style="display:flex;align-items:baseline;gap:6px;margin:0 4px 8px"><span class="numeral round">${done}</span><span class="ofn">${T().of} ${total} ${T().done}</span></div><div class="bar" style="margin:0 4px"><i style="width:${done/total*100}%"></i></div></div>`;
+}
+const mini = (done, cur, total=21) => `<div class="gridmini">${Array.from({length:total},(_,i)=>`<i class="${i<done?"done":i===cur?"cur":""}"></i>`).join("")}</div>`;
+const pathHead = () => `<div class="clear"><div class="fullname">${DFNAME()}</div><p class="tagline">${state.de ? "21 Schritte, um Aufmerksamkeit zu üben" : "21 steps to practise attention at your pace"}</p></div>`;
+
+const V = {
+  A: { name:"A · Rows and a bar", note:"Plain list rows; the progress mark is a thin bar under the row text and a rounded numeral on detail. Today's step is the first card on detail; the steps list sits below as a full table of contents.",
+    list(dt){ return `<div class="big">${T().paths}</div><div class="sect">
+      <div class="row stack"><span class="sym">${I.scope}</span><span class="n">${DFNAME()}<span class="d">${dt ? `✓ ${T().step} 5 ${T().done} · ${state.de?"nächster morgen":"next tomorrow"}` : `${T().step} 5 ${T().of} 21 · ${DF[4]}`}</span><div class="bar" style="margin-top:8px"><i style="width:${(dt?5:4)/21*100}%"></i></div></span><span class="chev">›</span></div>
+      ${lockedRow()}</div>${footer()}`; },
+    detail(dt){ return pathHead() + barMark(dt?5:4) + `<div style="height:12px"></div>` + (dt ? doneRows(true) : stepCard(`${T().today} · ${T().step} 5 · 25 min`)) + `<div class="hdr">${T().steps}</div><div class="sect">${stepRows(dt)}</div>`; },
+    mark: (d=4) => barMark(d) },
+  B: { name:"B · Segmented track", note:"One segment per step: done in accent, today outlined, the rest empty. The same track at two sizes on the list row and the detail header; it becomes a bar at accessibility sizes.",
+    list(dt){ return `<div class="big">${T().paths}</div><div class="sect">
+      <div class="row stack"><span class="sym">${I.scope}</span><span class="n">${DFNAME()}<span class="d">${dt ? `✓ ${T().step} 5 ${T().done} · ${state.de?"nächster morgen":"next tomorrow"}` : `${T().today}: ${DF[4]}`}</span><div style="margin-top:9px">${segMark(dt?5:4, dt?-1:4, 21, true)}</div></span><span class="chev">›</span></div>
+      ${lockedRow()}</div>${footer()}`; },
+    detail(dt){ return pathHead() + `<div class="clear"><div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px"><span class="round" style="font-weight:600">${T().step} ${dt?6:5} ${T().of} 21</span><span class="ofn" style="font-size:calc(15px*var(--fs))">${dt?5:4} ${T().done}</span></div>${segMark(dt?5:4, dt?-1:4)}</div><div style="height:14px"></div>` + (dt ? doneRows(true) : stepCard(`${T().today} · 25 min`)) + `<div class="hdr">${T().steps}</div><div class="sect">${stepRows(dt)}</div>`; },
+    mark: (d=4,c=4) => `<div class="clear">${segMark(d,c)}</div>` },
+  C: { name:"C · Trail", note:"The run drawn as a trail of step discs, seven to a row, snaking like the Paths symbol; markers use Today's arc language (done green, today accent with a halo, later dashed). The trail replaces the steps list: tap a disc to open its step. Linear numeral and bar at accessibility sizes, where the step list returns.",
+    list(dt){ return `<div class="big">${T().paths}</div><div class="sect">
+      <div class="row stack"><span class="sym">${I.scope}</span><span class="n">${DFNAME()}<span class="d">${dt ? `✓ ${T().step} 5 ${T().done}` : `${T().today}: ${DF[4]}`}</span></span>${mini(dt?5:4, dt?-1:4)}<span class="chev">›</span></div>
+      ${lockedRow()}</div>${footer()}`; },
+    detail(dt){ return pathHead() + trail(dt?5:4, dt?-1:4) + `<div style="height:14px"></div>` + (dt ? doneRows(true) : stepCard(`${T().step} 5 · 25 min`)) + `<div class="linear"><div class="hdr">${T().steps}</div><div class="sect">${stepRows(dt)}</div></div>`; },
+    mark: (d=4,c=4) => trail(d,c) },
+  D: { name:"D · Step first", note:"The Paths tab opens on today's step as a hero card (tap opens it); paths follow as rows with a numeral. Detail has no progress header: the step card leads, the progress is the Steps section header.",
+    list(dt){ return `<div class="big">${T().paths}</div>
+      ${dt ? `<div class="sect">${`<div class="row"><span class="sym">${I.check}</span><span class="n">${T().doneToday}<span class="d">${T().nextStep} · ${T().openTomorrow}</span></span></div>`}</div>` :
+      `<div class="hero"><div class="cap">${I.cur.replace('class="ico"','class="ico" style="width:16px;height:16px"')}${T().todayOn} · ${T().step} 5</div><div class="stitle" style="margin-bottom:6px">${DF[4]}</div><p class="first serif">Every open tab is a promise to interrupt yourself.</p><p class="pill" style="margin:10px 0 0">25 min ›</p></div>`}
+      <div class="hdr">${T().allPaths}</div><div class="sect">
+      <div class="row stack"><span class="sym">${I.scope}</span><span class="n">${DFNAME()}</span><span class="v round">${dt?5:4}/21</span><span class="chev">›</span></div>
+      ${lockedRow()}</div>${footer()}`; },
+    detail(dt){ return pathHead() + (dt ? doneRows(true) : stepCard(`${T().today} · ${T().step} 5 · 25 min`)) + `<div class="hdr">${T().steps} · ${dt?5:4} ${T().of} 21 ${T().done}</div><div class="sect">${stepRows(dt)}</div>`; },
+    mark: () => "" },
+};
+
+// ---- Round 2: D's hero for today's step, plus a progress mark (owner, 2026-09-26) ----
+const linearMark = (done, total=21) => `<div class="linear" style="margin:0 0 10px"><div style="display:flex;align-items:baseline;gap:6px;margin-bottom:6px"><span class="numeral round" style="font-size:calc(28px*var(--fs))">${done}</span><span class="ofn">${T().of} ${total} ${T().done}</span></div><div class="bar"><i style="width:${done/total*100}%"></i></div></div>`;
+const disc = (x, y, r, kind, n, fs=12) => kind === "done"
+  ? `<circle cx="${x}" cy="${y}" r="${r}" fill="var(--green)"/><path d="M${x-r*.36},${y} l${r*.25},${r*.25} l${r*.46},-${r*.5}" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round"/>`
+  : kind === "cur"
+  ? `<circle cx="${x}" cy="${y}" r="${r+5}" fill="var(--accent)" opacity=".22"/><circle cx="${x}" cy="${y}" r="${r}" fill="var(--accent)"/><text x="${x}" y="${y+fs*.36}" text-anchor="middle" font-size="${fs+1}" font-weight="700" fill="#000">${n}</text>`
+  : `<circle cx="${x}" cy="${y}" r="${r}" fill="var(--surface)" stroke="var(--sec)" stroke-width="1.3" stroke-dasharray="3 2.5"/><text x="${x}" y="${y+fs*.36}" text-anchor="middle" font-size="${fs}" fill="var(--sec)">${n}</text>`;
+const kindOf = (i, done, cur) => i < done ? "done" : i === cur ? "cur" : "later";
+
+// F: a window of the trail around today, fading at both ends
+function trailWindow(done, cur, total=21, w=264, r=13) {
+  const focus = cur >= 0 ? cur : done, n = 7, start = Math.max(0, Math.min(total - n, focus - 3));
+  const gx = (w - 2*r - 8) / (n - 1), y = r + 6;
+  let s = `<svg width="${w}" height="${2*r+12}" viewBox="0 0 ${w} ${2*r+12}"><defs><linearGradient id="fade${w}" x1="0" x2="1"><stop offset="0" stop-color="var(--surface)" stop-opacity="${start>0?1:0}"/><stop offset=".12" stop-color="var(--surface)" stop-opacity="0"/><stop offset=".88" stop-color="var(--surface)" stop-opacity="0"/><stop offset="1" stop-color="var(--surface)" stop-opacity="${start+n<total?1:0}"/></linearGradient></defs>`;
+  s += `<line x1="0" y1="${y}" x2="${w}" y2="${y}" stroke="var(--raised)" stroke-width="3"/>`;
+  const lastDone = Math.min(done, start + n) - start;
+  if (lastDone > 0) s += `<line x1="0" y1="${y}" x2="${r+4+(lastDone-1)*gx + (cur>=0?gx:0)}" y2="${y}" stroke="var(--green)" stroke-width="3"/>`;
+  for (let k = 0; k < n; k++) { const i = start + k; s += disc(r + 4 + k*gx, y, r, kindOf(i, done, cur), i+1); }
+  return s + `<rect x="0" y="0" width="${w}" height="${2*r+12}" fill="url(#fade${w})"/></svg>`;
+}
+// G: 3×7 grid, weeks read as rows
+function gridMark(done, cur, total=21, cell=10, gap=4, nums=false) {
+  const cols = 7, rows = Math.ceil(total/cols), w = cols*cell + (cols-1)*gap, h = rows*cell + (rows-1)*gap;
+  let s = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">`;
+  for (let i = 0; i < total; i++) {
+    const x = (i%cols)*(cell+gap), y = Math.floor(i/cols)*(cell+gap), k = kindOf(i, done, cur), rr = nums ? 9 : cell/2;
+    if (k === "done") s += `<rect x="${x}" y="${y}" width="${cell}" height="${cell}" rx="${rr}" fill="var(--accent)"/>` + (nums ? `<path d="M${x+cell*.3},${y+cell*.52} l${cell*.13},${cell*.13} l${cell*.25},-${cell*.28}" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round"/>` : "");
+    else if (k === "cur") s += `<rect x="${x+.75}" y="${y+.75}" width="${cell-1.5}" height="${cell-1.5}" rx="${rr}" fill="none" stroke="var(--accent)" stroke-width="1.8"/>` + (nums ? `<text x="${x+cell/2}" y="${y+cell/2+5}" text-anchor="middle" font-size="14" font-weight="700" fill="var(--ink)">${i+1}</text>` : "");
+    else s += `<rect x="${x}" y="${y}" width="${cell}" height="${cell}" rx="${rr}" fill="var(--raised)"/>` + (nums ? `<text x="${x+cell/2}" y="${y+cell/2+4.5}" text-anchor="middle" font-size="12" fill="var(--sec)">${i+1}</text>` : "");
+  }
+  return s + `</svg>`;
+}
+// H: the path as an arc, like Today's day arc, the sun at today's step
+function pathArc(done, cur, total=21, w=264, h=78, r=12, labels=false) {
+  const cx = w/2, rx = w/2 - r - 4, ry = h - r - 10, base = h - 6;
+  const pt = i => { const t = Math.PI * (i/(total-1)); return [cx - rx*Math.cos(t), base - ry*Math.sin(t)]; };
+  let track = "", prog = "";
+  for (let i = 0; i < total; i++) { const [x,y] = pt(i); track += (i ? " L" : "M") + x.toFixed(1) + "," + y.toFixed(1); }
+  const upto = cur >= 0 ? cur : done - 1;
+  for (let i = 0; i <= upto; i++) { const [x,y] = pt(i); prog += (i ? " L" : "M") + x.toFixed(1) + "," + y.toFixed(1); }
+  let s = `<svg width="${w}" height="${h + (labels?18:0)}" viewBox="0 0 ${w} ${h + (labels?18:0)}"><path d="${track}" stroke="var(--raised)" stroke-width="3" fill="none" stroke-dasharray="1 5" stroke-linecap="round"/>`;
+  if (prog) s += `<path d="${prog}" stroke="var(--accent)" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+  for (let i = 0; i < total; i++) { const [x,y] = pt(i); const k = kindOf(i, done, cur);
+    if (k === "done") s += `<circle cx="${x}" cy="${y}" r="2.6" fill="var(--accent)"/>`;
+    else if (k === "later") s += `<circle cx="${x}" cy="${y}" r="2" fill="var(--ter)"/>`; }
+  const [sx, sy] = pt(cur >= 0 ? cur : Math.max(0, done-1));
+  s += cur >= 0 ? disc(sx, sy, r, "cur", cur+1) : disc(sx, sy, r, "done", done);
+  if (labels) s += `<text x="${pt(0)[0]}" y="${h+14}" text-anchor="middle" font-size="12" fill="var(--sec)">1</text><text x="${pt(total-1)[0]}" y="${h+14}" text-anchor="middle" font-size="12" fill="var(--sec)">${total}</text>`;
+  return s + `</svg>`;
+}
+// I: a progress ring around today's step number
+function ring(done, cur, total=21, size=58, stroke=5) {
+  const r = (size - stroke)/2, c = 2*Math.PI*r, n = cur >= 0 ? cur + 1 : done;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><circle cx="${size/2}" cy="${size/2}" r="${r}" stroke="var(--raised)" stroke-width="${stroke}" fill="none"/>
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" stroke="var(--accent)" stroke-width="${stroke}" fill="none" stroke-linecap="round" stroke-dasharray="${c*done/total} ${c}" transform="rotate(-90 ${size/2} ${size/2})"/>
+    <text x="${size/2}" y="${size/2 + size*.13}" text-anchor="middle" font-size="${size*.36}" font-weight="600" font-family="ui-rounded,-apple-system" fill="${cur>=0?"var(--label)":"var(--green)"}">${cur>=0?n:"✓"}</text></svg>`;
+}
+// J: a staircase, one riser per step
+function stairs(done, cur, total=21, w=264, h=34) {
+  const gap = 2, bw = (w - gap*(total-1))/total;
+  let s = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">`;
+  for (let i = 0; i < total; i++) { const bh = 5 + (h-5)*(i+1)/total, x = i*(bw+gap), y = h - bh, k = kindOf(i, done, cur);
+    s += k === "done" ? `<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="1.5" fill="var(--accent)"/>`
+      : k === "cur" ? `<rect x="${x+.75}" y="${y+.75}" width="${bw-1.5}" height="${bh-1.5}" rx="1.5" fill="none" stroke="var(--accent)" stroke-width="1.5"/>`
+      : `<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="1.5" fill="var(--raised)"/>`; }
+  return s + `</svg>`;
+}
+
+// the D hero, with a slot for the mark
+function heroCard(dt, mark, place) {
+  const d = dt ? 5 : 4, cur = dt ? -1 : 4;
+  const cap = dt ? `<div class="cap" style="color:var(--green)">${I.check.replace('class="ico"','class="ico" style="width:16px;height:16px"')}${T().doneToday}</div>`
+                 : `<div class="cap">${I.cur.replace('class="ico"','class="ico" style="width:16px;height:16px"')}${T().todayOn} · ${T().step} 5</div>`;
+  const text = dt ? `<div class="stitle" style="margin-bottom:4px;color:var(--sec)">${DF[5]}</div><p class="first">${T().openTomorrow}</p>`
+                  : `<div class="stitle" style="margin-bottom:6px">${DF[4]}</div><p class="first serif">Every open tab is a promise to interrupt yourself.</p><p class="pill" style="margin:10px 0 0">25 min ›</p>`;
+  const m = `<div class="graphic">${mark(d, cur)}</div>`;
+  const body = place === "top" ? `${m}<div style="height:12px"></div>${cap}${text}`
+    : place === "bottom" ? `${cap}${text}<div style="height:14px"></div>${m}<div class="hint" style="color:var(--sec);font-size:calc(13px*var(--fs));margin-top:6px">${T().step} ${dt?5:5} ${T().of} 21 · ${d} ${T().done}</div>`
+    : place === "right" ? `<div style="display:flex;gap:14px;align-items:flex-start"><div style="flex:1;min-width:0">${cap}${text}</div>${m}</div>`
+    : `<div style="display:flex;gap:14px;align-items:flex-start">${m}<div style="flex:1;min-width:0">${cap}${text}</div></div>`;
+  return `<div class="hero">${body}${linearMark(d)}</div>`;
+}
+const listD = (dt, mark, place) => `<div class="big">${T().paths}</div>${heroCard(dt, mark, place)}
+  <div class="hdr">${T().allPaths}</div><div class="sect">
+  <div class="row stack"><span class="sym">${I.scope}</span><span class="n">${DFNAME()}</span><span class="v round">${dt?5:4}/21</span><span class="chev">›</span></div>
+  ${lockedRow()}</div>${footer()}`;
+const detailD = (dt, header) => pathHead() + `<div class="clear graphic" style="display:flex;justify-content:center;padding:0 0 14px">${header(dt?5:4, dt?-1:4)}</div>${linearMark(dt?5:4)}`
+  + (dt ? doneRows(true) : stepCard(`${T().today} · ${T().step} 5 · 25 min`)) + `<div class="hdr">${T().steps}</div><div class="sect">${stepRows(dt)}</div>`;
+const markD = header => (d=4, c=4) => `<div class="clear graphic" style="display:flex;justify-content:center;padding:0 0 10px">${header(d, c)}</div>${linearMark(d)}`;
+
+Object.assign(V, {
+  E: { name:"E · Hero with an edge track", note:"D's hero with B's segmented track across its top edge: the whole run first, then today's step. Detail leads with the same track, larger, above the step card.",
+    list: dt => listD(dt, (d,c) => segMark(d, c, 21, true), "top"),
+    detail: dt => detailD(dt, (d,c) => `<div style="width:298px">${segMark(d,c)}</div>`),
+    mark: markD((d,c) => `<div style="width:298px">${segMark(d,c)}</div>`) },
+  F: { name:"F · Hero with a trail window", note:"A slice of C's trail inside the hero: the seven steps around today, fading at both ends, so the card shows where you came from and what comes next without drawing all 21. Detail shows the full trail.",
+    list: dt => listD(dt, (d,c) => trailWindow(d, c), "top"),
+    detail: dt => detailD(dt, (d,c) => trail(d, c).replace(/<div class="linear">[\s\S]*$/, "")),
+    mark: markD((d,c) => trail(d, c).replace(/<div class="linear">[\s\S]*$/, "")) },
+  G: { name:"G · Hero with a week grid", note:"Three rows of seven dots in the hero's corner, like a small calendar: each row is a week's worth of steps. Detail turns it into a numbered grid you tap to open a step, in place of a long list at the top.",
+    list: dt => listD(dt, (d,c) => gridMark(d, c), "right"),
+    detail: dt => detailD(dt, (d,c) => gridMark(d, c, 21, 36, 8, true)),
+    mark: markD((d,c) => gridMark(d, c, 21, 36, 8, true)) },
+  H: { name:"H · Hero with a path arc", note:"The run as an arc in the same language as Today's day arc and Focus's session arc: a dotted track, the walked part in accent, today's step as the sun. Paths, Today and Focus then share one arc idea.",
+    list: dt => listD(dt, (d,c) => pathArc(d, c), "top"),
+    detail: dt => detailD(dt, (d,c) => pathArc(d, c, 21, 298, 110, 15, true)),
+    mark: markD((d,c) => pathArc(d, c, 21, 298, 110, 15, true)) },
+  I: { name:"I · Hero with a ring", note:"A progress ring around today's step number beside the title, like an Activity ring: the least space, the quickest glance, the fullest ring on the last step. Detail has a large ring with the numeral.",
+    list: dt => listD(dt, (d,c) => ring(d, c), "left"),
+    detail: dt => detailD(dt, (d,c) => `<div style="display:flex;align-items:center;gap:16px">${ring(d,c,21,96,8)}<div><div class="round" style="font-weight:600;font-size:calc(20px*var(--fs))">${T().step} ${c>=0?c+1:d} ${T().of} 21</div><div class="ofn" style="font-size:calc(15px*var(--fs))">${d} ${T().done}</div></div></div>`),
+    mark: markD((d,c) => ring(d, c, 21, 96, 8)) },
+  J: { name:"J · Hero with a staircase", note:"“Steps” taken literally: 21 risers climbing left to right, walked ones in accent, today's outlined. It sits under the hero text, and larger above the step card on detail.",
+    list: dt => listD(dt, (d,c) => stairs(d, c), "bottom"),
+    detail: dt => detailD(dt, (d,c) => stairs(d, c, 21, 298, 56)),
+    mark: markD((d,c) => stairs(d, c, 21, 298, 56)) },
+});
+// ---- Round 3: keep the action high (owner worry: a big path header pushes Complete step down) ----
+// The compact mark rides inside the step card, exactly as in the list hero; the full view of the run sits below the card.
+const stepCardWith = (markHTML, caption) => stepCard(caption).replace('<div class="card">', `<div class="card"><div class="graphic" style="margin:-2px 0 12px">${markHTML}</div>`);
+const nameOnly = () => `<div class="clear" style="padding-bottom:8px"><div class="fullname">${DFNAME()}</div></div>`;
+const doneCardWith = (markHTML) => `<div class="card" style="padding-bottom:6px"><div class="graphic" style="margin:-2px 0 6px">${markHTML}</div></div><div style="height:10px"></div>` + doneRows(true);
+Object.assign(V, {
+  K: { name:"K · E, action first", note:"E's hero opens into a detail whose step card carries the same thin track on its top edge; no header above the card, only the path name (tagline dropped). The steps list follows as the table of contents.",
+    list: dt => listD(dt, (d,c) => segMark(d, c, 21, true), "top"),
+    detail: dt => nameOnly() + (dt ? doneCardWith(segMark(5, -1, 21, true)) : stepCardWith(segMark(4, 4, 21, true), `${T().today} · ${T().step} 5 ${T().of} 21 · 25 min`)) + linearMark(dt?5:4)
+      + `<div class="hdr">${T().steps}</div><div class="sect">${stepRows(dt)}</div>`,
+    mark: markD((d,c) => `<div style="width:298px">${segMark(d,c)}</div>`) },
+  L: { name:"L · F, action first", note:"F's trail window rides at the top of the step card on detail, as in the list hero. The full trail moves below the card as the way to open any step (replacing the 21-row list); rows return at accessibility sizes.",
+    list: dt => listD(dt, (d,c) => trailWindow(d, c), "top"),
+    detail: dt => nameOnly() + (dt ? doneCardWith(trailWindow(5, -1, 21, 266)) : stepCardWith(trailWindow(4, 4, 21, 266), `${T().today} · ${T().step} 5 ${T().of} 21 · 25 min`)) + linearMark(dt?5:4)
+      + `<div class="hdr">${T().steps}</div><div class="sect graphic" style="padding:16px 0">${trail(dt?5:4, dt?-1:4).replace(/<div class="linear">[\s\S]*$/, "")}</div><div class="linear"><div class="sect">${stepRows(dt)}</div></div>`,
+    mark: markD((d,c) => trail(d, c).replace(/<div class="linear">[\s\S]*$/, "")) },
+});
+if (!V[state.v]) state.v = "A";
+
+function render() {
+  document.body.classList.toggle("light", state.light);
+  document.body.classList.toggle("large", state.large);
+  const v = V[state.v];
+  const more = "";
+  const phones = [
+    phone(navLarge(), v.list(false), "Paths list, step ready today."),
+    phone(navPush(DFNAME(), more), v.detail(false), "Path detail, step ready: one primary in today's step card. No trailing toolbar item (no mid-run restart). Scroll for the steps."),
+    phone(navPush(DFNAME(), more), v.detail(true), "Path detail, step done today: green row (swipe shows same-day Undo), next step locked until 06:00, no primary on screen."),
+    phone(navLarge(), v.list(true), "Paths list after completing today's step."),
+    lockedStep(v.mark()),
+    finished(v.mark(21,-1)),
+    lockedPath(),
+  ];
+  document.getElementById("out").innerHTML = `<div class="vtitle"><b>${v.name}</b><span>${v.note}</span></div><div class="strip">${phones.join("")}</div>`;
+  document.getElementById("dock").innerHTML = Object.keys(V).map(k => `<button data-v="${k}" aria-pressed="${k===state.v}">${k}</button>`).join("");
+  ["Light","Large","De"].forEach(k => document.getElementById("t"+k).setAttribute("aria-pressed", state[k.toLowerCase()]));
+  history.replaceState(null, "", `?variant=${state.v}`);
+}
+document.getElementById("dock").onclick = e => { const b = e.target.closest("button"); if (b) { state.v = b.dataset.v; render(); } };
+document.getElementById("tLight").onclick = () => { state.light = !state.light; render(); };
+document.getElementById("tLarge").onclick = () => { state.large = !state.large; render(); };
+document.getElementById("tDe").onclick = () => { state.de = !state.de; render(); };
+document.addEventListener("keydown", e => { const ks = Object.keys(V), i = ks.indexOf(state.v);
+  if (e.key === "ArrowRight") { state.v = ks[(i+1)%ks.length]; render(); } if (e.key === "ArrowLeft") { state.v = ks[(i+ks.length-1)%ks.length]; render(); } });
+render();
+</script>
+</body>
+</html>
