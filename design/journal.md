@@ -13,9 +13,9 @@ The Journal tab holds everything the person wrote (`CONTEXT.md`: Journal): answe
 `NavigationStack`, large title "Journal", one inset-grouped `List`. From the top:
 
 1. **Toolbar.** One trailing item: the filter menu (section 3). No leading item.
-2. **Search.** `.searchable` on the list, prompt "Search". On iOS 26 inside the tab it sits under the large title, not at the bottom; the prototype confirmed it does not collide with the New note button. Search matches the prompt, the text and every retro field. It does not match theme or mood names; those are filters.
+2. **Search.** `.searchable` on the list, prompt "Search". On iOS 26 inside the tab it sits under the large title, not at the bottom; the prototype confirmed it does not collide with the New note button. Search matches the prompt, the text and every retro field. It does not match theme or mood names; those are filters. Search and filters also run over versions (section 6), so no writing is unfindable.
 3. **Active filters line.** Only while a filter is on: one clear row, the filter names joined by " · " in `secondary` (for example "Answers · Last 7 days"), and a trailing "Clear" in `accentInk`. It replaces the old header strip of section picker and bordered menus.
-4. **Status rows.** Only when they apply, above the timeline and never instead of it (section 8, Unavailable): the temporary-storage warning, then "Unsaved drafts (*n*)" pushing `JournalRecoveryView`, with the unreadable-drafts footnote. Hidden while a filter or search is active.
+4. **Status rows.** Only when they apply, above the timeline and never instead of it (section 8, Unavailable): the temporary-storage warning, then "Unsaved drafts (*n*)" pushing `JournalRecoveryView`, with the unreadable-drafts footnote. The storage warning always shows, filtered or not, because it changes whether new writing is kept. The drafts row hides while a filter or search is active.
 5. **Timeline.** One `Section` per civil day, newest first, headed "Today", "Yesterday", then the full weekday and date ("Thursday 24 September") in the system header style. Rows follow section 4. The day in the header is the record's stored civil day, so the date never repeats inside a row and no ISO key is shown anywhere.
 6. **Paging.** Bounded repository pages as today. "Load more" stays as the last row; the "*n* of *m* shown" footer goes.
 
@@ -25,7 +25,7 @@ The Journal tab holds everything the person wrote (`CONTEXT.md`: Journal): answe
 
 ## 3. Filter menu
 
-The trailing toolbar item is a `Menu` labelled "Filter" with `line.3.horizontal.decrease` (the new `filter` symbol in design-system section 7). While any filter is on, the symbol becomes `line.3.horizontal.decrease.circle.fill` in `accentInk`.
+The trailing toolbar item is a `Menu` labelled "Filter" with `line.3.horizontal.decrease` (the new `filter` symbol in design-system section 7). While any filter is on, the symbol becomes `line.3.horizontal.decrease.circle.fill`, monochrome like every bar item (design-system section 2.2); the fill and the active filters line carry the state.
 
 Menu content, in order:
 
@@ -81,6 +81,7 @@ An answer and a retro are one per civil day. Two devices writing the same day of
 - The primary is what Today shows, what the Journal lists and what the weekly review reads. Other versions appear only behind the "Another version from this day" row on the primary's detail.
 - Editing an older version gives it the newest `updatedAt`, so it becomes the primary. There is no "make this the answer" action; the last touch decides.
 - A version can be read, edited or deleted like any record.
+- The unfiltered timeline lists primaries only. When a search or a filter matches a version, the results show that version's own row, with "Other version" in `secondaryLabel` after the time on its second line; when both the primary and a version match, both rows show. Clearing the search or filter returns to primaries only.
 
 ## 7. Lock
 
@@ -96,7 +97,7 @@ One editor for every kind, presented as a sheet at the `.large` detent: a new no
 
 Chrome: inline title ("New note", or the kind name when editing), the system Cancel (`.cancellationAction`, `Button(role: .cancel)`) and Done (`.confirmationAction`, `Button(role: .confirm)`), which iOS 26 draws as ✕ and ✓. Done is disabled until there is something to save, as today. Drafts autosave exactly as `JournalDraftStore` does now; the "Drafts stay on this device until you save or discard them." footer goes.
 
-Content is a `ScrollView`, not a `Form`, with `.scrollDismissesKeyboard(.interactively)` so the text scrolls above the keyboard (`JRN-4`). From the top:
+Content is a `ScrollView`, not a `Form` (the second exception in design-system section 13.1, after Focus), with `.scrollDismissesKeyboard(.interactively)` so the text scrolls above the keyboard (`JRN-4`). From the top:
 
 1. The civil day in `caption`. A new note adds the time ("Saturday 26 September · 21:04").
 2. The prompt in the `question` role: the question for an answer, the intention for a focus note (read-only, `secondaryLabel`), "Week of *d Month*" for a weekly review. Notes and retros have none.
@@ -167,7 +168,7 @@ Section 11 of the design system applies. Specific to the Journal:
 - Dynamic Type through AX3. On the prototype the compact rows stacked as specified and the list scrolled clear of the tab bar and the New note button. The "Unsaved drafts" row broke as "Un-saved" because the system `Label` keeps its icon beside the text; at accessibility sizes that row drops the icon (`.labelStyle(.titleOnly)`), per design-system rule 3.2.
 - `de` on the prototype: the tab labels, section headers, filter summary and chips fit at the default size. `bg` is unchecked and the build measures it, especially "Weekly reviews" and "Focus notes" in the filter menu and the chips at AX3.
 - Every icon-only control has a title: New note, Filter, and the kind badge's label.
-- Light and dark; the filled filter symbol and "Clear" use `accentInk`, so both read in light.
+- Light and dark; the filter symbol is monochrome in both, and "Clear" is tappable text in `accentInk`, which reads in light.
 - Reduce Motion: nothing custom animates. The Theme menu and the pre-fill change without animation.
 - VoiceOver: a row reads as one element; the read detail's text is reachable and selectable; "Suggested" is read with the theme; nothing private is in the accessibility tree while locked.
 - The prototype uses sample data and validates layout only. The build tests the real repository paging, filters against SwiftData predicates, versions after a real two-device conflict, lock transitions, draft recovery, the Theme pre-fill on an eligible device and all seven localisations on iOS 26.0.

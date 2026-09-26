@@ -133,7 +133,7 @@ One SF Symbol per concept. Outline variant in toolbars, lists and content; the t
 | Meaningful practice | `practice` | `sparkle` | Activity log rows, weekly review counts. |
 | Journal | `journal` | `book.closed` | Journal tab and the empty journal state. Entry rows carry their kind symbol instead ([journal.md](journal.md) section 4). |
 | Note | `note` | `note.text` | Note rows in the Journal and the Notes kind in its filter. |
-| Filter | `filter` / `filterActive` | `line.3.horizontal.decrease` / `line.3.horizontal.decrease.circle.fill` | The Journal's filter menu; the filled form in `accentInk` while a filter is on. |
+| Filter | `filter` / `filterActive` | `line.3.horizontal.decrease` / `line.3.horizontal.decrease.circle.fill` | The Journal's filter menu; the filled form, monochrome, while a filter is on. |
 | Unsaved drafts | `drafts` | `doc.badge.clock` | The Journal's drafts row; dropped at accessibility sizes. |
 | Mood | `mood` | `face.smiling` | The empty Mood chip in the editor; a chosen mood shows its own symbol. |
 | Saved line | `savedLine` | `bookmark` | Replaces `heart`. Save action beside Today's daily line, toolbar item that opens Saved lines. `bookmark.fill` when saved. |
@@ -250,7 +250,7 @@ Resolves [Screen chrome baseline: navigation bars, toolbar items and tab-bar ins
 
 ### 13.1 Container per screen
 
-Every screen is a `NavigationStack` whose root is a `List` or a `Form`, except Focus, which is a `ScrollView` stage with no cards. The old `ScrollView` plus `VStack` card stack, with its per-view horizontal insets, is retired. On list screens, hero content can use a clear row with `.listRowBackground(Color.clear)` and `.listRowInsets(EdgeInsets())`; a brief specifies whether that row has a card. Today has clear rows for the arc and line without `thinkCard()`.
+Every screen is a `NavigationStack` whose root is a `List` or a `Form`, with two exceptions: Focus, which is a `ScrollView` stage with no cards, and the Journal editor sheet, a `ScrollView` writing surface ([journal.md](journal.md) section 8). The old `ScrollView` plus `VStack` card stack, with its per-view horizontal insets, is retired. On list screens, hero content can use a clear row with `.listRowBackground(Color.clear)` and `.listRowInsets(EdgeInsets())`; a brief specifies whether that row has a card. Today has clear rows for the arc and line without `thinkCard()`.
 
 | Screen | Container | Notes |
 | --- | --- | --- |
@@ -258,11 +258,11 @@ Every screen is a `NavigationStack` whose root is a `List` or a `Form`, except F
 | Paths | `List` | One row per path; "In development" as its own section. |
 | Path detail | `List` | Header section with progress, one row per step, history section. |
 | Focus | `ScrollView` stage | The exception to this section: no `List`, no card. A centred column on the plain background (intention, arc, wheel, last session) with the controls in a bottom safe-area bar ([focus.md](focus.md) section 2). |
-| Journal | `List` | Already a `List`; keeps `.searchable`. |
+| Journal | `List` | Day sections, `.searchable` under the title. Full spec in [journal.md](journal.md). |
 | Progress | `List` | Streak hero, weekly review, Practice stats and chart, compact earned achievements, then two recent Focus sessions and See all. Full spec in [progress-settings.md](progress-settings.md). |
 | Settings | `Form` | Grouped, `.insetGrouped` by default; the gear on Progress pushes it. Full spec in [progress-settings.md](progress-settings.md). |
-| Pushed detail screens | `List` or `Form` | Same rule; editors keep their `TextEditor` inside a `Form`. |
-| Sheets | `NavigationStack` with `List`/`Form` | See 13.5. |
+| Pushed detail screens | `List` or `Form` | Same rule; the Journal's read detail is a `List` with one clear content row. |
+| Sheets | `NavigationStack` with `List`/`Form` | See 13.5. Editors other than the Journal editor keep their text field inside a `Form`; the Journal editor is a `ScrollView` so the text scrolls above the keyboard (`JRN-4`). |
 
 ### 13.2 Insets, scroll edge and the tab bar
 
