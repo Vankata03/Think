@@ -1,0 +1,479 @@
+<!doctype html>
+<!-- PROTOTYPE, throwaway. Journal canvas round 1 for "Journal: list, detail, editor and gate" (#78).
+     Settled going in: day sections, conflict primary = latest edit, focus notes edit as notes, one editor incl. retro,
+     gate = Locked state, drafts/storage rows on top, Theme designed in.
+     Open: Q1 filter control, Q3 row content, Q4 detail vs edit-in-place, Q7 editor shape. Symbols are text stand-ins. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PROTOTYPE · Journal canvas</title>
+<style>
+  :root {
+    --bg:#000; --surface:#1C1C1E; --raised:#2C2C2E; --label:#fff; --sheet:#1C1C1E;
+    --sec:rgba(235,235,245,.6); --ter:rgba(235,235,245,.3); --sep:rgba(84,84,88,.65);
+    --accent:#FFD433; --accentInk:#FFD433; --onFill:#000; --green:#30D158; --red:#FF453A;
+    --glass:rgba(40,40,44,.72); --glassEdge:rgba(255,255,255,.14); --page:#111; --kb:#2b2b2d; --key:#6b6b6e;
+    --menu:rgba(44,44,48,.96);
+  }
+  body.light {
+    --bg:#F2F2F7; --surface:#fff; --raised:#E5E5EA; --label:#000; --sheet:#F2F2F7;
+    --sec:rgba(60,60,67,.6); --ter:rgba(60,60,67,.3); --sep:rgba(60,60,67,.29);
+    --accent:#F2C41C; --accentInk:#6E5C05; --green:#34C759; --red:#FF3B30;
+    --glass:rgba(250,250,252,.8); --glassEdge:rgba(0,0,0,.1); --page:#d9d9de; --kb:#d1d3d9; --key:#fff;
+    --menu:rgba(250,250,252,.97);
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--page); font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif; color:var(--label); padding:24px 24px 120px; }
+  h1 { font-size:18px; margin:0 0 4px; }
+  h2 { font-size:15px; margin:34px 0 4px; }
+  .intro { color:var(--sec); font-size:13px; max-width:1200px; margin-bottom:6px; line-height:1.45; }
+  .intro b, .cap b { color:var(--label); }
+  .row { display:flex; gap:28px; flex-wrap:wrap; align-items:flex-start; margin-top:12px; }
+  .col { display:flex; flex-direction:column; gap:8px; }
+  .cap { font-size:12px; color:var(--sec); width:360px; line-height:1.4; min-height:50px; }
+
+  .phone { width:360px; height:760px; border-radius:48px; background:var(--bg); position:relative; overflow:hidden; flex:none; box-shadow:0 0 0 10px #2a2a2c, 0 20px 50px rgba(0,0,0,.4); }
+  .status { height:50px; display:flex; justify-content:space-between; align-items:flex-end; padding:0 34px 6px; font-size:15px; font-weight:600; }
+  .scroll { position:absolute; top:50px; left:0; right:0; bottom:0; overflow-y:auto; scrollbar-width:none; padding-bottom:170px; }
+  .scroll::-webkit-scrollbar { display:none; }
+
+  /* toolbar + titles */
+  .tb { display:flex; align-items:center; gap:8px; height:44px; padding:0 16px; }
+  .tb .sp { flex:1; }
+  .tb .mid { flex:1; text-align:center; font-weight:600; font-size:17px; }
+  .circ { width:38px; height:38px; border-radius:50%; background:var(--glass); border:1px solid var(--glassEdge); display:grid; place-items:center; font-size:16px; cursor:pointer; flex:none; }
+  .circ.on { color:var(--accentInk); }
+  .circ.ok { background:var(--accent); color:var(--onFill); border-color:transparent; font-weight:700; }
+  .pill { height:38px; border-radius:19px; padding:0 14px; background:var(--glass); border:1px solid var(--glassEdge); display:flex; align-items:center; gap:4px; font-size:16px; cursor:pointer; flex:none; }
+  .pill.ok { background:var(--accent); color:var(--onFill); border-color:transparent; font-weight:600; }
+  .large { font-size:34px; font-weight:700; padding:2px 20px 8px; }
+  .search { margin:0 16px 10px; height:38px; border-radius:19px; background:var(--raised); display:flex; align-items:center; gap:6px; padding:0 12px; color:var(--sec); font-size:16px; flex-wrap:nowrap; overflow:hidden; }
+  .search.focus { outline:2px solid var(--accentInk); outline-offset:-2px; }
+  .tok { background:var(--accent); color:var(--onFill); border-radius:7px; padding:2px 7px; font-size:14px; font-weight:600; white-space:nowrap; }
+
+  /* grouped list */
+  .sh { font-size:13px; font-weight:600; color:var(--sec); margin:16px 36px 6px; }
+  .grp { margin:0 16px; background:var(--surface); border-radius:22px; overflow:hidden; }
+  .li { padding:12px 16px; position:relative; cursor:pointer; }
+  .li + .li::before { content:""; position:absolute; top:0; left:16px; right:0; border-top:.5px solid var(--sep); }
+  .li.chev::after { content:"›"; position:absolute; right:14px; top:50%; transform:translateY(-50%); color:var(--ter); font-size:20px; }
+  .li.plain { display:flex; align-items:center; gap:10px; font-size:16px; }
+  .li.red { color:var(--red); text-align:center; font-size:16px; justify-content:center; }
+  .txt { font-size:16px; line-height:1.32; }
+  .clamp3 { display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+  .clamp2 { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .clamp1 { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .meta { font-size:13px; color:var(--sec); margin-top:6px; display:flex; gap:5px; flex-wrap:wrap; align-items:center; }
+  .meta .k { font-size:12px; width:16px; text-align:center; }
+  .serif { font-family:"New York",ui-serif,Georgia,serif; }
+  .q { font-family:"New York",ui-serif,Georgia,serif; font-size:19px; line-height:1.25; }
+  .sectxt { color:var(--sec); }
+  .crow { display:flex; gap:12px; align-items:flex-start; padding-right:18px; }
+  .crow .ks { width:28px; height:28px; border-radius:8px; background:var(--raised); display:grid; place-items:center; font-size:14px; color:var(--sec); flex:none; margin-top:2px; }
+  .crow .t1 { font-weight:600; font-size:16px; }
+  .crow .t2 { font-size:15px; color:var(--sec); margin-top:2px; }
+  .crow .t2 b { color:var(--label); font-weight:400; }
+  .activebar { margin:0 16px 4px; display:flex; align-items:center; gap:8px; font-size:14px; color:var(--sec); padding:4px 4px; }
+  .activebar .clr { margin-left:auto; color:var(--accentInk); font-weight:600; }
+  .seg { margin:0 16px 10px; display:flex; background:var(--raised); border-radius:19px; padding:3px; }
+  .seg div { flex:1; text-align:center; padding:7px 2px; font-size:13px; border-radius:16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+  .seg div.on { background:var(--surface); font-weight:600; box-shadow:0 1px 4px rgba(0,0,0,.3); }
+  .menus { margin:0 16px 8px; display:flex; gap:8px; flex-wrap:wrap; }
+  .mbtn { border-radius:999px; background:var(--raised); padding:6px 12px; font-size:14px; font-weight:500; white-space:nowrap; }
+  .mbtn.on { background:var(--accent); color:var(--onFill); }
+
+  /* states */
+  .cuv { text-align:center; padding:120px 40px 0; }
+  .cuv .sym { font-size:44px; color:var(--sec); }
+  .cuv .t { font-size:20px; font-weight:700; margin-top:10px; }
+  .cuv .btn { display:inline-block; margin-top:16px; background:var(--raised); border-radius:999px; padding:10px 20px; font-weight:600; font-size:16px; }
+  .nomatch { color:var(--sec); font-size:16px; }
+  .tert { color:var(--accentInk); font-size:16px; font-weight:500; }
+
+  /* tab bar + fab */
+  .tabs { position:absolute; left:14px; right:14px; bottom:22px; height:62px; border-radius:31px; background:var(--glass); border:1px solid var(--glassEdge); backdrop-filter:blur(18px); display:flex; justify-content:space-around; align-items:center; font-size:10px; color:var(--label); }
+  .tabs div { text-align:center; } .tabs .s { font-size:19px; display:block; margin-bottom:1px; }
+  .tabs .sel { color:var(--accentInk); font-weight:600; }
+  .fab { position:absolute; right:18px; bottom:96px; width:54px; height:54px; border-radius:50%; background:var(--accent); color:var(--onFill); display:grid; place-items:center; font-size:28px; font-weight:400; box-shadow:0 6px 18px rgba(0,0,0,.35); }
+  .edgefade { position:absolute; left:0; right:0; bottom:0; height:180px; background:linear-gradient(to bottom, transparent, var(--bg) 70%); pointer-events:none; opacity:.85; }
+
+  /* menus */
+  .menu { position:absolute; width:250px; background:var(--menu); border-radius:22px; box-shadow:0 20px 60px rgba(0,0,0,.5); border:1px solid var(--glassEdge); backdrop-filter:blur(20px); overflow:hidden; font-size:16px; z-index:3; }
+  .menu .mh { font-size:12px; color:var(--sec); padding:9px 16px 3px; }
+  .menu .mi { padding:9px 16px; display:flex; gap:8px; align-items:center; }
+  .menu .mi .ck { width:16px; color:var(--label); }
+  .menu .mi .r { margin-left:auto; color:var(--sec); font-size:14px; }
+  .menu .div { height:7px; background:rgba(0,0,0,.18); }
+  .menu .note { font-size:12px; color:var(--sec); padding:6px 16px 10px; }
+  .scrim { position:absolute; inset:0; background:rgba(0,0,0,.12); z-index:2; }
+
+  /* detail + editor */
+  .dpad { padding:6px 22px 0; }
+  .dday { font-size:13px; color:var(--sec); margin-bottom:8px; }
+  .dq { font-family:"New York",ui-serif,Georgia,serif; font-size:22px; line-height:1.25; margin-bottom:14px; }
+  .dq.ro { color:var(--sec); }
+  .dtxt { font-size:17px; line-height:1.42; }
+  .dfield { margin-bottom:16px; }
+  .dfield .h { font-size:15px; font-weight:600; color:var(--sec); margin-bottom:3px; }
+  .dfoot { font-size:13px; color:var(--sec); margin-top:14px; line-height:1.5; }
+  .cursor { display:inline-block; width:2px; height:19px; background:var(--accentInk); vertical-align:-3px; animation:blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity:0; } }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; margin:4px 0 14px; }
+  .chip { white-space:nowrap; border-radius:999px; background:var(--raised); padding:7px 12px; font-size:14px; font-weight:500; display:flex; gap:5px; align-items:center; }
+  .chip.set { background:var(--surface); border:1px solid var(--glassEdge); }
+  .chip.sugg { border:1px dashed var(--sec); background:transparent; }
+  .chip .dim { color:var(--sec); }
+  .sheet { position:absolute; left:0; right:0; bottom:0; top:56px; background:var(--sheet); border-radius:34px 34px 0 0; overflow:hidden; }
+  .sheet .inner { position:absolute; top:0; left:0; right:0; bottom:0; overflow-y:auto; scrollbar-width:none; padding-bottom:40px; }
+  .sheet .inner::-webkit-scrollbar { display:none; }
+  .under { position:absolute; inset:0; background:var(--bg); }
+  .under .large { opacity:.5; }
+  .dim2 { position:absolute; inset:0; background:rgba(0,0,0,.4); }
+  .grab { width:36px; height:5px; border-radius:3px; background:var(--ter); margin:8px auto 2px; }
+  .form .grp { margin-bottom:0; }
+  .form .li { font-size:16px; }
+  .frow { display:flex; justify-content:space-between; align-items:center; }
+  .frow .v { color:var(--sec); }
+  .area { min-height:120px; font-size:16px; line-height:1.35; }
+  .ph { color:var(--ter); }
+
+  /* keyboard */
+  .kb { position:absolute; left:0; right:0; bottom:0; height:292px; background:var(--kb); padding:8px 4px 0; z-index:1; }
+  .kb .kr { display:flex; gap:6px; justify-content:center; margin:0 0 11px; }
+  .kb .kk { height:42px; flex:0 0 30px; border-radius:8px; background:var(--key); box-shadow:0 1px 0 rgba(0,0,0,.3); }
+  .kb .kk.w { flex:0 0 180px; } .kb .kk.m { flex:0 0 44px; }
+  .acc { position:absolute; left:0; right:0; bottom:292px; height:50px; display:flex; align-items:center; gap:8px; padding:0 10px; z-index:1; }
+  .acc .g { height:38px; border-radius:19px; background:var(--glass); border:1px solid var(--glassEdge); backdrop-filter:blur(16px); padding:0 12px; display:flex; align-items:center; gap:5px; font-size:14.5px; font-weight:500; white-space:nowrap; }
+  .acc .sp { flex:1; }
+
+  .dialog { position:absolute; left:10px; right:10px; bottom:30px; z-index:3; }
+  .dialog .box { background:var(--menu); border-radius:22px; overflow:hidden; text-align:center; }
+  .dialog .ti { font-size:13px; color:var(--sec); padding:14px 16px 10px; font-weight:600; }
+  .dialog .b { padding:15px; font-size:18px; border-top:.5px solid var(--sep); }
+  .dialog .b.red { color:var(--red); }
+  .dialog .cancel { background:var(--menu); border-radius:22px; margin-top:8px; padding:15px; text-align:center; font-weight:600; font-size:18px; }
+
+  .switch { position:fixed; left:50%; bottom:16px; transform:translateX(-50%); background:rgba(20,20,22,.94); color:#fff; border-radius:18px; padding:9px 12px;
+            display:flex; gap:5px; align-items:center; font-size:12.5px; z-index:9; box-shadow:0 10px 30px rgba(0,0,0,.5); border:1px solid rgba(255,255,255,.12); flex-wrap:wrap; max-width:96vw; justify-content:center; }
+  .switch button { background:#2c2c2e; color:#fff; border:0; border-radius:9px; padding:6px 9px; font-size:12.5px; cursor:pointer; }
+  .switch button.on { background:#FFD433; color:#000; font-weight:600; }
+  .switch .lab { color:#aaa; margin:0 3px 0 8px; }
+</style>
+</head>
+<body>
+<h1>PROTOTYPE · Journal: list, detail, editor</h1>
+<div class="intro">Round 1 for <b>Journal: list, detail, editor and gate</b>. Use the bar at the bottom to switch the four open choices. Every row in the canvas redraws, and the ← → keys cycle the filter control. Already settled, and the same in every variant: day sections, the floating New note button, the section 8 states, and the day's primary answer as the latest edit, with other versions behind one row. Symbols are text stand-ins; the SF Symbol names are in the captions. <b>de</b> swaps the chrome labels to German to test lengths. Entry text stays English.</div>
+
+<h2>1 · List: filter control (Q1) and row content (Q3)</h2>
+<div class="intro" id="introList"></div>
+<div class="row" id="rowList"></div>
+
+<h2>2 · Opening an entry (Q4)</h2>
+<div class="intro" id="introDetail"></div>
+<div class="row" id="rowDetail"></div>
+
+<h2>3 · Editor (Q7)</h2>
+<div class="intro" id="introEditor"></div>
+<div class="row" id="rowEditor"></div>
+
+<div class="switch">
+  <span class="lab">Q1 filter</span><button data-k="f" data-v="menu">Toolbar menu</button><button data-k="f" data-v="tokens">Search tokens</button><button data-k="f" data-v="seg">Segmented</button>
+  <span class="lab">Q3 row</span><button data-k="r" data-v="words">Words first</button><button data-k="r" data-v="prompt">Prompt first</button><button data-k="r" data-v="compact">Compact</button>
+  <span class="lab">Q4 open</span><button data-k="d" data-v="read">Read, then Edit</button><button data-k="d" data-v="inplace">Edit in place</button>
+  <span class="lab">Q7 editor</span><button data-k="e" data-v="form">Form</button><button data-k="e" data-v="kbar">Keyboard bar</button><button data-k="e" data-v="header">Header chips</button>
+  <span class="lab">·</span><button id="scheme">Light</button><button id="loc">de</button>
+</div>
+
+<script>
+const q = new URLSearchParams(location.search);
+const S = { f:q.get('f')||'menu', r:q.get('r')||'words', d:q.get('d')||'read', e:q.get('e')||'kbar', scheme:q.get('scheme')||'dark', loc:q.get('loc')||'en' };
+
+const DE = { 'Journal':'Journal','Search':'Suchen','All':'Alle','Answers':'Antworten','Notes':'Notizen','Retros':'Rückblicke','Weekly reviews':'Wochenrückblicke',
+  'Focus notes':'Fokusnotizen','Mood':'Stimmung','Theme':'Thema','Date':'Datum','Any time':'Jederzeit','Last 7 days':'Letzte 7 Tage','Last 30 days':'Letzte 30 Tage','Today':'Heute',
+  'Clear filters':'Filter löschen','Clear':'Löschen','Yesterday':'Gestern','Edit':'Bearbeiten','Delete entry':'Eintrag löschen','Another version from this day':'Weitere Version von diesem Tag',
+  'Written':'Geschrieben','Edited':'Bearbeitet','Kind':'Art','Unlock':'Entsperren','Your journal is locked.':'Dein Journal ist gesperrt.','No entries match.':'Keine Einträge passen.',
+  'Answer':'Antwort','Note':'Notiz','Retro':'Rückblick','Focus note':'Fokusnotiz','Weekly review':'Wochenrückblick','Any mood':'Jede Stimmung','Any theme':'Jedes Thema','No mood':'Keine Stimmung',
+  'Low':'Niedrig','Flat':'Flau','Steady':'Ausgeglichen','Good':'Gut','Sharp':'Klar','Work':'Arbeit','People':'Menschen','Health':'Gesundheit','Money':'Geld','Learning':'Lernen','Making':'Schaffen','Home':'Zuhause','Rest':'Ruhe',
+  'Paths':'Pfade','Focus':'Fokus','Progress':'Fortschritt','New note':'Neue Notiz','Unsaved drafts':'Ungesicherte Entwürfe','Up to two':'Bis zu zwei','Suggested':'Vorgeschlagen','Delete this entry?':'Diesen Eintrag löschen?','Cancel':'Abbrechen',
+  'What went well?':'Was lief gut?','What can improve?':'Was geht besser?','Ideas & tomorrow':'Ideen & morgen','Intention for tomorrow':'Vorsatz für morgen','Next week':'Nächste Woche','Start writing':'Schreib los','Nothing written yet.':'Noch nichts geschrieben.' };
+const t = s => S.loc==='de' ? (DE[s]||s) : s;
+
+const KIND = { answer:['?','Answer','questionmark.bubble'], note:['✎','Note','note.text (new ThinkSymbol row needed)'], retro:['☾','Retro','moon.stars'], focus:['◷','Focus note','timer'], weekly:['▦','Weekly review','calendar.badge.checkmark'] };
+const MOOD = { Low:'☂', Flat:'☁', Steady:'⛅', Good:'☀', Sharp:'ϟ' };
+const THEMES = ['Work','People','Health','Money','Learning','Making','Home','Rest'];
+
+const DAYS = [
+  { day:'Today', items:[
+    { id:'a1', kind:'answer', time:'08:14', edited:'21:02', prompt:'What would you do today if no one was watching?', text:'Finish the chapter I keep circling. Nobody is waiting for it, which is exactly why it keeps slipping. Two hours before lunch, phone in the other room.', mood:'Steady', theme:'Making', theme2:'Work', variant:true },
+    { id:'n1', kind:'note', time:'12:40', text:'Lunch with Maya. She said the thing about "owning the calendar" again. I think she means saying no before the meeting exists.', theme:'People' },
+  ]},
+  { day:'Yesterday', items:[
+    { id:'r1', kind:'retro', time:'21:30', prompt:'Retro', fields:[['What went well?','Shipped the draft before dinner.'],['What can improve?','Started late; the morning went to email.'],['Ideas & tomorrow','Block 9 to 11 before opening anything.']], intention:'No inbox before 11.', mood:'Good', theme:'Work' },
+    { id:'a2', kind:'answer', time:'07:52', prompt:'What are you avoiding that would take ten minutes?', text:'Calling the bank about the card. Ten minutes, maybe fifteen with hold music.', mood:'Flat', theme:'Money' },
+  ]},
+  { day:'Thursday 24 September', items:[
+    { id:'f1', kind:'focus', time:'14:30', prompt:'Write chapter 3', text:'Got the opening scene down; the middle still drags.', theme:'Making' },
+  ]},
+  { day:'Sunday 20 September', items:[
+    { id:'w1', kind:'weekly', time:'19:05', prompt:'Week of 14 September', text:'Five of seven days. The two I missed were both travel days, so next time plan the practice before the trip, not during.', next:'Pack the practice.' },
+  ]},
+];
+const ALL = DAYS.flatMap(d => d.items);
+const DATE = {a1:'Saturday 26 September',n1:'Saturday 26 September',r1:'Friday 25 September',a2:'Friday 25 September',f1:'Thursday 24 September',w1:'Sunday 20 September',x:'Saturday 26 September',y:'Saturday 26 September'};
+const byId = id => ALL.find(x => x.id===id);
+const dayLabel = d => (d==='Today'||d==='Yesterday') ? t(d) : d;
+const firstText = e => e.kind==='retro' ? e.fields.find(f=>f[1])[1] : e.text;
+
+// ---------- chrome ----------
+const status = () => `<div class="status"><span>21:04</span><span>●●● ▮</span></div>`;
+const tabs = () => `<div class="edgefade"></div><div class="tabs">${[['☀','Today'],['⤳','Paths'],['◷','Focus'],['▯','Journal'],['▥','Progress']]
+  .map(([s,n])=>`<div class="${n==='Journal'?'sel':''}"><span class="s">${s}</span>${t(n)}</div>`).join('')}</div>`;
+const fab = () => `<div class="fab" title="${t('New note')} · plus · .glassProminent in .safeAreaBar">+</div>`;
+const phone = (inner, o={}) => `<div class="phone">${status()}<div class="scroll">${inner}</div>${o.tabs===false?'':tabs()}${o.fab===false?'':fab()}${o.over||''}</div>`;
+
+// ---------- rows (Q3) ----------
+function metaLine(e, o={}) {
+  const k = KIND[e.kind];
+  const parts = [`<span class="k">${k[0]}</span>${t(k[1])}`];
+  if (!o.noTime) parts.push(e.time);
+  if (e.mood) parts.push(`${MOOD[e.mood]} ${t(e.mood)}`);
+  if (e.theme) parts.push(t(e.theme));
+  return `<div class="meta">${parts.join(' · ')}</div>`;
+}
+function rowHTML(e) {
+  if (S.r==='words') {
+    let body = e.kind==='weekly' ? `<div class="txt" style="font-weight:600">${e.prompt}</div><div class="txt clamp2">${e.text}</div>` : `<div class="txt clamp3">${firstText(e)}</div>`;
+    return `<div class="li chev" style="padding-right:30px">${body}${metaLine(e)}</div>`;
+  }
+  if (S.r==='prompt') {
+    const hasP = e.kind!=='note';
+    const p = e.kind==='retro' ? t('Retro') : e.prompt;
+    return `<div class="li chev" style="padding-right:30px">${hasP?`<div class="q clamp2">${p}</div><div class="txt sectxt clamp2" style="margin-top:4px">${firstText(e)}</div>`:`<div class="txt clamp3">${e.text}</div>`}${metaLine(e)}</div>`;
+  }
+  const title = e.kind==='weekly' ? e.prompt : e.kind==='retro' ? t('Retro') : firstText(e).split(/[.;!?]/)[0];
+  const rest = e.kind==='weekly' ? e.text : e.kind==='retro' ? firstText(e) : firstText(e).slice(title.length+1).trim() || firstText(e);
+  return `<div class="li chev"><div class="crow"><div class="ks">${KIND[e.kind][0]}</div><div style="min-width:0;flex:1"><div class="t1 clamp1">${title}</div>
+    <div class="t2 clamp1"><b>${e.time}</b>&nbsp; ${rest}</div>${e.theme||e.mood?`<div class="meta" style="margin-top:3px">${[e.mood?MOOD[e.mood]+' '+t(e.mood):'',e.theme?t(e.theme):''].filter(Boolean).join(' · ')}</div>`:''}</div></div></div>`;
+}
+function listBody(days) {
+  return days.map(d => `<div class="sh">${dayLabel(d.day)}</div><div class="grp">${d.items.map(rowHTML).join('')}</div>`).join('');
+}
+
+// ---------- filter header (Q1) ----------
+function header(state) {
+  // state: idle | engaged | active | nomatch
+  const filled = (state==='active'||state==='nomatch');
+  let top = `<div class="tb"><div class="sp"></div>`;
+  if (S.f==='menu') top += `<div class="circ ${filled?'on':''}" title="line.3.horizontal.decrease${filled?'.circle.fill':''}">${filled?'◉':'≡'}</div>`;
+  top += `</div><div class="large">${t('Journal')}</div>`;
+  let below = '';
+  if (S.f==='menu') {
+    below = `<div class="search">⌕ ${t('Search')}</div>`;
+    if (filled) below += `<div class="activebar">${state==='nomatch'?`${t('Focus notes')} · ${t('Sharp')}`:`${t('Answers')} · ${t('Last 7 days')}`}<span class="clr">${t('Clear')}</span></div>`;
+  } else if (S.f==='tokens') {
+    if (state==='engaged') below = `<div class="search focus">⌕ <span style="color:var(--label)">|</span></div>`;
+    else if (filled) below = `<div class="search focus">⌕ ${state==='nomatch'?`<span class="tok">${t('Focus notes')}</span><span class="tok">${MOOD.Sharp} ${t('Sharp')}</span>`:`<span class="tok">${t('Answers')}</span><span class="tok">${t('Last 7 days')}</span>`}</div>`;
+    else below = `<div class="search">⌕ ${t('Search')}</div>`;
+  } else {
+    const on = filled ? (state==='nomatch'?'Focus notes':'Answers') : 'All';
+    below = `<div class="search">⌕ ${t('Search')}</div><div class="seg">${['All','Answers','Notes','Retros','Weekly reviews','Focus notes'].map(k=>`<div class="${k===on?'on':''}">${t(k)}</div>`).join('')}</div>
+      <div class="menus"><span class="mbtn ${state==='nomatch'?'on':''}">${state==='nomatch'?MOOD.Sharp+' '+t('Sharp'):t('Any mood')} ▾</span><span class="mbtn">${t('Any theme')} ▾</span><span class="mbtn ${state==='active'?'on':''}">${state==='active'?t('Last 7 days'):t('Any time')} ▾</span></div>`;
+  }
+  return top + below;
+}
+function engagedOverlay() {
+  if (S.f==='menu') {
+    const kinds = ['All','Answers','Notes','Retros','Weekly reviews','Focus notes'];
+    return `<div class="scrim"></div><div class="menu" style="right:14px;top:96px">
+      <div class="mh">${t('Kind')}</div>${kinds.map((k,i)=>`<div class="mi"><span class="ck">${i===0?'✓':''}</span>${t(k)}</div>`).join('')}
+      <div class="div"></div>
+      <div class="mi"><span class="ck"></span>${t('Mood')}<span class="r">${t('Any mood')} ›</span></div>
+      <div class="mi"><span class="ck"></span>${t('Theme')}<span class="r">${t('Any theme')} ›</span></div>
+      <div class="mi"><span class="ck"></span>${t('Date')}<span class="r">${t('Any time')} ›</span></div></div>`;
+  }
+  if (S.f==='tokens') {
+    const grp = (h, arr) => `<div class="sh" style="margin:12px 20px 6px">${h}</div><div style="display:flex;flex-wrap:wrap;gap:8px;margin:0 20px">${arr.map(x=>`<span class="mbtn">${x}</span>`).join('')}</div>`;
+    return `<div style="position:absolute;top:150px;left:0;right:0;bottom:0;background:var(--bg);z-index:2">${grp(t('Kind'),['Answers','Notes','Retros','Weekly reviews','Focus notes'].map(t))}
+      ${grp(t('Mood'),Object.keys(MOOD).map(m=>MOOD[m]+' '+t(m)))}${grp(t('Theme'),THEMES.map(t))}${grp(t('Date'),['Today','Last 7 days','Last 30 days'].map(t))}
+      <div style="color:var(--sec);font-size:12.5px;margin:14px 20px">Suggestions show while the field is empty. Typing searches text, and a typed "work" also offers the Work token.</div></div>
+      <div class="kb" style="height:250px"></div>`;
+  }
+  return `<div class="scrim"></div><div class="menu" style="left:16px;top:262px;width:210px"><div class="mi"><span class="ck">✓</span>${t('Any mood')}</div><div class="mi"><span class="ck"></span>${t('No mood')}</div><div class="div"></div>
+    ${Object.keys(MOOD).map(m=>`<div class="mi"><span class="ck"></span>${MOOD[m]} ${t(m)}</div>`).join('')}</div>`;
+}
+function listPhone(state) {
+  let body = header(state);
+  let over = '';
+  if (state==='idle' || state==='engaged') {
+    body += `<div class="grp" style="margin-top:6px"><div class="li plain chev">⎘ ${t('Unsaved drafts')} (1)</div></div>` + listBody(DAYS);
+    if (state==='engaged') over = engagedOverlay();
+  } else if (state==='active') {
+    const f = DAYS.map(d=>({day:d.day, items:d.items.filter(e=>e.kind==='answer')})).filter(d=>d.items.length);
+    body += listBody(f);
+  } else if (state==='nomatch') {
+    body += `<div class="grp" style="margin-top:10px"><div class="li"><div class="nomatch">${t('No entries match.')}</div></div><div class="li"><span class="tert">${t('Clear filters')}</span></div></div>`;
+  }
+  return phone(body, {over});
+}
+function lockedPhone() {
+  return phone(`<div class="tb"></div><div class="large">${t('Journal')}</div>
+    <div class="cuv" style="padding-top:150px"><div class="sym">🔒︎</div><div class="t">${t('Your journal is locked.')}</div><div class="btn">${t('Unlock')}</div></div>`);
+}
+
+// ---------- detail (Q4) ----------
+function readBody(e) {
+  let h = `<div class="dpad"><div class="dday">${DATE[e.id]}</div>`;
+  if (e.kind==='retro') {
+    h += e.fields.map(([p,a])=>`<div class="dfield"><div class="h">${t(p)}</div><div class="dtxt">${a}</div></div>`).join('')
+      + `<div class="dfield"><div class="h">${t('Intention for tomorrow')}</div><div class="dtxt">${e.intention}</div></div>`;
+  } else {
+    if (e.kind!=='note') h += `<div class="dq ${e.kind==='focus'?'ro':''}">${e.prompt}</div>`;
+    h += `<div class="dtxt">${e.text}</div>`;
+    if (e.next) h += `<div class="dfield" style="margin-top:16px"><div class="h">${t('Next week')}</div><div class="dtxt">${e.next}</div></div>`;
+  }
+  const tags = [e.mood?`${MOOD[e.mood]} ${t(e.mood)}`:'', e.theme?t(e.theme):'', e.theme2?t(e.theme2):''].filter(Boolean).join(' · ');
+  h += `<div class="dfoot">${t('Written')} ${e.time}${e.edited?` · ${t('Edited')} ${e.edited}`:''}${tags?`<br>${tags}`:''}</div></div>`;
+  return h;
+}
+function detailPhone(e, o={}) {
+  const title = t(KIND[e.kind][1]);
+  const trail = S.d==='read' ? `<div class="pill">${t('Edit')}</div>` : (o.typing ? `<div class="circ ok">✓</div>` : `<div class="circ">⋯</div>`);
+  let h = `<div class="tb"><div class="circ">‹</div><div class="mid">${title}</div>${trail}</div>`;
+  if (S.d==='read') {
+    h += readBody(e);
+    if (e.variant) h += `<div class="grp" style="margin-top:22px"><div class="li plain chev">${t('Another version from this day')}</div></div>`;
+    h += `<div class="grp" style="margin-top:${e.variant?12:22}px"><div class="li plain red">${t('Delete entry')}</div></div>`;
+  } else {
+    h += editBody(e, {typing:o.typing, inline:true});
+    if (e.variant && !o.typing) h += `<div class="grp" style="margin-top:22px"><div class="li plain chev">${t('Another version from this day')}</div></div>`;
+  }
+  let over = '';
+  if (o.confirm) over = `<div class="scrim" style="background:rgba(0,0,0,.35)"></div><div class="dialog"><div class="box"><div class="ti">${t('Delete this entry?')}<br><span style="font-weight:400">Removed from this device and your iCloud.</span></div><div class="b red">${t('Delete entry')}</div></div><div class="cancel">${t('Cancel')}</div></div>`;
+  if (o.menu) over = `<div class="scrim"></div><div class="menu" style="right:14px;top:96px;width:220px"><div class="mi">⎘ Copy text</div><div class="mi">⇪ Share</div><div class="div"></div><div class="mi" style="color:var(--red)">🗑︎ ${t('Delete entry')}</div></div>`;
+  if (o.typing) over += keyboardHTML(e);
+  return phone(h, {fab:false, tabs:!o.typing, over});
+}
+
+// ---------- editor (Q7) ----------
+function tagChips(e, o={}) {
+  const m = e.mood ? `${MOOD[e.mood]} ${t(e.mood)}` : `<span class="dim">☺︎ ${t('Mood')}</span>`;
+  const th = e.theme ? t(e.theme) + (e.theme2?` · ${t(e.theme2)}`:'') : `<span class="dim"># ${t('Theme')}</span>`;
+  const sugg = o.suggest && !e.theme;
+  return `<div class="chips"><span class="chip ${e.mood?'set':''}">${m} ▾</span><span class="chip ${sugg?'sugg':e.theme?'set':''}">${sugg?`✦ ${t('Work')} <span class="dim">${t('Suggested')}</span>`:th} ▾</span></div>`;
+}
+function editBody(e, o={}) {
+  const cur = o.typing ? '<span class="cursor"></span>' : '';
+  if (S.e==='form') {
+    let h = `<div class="form">`;
+    const p = e.kind==='retro' ? '' : e.kind==='note' ? '' : `<div class="sh">${e.kind==='focus'?t('Focus'):e.kind==='weekly'?t('Weekly review'):'Question'}</div><div class="grp"><div class="li"><div class="q">${e.prompt}</div></div></div>`;
+    h += p + `<div class="sh">&nbsp;</div><div class="grp"><div class="li frow">${t('Mood')}<span class="v">${e.mood?MOOD[e.mood]+' '+t(e.mood):'None'} ⌃⌄</span></div><div class="li frow">${t('Theme')}<span class="v">${e.theme?t(e.theme)+(e.theme2?', '+t(e.theme2):''):o.suggest?'✦ '+t('Work'):'None'} ⌃⌄</span></div></div>`;
+    if (e.kind==='retro') h += e.fields.map(([pp,a])=>`<div class="sh">${t(pp)}</div><div class="grp"><div class="li area" style="min-height:60px">${a}</div></div>`).join('') + `<div class="sh">${t('Intention for tomorrow')}</div><div class="grp"><div class="li">${e.intention}</div></div>`;
+    else h += `<div class="sh">&nbsp;</div><div class="grp"><div class="li area">${e.text?e.text+cur:`<span class="ph">${t('Start writing')}</span>${cur}`}</div></div>`;
+    return h + `</div>`;
+  }
+  let h = `<div class="dpad">`;
+  if (S.e==='header' || o.inline) h += `<div class="dday">${DATE[e.id]}${e.id==='x'||e.id==='y'?' · 21:04':''}</div>`;
+  if (e.kind!=='note' && e.kind!=='retro') h += `<div class="dq ${e.kind==='focus'?'ro':''}">${e.prompt}</div>`;
+  if (S.e==='header') h += tagChips(e, o);
+  if (e.kind==='retro') {
+    h += e.fields.map(([p,a],i)=>`<div class="dfield"><div class="h">${t(p)}</div><div class="dtxt">${a}${i===0?cur:''}</div></div>`).join('') + `<div class="dfield"><div class="h">${t('Intention for tomorrow')}</div><div class="dtxt">${e.intention}</div></div>`;
+  } else {
+    h += `<div class="dtxt">${e.text?e.text+cur:`<span class="ph">${t('Start writing')}</span>${cur}`}</div>`;
+  }
+  if (S.e==='kbar' && !o.typing) h += `<div style="margin-top:18px">${tagChips(e, o)}</div>`;
+  if (o.inline && S.e!=='kbar' && S.e!=='header') {} // form never inline
+  return h + `</div>`;
+}
+function keyboardHTML(e, o={}) {
+  let acc = '';
+  if (S.e==='kbar') {
+    const m = e.mood ? `${MOOD[e.mood]} ${t(e.mood)}` : `☺︎ ${t('Mood')}`;
+    const th = e.theme ? t(e.theme) : o.suggest ? `✦ ${t('Work')}` : `# ${t('Theme')}`;
+    acc = `<div class="acc"><span class="g">${m} ▾</span><span class="g">${th} ▾</span><span class="sp"></span><span class="g">⌄</span></div>`;
+  }
+  const rows = [10,9,7].map((n,i)=>`<div class="kr">${i===2?'<div class="kk m"></div>':''}${'<div class="kk"></div>'.repeat(n)}${i===2?'<div class="kk m"></div>':''}</div>`).join('');
+  return acc + `<div class="kb">${rows}<div class="kr"><div class="kk m"></div><div class="kk m"></div><div class="kk w"></div><div class="kk m" style="flex-basis:80px"></div></div></div>`;
+}
+function editorPhone(e, o={}) {
+  const title = o.title || t(KIND[e.kind][1]);
+  const inner = `<div class="grab"></div><div class="tb"><div class="circ">✕</div><div class="mid">${title}</div><div class="circ ok">✓</div></div>${editBody(e, o)}`;
+  let over = '';
+  if (o.menu) over = o.menu==='theme'
+    ? `<div class="scrim"></div><div class="menu" style="left:${S.e==='kbar'?90:80}px;${S.e==='kbar'?'bottom:350px':'top:250px'};width:210px"><div class="mh">${t('Theme')} · ${t('Up to two')}</div>${THEMES.map(x=>`<div class="mi"><span class="ck">${x==='Making'||x==='Work'?'✓':''}</span>${t(x)}${x==='Making'?'<span class="r">1st</span>':''}</div>`).join('')}</div>`
+    : `<div class="scrim"></div><div class="menu" style="left:14px;${S.e==='kbar'?'bottom:350px':'top:250px'};width:210px"><div class="mi"><span class="ck"></span>${t('No mood')}</div><div class="div"></div>${Object.keys(MOOD).map(m=>`<div class="mi"><span class="ck">${m===e.mood?'✓':''}</span>${MOOD[m]} ${t(m)}</div>`).join('')}</div>`;
+  const kb = o.typing ? keyboardHTML(e, o) : '';
+  return `<div class="phone">${status()}<div class="under"><div style="height:50px"></div><div class="large">${t('Journal')}</div></div><div class="dim2"></div>
+    <div class="sheet"><div class="inner">${inner}</div></div>${kb}${over}</div>`;
+}
+
+// ---------- render ----------
+const col = (cap, html) => `<div class="col"><div class="cap">${cap}</div>${html}</div>`;
+function render() {
+  document.body.classList.toggle('light', S.scheme==='light');
+  document.querySelectorAll('.switch button[data-k]').forEach(b=>b.classList.toggle('on', S[b.dataset.k]===b.dataset.v));
+  document.getElementById('scheme').classList.toggle('on', S.scheme==='light');
+  document.getElementById('loc').classList.toggle('on', S.loc==='de');
+
+  const F = { menu:'<b>Toolbar menu.</b> One filter button (line.3.horizontal.decrease) opens a menu with Kind inline and Mood, Theme and Date as submenus. While a filter is on, the button fills and one line above the list names the filters, with Clear.',
+              tokens:'<b>Search tokens.</b> There is no filter button. Tapping the search field lists Kind, Mood, Theme and Date as tokens, and picked tokens sit inside the field next to the typed text.',
+              seg:'<b>Segmented.</b> A segmented control for Kind under the search field, and three menu buttons for Mood, Theme and Date. Switch on de to see the labels truncate.' }[S.f];
+  const R = { words:'<b>Words first.</b> Your text leads (3 lines), then one caption: kind symbol · kind · time · mood · theme.',
+              prompt:'<b>Prompt first.</b> The question in serif, then your text in secondary (2 lines), then the caption. Notes have no prompt, so they lead with the text.',
+              compact:'<b>Compact.</b> Notes-app style: a kind badge, the first sentence as a bold title, and time plus the rest on one line. Mood and theme sit underneath.' }[S.r];
+  document.getElementById('introList').innerHTML = `${F} ${R}`;
+  document.getElementById('rowList').innerHTML = [
+    col('<b>Journal, unlocked.</b> Day sections. The drafts row sits on top only when drafts exist. Tab bar with Journal selected; the floating New note is .glassProminent.', listPhone('idle')),
+    col('<b>Filter control engaged.</b>', listPhone('engaged')),
+    col('<b>Filters on:</b> Answers, last 7 days.', listPhone('active')),
+    col('<b>No-match</b> (section 8): one line and a tertiary Clear filters.', listPhone('nomatch')),
+    col('<b>Locked</b> (section 8): lock, one line, a secondary Unlock. Face ID asks on appear. New note stays: blank capture is allowed while locked. Search and filters are hidden.', lockedPhone()),
+  ].join('');
+
+  const D = S.d==='read'
+    ? '<b>Read, then Edit.</b> A tap pushes a read-only record: date, the question in serif, your text, "Written 08:14 · Edited 21:02", then mood and theme. Edit sits trailing and opens the editor sheet, and Delete entry is the last row. Today\'s done rows push this same view.'
+    : '<b>Edit in place.</b> No read-only view. A tap pushes the entry already editable, Notes-style: tap the text and type, and ✓ appears to finish. ⋯ holds Copy, Share and Delete. If you pick this, Today\'s done rows push this page too, and today.md §4 gets amended.';
+  document.getElementById('introDetail').innerHTML = D + ' The last row of the answer is Q5 (a): the other version from an offline conflict.';
+  const a1 = byId('a1'), r1 = byId('r1'), w1 = byId('w1'), f1 = byId('f1');
+  document.getElementById('rowDetail').innerHTML = (S.d==='read' ? [
+    col('<b>Answer</b>, with the conflict row (Q5).', detailPhone(a1)),
+    col('<b>Retro:</b> three prompts and the intention.', detailPhone(r1)),
+    col('<b>Weekly review reflection.</b> Progress pushes here too.', detailPhone(w1)),
+    col('<b>Focus note:</b> the intention is the read-only prompt, in secondary serif.', detailPhone(f1)),
+    col('<b>Delete</b> asks once.', detailPhone(a1, {confirm:true})),
+  ] : [
+    col('<b>Answer, pushed.</b> It looks like a read view but the text is live.', detailPhone(a1)),
+    col('<b>Typing.</b> The tab bar hides and ✓ finishes. Mood and theme follow the Q7 editor choice.', detailPhone(a1, {typing:true})),
+    col('<b>Retro, pushed</b>, editable per field.', detailPhone(r1)),
+    col('<b>Focus note:</b> only the body is editable.', detailPhone(f1)),
+    col('<b>⋯ menu:</b> Copy, Share, Delete.', detailPhone(a1, {menu:true})),
+  ]).join('');
+
+  const E = { form:'<b>Form.</b> Today\'s editor with the bugs fixed: grouped sections, Mood and Theme as menu rows (no chip strip to clip), and a text section.',
+              kbar:'<b>Keyboard bar.</b> A writing sheet: the question in serif, then the text on the sheet itself. Mood and Theme ride the keyboard toolbar, and once the keyboard is down they sit as two chips under the text. Theme pre-fill shows as ✦ until you touch it.',
+              header:'<b>Header chips.</b> A writing sheet with the date, the question, then Mood and Theme chips above the text (Apple Journal-like). The chips wrap rather than scroll, and there is no keyboard accessory.' }[S.e];
+  document.getElementById('introEditor').innerHTML = E + ' Sheets use the system ✕ (cancel) and ✓ (done). Drafts autosave as today, and the "Drafts stay on this device" footer is gone.';
+  const blank = { id:'x', kind:'note', text:'' };
+  const typedNote = { id:'y', kind:'note', text:'Walked home the long way. The idea for the ending came around the bridge' };
+  document.getElementById('rowEditor').innerHTML = [
+    col('<b>New note</b> from the floating +. Keyboard up.', editorPhone(blank, {typing:true, title:t('New note')})),
+    col('<b>Typing a note</b> after the model suggests a theme (eligible devices only).', editorPhone(typedNote, {typing:true, suggest:true, title:t('New note')})),
+    col('<b>Answer</b> with the keyboard down.', editorPhone(a1)),
+    col('<b>Retro</b>, one editor for Begin retro and Edit. RetroSheet is deleted.', editorPhone(r1)),
+    col('<b>Theme menu:</b> up to two, first pick is primary.', editorPhone(a1, {menu:'theme', typing:S.e==='kbar'})),
+  ].join('');
+
+  history.replaceState(null,'','?'+new URLSearchParams(S).toString());
+}
+document.querySelectorAll('.switch button[data-k]').forEach(b => b.onclick = () => { S[b.dataset.k]=b.dataset.v; render(); });
+document.getElementById('scheme').onclick = () => { S.scheme = S.scheme==='light'?'dark':'light'; render(); };
+document.getElementById('loc').onclick = () => { S.loc = S.loc==='de'?'en':'de'; render(); };
+document.addEventListener('keydown', ev => {
+  if (ev.target.closest('input,textarea,[contenteditable]')) return;
+  const order = ['menu','tokens','seg'];
+  if (ev.key==='ArrowRight') { S.f = order[(order.indexOf(S.f)+1)%3]; render(); }
+  if (ev.key==='ArrowLeft') { S.f = order[(order.indexOf(S.f)+2)%3]; render(); }
+});
+render();
+</script>
+</body>
+</html>
