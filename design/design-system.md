@@ -9,7 +9,7 @@ Scope: the iOS app. Widgets and the Live Activity inherit the tokens; [widgets.m
 ## 1. Principles
 
 1. **Native chrome, Think content.** Tab bar, navigation bars, toolbars, lists and sections are the iOS 26 system components with their Liquid Glass. The identity lives in the content layer: serif lines, black and yellow, whitespace. No custom bar backgrounds, no glass on content cards.
-2. **Dark is the reference.** Dark is the shipped default appearance and the scheme mockups are drawn in first. Light is first-class: every token carries both values and every brief passes the acceptance floor in both. Onboarding offers Auto and Light so the choice is visible once.
+2. **Dark is the reference.** Dark is the shipped default appearance and the scheme mockups are drawn in first. Light is first-class: every token carries both values and every brief passes the acceptance floor in both. Onboarding shows the choice once, as three picture tiles with Dark selected ([onboarding.md](onboarding.md) section 5.1); Settings keeps the inline picker.
 3. **Yellow means "do this now" or "evidence of practice".** One primary action per screen, the streak, progress rings, achievements. Everything else uses system label colours; bars stay monochrome.
 4. **Text styles, never point sizes.** Every text role is a Dynamic Type text style. Numeric layout values that sit next to text go through `@ScaledMetric`. The timer countdown is the single fixed-origin size, and it scales too.
 5. **Lists by default.** Screens are `List` or `Form` with `.insetGrouped`; that gives the tab-bar inset, section radius, scroll-edge effect and accessibility layout for free. Today uses clear rows for the day arc and daily line, then a `surface` section for the next act ([today.md](today.md) section 2). Focus is the one exception: a stage with no cards and no list ([focus.md](focus.md) section 2).
@@ -129,6 +129,7 @@ One SF Symbol per concept. Outline variant in toolbars, lists and content; the t
 | Path step | `pathStepPending` / `pathStepDone` | `circle` / `checkmark.circle.fill` | Pending / confirmed. |
 | Focus session | `focus` | `timer` | Focus tab, the bottom accessory, history rows. |
 | Break | `breakPhase` | `cup.and.saucer` | Break state in the timer and Live Activity. |
+| Apple Health | `health` | `heart` | "Log focus to Health" in onboarding and Settings. Free for this since saved lines moved to `bookmark`; it means Apple Health and nothing else. |
 | Streak | `streak` | `flame` | `accent` tint when the streak is alive; `secondaryLabel` when it reads "Begin again". |
 | Meaningful practice | `practice` | `sparkle` | Activity log rows, weekly review counts. |
 | Journal | `journal` | `book.closed` | Journal tab and the empty journal state. Entry rows carry their kind symbol instead ([journal.md](journal.md) section 4). |
@@ -262,6 +263,7 @@ Every screen is a `NavigationStack` whose root is a `List` or a `Form`, with two
 | Progress | `List` | Streak hero, weekly review, Practice stats and chart, compact earned achievements, then two recent Focus sessions and See all. Full spec in [progress-settings.md](progress-settings.md). |
 | Settings | `Form` | Grouped, `.insetGrouped` by default; the gear on Progress pushes it. Full spec in [progress-settings.md](progress-settings.md). |
 | Pushed detail screens | `List` or `Form` | Same rule; the Journal's read detail is a `List` with one clear content row. |
+| Onboarding | `NavigationStack` per step | Step 1 a centred `ScrollView`, steps 2 and 3 `Form`s; Skip in the trailing toolbar, page dots and the primary in a bottom safe-area bar. Full spec in [onboarding.md](onboarding.md). |
 | Sheets | `NavigationStack` with `List`/`Form` | See 13.5. Editors other than the Journal editor keep their text field inside a `Form`; the Journal editor is a `ScrollView` so the text scrolls above the keyboard (`JRN-4`). |
 
 ### 13.2 Insets, scroll edge and the tab bar
@@ -312,7 +314,7 @@ The primary action has four legal homes. The test, in order:
 
 1. **Floating bottom-trailing** when the action creates something new from a list screen. Built with `.safeAreaBar(edge: .bottom, alignment: .trailing)` holding one `.glassProminent` button, created as `Button("New note", systemImage: ThinkSymbol.add)` with `.labelStyle(.iconOnly)` so the accessibility label comes from the title. The bar floats above the tab bar, extends the scroll-edge effect and insets the list by itself. It coexists with the Focus accessory (13.2): the accessory rides in the tab-bar area, the bar sits above it. Today only Journal's new-note action qualifies; Saved lines, Paths and Progress create nothing.
 2. **Inside Today's next-act panel** for the question, move or retro action ([today.md](today.md) section 2).
-3. **Centred in Focus's bottom safe-area bar** for Start/Pause, with End and Skip beside it as `.glass`, so the controls stay reachable at every size ([focus.md](focus.md) section 5).
+3. **Centred in a bottom safe-area bar** for Focus's Start/Pause, with End and Skip beside it as `.glass`, so the controls stay reachable at every size ([focus.md](focus.md) section 5). Onboarding uses the same home at full width for Continue and Begin practice, under its page dots ([onboarding.md](onboarding.md) section 2).
 4. **Trailing toolbar** otherwise: Share on share sheets, Done on editors, Confirm step on path detail (with a row button at the end of the lesson as well).
 
 No screen uses a `.bottomBar` toolbar placement: it would stack a second full-width glass bar over the tab bar. `.overlay(alignment: .bottomTrailing)` with padding is the pattern the bug inventory retires and is not used.
@@ -332,12 +334,12 @@ Rules 2 and 3 were shown on device in the Settings and Focus prototypes and are 
 
 ## 14. Day arc
 
-Resolves the graphic decision of [Today: above the fold and glance readability](https://github.com/Vankata03/Think/issues/73). One component, `DayArcView(hour:states:)` in `ThinkShared/Design`, drawn only on Today for now.
+Resolves the graphic decision of [Today: above the fold and glance readability](https://github.com/Vankata03/Think/issues/73). One component, `DayArcView(hour:states:)` in `ThinkShared/Design`, drawn live on Today and once, static, on the first onboarding step.
 
 - A half circle from 06:00 to 22:00: `separator` track, `accent` elapsed stroke, an `accent` sun at the current hour, three markers for the ritual acts (question 08:00, move 14:00, retro 20:00) in `success` / `accent` / dashed `secondaryLabel` for done / next / later, captions in the marker's colour outside the curve, the weekday, count and time in the centre.
 - Motion animates the hour fraction along the curve, never the point; Reduce Motion cuts.
 - At accessibility sizes the arc becomes "*n* of 3" over a `ProgressView` bar (13.7).
-- Sizes, offsets and the accessibility label are in [today.md](today.md) section 3. Widgets may adopt it later through [widgets.md](widgets.md); no other screen draws it.
+- Sizes, offsets and the accessibility label are in [today.md](today.md) section 3. Onboarding draws it at a fixed 11:00 with no act done and no centre text ([onboarding.md](onboarding.md) section 3). Widgets may adopt it later through [widgets.md](widgets.md); no other screen draws it.
 
 ## 15. Removed screens
 
