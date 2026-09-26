@@ -32,6 +32,10 @@ _Avoid_: Favourite, bookmark, liked quote
 The evening retrospective entry for a day.
 _Avoid_: Evening review, reflection
 
+**Reminder**:
+A scheduled notification that opens a moment of the ritual: the daily line in the morning, the retro in the evening. A focus session's end alert is not a reminder; it answers something the person started.
+_Avoid_: Nudge, push, alert
+
 **Version**:
 One of several records that claim the same day's answer or retro after two devices wrote it offline. The latest edit is the day's record; the others are kept, never merged, and reached from it.
 _Avoid_: Conflict, variant, duplicate, copy

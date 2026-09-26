@@ -31,7 +31,7 @@ Each control is a native row with one monochrome SF Symbol where the concept has
 | Section | Rows and behavior |
 | --- | --- |
 | Appearance | Inline `Picker` with Auto, Light, Dark as separate rows. Dark is the default for a new installation, as decided in the design system; a saved user choice wins. |
-| Reminders | Daily line and Evening reflection switches; each enabled reminder reveals its time picker. A denied notification permission shows the current explanatory text and an “Open Settings” action. |
+| Reminders | Daily line and Evening retro switches; each enabled reminder reveals its time picker. A denied notification permission shows the current explanatory text and an “Open Settings” action. |
 | Focus | “Silence distractions” pushes the guide moved from Focus. “Session end alerts” controls phase-end notifications; permission is handled in onboarding, never at timer Start. “Log focus to Health” retains the existing Health authorization and unavailable/denied explanations. |
 | iCloud | Status, syncing indication, and last successful upload when available. It is informational, never a sync toggle: mirroring is selected when the SwiftData container is built. Copy must reflect the real state and explain that journal changes, including deletions, sync through the user's iCloud when available; Think has no server or account. |
 | Privacy and lock | “Lock journal” keeps its availability and authentication behavior. “Show intention on Lock Screen” controls the Live Activity and Dynamic Island disclosure and keeps its explanatory footer. |
