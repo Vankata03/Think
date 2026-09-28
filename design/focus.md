@@ -32,7 +32,7 @@ The session drawn as a half circle in the style of Today's day arc (`today.md` s
 - Proportion: the work part spans `work / (work + break)` of the curve, the break tail the rest, separated by a small gap and a hollow `success` dot at the boundary.
 - Track: `separator`, 3pt, round caps. Break tail: `success` at 45%, dashed while idle, solid once a session starts.
 - Progress: the elapsed work in `accent`; the elapsed break in `success`. The sun (24pt disc with an 18% halo) sits at now: at the left end while idle, moving through work, then along the tail, where it turns `success`.
-- Captions: the end of work as a clock time in `caption2` semibold `accentInk`, outside the curve at the boundary; "done" there during the break. The end of the break in `caption2` semibold `success` under the right end. "now" in `caption2` `secondaryLabel` under the left end while idle. Clock times use the device format (12h in en_US, 24h in `bg` and `de`).
+- Captions, all in the `graphicCaption` role: the end of work as a clock time in `accentInk`, outside the curve at the boundary; "done" there during the break. The end of the break in `success` under the right end. "now" in `secondaryLabel` under the left end while idle. Clock times use the device format (12h in en_US, 24h in `bg` and `de`).
 - Centre: the countdown in the `countdown` role, its Dynamic Type ceiling at `.xxxLarge` (the clamp section 3.1 asked for); past that the layout is the accessibility form below, then one caption in `secondary`: "then *n* min break" (the break in `success`) while idle, "until *time*" while running, "Paused", or "Break" in `success`.
 - While idle, the arc follows the wheel live: the proportion and the captions move as the wheel turns.
 - Motion: the sun moves along the curve (the fraction is the animatable value, as `ArcPosition` on Today), 0.8s ease-in-out; proportion changes 0.3s. Reduce Motion: no animation.
@@ -109,10 +109,11 @@ From `research/ui-bug-inventory.md` (branch `research/ui-bug-inventory`):
 | `FOC-6` | No custom header; the inline navigation title and the scroll-edge effect (no `.toolbarBackground(.hidden)`). |
 | `FOC-7` | The arc fills with elapsed time and the sun marks now. |
 | `FOC-8` | The cue is removed; nothing appears or disappears above the arc when a session starts. The wheel folds away below it. |
-| `FST-1`, `FST-2` | Focus stats leave Focus; the Progress brief owns them. |
 | Observation "Break as a system green dot" | Break is the `success` token throughout (section 2.1). |
 | Observation "German leaves Deep Work untranslated" | "Deep work" and "Break" are localised strings in all seven locales; the build checks the catalogue. |
 | Observation "notification alert at the first session start" | The timer no longer asks (section 7). |
+
+`FST-1` and `FST-2` belong to Focus stats, which leave Focus; [progress-settings.md](progress-settings.md) section 5 absorbs them.
 
 ## 11. Acceptance floor
 

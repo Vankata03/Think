@@ -10,8 +10,8 @@ The fifth tab is **Progress** (`ThinkSymbol.progress`), replacing Profile. `Prog
 
 Progress reads top to bottom:
 
-1. Streak hero card. The current streak numeral, “days,” and “View calendar” sit together with an accent flame. The whole card opens the streak sheet as a sheet, the same presentation as Today's toolbar item, never a push (section 8). Zero uses the design-system's “Start today” or “Begin again” state; the streak calendar stays available, and sharing does once there is any practice day. Today's streak toolbar item remains where the chrome decision put it.
-2. **Weekly review**, immediately after the streak. A short row gives this week's practice days out of seven and pushes `WeeklyReviewView`. A zero week still shows “0 of 7 days” and can open a writable reflection. The review's private text and next-week intention stay inside its existing journal gate. The build makes a saved reflection push `JournalEntryDetailView` from the review; the current review renders that text without a link.
+1. Streak hero, one row in a `surface` section; there is no card modifier (design system section 5). The current streak numeral, “days,” and “View calendar” sit together with an accent flame. The whole row opens the streak sheet as a sheet, the same presentation as Today's toolbar item, never a push (section 8). Zero uses the design-system's “Start today” or “Begin again” state; the streak calendar stays available, and sharing does once there is any practice day. Today's streak toolbar item remains where the chrome decision put it.
+2. **Weekly review**, immediately after the streak. A short row gives this week's practice days out of seven and pushes `WeeklyReviewView`. A zero week still shows “0 of 7 days” and can open a writable reflection. The review's private text and next-week intention stay inside its existing journal gate. The review screen itself is section 9: a saved reflection pushes the Journal's read detail ([journal.md](journal.md) section 5), and a new one is written in the Journal editor.
 3. **Practice**. Three all-time values: practice days, completed Path steps, and completed Focus sessions. Below them, a small Monday–Sunday chart shows completed Focus sessions for this calendar week. These are counts from `ProgressStore`; partial effort is not a completed Focus session. The chart yields to labelled day rows at accessibility text sizes. With no sessions, show a plain zero summary rather than an empty grid.
 4. **Achievements**. A compact inline strip displays up to three earned medals, with title and earned state, followed by “All achievements.” The row pushes a full `AchievementsView` list grouped by Streak, Paths, and Focus sessions. The full list shows unearned medals dimmed, their unlock conditions, and the existing share action on earned medals. If none are earned, use a single explanatory row in the compact strip; the full list still shows locked milestones. Achievements are content, never a toolbar item or a modal sheet.
 5. **Focus history**. Show the two most recent sessions, newest first, then “See all sessions” pushing `FocusHistoryView`. Each row gives date and time, completed or partial status, actual active time when known, and the optional intention only while the journal is unlocked. No row opens a session detail; the full history is a non-navigating list. With no sessions, show the design-system's empty line and a route to Focus. The full list retains the 365-day history boundary and explains that older actual durations can be unknown while all-time totals remain.
@@ -43,7 +43,7 @@ Use Form row insets and section footers, rather than nested hand-built cards. A 
 
 ## 4. Existing routes and removal
 
-Journal is its own tab; Saved lines is reached from Today's bookmark. “Find a practice” is removed under the IA decision. Neither gets a duplicate Progress card. The Progress build replaces `Think/Views/ProfileView.swift` with `ProgressView` and `SettingsView`; it replaces `Think/Views/FocusStatsView.swift` with `FocusHistoryView`. The achievements content moves out of `StreakAchievementsSheet` into `AchievementsView`, preserving sharing; the old sheet and its “Scroll for more” overlay are removed. The build updates `RootTabView` and every caller, accessibility identifier, and preview that still names Profile or the removed destinations. Nothing stays behind a flag. The prototype branch never merges into production.
+Journal is its own tab; Saved lines is reached from Today's bookmark. “Find a practice” is removed under the IA decision. Neither gets a duplicate Progress card. The Progress build replaces `Think/Views/ProfileView.swift` with `ProgressView` and `SettingsView`; it replaces `Think/Views/FocusStatsView.swift` with `FocusHistoryView` and removes its toolbar link from `FocusView` if the Focus build has not landed. It deletes `Think/Views/PracticeDiscoveryView.swift`, whose only caller is `ProfileView`. `FavoritesView` is the Today build's to delete ([today.md](today.md) section 5). The achievements content moves out of `StreakAchievementsSheet` into `AchievementsView`, preserving sharing; the old sheet and its “Scroll for more” overlay are removed. The build updates `RootTabView` and every caller, accessibility identifier, and preview that still names Profile or the removed destinations. Nothing stays behind a flag. The prototype branch never merges into production.
 
 ## 5. Absorbed bugs
 
@@ -62,8 +62,8 @@ From `research/ui-bug-inventory.md` on branch `research/ui-bug-inventory`:
 | `FST-1` | No empty chart grid; zero Focus activity has a plain summary. |
 | `FST-2` | Focus history is a List with native bottom clearance. |
 | `STK-1`, `STK-2` | Streak sheet; see section 8.6. |
-
-`WKR-1` and `WKR-2` concern the internals of `WeeklyReviewView`; this brief only places its entry card. They remain for the Weekly review build ticket.
+| `WKR-1`, `WKR-2` | Weekly review; see section 9.4. |
+| `DIS-1`, `DIS-2`, `DIS-3` | Absorbed by deletion: Find a practice leaves the app with `PracticeDiscoveryView` (section 4). |
 
 ## 6. Acceptance floor
 
@@ -85,7 +85,7 @@ The streak sheet is a glance at the streak and the days behind it. It shows one 
 
 ### 8.1 Presentation and chrome
 
-- One sheet, `StreakCalendarSheet`. Today's streak toolbar item and the Progress streak hero card both present it as a sheet. Progress never pushes it, so there is one presentation and one set of chrome.
+- One sheet, `StreakCalendarSheet`. Today's streak toolbar item and the Progress streak hero both present it as a sheet. Progress never pushes it, so there is one presentation and one set of chrome.
 - `NavigationStack` with the inline title "Streak". "Close" sits in `.cancellationAction`. The trailing slot holds `Button("Share", systemImage: ThinkSymbol.share)` with `.labelStyle(.iconOnly)` and the plain glass style, never `.glassProminent`, because the sheet has no primary action (design system 13.5). Share presents `StreakShareSheet` for the displayed month, as it does now.
 - Share is hidden for a person who has never practised, because there is nothing to share. A lapsed streak keeps Share, since its calendar cards still show past practice days.
 - Detents: one fitted detent plus `.large`, opening at the fitted detent. The fitted height is measured from the content with `onGeometryChange` and applied as `.height(_:)`. The grid always reserves six week rows, so paging between a five-row and a six-row month never resizes the sheet. When `dynamicTypeSize.isAccessibilitySize` is true, or the measured height exceeds the large detent, the sheet opens at `.large`. The drag indicator is visible.
@@ -100,7 +100,7 @@ A `List` (`.insetGrouped`) with two parts and system margins throughout.
    - Nothing else. No longest streak (the store keeps none, and no other screen shows one) and no line about keeping the streak alive today, which would lean toward guilt. The today ring in the calendar already shows whether today is practised.
 2. **Calendar**, one `surface` section.
    - First, the month pager: `Button("Previous month", systemImage: "chevron.left")` and `Button("Next month", systemImage: "chevron.right")`, icon-only, in `label` colour, with the month and year in `headline` between them. Next is disabled on the current month. Previous is disabled on the month of the first practice day, or on the current month when there is none. There is no swipe gesture: it would compete with sheet dismissal and add a control nobody can see.
-   - Then the weekday initials (`veryShortStandaloneWeekdaySymbols`, respecting `firstWeekday`) in `caption2` semibold `secondaryLabel`, and the day grid built from the existing `MonthGrid`. Day discs are 32pt at the default size through `@ScaledMetric`, with a 40pt ceiling.
+   - Then the weekday initials (`veryShortStandaloneWeekdaySymbols`, respecting `firstWeekday`) in the `graphicCaption` role, `secondaryLabel`, and the day grid built from the existing `MonthGrid`. Day discs are 32pt at the default size through `@ScaledMetric`, with a 40pt ceiling.
 
 | Day | Marker |
 | --- | --- |
@@ -146,3 +146,46 @@ The linear form gives up the visual day-by-day picture; the owner accepted that 
 - Dynamic Type through AX3 in `en`, `bg` and `de`: the header numeral and unit, the state lines ("Begin again.", "Start today."), long month names such as `bg` "септември 2026 г." in the pager, and "*n* of *m* days" all wrap without clipping. The sheet opens at `.large` at accessibility sizes.
 - Every icon-only control has a label: Share, Previous month, Next month.
 - Reduce Motion: month changes crossfade.
+
+## 9. Weekly review
+
+Decided in [Spec audit before hand-off: bug inventory, acceptance floor and deleted-views ledger](https://github.com/Vankata03/Think/issues/98) (owner, 2026-09-28). `WeeklyReviewView` is pushed from the Weekly review row on Progress (section 1). It keeps its `List`, its inline title "Weekly review" and its sections; the reflection is no longer written on this screen. It is written in the Journal's one editor, which already has a weekly-review kind ([journal.md](journal.md) section 8).
+
+### 9.1 Sections
+
+1. **Practice.** "*n* of 7 days" in the `numeral` role, "Practiced" (the existing string) under it in `secondary`, then the existing "This week" disclosure with its `LabeledContent` counts and footnote. The hand-set 20, 12, 8 and 4pt spacings go; the rows take system spacing and stack label over value at accessibility sizes (design system section 3.2). A zero week shows zeros (design system section 8).
+2. **Mood this week.** Unchanged in content: the existing disclosure of mood counts and its footnote, shown only while the journal is unlocked.
+3. **Your reflection.** One section, whose content depends on the state:
+
+| State | Section content |
+| --- | --- |
+| Journal locked | The Locked state of design-system section 8 as a section row: "Your journal is locked." and a `secondary` "Unlock". This is `JournalGate` in the form [journal.md](journal.md) section 7 gives it. |
+| Could not load | The Unavailable row: "Could not load your weekly review." and "Try again". |
+| Saved | The Journal's compact row for this week's review ([journal.md](journal.md) section 4), pushing its read detail (section 5 there), where Edit opens the editor. |
+| Not written yet | One row button, "Write reflection", in `accentInk` (`tertiary`), presenting the Journal editor sheet on a new weekly review for this week. If a draft for this week exists, the editor opens on it. |
+
+### 9.2 Primary action
+
+None. The review is evidence, and writing is one row among its sections, not the screen's reason to exist. The editor's Done carries the save (design system 13.5 and 13.6, rule 4).
+
+### 9.3 Build
+
+- Removed from `Think/Views/WeeklyReviewView.swift`: the `composer` with its two inline `TextField`s, the "Save weekly review" button, `save()`, the draft state and its persistence, and the "Drafts stay on this device until you save or discard them." footer. The weekly-review kind of the Journal editor owns drafting and saving: it recovers a draft by the week's `periodKey`, saves through `JournalRepository.saveWeeklyReview` with the week start and time zone of the draft, and keeps the existing save and cleanup failure messages.
+- `loadPrivateData()` keeps its rule: nothing private is read while `JournalLock.isLocked`.
+- Accessibility identifiers `WeeklyReviewInput`, `WeeklyReviewIntentionInput` and `SaveWeeklyReview` go, and the UI tests that use them move to the editor.
+
+### 9.4 Absorbed bugs
+
+| ID | Resolution |
+| --- | --- |
+| `WKR-1` | No inline reflection field is left, so there is no empty area without field chrome. The writing happens in the editor sheet. |
+| `WKR-2` | No save button is left on the screen. The editor's Done sits in the toolbar. |
+
+### 9.5 Acceptance floor
+
+- Dynamic Type through AX3: the count, the labelled rows and "Write reflection" wrap and stack; the section scrolls above the tab bar.
+- `bg` and `de`: "Write reflection", "Your reflection" and the longest count label ("Partial effort, not completed") at AX3.
+- No icon-only control on the screen.
+- Both appearances; "Write reflection" is tappable `accentInk` text, legible in light.
+- Reduce Motion: nothing custom animates.
+- VoiceOver: nothing from the reflection or the mood counts is in the accessibility tree while the journal is locked.

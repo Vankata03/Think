@@ -30,7 +30,7 @@ One drawing of a run, in two sizes. It shares its marker language with the day a
 | Today | `accent` fill, the step number in `accentOnFill`, rounded semibold, with an `accent` halo at 25% opacity. |
 | Not open yet | `surface` fill, 1.2pt dashed `secondaryLabel` ring, the step number in `secondaryLabel`. |
 
-The discs sit on a 3pt `tertiarySystemFill` track. There is no "today" disc when today's step is done: the next step reads as not open yet.
+The discs sit on a 3pt line in the `track` token. There is no "today" disc when today's step is done: the next step reads as not open yet.
 
 - **Trail window** (`StepTrailWindow`). Seven discs around today's step (three before, three after, clamped at the ends of the run), 26pt through `@ScaledMetric`, spread across the row. The track and discs fade out through a 12% gradient mask at an edge where the run continues, and stay solid at an edge that is the run's first or last step. It appears only in the list hero (section 4).
 - **Full trail** (`StepTrailView`). Every step of the run, seven to a row, 30pt discs through `@ScaledMetric`. Rows snake: the first row runs left to right, the second right to left, joined by a curve at the row end, like the Paths symbol. Each disc is a button that pushes its step (section 6), labelled "Step *n*, *title*" for VoiceOver with the state as the value ("done", "today", "opens tomorrow at 06:00", "not open yet"). A 7-step path is one row. It appears only on path detail (section 5).
@@ -49,7 +49,7 @@ The first section holds one row, the hero, on `surface`. It is a `NavigationLink
 | --- | --- |
 | Trail window | Section 3. Top of the row. |
 | Caption | `pathStepToday` symbol and "Today on *path* · Step *n*" in `secondary` weight semibold, `accentInk`. |
-| Title | The step title, `.title2` semibold. |
+| Title | The step title, `stepTitle` role (`.title2` semibold). |
 | Lesson preview | The lesson in the `lesson` role, `secondaryLabel`, two lines at most. Hidden at accessibility sizes, where it would truncate after three words. |
 | Time | "*n* min" in `secondary` semibold, `accentInk`. |
 
@@ -75,14 +75,14 @@ The section footer reads "Two more paths are in development." (the count follows
 
 ## 5. Path detail
 
-A `List`, inline title with the path name (design system 13.4). The first content row is the path name in full, `.largeTitle` bold, on a clear row background, so a long `de` or `bg` name that truncates in the bar is still read in full. The tagline is not shown; it cost the step card its place above the fold. No toolbar items: there is no mid-run restart and no history to open.
+A `List`, inline title with the path name (design system 13.4). The first content row is the path name in full, in the `title` role (its one sanctioned use in content, design system section 3.1), on a clear row background, so a long `de` or `bg` name that truncates in the bar is still read in full. The tagline is not shown; it cost the step card its place above the fold. No toolbar items: there is no mid-run restart and no history to open.
 
 ### 5.1 Today's step card
 
 When a step is open, the next section is the step card, on `surface`. It carries no progress mark; progress is the caption's number and the full trail below.
 
 1. Caption: `pathStepToday` symbol and "Today · Step *n* of *m* · *minutes* min", `secondary` weight semibold, `accentInk`.
-2. Title: `.title2` semibold.
+2. Title: `stepTitle` role.
 3. Lesson: the `lesson` role.
 4. Task: "Task" in `caption` weight semibold, `secondaryLabel`, then the task in `body`. The text wraps; it never truncates.
 5. "A smaller version": a `DisclosureGroup` in `accentInk` holding the smaller task, collapsed by default. Omitted when the step has none.
@@ -106,20 +106,20 @@ No primary on the screen in this state; nothing is left to do today.
 A section headed "Steps".
 
 - **Default sizes:** one row holding the full trail (section 3). The row has no separator and no chevron; each disc is its own target, at least 44pt including its spacing.
-- **Accessibility sizes:** one row per step: status symbol (`done` in `success`, `pathStepToday` in `accent`, `lock` in `secondaryLabel`), "*n*" in `secondaryLabel` then the title, and a trailing value: the completion date for done steps, "Today" in `accentInk`, "Tomorrow, 06:00" for the next step after today's is done. The value stacks under the title (design system 3.2); the symbol aligns to the title's first baseline, which absorbs the misaligned status circle in `PDT-5`.
+- **Accessibility sizes:** one row per step: status symbol (`done` in `success`, `pathStepToday` in `accentInk` as a "now" caption per design system section 2.2, `lock` in `secondaryLabel`), "*n*" in `secondaryLabel` then the title, and a trailing value: the completion date for done steps, "Today" in `accentInk`, "Tomorrow, 06:00" for the next step after today's is done. The value stacks under the title (design system 3.2); the symbol aligns to the title's first baseline, which absorbs the misaligned status circle in `PDT-5`.
 
 ### 5.4 Other states
 
 | State | Presentation |
 | --- | --- |
-| Run finished | Instead of the step card, one section: the path symbol and "Path completed." in `heading`, "Completed *n* times · last on *date*" in `secondary` (just "Completed *n* times" when the finished run has no date, section 9), and "Begin again" as a `secondary` button in `accentInk`. The Begin-again state (design system section 8) is a section here, not the whole screen, because the finished steps stay readable in the trail below. Begin again starts a new run at step 1 immediately; step 1 is open at once. For Clear thinking the path's `continuation` text sits under the count. |
+| Run finished | Instead of the step card, one section: the path's own symbol (`ThinkingPath.icon`) and "Path completed." in `heading`, "Completed *n* times · last on *date*" in `secondary` (just "Completed *n* times" when the finished run has no date, section 9), and "Begin again" as a `secondary` button in `accentInk`. The Begin-again state (design system section 8) is a section here, not the whole screen, because the finished steps stay readable in the trail below. Begin again starts a new run at step 1 immediately; step 1 is open at once. For Clear thinking the path's `continuation` text sits under the count. |
 | Locked path | The Locked state full screen (design system section 8): `ContentUnavailableView` with `lock`, "Finish *previous path* first." and one `secondary` "Open *previous path*", which replaces the stack with the previous path's detail. |
 
 ## 6. Step page
 
 Pushed from a trail disc, a step row or the next row in 5.2. A `List`, inline title "Step *n*".
 
-- First row, clear background: the step title in `.title` bold, "Step *n* of *m* · *path*" under it in `secondary`.
+- First row, clear background: the step title in the `stepTitle` role, "Step *n* of *m* · *path*" under it in `secondary`.
 - **Done or today's step:** one section with the lesson in the `lesson` role and the task under "Task". A done step adds a row "Completed *date*" with the `done` symbol in `success`. Read only: the action for today's step lives on path detail, never here.
 - **Not open yet:** the Locked state (design system section 8) as a `ContentUnavailableView` with `lock` and one line: "Opens tomorrow at 06:00." for the next step after today's is done, "Opens after step *n − 1*." for any later step, naming the step before the one on screen (step 7's page reads "Opens after step 6."). No lesson, no task, no action. The title stays visible so the run's shape can be read ahead; the content waits (owner, 2026-09-26).
 
@@ -160,7 +160,7 @@ The build that ships this brief deletes what it replaces; nothing stays behind a
 - **Last practised date.** The hero ranks a path by the later of two dates: the latest `lastCompletionDate` across **all** of the path's runs, not only the active one, and the active run's `startedAt`. Taken together, a repeat just begun with Begin again keeps the path's place: its new run has no completion yet, but its start and the finished run's last completion are both recent. A Deep focus run carried over from before dated completions (`startedAt == nil`, empty `completions`, a `legacyCompletedSteps` count) has neither; it falls back to `lastPathCompletionDay`, the same fallback `canCompletePathStep` already uses. With no date at all, the path ranks last in the hero's choice (section 4.1). The 06:00 rule still reads only the active run (with that fallback), so a new run's step 1 is open at once and an undated legacy run's next step is open.
 - "Completed *n* times" counts finished runs per path; "last on" is the last completion date of the latest finished run under the same fallback, and is omitted when there is no date. No new storage.
 - `startNewRun` is called only from Begin again on a finished path.
-- No other target calls the completion rule. The Watch app's Today shows Deep focus's next step read-only from the legacy `pathCompletedDays` field, with "Day *n*" wording; the Watch is out of the redesign's scope, so the wording and the 06:00 opening on the Watch are left to the map's Watch question.
+- No other target calls the completion rule. The Watch app's Today shows Deep focus's next step read-only from the legacy `pathCompletedDays` field, with "Day *n*" wording; the Watch is out of the redesign's scope, so the map carries the wording and the 06:00 opening on the Watch to the build plan as correctness notes.
 
 ## 10. Absorbed bugs
 

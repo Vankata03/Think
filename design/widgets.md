@@ -8,7 +8,7 @@ Scope: `ThinkWidgets/DailyQuoteWidget.swift` (Daily line: small, medium, lock-sc
 
 ## 1. Rules for the widget surface
 
-1. **System container, Think content.** The home-screen widgets drop the hand-rolled near-black container (`Color(red: 0.07, green: 0.07, blue: 0.08)`). The container is `ThinkColor.surface`, the same surface as the hero card in the app, so a widget is the hero card off-app: white in light, dark grey in dark. Design-system rule 2.2 ("near-black appears nowhere as a surface") applies to widgets as it does to screens; the black-surfaces prototype ([#84](https://github.com/Vankata03/Think/issues/84)) kept system surfaces in the app too, and a later revisit of the app's surfaces would not reopen the widget container.
+1. **System container, Think content.** The home-screen widgets drop the hand-rolled near-black container (`Color(red: 0.07, green: 0.07, blue: 0.08)`). The container is `ThinkColor.surface`, the same surface as a hero row in the app, so a widget is a hero row off-app: white in light, dark grey in dark. Design-system rule 2.2 ("near-black appears nowhere as a surface") applies to widgets as it does to screens; the black-surfaces prototype ([#84](https://github.com/Vankata03/Think/issues/84)) kept system surfaces in the app too, and a later revisit of the app's surfaces would not reopen the widget container.
 2. **Both appearances.** Nothing in a widget forces a colour scheme. `label`, `secondaryLabel`, `accent` and `accentInk` resolve per appearance, so the light widget is a light widget. Dark remains the reference scheme for mockups.
 3. **Yellow is a fill or a done state.** The accent rule, the progress bar, the gauge, the Live Activity progress and the one primary button are `accent` fills. Text is `label` or `secondaryLabel`; the only yellow text is the attribution on the Daily line widget, in `accentInk`.
 4. **One primary per widget.** The Start focus button on the small Streak widget is that widget's primary and keeps `.borderedProminent` (widgets do not host `.glassProminent`), tinted `accent` with `accentOnFill` ink.
@@ -108,7 +108,7 @@ Section 8 of the design system delegates widget states here.
 | --- | --- | --- |
 | Daily line, placeholder | system redaction of a real quote (`ContentLibrary.dailyQuote()`) | unchanged |
 | Streak, placeholder | `StreakPresentation.placeholder` (5-day streak, today complete) | unchanged |
-| Streak, never practised or lapsed (`streak == 0`) | Begin-again | flame in `secondaryLabel`, text `label`; copy is `StreakPresentation.streakText` ("Begin today"). The widget owns no copy: when the Today brief settles the two-state streak wording ("Start today" / "Begin again"), it lands in `ThinkShared/Models/StreakPresentation.swift` and the widget inherits it. |
+| Streak, never practised or lapsed (`streak == 0`) | Begin-again | flame in `secondaryLabel`, text `label`; copy is `StreakPresentation.streakText` ("Begin today"). The widget owns no copy: the Today build changes `ThinkShared/Models/StreakPresentation.swift` to the two-state wording of design-system section 8 ("Start today." / "Begin again.", [today.md](today.md) section 4) and the widget inherits it. |
 | Streak, today not complete | in progress | gauge count in `label`, progress at 0, `todayText` in `secondaryLabel` |
 | Streak, today complete | done | checkmark in the gauge, `done` symbol tinted `success` on the rectangular row |
 | Live Activity, stale work phase | rest presentation via `presentationState(isStale:)` | unchanged |
