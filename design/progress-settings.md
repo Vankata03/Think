@@ -118,16 +118,18 @@ Changing month slides the new month in from the direction of travel with `ThinkM
 
 When `dynamicTypeSize.isAccessibilitySize` is true, the grid yields to its linear form (design system 13.7 rule 3). The section keeps the pager, whose month title may wrap to two lines rather than truncate. Below it, "*n* of *m* days" appears in `numeral` and `body` over a `ProgressView(value:)` tinted `accent`. For the current month, *m* counts the days up to and including today; for a past month, it is every day of that month. The header scales without limit.
 
+The linear form gives up the visual day-by-day picture; the owner accepted that trade on 2026-09-28 in favour of legible text. It keeps day-level information for VoiceOver: the count is one element whose `accessibilityCustomContent` "Practised days" lists the month's practice days as dates and ranges ("1 to 5, 8, 9, 11 to 14 and 17 to 28 September").
+
 ### 8.4 VoiceOver
 
 - The header is one element: "12-day streak", "Begin again" or "Start today".
 - Each past or current day is one element, labelled with its date and state: "28 September, practised, today"; "27 September, practised"; "15 September". Future days are hidden from the accessibility tree.
 - The chevrons and Share take their labels from their titles. Changing month announces the new month and year.
-- In the linear form the section reads "September 2026, 21 of 28 days practised".
+- In the linear form the section reads "September 2026, 21 of 28 days practised", with the practised days as custom content (section 8.3). Day-level history therefore stays available to VoiceOver at every text size.
 
 ### 8.5 Build ledger
 
-- `Think/Views/StreakCalendarSheet.swift` keeps its name, `MonthGrid` and both callers; its body is replaced whole. The build removes the `ScrollView` and `VStack` stack with its 18, 20 and 24pt paddings, the hand-built calendar card (22pt radius and separator stroke), the bordered "Share your streak" button, the "Done" item, the `.large`-only detent, `flame.fill`, the 18% `accentColor` day disc with yellow digits, and the lowercase captions "streak", "start today" and "begin again" together with their string-catalog entries.
+- `Think/Views/StreakCalendarSheet.swift` keeps its name, `MonthGrid` and both callers; its body is replaced whole. The build removes the `ScrollView` and `VStack` stack with its 18, 20 and 24pt paddings, the hand-built calendar card (22pt radius and separator stroke), the bordered "Share your streak" button, the "Done" item, the `.large`-only detent, `flame.fill`, the 18% `accentColor` day disc with yellow digits, and the lowercase captions "streak", "start today" and "begin again". `TodayView` looks up the same three string-catalog keys for its streak caption, so the entries are deleted only by whichever build removes the last lookup: this one if the Today build has landed, otherwise the Today build.
 - `StreakShareSheet` keeps its content, since share cards are out of scope. Its chrome follows design system 13.5, which already covers it: "Close" leading, "Share" as the one `.glassProminent` item trailing, replacing "Done".
 - No view is deleted. Today's caller is specified in [today.md](today.md) and the Progress caller in section 1 of this brief.
 
