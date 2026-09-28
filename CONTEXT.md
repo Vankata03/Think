@@ -76,6 +76,10 @@ _Avoid_: Incomplete session, abandoned session, failed session
 What completes a day and feeds the streak: an answer, a move, a path step or a focus session, never merely opening the app.
 _Avoid_: Activity, engagement, check-in
 
+**Practice day**:
+A calendar day with at least one meaningful practice. The streak counts consecutive practice days; the streak calendar marks each one as practised.
+_Avoid_: Completed day, active day, check-in day
+
 **Streak**:
 Consecutive days of meaningful practice; a missed day reads "Begin again", never guilt.
 _Avoid_: Chain, run
