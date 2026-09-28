@@ -121,5 +121,5 @@ The one piece of content a screen exists for, shown first: the daily line on Tod
 _Avoid_: Featured card, banner, header card
 
 **Primary action**:
-The single yellow action on a screen. Lives floating bottom-trailing for list creation, inside Today's next-act panel or a path's step card, centred in Focus's bottom safe-area bar, or in the trailing toolbar; never more than one per screen.
+The single yellow action on a screen: the one thing the screen asks the person to do now. Never more than one per screen, and a screen may have none.
 _Avoid_: CTA, main button, call to action

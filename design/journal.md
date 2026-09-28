@@ -44,7 +44,7 @@ The compact row, one per record.
 
 | Line | Content | Role |
 | --- | --- | --- |
-| Badge | The kind symbol in `secondaryLabel` on a 28pt `fill` (quaternary) rounded square, leading and top-aligned. The badge is the only place the kind shows; its accessibility label is the kind name. | `caption` symbol |
+| Badge | The kind symbol in `secondaryLabel` on a 28pt rounded square in the `fill` token, leading and top-aligned. The badge is the only place the kind shows; its accessibility label is the kind name. | `caption` symbol |
 | Title | The first sentence of the person's words, one line. A retro uses its first non-empty field. A weekly review uses "Week of *d Month*". | `heading` (`.headline`) |
 | Second line | The time in `label`, two spaces, then the rest of the text in `secondaryLabel`, one line. | `secondary` |
 | Tags | The mood symbol and name, then the primary theme, joined by " · ". Omitted when both are empty. The secondary theme shows only on the detail. | `caption` |
@@ -93,7 +93,7 @@ When the journal lock is on and engaged, the tab shows the Locked state of desig
 
 ## 8. Editor
 
-One editor for every kind, presented as a sheet at the `.large` detent: a new note from the floating button, an answer from Today's "Write answer", a retro from Today's "Begin retro", and Edit from any read detail. `RetroSheet` is deleted; the retro is a kind of this editor.
+One editor for every kind, presented as a sheet at the `.large` detent: a new note from the floating button, an answer from Today's "Write answer", a retro from Today's "Begin retro", a weekly review from "Write reflection" on the weekly review screen ([progress-settings.md](progress-settings.md) section 9), and Edit from any read detail. `RetroSheet` is deleted; the retro is a kind of this editor.
 
 Chrome: inline title ("New note", or the kind name when editing), the system Cancel (`.cancellationAction`, `Button(role: .cancel)`) and Done (`.confirmationAction`, `Button(role: .confirm)`), which iOS 26 draws as ✕ and ✓. Done is disabled until there is something to save, as today. Drafts autosave exactly as `JournalDraftStore` does now; the "Drafts stay on this device until you save or discard them." footer goes.
 
@@ -128,7 +128,7 @@ Cited from design-system section 8, no new states:
 ## 10. Today and Progress
 
 - **Today** ([today.md](today.md) section 4, amended with this brief): "Write answer" and "Begin retro" open this editor; the done answer and retro rows push the read detail of section 5; with versions, Today shows the primary only. `JournalDayVariantsView` goes.
-- **Progress** ([progress-settings.md](progress-settings.md)): the weekly review's saved reflection pushes the read detail of section 5.
+- **Progress** ([progress-settings.md](progress-settings.md) section 9): "Write reflection" on the weekly review opens this editor on a new weekly review; the saved reflection pushes the read detail of section 5.
 
 ## 11. Removed views and code
 

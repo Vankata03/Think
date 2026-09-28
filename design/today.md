@@ -30,28 +30,29 @@ The one graphic on the screen. A half circle whose diameter is the content width
 - Track: `separator`, 3pt, round caps. Elapsed: `accent`, same stroke, from 06:00 to now. Before 06:00 the elapsed arc is empty; after 22:00 it is full.
 - Sun: 18pt `accent` disc with a 30pt `accent` at 25% halo, at the current hour. Drawn under the markers.
 - Markers at 08:00 (question), 14:00 (move) and 20:00 (retro, the hour the retro act opens), symmetric about the top of the arc: 28pt discs. Done: `success` fill, black check. Next: `accent` fill, the act's symbol in `accentOnFill`. Later: `background` fill, 1.5pt dashed `secondaryLabel` ring, symbol in `secondaryLabel`.
-- Captions: `caption2` semibold, in the marker's colour (`success`, `accentInk`, `secondaryLabel`), outside the curve: above and 16pt left of the question marker, above the move marker, above and 16pt right of the retro marker. Captions never cross the arc.
-- Centre: "<Weekday> · *n* of 3" in `footnote` semibold `secondaryLabel`, and the time in `numeral` (`.title` rounded bold, monospaced digits). "06:00" and "22:00" in `caption2` under the arc ends, in the device's clock format.
+- Captions: `graphicCaption` role (`.caption2` semibold), in the marker's colour (`success`, `accentInk`, `secondaryLabel`), outside the curve: above and 16pt left of the question marker, above the move marker, above and 16pt right of the retro marker. Captions never cross the arc.
+- Centre: "<Weekday> · *n* of 3" in `footnote` semibold `secondaryLabel`, and the time in the `numeral` role with monospaced digits. "06:00" and "22:00" in `graphicCaption` under the arc ends, in the device's clock format.
 - Motion: the elapsed arc and the sun move along the curve (the animatable value is the hour fraction, never the point), 0.8s ease-in-out on an hour change; a marker's state change uses `ThinkMotion.stateAnimation`. Reduce Motion: no animation.
 - Accessibility: the arc is one element, label "Your day. *n* of 3 done. Now <time>." At accessibility sizes (`dynamicTypeSize.isAccessibilitySize`) the arc is replaced by "*n* of 3" in `numeral` over a `ProgressView(value:)` bar tinted `accent`, per section 13.7; the time is dropped there because "10:57 PM" wraps at AX3.
 - Swift: `DayArcView(hour:states:)` in `ThinkShared/Design`, so widgets can reuse it later; the `ArcPosition` modifier from the prototype is the reference for the sun's motion.
 
 ## 4. Behaviour
 
-- **One answer a day.** "Write answer" opens the Journal editor for a new answer; once one exists, the done row pushes the Journal's read detail (question in serif, the answer, "Written <time>", Edit in the trailing slot) and Edit opens the same editor on that record. Edit changes that record in place. When two devices write the day's answer offline, both records survive the sync; Today shows the primary, which is the latest edit ([journal.md](journal.md) section 6). There is no version list on Today; the other versions are one row on the Journal's read detail. `JournalDayVariantsView` goes.
+- **One answer a day.** "Write answer" opens the Journal editor for a new answer; once one exists, the done row pushes the Journal's read detail (question in serif, the answer, "Written <time>", Edit in the trailing slot) and Edit opens the same editor on that record. Edit changes that record in place. When two devices write the day's answer offline, both records survive the sync; Today shows the primary, which is the latest edit ([journal.md](journal.md) section 6). There is no version list on Today; the other versions are one row on the Journal's read detail. `JournalDayVariantsView` goes with the Journal build ([journal.md](journal.md) section 11).
 - **Move.** "Done" marks the move and moves the panel on. The done row is static: no chevron, no tap. A trailing swipe reveals "Undo" for a mistaken tap; the reversal stays possible without being advertised.
 - **Retro.** "Begin retro" opens the Journal editor on a new retro ([journal.md](journal.md) section 8; `RetroSheet` is deleted); the done row pushes the Journal's read detail (three prompts, three answers, time, Edit).
 - **Locked journal.** Writing needs no unlock. Opening an answer or retro asks Face ID first; the row text never shows journal content.
 - **Saved lines.** Pushed from the toolbar bookmark, inline title. A `List` of lines in `line` role with the attribution in `caption`; swipe to remove, long-press for Share and Remove. Empty state per section 8 ("Lines you keep appear here.", no button: back is the action). A row opens nothing.
 - **No practice door.** The line, the Saved lines rows and the answer detail have no link to a practice screen. Practice detail leaves the app (map: out of scope).
+- **Streak copy.** The Today build changes `StreakPresentation.streakText` in `ThinkShared/Models/StreakPresentation.swift` to the two-state copy of design-system section 8 ("Start today." for a person who has never practised, "Begin again." for a lapsed streak), retiring "Begin today". The Streak widget inherits it ([widgets.md](widgets.md) section 7).
 
 ## 5. Removed views
 
 The build that ships this brief deletes what it replaces; nothing stays behind a flag:
 
 - `Think/Views/TodayView.swift` (replaced whole), including the activity log, stats tiles, `ritualHeader`, the toolbar Journal button and the circular streak badge.
-- `Think/Views/PracticeDetailView.swift` and every `NavigationLink` to it (`FavoritesView`, `JournalDetailView` "View this practice", `TodayView`).
-- `Think/Views/FavoritesView.swift`, replaced by the Saved lines list above; the `heart` symbol goes with it (section 7: `bookmark`).
+- `Think/Views/PracticeDetailView.swift` and every `NavigationLink` to it (`FavoritesView`, `JournalDetailView` "View this practice", `PracticeDiscoveryView`, `TodayView`).
+- `Think/Views/FavoritesView.swift`, replaced by the Saved lines list above; its only caller is `ProfileView`, whose link this build removes if the Progress build has not landed. The `heart` symbol for saved lines goes with it (design-system section 7: `bookmark`; `heart` now means Apple Health).
 - `Think/Views/TodayPrototypeView.swift` never merges; it stays on `prototype/today-sun-arc`.
 
 ## 6. Absorbed bugs
@@ -64,6 +65,7 @@ From `research/ui-bug-inventory.md` (branch `research/ui-bug-inventory`):
 | `TOD-2` | No `.toolbarBackground(.hidden)`; the scroll-edge effect stays. |
 | `TOD-3` | Same as `TOD-1` at AX3; the panel's button is a list row. |
 | `TOD-4` | Save and share are `Button(title, systemImage:)` on `.body`, so they scale with type. |
+| `PRA-1` to `PRA-4` | Absorbed by deletion: practice detail leaves the app with `PracticeDetailView` (section 5). |
 | Observation "three names for Profile" | Not Today's; the streak toolbar item is the only chrome Today adds. |
 | Observation "empty states: grey sentence in a pill" | Saved lines uses `ContentUnavailableView` per section 8. |
 | Observation "date header duplicates the device" | Date header removed; the weekday sits in the arc's centre. |
