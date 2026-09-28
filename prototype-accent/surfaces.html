@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PROTOTYPE · Think surfaces round 2 · throwaway</title>
+<!--
+  PROTOTYPE, throwaway. Round 2 of "Accent and surfaces: revisit variant A across the finished briefs" (#96, map #68).
+  Round 1 kept accent A (owner, 2026-09-28): dark #FFD433, light fill #F2C41C, light ink #6E5C05. Accent held here.
+  ?variant=A|B|C|S. Floating bar or ← → to switch. "Light graphics in ink" toggle answers Q7.
+  A  grouped, as the design system says today: grouped background, every section a surface box.
+  B  fewer boxes: one surface per content screen (Today's next act, Progress's streak hero); the rest are plain rows with hairlines. Settings stays grouped.
+  C  lifted dark base: dark screens on elevated #1C1C1E with sections #2C2C2E (grey on grey, as iOS draws sheets). Light unchanged.
+  Widgets are not drawn: widgets.md keeps the system container regardless of the app's surfaces.
+-->
+<style>
+  :root { font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:#161616; color:#f5f5f7; padding-bottom:96px; }
+  header.study { max-width:1300px; margin:20px auto 4px; padding:0 20px; }
+  header h1 { font-size:19px; margin:0 0 4px; }
+  header p { font-size:13px; opacity:.72; line-height:1.45; margin:0 0 6px; max-width:920px; }
+  .vtitle { max-width:1300px; margin:18px auto 0; padding:0 20px; font-size:15px; }
+  .vtitle b { font-size:17px; }
+  .vtitle span { opacity:.72; display:block; margin-top:3px; font-size:13px; line-height:1.4; max-width:920px; }
+  .strip { display:flex; gap:22px; overflow-x:auto; padding:16px 20px 8px; }
+  figure { margin:0; flex:none; }
+  figcaption { font-size:12px; opacity:.75; margin-top:8px; max-width:330px; line-height:1.35; }
+  .rowlabel { max-width:1300px; margin:10px auto 0; padding:0 20px; font-size:12px; letter-spacing:.06em; text-transform:uppercase; opacity:.55; }
+  .swatches { display:flex; gap:10px; flex-wrap:wrap; padding:0 20px; max-width:1300px; margin:8px auto 0; font-size:12px; }
+  .swatches div { display:flex; align-items:center; gap:6px; opacity:.85; }
+  .swatches i { width:18px; height:18px; border-radius:5px; display:inline-block; border:1px solid #fff3; }
+
+  /* schemes */
+  .dark  { --bg:#000; --surface:#1c1c1e; --raised:#2c2c2e; --label:#fff; --sec:#98989f; --ter:#5a5a5f; --sep:#38383a; --green:#30d158; --wall:linear-gradient(160deg,#1d2433,#0b0d12 60%,#1a1410); }
+  .light { --bg:#f2f2f7; --surface:#fff; --raised:#e9e9ee; --label:#000; --sec:#6c6c70; --ter:#b0b0b5; --sep:#c6c6c8; --green:#34c759; --wall:linear-gradient(160deg,#cfd9ea,#eef1f6 60%,#efe6da); }
+  .dark.accA  { --accent:#FFD433; --ink:#FFD433; }
+  .light.accA { --accent:#F2C41C; --ink:#6E5C05; }
+  .dark.accB  { --accent:#D4AF37; --ink:#D4AF37; }
+  .light.accB { --accent:#D4AF37; --ink:#7A6208; }
+  .dark.accC  { --accent:#EBC350; --ink:#EBC350; }
+  .light.accC { --accent:#E2B53A; --ink:#6E5C05; }
+
+  /* phone */
+  .phone { position:relative; width:330px; height:700px; border-radius:44px; overflow:hidden; background:var(--bg); color:var(--label);
+           border:1px solid #57575d; box-shadow:0 16px 50px #0007; display:flex; flex-direction:column; font-size:17px; }
+  .phone.light { border-color:#8a8a90; }
+  .status { height:46px; flex:none; display:flex; align-items:center; justify-content:space-between; padding:6px 30px 0; font-size:15px; font-weight:600; }
+  .nav { height:44px; flex:none; display:flex; align-items:center; justify-content:space-between; padding:0 16px; }
+  .nav .t { font-weight:600; font-size:17px; }
+  .tb { display:flex; gap:8px; margin-left:auto; }
+  .glass { display:inline-flex; align-items:center; justify-content:center; gap:5px; min-width:44px; height:44px; padding:0 13px; border-radius:22px;
+           background:color-mix(in srgb, var(--raised) 72%, transparent); border:1px solid color-mix(in srgb, var(--label) 12%, transparent); color:var(--label); font-size:16px; font-weight:600; }
+  .glass.pair { padding:0 6px; gap:0; }
+  .glass.pair span { display:inline-flex; align-items:center; gap:4px; padding:0 8px; height:44px; }
+  .content { flex:1; overflow:hidden; padding:0 16px; display:flex; flex-direction:column; }
+  .content > * { flex-shrink:0; }
+  .big { font-size:34px; font-weight:700; letter-spacing:-.5px; margin:0 4px 8px; line-height:1.1; }
+  .serif { font-family:"New York",ui-serif,Georgia,serif; }
+  .round { font-family:ui-rounded,"SF Pro Rounded",-apple-system,sans-serif; font-variant-numeric:tabular-nums; }
+  .hdr { color:var(--sec); font-size:13px; margin:14px 16px 7px; }
+  .sect { background:var(--surface); border-radius:24px; overflow:hidden; }
+  .row { display:flex; align-items:center; gap:12px; min-height:46px; padding:10px 16px; position:relative; font-size:16px; }
+  .row + .row::before { content:""; position:absolute; top:0; right:0; left:52px; border-top:.5px solid var(--sep); }
+  .row .sym { width:24px; display:flex; justify-content:center; color:var(--label); flex:none; }
+  .row .n { flex:1; line-height:1.25; }
+  .row .d { display:block; color:var(--sec); font-size:14px; margin-top:2px; }
+  .row .v { color:var(--sec); font-variant-numeric:tabular-nums; }
+  .row .chev { color:var(--ter); }
+  .row .link { color:var(--ink); }
+  .primary { border:0; border-radius:26px; min-height:50px; background:var(--accent); color:#000; font-weight:600; font-size:17px; padding:12px 22px;
+             box-shadow:inset 0 1px 0 #fff6, 0 4px 14px #0003; display:inline-flex; align-items:center; justify-content:center; gap:6px; }
+  .glassbtn { border-radius:26px; min-height:50px; padding:12px 20px; font-size:17px; font-weight:600; color:var(--label);
+              background:color-mix(in srgb, var(--raised) 72%, transparent); border:1px solid color-mix(in srgb, var(--label) 12%, transparent); display:inline-flex; align-items:center; }
+  .tabbar { flex:none; margin:0 14px 24px; height:62px; border-radius:31px; display:flex; align-items:center; justify-content:space-around;
+            background:color-mix(in srgb, var(--raised) 82%, transparent); border:1px solid color-mix(in srgb, var(--label) 10%, transparent); font-size:10px; }
+  .tabbar div { text-align:center; color:var(--label); width:20%; display:flex; flex-direction:column; align-items:center; gap:2px; }
+  .tabbar .sel { color:var(--ink); }
+
+  /* today */
+  .arcbox { display:flex; justify-content:center; margin:0 0 4px; }
+  .arcbox svg text { font-family:-apple-system,sans-serif; }
+  .line { font-size:27px; line-height:1.2; margin:2px 4px 8px; }
+  .attr { display:flex; align-items:center; margin:0 4px 12px; color:var(--sec); font-size:15px; }
+  .attr .ic { margin-left:auto; display:flex; gap:18px; color:var(--label); }
+  .next { background:var(--surface); border-radius:24px; padding:16px; }
+  .next .cap { color:var(--ink); font-size:14px; font-weight:600; margin-bottom:6px; display:flex; align-items:center; gap:6px; }
+  .next .txt { font-size:17px; line-height:1.3; margin-bottom:14px; }
+  .next .primary { width:100%; }
+
+  /* focus */
+  .stage { flex:1; display:flex; flex-direction:column; align-items:center; padding:0 18px; }
+  .intent { font-size:22px; text-align:center; margin:18px 0 6px; line-height:1.25; }
+  .lastline { color:var(--sec); font-size:15px; margin-top:auto; margin-bottom:10px; }
+  .fbar { flex:none; display:flex; justify-content:center; gap:10px; padding:8px 16px 12px; }
+
+  /* progress */
+  .hero { background:var(--surface); border-radius:26px; padding:16px; display:flex; align-items:center; gap:14px; }
+  .hero .num { font-size:44px; font-weight:600; line-height:1; }
+  .hero .lab { color:var(--sec); font-size:15px; }
+  .hero .cal { margin-left:auto; color:var(--ink); font-size:15px; }
+  .stats { display:flex; padding:12px 8px 6px; }
+  .stats div { flex:1; text-align:center; }
+  .stats b { display:block; font-size:22px; font-weight:600; }
+  .stats span { color:var(--sec); font-size:12px; }
+  .chart { display:flex; align-items:flex-end; gap:10px; height:54px; padding:0 22px 4px; }
+  .chart i { flex:1; background:var(--graph); border-radius:4px 4px 2px 2px; display:block; }
+  .chart i.z { background:var(--raised); height:4px !important; }
+  .days { display:flex; gap:10px; padding:0 22px 12px; color:var(--sec); font-size:11px; }
+  .days span { flex:1; text-align:center; }
+  .medals { display:flex; gap:10px; padding:12px 16px; }
+  .medal { flex:1; text-align:center; font-size:12px; color:var(--sec); }
+  .medal .disc { width:46px; height:46px; margin:0 auto 5px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; color:#000; }
+
+  /* home screen */
+  .home { flex:1; background:var(--wall); padding:10px 22px; display:grid; grid-template-columns:1fr 1fr; gap:22px; align-content:start; }
+  .widget { aspect-ratio:1; border-radius:24px; background:var(--surface); padding:14px; display:flex; flex-direction:column; color:var(--label); }
+  .wlab { font-size:11px; color:var(--sec); text-align:center; margin-top:6px; }
+  .app { display:flex; flex-direction:column; align-items:center; font-size:11px; color:var(--label); gap:5px; }
+  .app i { width:62px; height:62px; border-radius:15px; display:block; background:color-mix(in srgb, var(--label) 18%, transparent); }
+  .app i.think { background:#FFD433; display:flex; align-items:center; justify-content:center; color:#000; font-family:"New York",ui-serif,Georgia,serif; font-size:30px; font-style:normal; }
+  .lock { margin:0 22px; }
+  .lockrect { background:color-mix(in srgb, var(--label) 12%, transparent); border-radius:18px; padding:12px 14px; font-size:14px; }
+
+  /* side by side */
+  .trio { display:flex; gap:22px; overflow-x:auto; padding:16px 20px 8px; }
+
+  /* switcher */
+  #switcher { position:fixed; left:50%; bottom:18px; transform:translateX(-50%); display:flex; align-items:center; gap:4px; background:#fff; color:#000;
+              border-radius:999px; padding:6px; box-shadow:0 8px 30px #0009; z-index:10; font-size:14px; font-weight:600; }
+  #switcher button { border:0; background:#eee; border-radius:999px; width:36px; height:36px; font-size:17px; cursor:pointer; }
+  #switcher span { padding:0 12px; min-width:230px; text-align:center; }
+
+  /* round 2: accent held at A; surfaces vary */
+  .phone { --graph:var(--accent); }
+  body.inkgraphics .phone.light { --graph:var(--ink); }
+  .dark.surfC { --bg:#1c1c1e; --surface:#2c2c2e; --raised:#3a3a3c; --sep:#48484a; }
+  /* plain rows: no box, hairlines between rows and under the group */
+  .sect.plain { background:transparent; border-radius:0; border-top:.5px solid var(--sep); border-bottom:.5px solid var(--sep); }
+  .sect.plain .row { padding-left:4px; padding-right:4px; }
+  .sect.plain .row + .row::before { left:40px; }
+  .sect.plain .stats, .sect.plain .chart, .sect.plain .days, .sect.plain .medals { padding-left:4px; padding-right:4px; }
+  .hdr.plain { margin-left:4px; font-weight:600; color:var(--label); font-size:15px; }
+  .tg { width:51px; height:31px; border-radius:16px; background:color-mix(in srgb, var(--label) 16%, transparent); position:relative; flex:none; }
+  .tg::after { content:""; position:absolute; top:2px; left:2px; width:27px; height:27px; border-radius:50%; background:#fff; box-shadow:0 2px 4px #0003; }
+  .tg.on { background:var(--green); }
+  .tg.on::after { left:22px; }
+  .tick { color:var(--ink); font-weight:600; }
+  .back { color:var(--label); display:flex; align-items:center; gap:4px; font-size:17px; }
+  .toggle { margin:6px 20px 0; max-width:1300px; }
+  .toggle button { border:1px solid #5b5b61; background:transparent; color:inherit; border-radius:10px; padding:7px 11px; font-size:13px; cursor:pointer; }
+  .toggle button[aria-pressed="true"] { background:#ffd433; border-color:#ffd433; color:#000; }
+  .hist { font-size:15px; }
+</style>
+</head>
+<body>
+<header class="study">
+  <h1>Accent and surfaces, round 2: surfaces</h1>
+  <p>Throwaway prototype for #96. Accent A is fixed from round 1. Each variant shows Today, Progress, Settings and Focus: dark on top, light below. S puts the three surface treatments side by side on Today and Progress. Use the toggle to draw the elapsed arcs and chart bars in <code>accentInk</code> in light (Q7).</p>
+</header>
+<div class="toggle"><button id="ink" aria-pressed="false">Light graphics in ink (Q7 b)</button></div>
+<main id="main"></main>
+<div id="switcher"><button id="prev" aria-label="Previous variant">←</button><span id="vlabel"></span><button id="next" aria-label="Next variant">→</button></div>
+
+<script>
+const VARIANTS = {
+  A: { name:'Grouped, as today', note:'Design system section 5 as written: systemGroupedBackground (black in dark), every section a secondarySystemGroupedBackground box (#1C1C1E dark, white light).' },
+  B: { name:'Fewer boxes', note:'One surface per content screen: Today keeps the next-act panel, Progress keeps the streak hero. Every other section becomes plain rows with hairline separators and a bold title-case header, straight on the background. Settings stays a grouped Form. Focus is unchanged.' },
+  C: { name:'Lifted dark base', note:'Dark only: the screen sits on elevated #1C1C1E and sections on #2C2C2E, so nothing is grey on black. Focus’s stage is #1C1C1E too. Light is identical to A.' },
+  S: { name:'Side by side', note:'Today and Progress in A · B · C, dark then light.' }
+};
+const ORDER = ['A','B','C','S'];
+/* ---- icons (rough SF Symbol stand-ins) ---- */
+const I = {
+  bookmark:(c='currentColor',s=20)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="2" stroke-linejoin="round"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg>`,
+  flame:(c='currentColor',s=18,fill='none')=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="${fill}" stroke="${c}" stroke-width="2" stroke-linejoin="round"><path d="M12 2.5c1 3.5 5.5 6 5.5 11a5.5 5.5 0 0 1-11 0c0-2.5 1.2-4 2.5-5.3.3 1.8 1.2 3 2.3 3.4C11 9 11.3 5.5 12 2.5z"/></svg>`,
+  share:(c='currentColor',s=20)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5M6 11H5v10h14V11h-1"/></svg>`,
+  gear:(c='currentColor',s=20)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="2"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg>`,
+  check:(c='currentColor',s=20)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="${c}"/><path d="M7.5 12.5l3 3 6-6.5" stroke="#000" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  moon:(c='currentColor',s=20)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="2" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>`,
+  walk:(c='currentColor',s=16)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4" r="2"/><path d="M9 21l2.5-6.5L14 17v4M11.5 14.5 12 9l-3.5 2V14M12 9l3 3h3"/></svg>`,
+  q:(c='currentColor',s=16)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="2.2" stroke-linecap="round"><path d="M9 9a3 3 0 1 1 4 2.8c-.7.3-1 .9-1 1.7V15M12 19v.2"/></svg>`,
+  sun:(c='currentColor',s=22)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>`,
+  path:(c='currentColor',s=22)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round"><circle cx="6" cy="18" r="2.2"/><circle cx="18" cy="6" r="2.2"/><path d="M8 17c6 0 2-9 8-10"/></svg>`,
+  timer:(c='currentColor',s=22)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 13V9M10 2h4"/></svg>`,
+  book:(c='currentColor',s=22)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="2" stroke-linejoin="round"><path d="M4 4h6a2 2 0 0 1 2 2v14a2 2 0 0 0-2-2H4zM20 4h-6a2 2 0 0 0-2 2v14a2 2 0 0 1 2-2h6z"/></svg>`,
+  chart:(c='currentColor',s=22)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="2.2" stroke-linecap="round"><path d="M6 20V13M12 20V5M18 20v-9"/></svg>`,
+  medal:(c='currentColor',s=22)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="2"><circle cx="12" cy="14" r="6"/><path d="M8.5 3l3.5 5 3.5-5"/></svg>`,
+  pause:(c='currentColor',s=18)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="${c}"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>`,
+};
+
+
+const statusBar = () => `<div class="status"><span>11:02</span><span>●●● ▮</span></div>`;
+const tabbar = sel => {
+  const tabs = [['Today',I.sun],['Paths',I.path],['Focus',I.timer],['Journal',I.book],['Progress',I.chart]];
+  return `<div class="tabbar">${tabs.map(([n,f])=>`<div class="${n===sel?'sel':''}">${f(n===sel?'var(--ink)':'currentColor')}<span>${n}</span></div>`).join('')}</div>`;
+};
+/* ---- day arc per design/today.md section 3 (hour 11:00, question done, move next, retro later) ---- */
+function dayArc(){
+  const W=298, r=119, cx=W/2, cy=r+40, H=r+78;
+  const pt = h => { const t=(h-6)/16, a=Math.PI*(1-t); return [cx+r*Math.cos(a), cy-r*Math.sin(a)]; };
+  const arc = (h0,h1) => { const [x0,y0]=pt(h0),[x1,y1]=pt(h1); return `M${x0},${y0} A${r},${r} 0 0 1 ${x1},${y1}`; };
+  const [qx,qy]=pt(8),[mx,my]=pt(14),[rx,ry]=pt(20),[sx,sy]=pt(11);
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+    <path d="${arc(6,22)}" stroke="var(--sep)" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="${arc(6,11)}" stroke="var(--graph)" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <circle cx="${sx}" cy="${sy}" r="15" fill="var(--accent)" opacity=".25"/><circle cx="${sx}" cy="${sy}" r="9" fill="var(--accent)"/>
+    <circle cx="${qx}" cy="${qy}" r="14" fill="var(--green)"/><path d="M${qx-5},${qy} l3.5,3.5 l6.5,-7" stroke="#000" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="${mx}" cy="${my}" r="14" fill="var(--accent)"/><g transform="translate(${mx-8},${my-8})">${I.walk('#000',16)}</g>
+    <circle cx="${rx}" cy="${ry}" r="14" fill="var(--bg)" stroke="var(--sec)" stroke-width="1.5" stroke-dasharray="3 3"/><g transform="translate(${rx-8},${ry-8})">${I.moon('var(--sec)',16)}</g>
+    <text x="${qx-16}" y="${qy-22}" font-size="11" font-weight="600" fill="var(--green)" text-anchor="middle">Question</text>
+    <text x="${mx}" y="${my-22}" font-size="11" font-weight="600" fill="var(--ink)" text-anchor="middle">Move</text>
+    <text x="${rx+16}" y="${ry-22}" font-size="11" font-weight="600" fill="var(--sec)" text-anchor="middle">Retro</text>
+    <text x="${cx}" y="${cy-34}" font-size="13" font-weight="600" fill="var(--sec)" text-anchor="middle">Saturday · 1 of 3</text>
+    <text x="${cx}" y="${cy-4}" font-size="28" font-weight="700" fill="var(--label)" text-anchor="middle" font-family="ui-rounded,-apple-system,sans-serif">11:02</text>
+    <text x="${cx-r}" y="${cy+20}" font-size="11" fill="var(--sec)" text-anchor="middle">06:00</text>
+    <text x="${cx+r}" y="${cy+20}" font-size="11" fill="var(--sec)" text-anchor="middle">22:00</text>
+  </svg>`;
+}
+
+/* ---- session arc per design/focus.md section 3 (50 work + 10 break, 31 min elapsed) ---- */
+function sessionArc(){
+  const W=290, r=122, cx=W/2, cy=r+30, H=r+64;
+  const work=50, brk=10, gap=.012, wf=work/(work+brk);
+  const pt = f => { const a=Math.PI*(1-f); return [cx+r*Math.cos(a), cy-r*Math.sin(a)]; };
+  const arc = (f0,f1) => { const [x0,y0]=pt(f0),[x1,y1]=pt(f1); return `M${x0},${y0} A${r},${r} 0 0 1 ${x1},${y1}`; };
+  const now = wf*(31/50); const [sx,sy]=pt(now), [bx,by]=pt(wf);
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+    <path d="${arc(0,wf-gap)}" stroke="var(--sep)" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="${arc(wf+gap,1)}" stroke="var(--green)" stroke-opacity=".45" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="${arc(0,now)}" stroke="var(--graph)" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <circle cx="${bx}" cy="${by}" r="5" fill="var(--bg)" stroke="var(--green)" stroke-width="2"/>
+    <circle cx="${sx}" cy="${sy}" r="18" fill="var(--accent)" opacity=".18"/><circle cx="${sx}" cy="${sy}" r="12" fill="var(--accent)"/>
+    <text x="${bx+10}" y="${by-14}" font-size="11" font-weight="600" fill="var(--ink)" text-anchor="middle">11:21</text>
+    <text x="${cx+r}" y="${cy+20}" font-size="11" font-weight="600" fill="var(--green)" text-anchor="middle">11:31</text>
+    <text x="${cx}" y="${cy-18}" font-size="60" font-weight="500" fill="var(--label)" text-anchor="middle" font-family="ui-rounded,-apple-system,sans-serif">18:42</text>
+    <text x="${cx}" y="${cy+14}" font-size="15" fill="var(--sec)" text-anchor="middle">until 11:21</text>
+  </svg>`;
+}
+
+
+/* ---- screens; v = surface variant ---- */
+const sect = (v, rows, keep=false) => `<div class="sect ${v==='B' && !keep ? 'plain' : ''}">${rows}</div>`;
+const hdr = (v, t) => `<div class="hdr ${v==='B' ? 'plain' : ''}">${t}</div>`;
+
+const today = v => `
+  ${statusBar()}
+  <div class="nav"><div class="tb"><span class="glass" aria-label="Saved lines">${I.bookmark()}</span><span class="glass" aria-label="Streak" style="color:var(--ink)">${I.flame('var(--ink)')}<span class="round">12</span></span></div></div>
+  <div class="content">
+    <div class="big">Today</div>
+    <div class="arcbox">${dayArc()}</div>
+    <div class="line serif">The obstacle in the path becomes the path.</div>
+    <div class="attr">Marcus Aurelius<span class="ic">${I.bookmark()}${I.share()}</span></div>
+    <div class="next">
+      <div class="cap">${I.walk('var(--ink)',15)}Next · Move</div>
+      <div class="txt">Take a ten-minute walk without your phone, and notice one thing you usually pass.</div>
+      <div class="primary">Done</div>
+    </div>
+    <div style="margin-top:14px">${sect(v, `
+      <div class="row"><span class="sym">${I.check('var(--green)',21)}</span><span class="n">Question answered</span><span class="chev">›</span></div>
+      <div class="row"><span class="sym">${I.moon('var(--sec)')}</span><span class="n" style="color:var(--sec)">Evening retro · 20:00</span></div>`)}</div>
+  </div>
+  ${tabbar('Today')}`;
+
+const progress = v => `
+  ${statusBar()}
+  <div class="nav"><div class="tb"><span class="glass" aria-label="Settings">${I.gear()}</span></div></div>
+  <div class="content">
+    <div class="big">Progress</div>
+    <div class="hero">${I.flame('var(--accent)',34,'var(--accent)')}<div><div class="num round">12</div><div class="lab">days</div></div><span class="cal">View calendar</span></div>
+    ${hdr(v,'Weekly review')}
+    ${sect(v, `<div class="row"><span class="n">This week</span><span class="v">4 of 7 days</span><span class="chev">›</span></div>`)}
+    ${hdr(v,'Practice')}
+    ${sect(v, `
+      <div class="stats"><div><b class="round">86</b><span>practice days</span></div><div><b class="round">31</b><span>path steps</span></div><div><b class="round">54</b><span>focus sessions</span></div></div>
+      <div class="chart"><i style="height:60%"></i><i style="height:30%"></i><i class="z"></i><i style="height:90%"></i><i style="height:45%"></i><i class="z"></i><i class="z"></i></div>
+      <div class="days"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>`)}
+    ${hdr(v,'Achievements')}
+    ${sect(v, `
+      <div class="medals"><div class="medal"><div class="disc">${I.flame('#000',22)}</div>7-day streak</div><div class="medal"><div class="disc">${I.path('#000',22)}</div>First path</div><div class="medal"><div class="disc">${I.timer('#000',22)}</div>10 sessions</div></div>
+      <div class="row"><span class="n">All achievements</span><span class="chev">›</span></div>`)}
+    ${hdr(v,'Focus sessions')}
+    ${sect(v, `
+      <div class="row hist"><span class="n">Today, 09:10<span class="d">Completed · 50 min</span></span></div>
+      <div class="row hist"><span class="n">Yesterday, 18:40<span class="d">Completed · 25 min</span></span></div>`)}
+  </div>
+  ${tabbar('Progress')}`;
+
+const settings = v => `
+  ${statusBar()}
+  <div class="nav"><span class="glass" aria-label="Progress">‹</span></div>
+  <div class="content">
+    <div class="big">Settings</div>
+    <div class="hdr">Appearance</div>
+    <div class="sect">
+      <div class="row"><span class="n">Auto</span></div>
+      <div class="row"><span class="n">Light</span></div>
+      <div class="row"><span class="n">Dark</span><span class="tick">✓</span></div>
+    </div>
+    <div class="hdr">Reminders</div>
+    <div class="sect">
+      <div class="row"><span class="n">Daily line<span class="d">08:00</span></span><span class="tg on"></span></div>
+      <div class="row"><span class="n">Evening retro<span class="d">20:00</span></span><span class="tg on"></span></div>
+    </div>
+    <div class="hdr">Focus</div>
+    <div class="sect">
+      <div class="row"><span class="n">Silence distractions</span><span class="chev">›</span></div>
+      <div class="row"><span class="n">Session end alerts</span><span class="tg on"></span></div>
+      <div class="row"><span class="n">Log focus to Health</span><span class="tg"></span></div>
+    </div>
+    <div class="hdr">iCloud</div>
+    <div class="sect"><div class="row"><span class="n">Syncing<span class="d">Last upload 10:58</span></span></div></div>
+  </div>
+  ${tabbar('Progress')}`;
+
+const focus = v => `
+  ${statusBar()}
+  <div class="nav" style="justify-content:center"><span class="t">Focus</span></div>
+  <div class="stage">
+    <div class="intent serif">Draft the outline for chapter three</div>
+    <div style="margin-top:22px">${sessionArc()}</div>
+    <div class="lastline">Last session · 25 min · Yesterday 18:40</div>
+  </div>
+  <div class="fbar"><span class="glassbtn">End</span><span class="primary">${I.pause('#000',16)}Pause</span><span class="glassbtn">Skip</span></div>
+  ${tabbar('Focus')}`;
+
+const SCREENS = [['Today',today],['Progress',progress],['Settings',settings],['Focus',focus]];
+const phone = (scheme, v, fn) => `<div class="phone ${scheme} accA surf${v}">${fn(v)}</div>`;
+
+function render(v){
+  const main = document.getElementById('main');
+  if (v === 'S') {
+    const trio = (scheme, fn, label) => `<div class="rowlabel">${label} · ${scheme}</div><div class="trio">${['A','B','C'].map(k=>`<figure>${phone(scheme,k,fn)}<figcaption><b>${k} · ${VARIANTS[k].name}</b></figcaption></figure>`).join('')}</div>`;
+    main.innerHTML = `<div class="vtitle"><b>S · Side by side</b><span>${VARIANTS.S.note}</span></div>`
+      + trio('dark',today,'Today') + trio('dark',progress,'Progress') + trio('light',today,'Today') + trio('light',progress,'Progress');
+  } else {
+    const V = VARIANTS[v];
+    const strip = scheme => `<div class="rowlabel">${scheme}</div><div class="strip">${SCREENS.map(([n,fn])=>`<figure>${phone(scheme,v,fn)}<figcaption><b>${n}</b></figcaption></figure>`).join('')}</div>`;
+    main.innerHTML = `<div class="vtitle"><b>${v} · ${V.name}</b><span>${V.note}</span></div>` + strip('dark') + strip('light');
+  }
+  document.getElementById('vlabel').textContent = `${v} (${VARIANTS[v].name})`;
+}
+function current(){ const v = new URLSearchParams(location.search).get('variant'); return ORDER.includes(v) ? v : 'A'; }
+function go(step){
+  const i = (ORDER.indexOf(current()) + step + ORDER.length) % ORDER.length;
+  const u = new URL(location); u.searchParams.set('variant', ORDER[i]); history.replaceState(null,'',u); render(ORDER[i]);
+}
+document.getElementById('prev').onclick = () => go(-1);
+document.getElementById('next').onclick = () => go(1);
+const inkBtn = document.getElementById('ink');
+inkBtn.onclick = () => { const on = document.body.classList.toggle('inkgraphics'); inkBtn.setAttribute('aria-pressed', on); };
+addEventListener('keydown', e => {
+  if (e.target.closest('input,textarea,[contenteditable]')) return;
+  if (e.key === 'ArrowLeft') go(-1); if (e.key === 'ArrowRight') go(1);
+});
+render(current());
+</script>
+</body>
+</html>
