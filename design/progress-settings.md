@@ -10,7 +10,7 @@ The fifth tab is **Progress** (`ThinkSymbol.progress`), replacing Profile. `Prog
 
 Progress reads top to bottom:
 
-1. Streak hero card. The current streak numeral, “days,” and “View calendar” sit together with an accent flame. The whole card opens the existing `StreakCalendarSheet`. Zero uses the design-system's “Start today” or “Begin again” state; the streak calendar and sharing stay available. Today's streak toolbar item remains where the chrome decision put it.
+1. Streak hero card. The current streak numeral, “days,” and “View calendar” sit together with an accent flame. The whole card opens the streak sheet as a sheet, the same presentation as Today's toolbar item, never a push (section 8). Zero uses the design-system's “Start today” or “Begin again” state; the streak calendar stays available, and sharing does once there is any practice day. Today's streak toolbar item remains where the chrome decision put it.
 2. **Weekly review**, immediately after the streak. A short row gives this week's practice days out of seven and pushes `WeeklyReviewView`. A zero week still shows “0 of 7 days” and can open a writable reflection. The review's private text and next-week intention stay inside its existing journal gate. The build makes a saved reflection push `JournalEntryDetailView` from the review; the current review renders that text without a link.
 3. **Practice**. Three all-time values: practice days, completed Path steps, and completed Focus sessions. Below them, a small Monday–Sunday chart shows completed Focus sessions for this calendar week. These are counts from `ProgressStore`; partial effort is not a completed Focus session. The chart yields to labelled day rows at accessibility text sizes. With no sessions, show a plain zero summary rather than an empty grid.
 4. **Achievements**. A compact inline strip displays up to three earned medals, with title and earned state, followed by “All achievements.” The row pushes a full `AchievementsView` list grouped by Streak, Paths, and Focus sessions. The full list shows unearned medals dimmed, their unlock conditions, and the existing share action on earned medals. If none are earned, use a single explanatory row in the compact strip; the full list still shows locked milestones. Achievements are content, never a toolbar item or a modal sheet.
@@ -61,6 +61,7 @@ From `research/ui-bug-inventory.md` on branch `research/ui-bug-inventory`:
 | `ACH-1` | Full achievement list is a pushed screen, with no detent or overlay on a cut tile. |
 | `FST-1` | No empty chart grid; zero Focus activity has a plain summary. |
 | `FST-2` | Focus history is a List with native bottom clearance. |
+| `STK-1`, `STK-2` | Streak sheet; see section 8.6. |
 
 `WKR-1` and `WKR-2` concern the internals of `WeeklyReviewView`; this brief only places its entry card. They remain for the Weekly review build ticket.
 
@@ -75,3 +76,71 @@ From `research/ui-bug-inventory.md` on branch `research/ui-bug-inventory`:
 ## 7. Prototype evidence and build checks
 
 The signed SwiftUI prototype ran on an iPhone 17e Simulator with iOS 26.5. Progress and Settings were inspected in dark and light; at AX3, the inline Appearance picker remained readable and Settings scrolled to its final About row without clipping. The prototype uses static content and nonfunctional example rows, so it validates layout only. The production build must test the real store bindings, lock transition, empty and zero states, notification and Health permissions, sharing, export, deletion, all seven localizations, and iOS 26.0 behavior. An earlier unsigned prototype installation exited at launch because its CloudKit entitlement was absent; installing a signed build restored normal launch. This is not evidence of a production crash.
+
+## 8. Streak sheet
+
+Resolves [Streak calendar sheet: detent, header and the two unabsorbed inventory bugs](https://github.com/Vankata03/Think/issues/97), part of the same map. The owner accepted every recommendation on 2026-09-28 after reviewing the options side by side on a [throwaway canvas](https://github.com/Vankata03/Think/blob/prototype/streak-sheet/prototype-streak/index.html). The canvas uses sample data and is not a build reference.
+
+The streak sheet is a glance at the streak and the days behind it. It shows one month at a time. It creates nothing and asks nothing.
+
+### 8.1 Presentation and chrome
+
+- One sheet, `StreakCalendarSheet`. Today's streak toolbar item and the Progress streak hero card both present it as a sheet. Progress never pushes it, so there is one presentation and one set of chrome.
+- `NavigationStack` with the inline title "Streak". "Close" sits in `.cancellationAction`. The trailing slot holds `Button("Share", systemImage: ThinkSymbol.share)` with `.labelStyle(.iconOnly)` and the plain glass style, never `.glassProminent`, because the sheet has no primary action (design system 13.5). Share presents `StreakShareSheet` for the displayed month, as it does now.
+- Share is hidden for a person who has never practised, because there is nothing to share. A lapsed streak keeps Share, since its calendar cards still show past practice days.
+- Detents: one fitted detent plus `.large`, opening at the fitted detent. The fitted height is measured from the content with `onGeometryChange` and applied as `.height(_:)`. The grid always reserves six week rows, so paging between a five-row and a six-row month never resizes the sheet. When `dynamicTypeSize.isAccessibilitySize` is true, or the measured height exceeds the large detent, the sheet opens at `.large`. The drag indicator is visible.
+
+### 8.2 Layout
+
+A `List` (`.insetGrouped`) with two parts and system margins throughout.
+
+1. **Header**, a clear row (`.listRowBackground(Color.clear)`), with no card.
+   - Alive: `ThinkSymbol.streak` in `accent`, the numeral in `Font.think(.numeral)` with `.monospacedDigit()`, and the unit in `body`, all in one `HStack(alignment: .firstTextBaseline)`. The unit is plural-aware through the string catalog ("1 day", "12 days").
+   - Zero, per design system section 8: `ThinkSymbol.streak` in `secondaryLabel` and "Begin again." for a lapsed streak or "Start today." for a person who has never practised, in `body`. There is no button, because today's practice is the restart.
+   - Nothing else. No longest streak (the store keeps none, and no other screen shows one) and no line about keeping the streak alive today, which would lean toward guilt. The today ring in the calendar already shows whether today is practised.
+2. **Calendar**, one `surface` section.
+   - First, the month pager: `Button("Previous month", systemImage: "chevron.left")` and `Button("Next month", systemImage: "chevron.right")`, icon-only, in `label` colour, with the month and year in `headline` between them. Next is disabled on the current month. Previous is disabled on the month of the first practice day, or on the current month when there is none. There is no swipe gesture: it would compete with sheet dismissal and add a control nobody can see.
+   - Then the weekday initials (`veryShortStandaloneWeekdaySymbols`, respecting `firstWeekday`) in `caption2` semibold `secondaryLabel`, and the day grid built from the existing `MonthGrid`. Day discs are 32pt at the default size through `@ScaledMetric`, with a 40pt ceiling.
+
+| Day | Marker |
+| --- | --- |
+| Practice day | `accent` fill disc, digit in `accentOnFill`, semibold. |
+| Today, not yet practised | 1.5pt `accent` ring, digit in `label`. |
+| Today, practised | `accent` fill disc with a 1.5pt `accent` ring outside it, separated by a 2pt gap in the section colour. |
+| Past day without practice | No disc, digit in `secondaryLabel`. |
+| Future day | No disc, digit in `tertiaryLabel`. |
+
+The calendar uses `accent` rather than `success` because it is evidence of practice (design system principle 3), like the flame and the medals. Green keeps its meaning of an act done today on the day arc and the step trail. Meaning never rests on colour alone: a practice day has a filled disc and a heavier digit where other days have neither, and VoiceOver names the state. In light mode the fill falls under the accepted contrast deviation in design system section 2.2.
+
+Changing month slides the new month in from the direction of travel with `ThinkMotion.move` and plays the existing selection haptic. Under Reduce Motion it crossfades with `ThinkMotion.reduced`, as it does now.
+
+### 8.3 Accessibility sizes
+
+When `dynamicTypeSize.isAccessibilitySize` is true, the grid yields to its linear form (design system 13.7 rule 3). The section keeps the pager, whose month title may wrap to two lines rather than truncate. Below it, "*n* of *m* days" appears in `numeral` and `body` over a `ProgressView(value:)` tinted `accent`. For the current month, *m* counts the days up to and including today; for a past month, it is every day of that month. The header scales without limit.
+
+### 8.4 VoiceOver
+
+- The header is one element: "12-day streak", "Begin again" or "Start today".
+- Each past or current day is one element, labelled with its date and state: "28 September, practised, today"; "27 September, practised"; "15 September". Future days are hidden from the accessibility tree.
+- The chevrons and Share take their labels from their titles. Changing month announces the new month and year.
+- In the linear form the section reads "September 2026, 21 of 28 days practised".
+
+### 8.5 Build ledger
+
+- `Think/Views/StreakCalendarSheet.swift` keeps its name, `MonthGrid` and both callers; its body is replaced whole. The build removes the `ScrollView` and `VStack` stack with its 18, 20 and 24pt paddings, the hand-built calendar card (22pt radius and separator stroke), the bordered "Share your streak" button, the "Done" item, the `.large`-only detent, `flame.fill`, the 18% `accentColor` day disc with yellow digits, and the lowercase captions "streak", "start today" and "begin again" together with their string-catalog entries.
+- `StreakShareSheet` keeps its content, since share cards are out of scope. Its chrome follows design system 13.5, which already covers it: "Close" leading, "Share" as the one `.glassProminent` item trailing, replacing "Done".
+- No view is deleted. Today's caller is specified in [today.md](today.md) and the Progress caller in section 1 of this brief.
+
+### 8.6 Absorbed bugs
+
+| ID | Resolution |
+| --- | --- |
+| `STK-1` | The fitted detent matches the content, with six grid rows always reserved, so the sheet has no empty lower third; `.large` remains for accessibility sizes. |
+| `STK-2` | The flame, numeral and unit share one first baseline. The header row and the calendar section share the `List` system margins, replacing the 21pt and 17pt insets. |
+
+### 8.7 Acceptance floor
+
+- Dark and light. Check six states: streak alive with today practised, alive with today not yet practised, lapsed, never practised, a past month, and the first practice month with Previous disabled.
+- Dynamic Type through AX3 in `en`, `bg` and `de`: the header numeral and unit, the state lines ("Begin again.", "Start today."), long month names such as `bg` "септември 2026 г." in the pager, and "*n* of *m* days" all wrap without clipping. The sheet opens at `.large` at accessibility sizes.
+- Every icon-only control has a label: Share, Previous month, Next month.
+- Reduce Motion: month changes crossfade.

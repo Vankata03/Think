@@ -20,7 +20,7 @@ Scope: the iOS app. Widgets and the Live Activity inherit the tokens; [widgets.m
 
 | Token | Dark | Light | Use |
 | --- | --- | --- | --- |
-| `accent` | `#FFD433` | `#F2C41C` | Fills only: the primary action, progress rings, streak flame, achievement medals, selected state. Ink on top is always `accentOnFill`. |
+| `accent` | `#FFD433` | `#F2C41C` | Fills only: the primary action, progress rings, streak flame, practised days on the streak calendar, achievement medals, selected state. Ink on top is always `accentOnFill`. |
 | `accentInk` | `#FFD433` (same as `accent`) | `#6E5C05` | Text, links and tinted symbols. Never used as a fill. Light value contrasts about 6.6:1 on white. |
 | `accentOnFill` | `#000000` | `#000000` | Label and symbol colour on an `accent` fill (7:1 or better on both accents). |
 | `label`, `secondaryLabel`, `tertiaryLabel` | system | system | All interface text. Yellow text only through `accentInk`. |
@@ -43,7 +43,7 @@ Removed by this document: the hand-rolled `accessibleAccent(for:)` and `prominen
 - Custom surfaces (cream papers, tinted cards) are out; a cream hero surface was drawn in the same prototype and rejected. The `CardStyle` palette stays inside the share-card renderer, which is out of scope.
 - Variant A is final. [Accent and surfaces: revisit variant A across the finished briefs](https://github.com/Vankata03/Think/issues/96) redrew it against the finished briefs (Today, Focus, Progress, Settings, the widgets and the Live Activity, in both appearances), and the owner kept all of it on 2026-09-28. The accent stays: a research gold (`#D4AF37`, light ink `#7A6208`) and a warm yellow between the two (`#EBC350`, light fill `#E2B53A`) were drawn and not taken. The surfaces stay grouped: fewer boxes (plain rows with one surface per screen) and a lifted dark base (`#1C1C1E` screens with `#2C2C2E` sections) were drawn too. The lifted base would also have needed a custom background, cost sheets their lift and taken Focus off black. The canvases are on branch `prototype/accent-surfaces` (`prototype-accent/`); the earlier [black-surfaces canvas](https://claude.ai/artifact/42ePzdvmmGPRHvWgCXzAtt) (rounds A to I, [#84](https://github.com/Vankata03/Think/issues/84)) and `research/visual-language.md` (branch `research/visual-language`) stay as background.
 - Contrast of the kept values: black `accentOnFill` on `accent` 14.7:1 in dark and 12.7:1 in light. `accentInk` in dark 14.7:1 on black and 11.9:1 on the dark `surface` (`#1C1C1E`); in light 6.6:1 on white and 5.9:1 on the light `background` (`#F2F2F7`).
-- In light, graphics keep the `accent` fill: the elapsed stroke of the day arc and the session arc, the sun, and the Practice chart bars. The fill measures 1.5:1 on the light `background` and 1.7:1 on white, below the 3:1 that WCAG 2.1 (1.4.11) asks of graphical objects. The owner chose this on 2026-09-28 over `accentInk` strokes and an `accentInk` hairline, because nothing depends on the fill alone. The arc markers carry symbols, the arc centre states "*n* of 3", the countdown is text, each arc is one labelled accessibility element, the chart announces each day's count, and at accessibility sizes the arcs become a number over a bar and the chart becomes labelled rows (section 13.7).
+- In light, graphics keep the `accent` fill: the elapsed stroke of the day arc and the session arc, the sun, the Practice chart bars, and the practised-day discs and today ring of the streak calendar. The fill measures 1.5:1 on the light `background` and 1.7:1 on white, below the 3:1 that WCAG 2.1 (1.4.11) asks of graphical objects. The owner chose this on 2026-09-28 over `accentInk` strokes and an `accentInk` hairline, because nothing depends on the fill alone. The arc markers carry symbols, the arc centre states "*n* of 3", the countdown is text, each arc is one labelled accessibility element, the chart announces each day's count, each calendar day announces "practised", and at accessibility sizes the arcs and the calendar become a number over a bar and the chart becomes labelled rows (section 13.7).
 - Colour never carries meaning alone: a done state has a checkmark, a locked state has a lock, a streak has a number.
 
 ## 3. Typography
@@ -204,6 +204,8 @@ Lines and actions per screen (briefs may tune wording, not shape):
 | Focus "Last session" line | Empty | Not shown until the first session. | none |
 | Today streak, lapsed | Begin-again | Begin again. | none |
 | Today streak, never practised | Begin-again | Start today. | none |
+| Streak sheet header, lapsed | Begin-again, in place of the numeral; the calendar stays | Begin again. | none |
+| Streak sheet header, never practised | Begin-again, in place of the numeral; the calendar stays, Share is hidden | Start today. | none |
 | Path detail, completed | Begin-again, as a section above the step trail | Path completed. | Begin again |
 | Path detail, locked | Locked | Finish <previous path> first. | Open <previous path> |
 | Path step, not open yet | Locked, full screen on the step page | Opens tomorrow at 06:00. / Opens after step <n − 1>. | none |
@@ -306,7 +308,7 @@ Path detail is titled with the path name, inline. A long `de` or `bg` name trunc
 ### 13.5 Back navigation and sheets
 
 - The system back button everywhere: parent title, chevron alone at accessibility sizes. No custom back control.
-- Sheets: inline title, `.cancellationAction` and `.confirmationAction` items ("Cancel" and "Done"; "Close" alone on read-only sheets). The custom X circles in `ShareCardSheet`, `StreakShareSheet` and `AchievementShareSheet` go.
+- Sheets: inline title, `.cancellationAction` and `.confirmationAction` items ("Cancel" and "Done"; "Close" alone on read-only sheets, except the streak sheet, which adds one plain trailing Share and has no primary action ([progress-settings.md](progress-settings.md) section 8)). The custom X circles in `ShareCardSheet`, `StreakShareSheet` and `AchievementShareSheet` go.
 - On share sheets the one `.glassProminent` primary is "Share" in the trailing slot.
 - `.interactiveDismissDisabled` only on editors holding unsaved text.
 
@@ -325,7 +327,7 @@ No screen uses a `.bottomBar` toolbar placement: it would stack a second full-wi
 
 1. Symbols always carry a text style (`.font(.body)`, `.imageScale`), never `.font(.system(size:))`; SF Symbols then scale with type. Absorbs `TOD-4`.
 2. Segmented pickers are not used in Settings. Appearance is a `Picker` with `.pickerStyle(.inline)` inside the `Form`, one row per choice, as in the system Settings app. Absorbs `SET-7`.
-3. Fixed-geometry graphics (the Focus session arc, progress rings, the weekly chart) take their size through `@ScaledMetric` with a ceiling. When `dynamicTypeSize.isAccessibilitySize` they switch to a linear form: the arc becomes the numeral over a `ProgressView(value:)` bar, the chart becomes rows. The numeral is the information; the arc is decoration and yields first. Absorbs `FOC-4`.
+3. Fixed-geometry graphics (the Focus session arc, progress rings, the weekly chart, the streak calendar grid) take their size through `@ScaledMetric` with a ceiling. When `dynamicTypeSize.isAccessibilitySize` they switch to a linear form: the arc becomes the numeral over a `ProgressView(value:)` bar, the chart becomes rows, the calendar month becomes "*n* of *m* days" over a bar. The numeral is the information; the arc is decoration and yields first. Absorbs `FOC-4`.
 
 Rules 2 and 3 were shown on device in the Settings and Focus prototypes and are locked as layout rules (section 12).
 
