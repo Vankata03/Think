@@ -11,6 +11,18 @@ enum Appearance: String, CaseIterable, Identifiable {
     case dark
 
     static let storageKey = "appearance"
+    /// Dark is the shipped default (design-system section 1).
+    static let defaultChoice = Appearance.dark
+
+    /// Stores the starting appearance once. A new installation starts in
+    /// Dark; an installation that finished onboarding before Dark became
+    /// the default keeps Auto, which is what it has been showing. A saved
+    /// choice is never touched.
+    static func seedDefault(in defaults: UserDefaults) {
+        guard defaults.object(forKey: storageKey) == nil else { return }
+        let existingInstall = defaults.bool(forKey: Onboarding.completedKey)
+        defaults.set((existingInstall ? Appearance.system : defaultChoice).rawValue, forKey: storageKey)
+    }
 
     var id: String { rawValue }
 

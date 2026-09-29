@@ -35,7 +35,7 @@ final class VisualAuditUITests: XCTestCase {
         capture(app, "05 Focus top")
         app.swipeUp()
         capture(app, "06 Focus controls")
-        app.tabBars.buttons.element(boundBy: 3).tap()
+        app.tabBars.buttons.element(boundBy: 4).tap()
         capture(app, "07 Your practice")
         let settings = app.buttons["ProfileSettings"]
         reveal(settings, in: app)
@@ -46,7 +46,7 @@ final class VisualAuditUITests: XCTestCase {
 
         app.terminate()
         app.launch()
-        app.tabBars.buttons.element(boundBy: 3).tap()
+        app.tabBars.buttons.element(boundBy: 4).tap()
         let weekly = app.buttons["OpenWeeklyReview"]
         reveal(weekly, in: app)
         weekly.tap()
