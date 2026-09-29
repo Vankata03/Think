@@ -68,6 +68,35 @@ struct SyncCoordinatorProgressTests {
         #expect(reloads == 2)
     }
 
+    @Test func phonePathStepUndoReloadsWidgetsAndPublishesTheReversal() throws {
+        let progress = ProgressStore(defaults: makeDefaults())
+        let (phoneTransport, watchTransport) = MockSyncTransport.paired()
+        var reloads = 0
+        let coordinator = SyncCoordinator(
+            role: .phone,
+            timer: makeTimer("11111111-1111-1111-1111-111111111111", now: .now),
+            progress: progress,
+            ledger: FocusEventLedger(defaults: makeDefaults()),
+            transport: phoneTransport,
+            progressMutationSideEffect: { reloads += 1 }
+        )
+        coordinator.activate()
+        watchTransport.activate()
+        progress.completePathStep()
+        let publishedCompletion = try latestSnapshot(receivedBy: watchTransport)
+        #expect(publishedCompletion.pathCompletedDays == 1)
+
+        #expect(progress.undoPathStep(pathID: PathLibrary.deepFocus.id))
+        #expect(!progress.undoPathStep(pathID: PathLibrary.deepFocus.id))
+
+        #expect(reloads == 2)
+        let publishedUndo = try latestSnapshot(receivedBy: watchTransport)
+        #expect(publishedUndo.pathCompletedDays == 0)
+        #expect(publishedUndo.lastPathCompletionDay == nil)
+        #expect(publishedUndo.completedDays.isEmpty)
+        #expect(publishedUndo.practiceActivities?.isEmpty == true)
+    }
+
     @Test func watchLocalProgressMutationsReloadComplication() {
         let progress = ProgressStore(defaults: makeDefaults())
         let (transport, _) = MockSyncTransport.paired()
@@ -266,6 +295,13 @@ struct SyncCoordinatorProgressTests {
             ledger: FocusEventLedger(defaults: makeDefaults()),
             transport: transport
         )
+    }
+
+    private func latestSnapshot(receivedBy transport: MockSyncTransport) throws -> ProgressSnapshot {
+        let data = try #require(
+            transport.receivedEnvelopes.last(where: { $0.progressSnapshot != nil })?.progressSnapshot
+        )
+        return try SyncCodec.decode(ProgressSnapshot.self, from: data)
     }
 
     private func makeTimer(_ deviceID: String, now: Date) -> PomodoroTimer {
