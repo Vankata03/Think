@@ -109,7 +109,6 @@ struct FocusView: View {
             }
             .onAppear {
                 timer.resync()
-                timer.discardStalePendingFocusNote()
                 if !journalLock.isLocked { intentionDraft = timer.intention ?? "" }
                 withAnimation(ThinkMotion.stateAnimation(reduceMotion: reduceMotion)) {
                     appeared = true
@@ -139,7 +138,6 @@ struct FocusView: View {
             .onChange(of: scenePhase) { _, newPhase in
                 if newPhase == .active {
                     timer.resync()
-                    timer.discardStalePendingFocusNote()
                 }
             }
             .onChange(of: timer.automaticTransitionCount) {

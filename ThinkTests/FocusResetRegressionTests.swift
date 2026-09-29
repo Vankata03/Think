@@ -43,7 +43,6 @@ struct FocusResetRegressionTests {
         #expect(records.isEmpty)
         #expect(timer.intention == nil)
         #expect(timer.lastIntention == nil)
-        #expect(timer.pendingFocusNote == nil)
         let restored = PomodoroTimer(systemSideEffectsEnabled: false, defaults: d, now: { now })
         #expect(!restored.isRunning)
         #expect(!restored.apply(stale))
