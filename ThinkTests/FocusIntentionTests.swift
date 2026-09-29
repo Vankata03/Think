@@ -26,19 +26,7 @@ struct FocusIntentionTests {
         #expect(PomodoroTimer.normalizedIntention(overLimit) == nil)
     }
 
-    @Test func startingWithoutAnIntentionOffersNoNote() {
-        let clock = TestClock(now: Date(timeIntervalSinceReferenceDate: 10_000))
-        let timer = makeTimer(clock: clock)
-
-        timer.start()
-        clock.now = clock.now.addingTimeInterval(TimeInterval(25 * 60 + 1))
-        timer.resync()
-
-        #expect(timer.phase == .rest)
-        #expect(timer.pendingFocusNote == nil)
-    }
-
-    @Test func aCompletedWorkPhaseWithAnIntentionAsksHowItWent() {
+    @Test func aCompletedWorkPhaseClearsTheIntentionAndRemembersIt() {
         let clock = TestClock(now: Date(timeIntervalSinceReferenceDate: 10_000))
         let timer = makeTimer(clock: clock)
 
@@ -48,16 +36,13 @@ struct FocusIntentionTests {
         clock.now = workEnd.addingTimeInterval(1)
         timer.resync()
 
-        #expect(timer.pendingFocusNote?.intention == "Rewrite the sync codec")
-        #expect(timer.pendingFocusNote?.completedAt == workEnd)
-        // Cleared for the next session; the prompt carries the text now.
+        #expect(timer.phase == .rest)
+        // Cleared for the next session, and offered back for reuse.
         #expect(timer.intention == nil)
-
-        timer.clearPendingFocusNote()
-        #expect(timer.pendingFocusNote == nil)
+        #expect(timer.lastIntention == "Rewrite the sync codec")
     }
 
-    @Test func aPhaseThatEndedWhileTheAppWasAwayIsNotPromptedLater() {
+    @Test func aPhaseThatEndedWhileTheAppWasAwayStillClearsTheIntention() {
         let clock = TestClock(now: Date(timeIntervalSinceReferenceDate: 10_000))
         let timer = makeTimer(clock: clock)
 
@@ -68,31 +53,10 @@ struct FocusIntentionTests {
         clock.now = clock.now.addingTimeInterval(TimeInterval(3 * 60 * 60))
         timer.resync()
 
-        #expect(timer.pendingFocusNote == nil)
         #expect(timer.intention == nil)
         // Still remembered as the last intention, so the next session can
         // reuse it in one tap.
         #expect(timer.lastIntention == "Rewrite the sync codec")
-    }
-
-    @Test func anUnansweredPromptIsDroppedOnceItGoesStale() {
-        let clock = TestClock(now: Date(timeIntervalSinceReferenceDate: 10_000))
-        let timer = makeTimer(clock: clock)
-
-        timer.setIntention("Rewrite the sync codec")
-        timer.start()
-        let workEnd = clock.now.addingTimeInterval(TimeInterval(25 * 60))
-        clock.now = workEnd.addingTimeInterval(1)
-        timer.resync()
-        #expect(timer.pendingFocusNote != nil)
-
-        // Back on the Focus tab a few minutes later: still the same
-        // working stretch, so the prompt stands.
-        timer.discardStalePendingFocusNote(now: workEnd.addingTimeInterval(5 * 60))
-        #expect(timer.pendingFocusNote != nil)
-
-        timer.discardStalePendingFocusNote(now: workEnd.addingTimeInterval(60 * 60))
-        #expect(timer.pendingFocusNote == nil)
     }
 
     @Test func theLastIntentionIsSuggestedOnlyOnItsOwnDay() {
@@ -124,7 +88,6 @@ struct FocusIntentionTests {
         timer.reset()
 
         #expect(timer.intention == "Rewrite the sync codec")
-        #expect(timer.pendingFocusNote == nil)
     }
 
     @Test func aFocusNoteIsOneJournalEntryOfItsOwnKind() throws {

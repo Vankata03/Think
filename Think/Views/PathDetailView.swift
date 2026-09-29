@@ -122,10 +122,8 @@ struct PathDetailView: View {
             }
             if let minutes = step.suggestedFocusMinutes {
                 Button("Focus for \(minutes) min") {
-                    if !timer.isRunning {
-                        _ = timer.selectCustom(workMinutes: minutes, restMinutes: 5)
-                        if !journalLock.isLocked { timer.setIntention(step.suggestedIntention) }
-                    }
+                    timer.prepareForPathStep(workMinutes: minutes, title: step.title,
+                                             journalLocked: journalLock.isLocked)
                     router.selectedTab = .focus
                 }.buttonStyle(.bordered).controlSize(.large)
             }

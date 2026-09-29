@@ -114,7 +114,7 @@ struct ThinkApp: App {
             let sessionID = "audit-focus-session"
             progressStore.recordFocusSession(durationMinutes: 25, eventID: sessionID, actualActiveSeconds: 1500)
             let receipt = try? repository.saveFocusNote(text: "Original focus note", intention: "Audit intention", sessionID: sessionID)
-            try? repository.upsertSessionMetadata(sessionID: sessionID, intention: "Audit intention", outcome: .movedForward, energy: .steady, closingNoteRecordID: receipt?.recordID, completedAt: .now)
+            try? repository.upsertSessionMetadata(sessionID: sessionID, intention: "Audit intention", closingNoteRecordID: receipt?.recordID, completedAt: .now)
         }
         // Same isolated suite as progress under UI tests, so a favorited
         // line never leaks between runs.

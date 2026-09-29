@@ -81,6 +81,28 @@ final class PomodoroTimer {
             customWorkMinutesRange.contains(workMinutes)
                 && customRestMinutesRange.contains(restMinutes)
         }
+
+        /// The Focus wheel's rows: work in five-minute steps, the break by
+        /// the minute.
+        static let wheelWorkStep = 5
+        static let wheelWorkMinutes = Array(stride(
+            from: customWorkMinutesRange.lowerBound,
+            through: customWorkMinutesRange.upperBound,
+            by: wheelWorkStep
+        ))
+        static let wheelRestMinutes = Array(customRestMinutesRange)
+
+        /// A pair as the wheel shows it: work at the nearest five-minute
+        /// step, both clamped to the wheel. 25/5 and 50/10 come back as the
+        /// classic and long presets, so Siri, the Control and the Watch keep
+        /// their names.
+        static func wheel(workMinutes: Int, restMinutes: Int) -> Preset {
+            let snapped = Int((Double(workMinutes) / Double(wheelWorkStep)).rounded()) * wheelWorkStep
+            return Preset(
+                workMinutes: min(max(snapped, customWorkMinutesRange.lowerBound), customWorkMinutesRange.upperBound),
+                restMinutes: min(max(restMinutes, customRestMinutesRange.lowerBound), customRestMinutesRange.upperBound)
+            )
+        }
     }
 
     private static let workEndNotificationID = "pomodoro-work-end"
@@ -93,8 +115,10 @@ final class PomodoroTimer {
     private static let intentionKey = "focus.intention"
     private static let lastIntentionKey = "focus.lastIntention"
     private static let lastIntentionDateKey = "focus.lastIntentionDate"
-    private static let pendingFocusNoteKey = "focus.pendingFocusNote.v1"
     private static let activityIntentionVisibilityKey = "focus.showIntentionInLiveActivity"
+    /// Where the removed close flow kept its prompt, private intention
+    /// included. Only ever deleted now.
+    private static let legacyPendingFocusNoteKey = "focus.pendingFocusNote.v1"
     private(set) var showIntentionInLiveActivity = false
 
     func setShowIntentionInLiveActivity(_ visible: Bool) {
@@ -105,6 +129,18 @@ final class PomodoroTimer {
         }
     }
     #endif
+
+    /// Session end alerts: whether a phase end is announced, by a
+    /// notification or by the Live Activity's alert. On unless switched
+    /// off. When off, the Live Activity still shows the phase ends.
+    private static let sessionEndAlertsKey = "focus.sessionEndAlerts"
+    private(set) var sessionEndAlertsEnabled = true
+
+    func setSessionEndAlertsEnabled(_ enabled: Bool) {
+        sessionEndAlertsEnabled = enabled
+        defaults?.set(enabled, forKey: Self.sessionEndAlertsKey)
+        if isRunning { schedulePhaseEndNotification() }
+    }
 
     private struct PersistedState: Codable {
         let workMinutes: Int
@@ -160,26 +196,7 @@ final class PomodoroTimer {
     private(set) var lastIntention: String?
     private var lastIntentionDate: Date?
 
-    /// Set when a work phase completes with an intention, in time for the
-    /// app to ask how it went. Nil the rest of the time.
-    private(set) var pendingFocusNote: FocusNotePrompt?
-
-    struct FocusNotePrompt: Identifiable, Equatable, Codable {
-        let id: UUID
-        let sessionID: String
-        let intention: String
-        let completedAt: Date
-    }
-
     static let intentionMaxLength = 60
-
-    /// A completion noticed later than this is treated as one that
-    /// happened while the app was away. A "how did it go?" sheet for a
-    /// session that ended hours ago is worse than no sheet at all.
-    static let focusNotePromptWindow: TimeInterval = 120
-
-    /// How long an unanswered prompt stays offerable once it exists.
-    static let focusNotePromptExpiry: TimeInterval = 15 * 60
     #endif
 
     /// Called when a work phase runs to completion. The date is the original
@@ -194,7 +211,7 @@ final class PomodoroTimer {
     #if os(iOS) && canImport(UserNotifications)
     private var notificationScheduleTask: Task<Void, Never>?
     #endif
-    private var requestedAuthorization = false
+    private let notificationCenter: (any FocusNotificationCenter)?
     private var liveActivityID: String?
     private let systemSideEffectsEnabled: Bool
     private let defaults: UserDefaults?
@@ -206,10 +223,13 @@ final class PomodoroTimer {
         systemSideEffectsEnabled: Bool = true,
         defaults: UserDefaults? = nil,
         deviceID: UUID = SharedDefaults.syncDeviceID(),
+        notificationCenter: (any FocusNotificationCenter)? = nil,
         now: @escaping () -> Date = { .now }
     ) {
         let resolvedDefaults = defaults ?? (systemSideEffectsEnabled ? SharedDefaults.appGroup() : nil)
         self.systemSideEffectsEnabled = systemSideEffectsEnabled
+        self.notificationCenter = notificationCenter
+            ?? (systemSideEffectsEnabled ? SystemFocusNotificationCenter() : nil)
         self.defaults = resolvedDefaults
         self.deviceID = deviceID
         self.now = now
@@ -219,6 +239,7 @@ final class PomodoroTimer {
         #if os(iOS)
         showIntentionInLiveActivity = resolvedDefaults?.bool(forKey: Self.activityIntentionVisibilityKey) ?? false
         #endif
+        sessionEndAlertsEnabled = resolvedDefaults?.object(forKey: Self.sessionEndAlertsKey) as? Bool ?? true
         restorePersistedState()
         #if os(iOS)
         restoreIntentions()
@@ -257,30 +278,23 @@ final class PomodoroTimer {
         return lastIntention
     }
 
-    func clearPendingFocusNote() {
-        pendingFocusNote = nil
-        defaults?.removeObject(forKey: Self.pendingFocusNoteKey)
+    private static let pathStepRestMinutes = 5
+
+    /// A path step's "Focus for *n* min": *n* minutes of work and a
+    /// five-minute break, named after the step unless the journal is
+    /// locked. Never starts the timer, and leaves a session in flight
+    /// alone. Switching to the Focus tab is the caller's.
+    func prepareForPathStep(workMinutes: Int, title: String, journalLocked: Bool) {
+        guard isIdle else { return }
+        selectDuration(workMinutes: workMinutes, restMinutes: Self.pathStepRestMinutes)
+        if !journalLocked { setIntention(title) }
     }
 
-    /// Drops a prompt nobody came back for. The sheet lives on the Focus
-    /// tab, which may not be visited again for hours; asking how a session
-    /// went long after it ended is the stale prompt this avoids.
-    func discardStalePendingFocusNote(now: Date = .now) {
-        guard let pendingFocusNote,
-              now.timeIntervalSince(pendingFocusNote.completedAt) > Self.focusNotePromptExpiry
-        else { return }
-        clearPendingFocusNote()
-    }
-
-    private func completeIntention(workEndDate: Date, detectedAt: Date) {
+    private func completeIntention(workEndDate: Date) {
         guard let intention else { return }
         lastIntention = intention
         lastIntentionDate = workEndDate
         self.intention = nil
-        if detectedAt.timeIntervalSince(workEndDate) <= Self.focusNotePromptWindow {
-            pendingFocusNote = FocusNotePrompt(id: UUID(), sessionID: lastSessionRecord?.id ?? FocusSessionEvent.id(for: workEndDate), intention: intention, completedAt: workEndDate)
-            if let data = try? JSONEncoder().encode(pendingFocusNote) { defaults?.set(data, forKey: Self.pendingFocusNoteKey) }
-        }
         persistIntentions()
     }
 
@@ -289,9 +303,9 @@ final class PomodoroTimer {
         intention = Self.normalizedIntention(defaults.string(forKey: Self.intentionKey))
         lastIntention = Self.normalizedIntention(defaults.string(forKey: Self.lastIntentionKey))
         lastIntentionDate = defaults.object(forKey: Self.lastIntentionDateKey) as? Date
-        if let data = defaults.data(forKey: Self.pendingFocusNoteKey) {
-            pendingFocusNote = try? JSONDecoder().decode(FocusNotePrompt.self, from: data)
-        }
+        // Nothing reads the old prompt, and a data deletion would never
+        // reach it.
+        defaults.removeObject(forKey: Self.legacyPendingFocusNoteKey)
     }
 
     private func persistIntentions() {
@@ -304,6 +318,18 @@ final class PomodoroTimer {
 
     var phaseTotalSeconds: Int {
         (phase == .work ? preset.workMinutes : preset.restMinutes) * 60
+    }
+
+    /// No session in flight: not running, not paused part-way through
+    /// work, and not in a break.
+    var isIdle: Bool {
+        !isRunning && phase == .work && currentSessionID == nil
+            && remainingSeconds == phaseTotalSeconds
+    }
+
+    /// The duration the Focus wheel shows while idle, and what Start runs.
+    var wheelPreset: Preset {
+        .wheel(workMinutes: preset.workMinutes, restMinutes: preset.restMinutes)
     }
 
     var progress: Double {
@@ -353,15 +379,30 @@ final class PomodoroTimer {
         return true
     }
 
+    /// Turning the wheel. Only while idle: changing the length of a session
+    /// in flight would end it.
+    func selectDuration(workMinutes: Int, restMinutes: Int) {
+        guard isIdle else { return }
+        select(.wheel(workMinutes: workMinutes, restMinutes: restMinutes))
+    }
+
+    /// Start as the Focus stage shows it. While idle, the wheel's value is
+    /// what runs and what is kept, even when the stored length was off the
+    /// wheel's steps (possible from the old one-minute pickers). Otherwise
+    /// the same as `start()`.
+    func startFromWheel() {
+        if isIdle, wheelPreset != preset {
+            select(wheelPreset)
+        }
+        start()
+    }
+
     func toggle() {
         isRunning ? pause() : start()
     }
 
     func start() {
         guard !isRunning else { return }
-        if systemSideEffectsEnabled {
-            requestAuthorizationIfNeeded()
-        }
         beginRunning()
         finishLocalMutation()
     }
@@ -373,8 +414,8 @@ final class PomodoroTimer {
         }
         isRunning = true
         endDate = now().addingTimeInterval(TimeInterval(remainingSeconds))
+        schedulePhaseEndNotification()
         if systemSideEffectsEnabled {
-            schedulePhaseEndNotification()
             syncLiveActivity()
         }
         startTicking()
@@ -457,7 +498,7 @@ final class PomodoroTimer {
             onSessionRecorded?(record)
             onWorkSessionComplete?(endDate)
             #if os(iOS)
-            completeIntention(workEndDate: endDate, detectedAt: currentDate)
+            completeIntention(workEndDate: endDate)
             #endif
             phase = .rest
             automaticTransitionCount += 1
@@ -465,9 +506,9 @@ final class PomodoroTimer {
             if restEnd > currentDate {
                 self.endDate = restEnd
                 remainingSeconds = Int(restEnd.timeIntervalSince(currentDate).rounded(.up))
+                schedulePhaseEndNotification()
                 if systemSideEffectsEnabled {
-                    schedulePhaseEndNotification()
-                    syncLiveActivity(alertsTransition: true)
+                    syncLiveActivity(alertsTransition: sessionEndAlertsEnabled)
                 }
                 finishLocalMutation()
                 return
@@ -508,15 +549,12 @@ final class PomodoroTimer {
         activeSegmentStart = remote.activeSegmentStart
 
         if remote.isRunning, let remoteEndDate = remote.endDate {
-            if systemSideEffectsEnabled {
-                requestAuthorizationIfNeeded()
-            }
             isRunning = true
             endDate = remoteEndDate
             remainingSeconds = max(0, Int(remoteEndDate.timeIntervalSince(now()).rounded(.up)))
             if remoteEndDate > now() {
+                schedulePhaseEndNotification()
                 if systemSideEffectsEnabled {
-                    schedulePhaseEndNotification()
                     syncLiveActivity()
                 }
                 startTicking()
@@ -558,7 +596,7 @@ final class PomodoroTimer {
         remainingSeconds = preset.workMinutes * 60
         #if os(iOS)
         intention = nil; lastIntention = nil; lastIntentionDate = nil
-        clearPendingFocusNote(); persistIntentions()
+        persistIntentions()
         #endif
         finishLocalMutation()
     }
@@ -587,10 +625,10 @@ final class PomodoroTimer {
         endDate = nil
         tickTask?.cancel()
         tickTask = nil
+        #if os(iOS) && canImport(UserNotifications)
+        replacePhaseEndNotifications(with: [])
+        #endif
         if systemSideEffectsEnabled {
-            #if os(iOS) && canImport(UserNotifications)
-            replacePhaseEndNotifications(with: [])
-            #endif
             endLiveActivity()
         }
     }
@@ -790,20 +828,13 @@ final class PomodoroTimer {
         #endif
     }
 
-    private func requestAuthorizationIfNeeded() {
-        #if canImport(UserNotifications)
-        guard !requestedAuthorization else { return }
-        requestedAuthorization = true
-        Task {
-            _ = try? await UNUserNotificationCenter.current()
-                .requestAuthorization(options: [.alert, .sound])
-        }
-        #endif
-    }
-
     private func schedulePhaseEndNotification() {
         #if os(iOS) && canImport(UserNotifications)
         guard let endDate else { return }
+        guard sessionEndAlertsEnabled else {
+            replacePhaseEndNotifications(with: [])
+            return
+        }
         let requests: [UNNotificationRequest]
         switch phase {
         case .work:
@@ -853,6 +884,7 @@ final class PomodoroTimer {
     }
 
     private func replacePhaseEndNotifications(with requests: [UNNotificationRequest]) {
+        guard let center = notificationCenter else { return }
         let previousTask = notificationScheduleTask
         previousTask?.cancel()
 
@@ -862,7 +894,6 @@ final class PomodoroTimer {
             await previousTask?.value
             guard !Task.isCancelled else { return }
 
-            let center = UNUserNotificationCenter.current()
             center.removePendingNotificationRequests(withIdentifiers: Self.notificationIDs)
             for request in requests {
                 guard !Task.isCancelled else { return }
@@ -871,4 +902,12 @@ final class PomodoroTimer {
         }
     }
     #endif
+
+    /// Returns once every queued change to the phase-end notifications has
+    /// reached the notification centre.
+    func settleNotificationScheduling() async {
+        #if os(iOS) && canImport(UserNotifications)
+        await notificationScheduleTask?.value
+        #endif
+    }
 }
