@@ -103,8 +103,12 @@ final class VisualAuditUITests: XCTestCase {
             capture(app, "Editor \(run.name) chips")
 
             let field = app.descendants(matching: .any).matching(identifier: "JournalEntryInput").firstMatch
-            field.tap()
-            field.typeText((1...14).map { "Line \($0) of a long entry that keeps going" }.joined(separator: "\n"))
+            // A new answer focuses its field on appear. Whether the keyboard
+            // is still up after the menus depends on timing; when it is, it
+            // covers the field's centre and the field already has focus.
+            if !app.keyboards.firstMatch.exists { field.tap() }
+            XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 3))
+            app.typeText((1...14).map { "Line \($0) of a long entry that keeps going" }.joined(separator: "\n"))
             capture(app, "Editor \(run.name) long entry")
             app.terminate()
         }
