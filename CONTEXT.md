@@ -32,6 +32,10 @@ _Avoid_: Favourite, bookmark, liked quote
 The evening retrospective entry for a day.
 _Avoid_: Evening review, reflection
 
+**Theme**:
+What a piece of writing is about, from a fixed set of eight: work, people, health, money, learning, making, home and rest. A journal entry or retro carries up to two, a primary and a secondary; a weekly review never carries one.
+_Avoid_: Tag, category, topic, label
+
 **Reminder**:
 A scheduled notification that opens a moment of the ritual: the daily line in the morning, the retro in the evening. A focus session's end alert is not a reminder; it answers something the person started.
 _Avoid_: Nudge, push, alert

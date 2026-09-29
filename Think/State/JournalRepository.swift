@@ -27,6 +27,8 @@ final class JournalRepository {
         let text: String
         let kind: String
         let mood: String?
+        let theme: String?
+        let secondaryTheme: String?
         let civilDay: String?
         let timeZoneIdentifier: String?
         let practiceID: String?
@@ -37,10 +39,12 @@ final class JournalRepository {
         init(_ value: JournalEntry) {
             recordID = value.recordID; persistentModelID = value.persistentModelID
             date = value.date; prompt = value.prompt; text = value.text; kind = value.kind; mood = value.mood
+            theme = value.theme; secondaryTheme = value.secondaryTheme
             civilDay = value.civilDay; timeZoneIdentifier = value.timeZoneIdentifier
             practiceID = value.practiceID; sessionID = value.sessionID; updatedAt = value.updatedAt
             periodKey = value.periodKey; nextIntention = value.nextIntention
         }
+        var themes: ThemeSelection { ThemeSelection(stored: theme, secondary: secondaryTheme) }
     }
     struct RetroSnapshot: Identifiable {
         let recordID: UUID?
@@ -51,6 +55,8 @@ final class JournalRepository {
         let improve: String
         let tomorrow: String
         let mood: String?
+        let theme: String?
+        let secondaryTheme: String?
         let civilDay: String?
         let timeZoneIdentifier: String?
         let practiceID: String?
@@ -60,10 +66,12 @@ final class JournalRepository {
         init(_ value: DailyRetro) {
             recordID = value.recordID; persistentModelID = value.persistentModelID
             date = value.date; wentWell = value.wentWell; improve = value.improve; tomorrow = value.tomorrow
-            mood = value.mood; civilDay = value.civilDay; timeZoneIdentifier = value.timeZoneIdentifier
+            mood = value.mood; theme = value.theme; secondaryTheme = value.secondaryTheme
+            civilDay = value.civilDay; timeZoneIdentifier = value.timeZoneIdentifier
             practiceID = value.practiceID; promptSnapshot = value.promptSnapshot
             tomorrowIntention = value.tomorrowIntention; updatedAt = value.updatedAt
         }
+        var themes: ThemeSelection { ThemeSelection(stored: theme, secondary: secondaryTheme) }
     }
     struct SessionSnapshot {
         let sessionID: String
@@ -126,21 +134,26 @@ final class JournalRepository {
         }
     }
 
+    // `themes: nil` on any save or update leaves the stored themes as they
+    // are (a new record starts with none), so a caller without the Theme
+    // chip never clears them; an empty selection clears them. Unlike
+    // `mood: nil`, which clears the mood.
     @discardableResult
-    func saveAnswer(text: String, practiceID: String? = nil, prompt: String, mood: Mood? = nil,
+    func saveAnswer(text: String, practiceID: String? = nil, prompt: String, mood: Mood? = nil, themes: ThemeSelection? = nil,
                     day: CivilDay = .today(), date: Date = .now, recordID: UUID = UUID()) throws -> SaveReceipt {
-        try saveEntry(text: text, prompt: prompt, kind: JournalEntry.kindQuestion, mood: mood,
+        try saveEntry(text: text, prompt: prompt, kind: JournalEntry.kindQuestion, mood: mood, themes: themes,
                       day: day, date: date, recordID: recordID, practiceID: practiceID)
     }
     @discardableResult
-    func saveNote(text: String, mood: Mood? = nil, day: CivilDay? = nil, date: Date = .now, recordID: UUID = UUID()) throws -> SaveReceipt {
-        try saveEntry(text: text, prompt: "", kind: JournalEntry.kindNote, mood: mood,
+    func saveNote(text: String, mood: Mood? = nil, themes: ThemeSelection? = nil, day: CivilDay? = nil, date: Date = .now,
+                  recordID: UUID = UUID()) throws -> SaveReceipt {
+        try saveEntry(text: text, prompt: "", kind: JournalEntry.kindNote, mood: mood, themes: themes,
                       day: day ?? CivilDay(date: date), date: date, recordID: recordID)
     }
     @discardableResult
-    func savePracticeNote(text: String, practiceID: String, prompt: String, mood: Mood? = nil,
+    func savePracticeNote(text: String, practiceID: String, prompt: String, mood: Mood? = nil, themes: ThemeSelection? = nil,
                           day: CivilDay = .today(), recordID: UUID = UUID()) throws -> SaveReceipt {
-        try saveEntry(text: text, prompt: prompt, kind: JournalEntry.kindNote, mood: mood,
+        try saveEntry(text: text, prompt: prompt, kind: JournalEntry.kindNote, mood: mood, themes: themes,
                       day: day, date: day.contains(.now) ? .now : day.start, recordID: recordID, practiceID: practiceID)
     }
     /// `timeZone` is the zone the week was captured in (the draft's civil
@@ -186,10 +199,10 @@ final class JournalRepository {
     @discardableResult
     func saveFocusNote(text: String, intention: String, sessionID: String, completedAt: Date = .now,
                        recordID: UUID = UUID()) throws -> SaveReceipt {
-        try saveEntry(text: text, prompt: intention, kind: JournalEntry.kindFocus, mood: nil,
+        try saveEntry(text: text, prompt: intention, kind: JournalEntry.kindFocus, mood: nil, themes: nil,
                       day: CivilDay(date: completedAt), date: completedAt, recordID: recordID, sessionID: sessionID)
     }
-    private func saveEntry(text: String, prompt: String, kind: String, mood: Mood?, day: CivilDay,
+    private func saveEntry(text: String, prompt: String, kind: String, mood: Mood?, themes: ThemeSelection?, day: CivilDay,
                            date: Date, recordID: UUID, practiceID: String? = nil, sessionID: String? = nil) throws -> SaveReceipt {
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw RepositoryError.emptyContent }
         // Return identity after save; a SwiftData temporary identifier before save is not a receipt.
@@ -200,14 +213,16 @@ final class JournalRepository {
                 // Date, civil day, zone and links stay as first captured; an
                 // identical resave is a no-op so nothing duplicates or churns.
                 let intentionChanged = sessionID != nil && existing.prompt != prompt
-                if existing.text != text || existing.mood != mood?.rawValue || intentionChanged {
+                let themesChanged = themes.map { $0 != existing.themes } ?? false
+                if existing.text != text || existing.mood != mood?.rawValue || intentionChanged || themesChanged {
                     existing.text = text; existing.mood = mood?.rawValue
                     if intentionChanged { existing.prompt = prompt }
+                    if let themes { existing.themes = themes }
                     existing.updatedAt = .now
                 }
                 return existing
             }
-            let value = JournalEntry(date: date, prompt: prompt, text: text, kind: kind, mood: mood)
+            let value = JournalEntry(date: date, prompt: prompt, text: text, kind: kind, mood: mood, themes: themes ?? ThemeSelection())
             value.recordID = recordID; value.civilDay = day.key; value.timeZoneIdentifier = day.timeZoneIdentifier
             value.practiceID = practiceID; value.sessionID = sessionID
             writer.insert(value)
@@ -221,21 +236,25 @@ final class JournalRepository {
     }
 
     @discardableResult
-    func saveRetro(wentWell: String, improve: String, tomorrow: String, mood: Mood? = nil,
+    func saveRetro(wentWell: String, improve: String, tomorrow: String, mood: Mood? = nil, themes: ThemeSelection? = nil,
                    day: CivilDay = .today(), date: Date = .now, practiceID: String? = nil,
                    promptSnapshot: String? = nil, tomorrowIntention: String? = nil,
                    recordID: UUID = UUID()) throws -> SaveReceipt {
         guard [wentWell, improve, tomorrow, tomorrowIntention ?? ""].contains(where: { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) || mood != nil else { throw RepositoryError.emptyContent }
         return try commit({ writer -> DailyRetro in
             if let existing = try retro(id: recordID, in: writer) {
+                let themesChanged = themes.map { $0 != existing.themes } ?? false
                 if existing.wentWell != wentWell || existing.improve != improve || existing.tomorrow != tomorrow
-                    || existing.mood != mood?.rawValue || existing.tomorrowIntention != tomorrowIntention {
+                    || existing.mood != mood?.rawValue || existing.tomorrowIntention != tomorrowIntention || themesChanged {
                     existing.wentWell = wentWell; existing.improve = improve; existing.tomorrow = tomorrow
-                    existing.mood = mood?.rawValue; existing.tomorrowIntention = tomorrowIntention; existing.updatedAt = .now
+                    existing.mood = mood?.rawValue; existing.tomorrowIntention = tomorrowIntention
+                    if let themes { existing.themes = themes }
+                    existing.updatedAt = .now
                 }
                 return existing
             }
-            let value = DailyRetro(date: date, wentWell: wentWell, improve: improve, tomorrow: tomorrow, mood: mood)
+            let value = DailyRetro(date: date, wentWell: wentWell, improve: improve, tomorrow: tomorrow, mood: mood,
+                                   themes: themes ?? ThemeSelection())
             value.recordID = recordID; value.civilDay = day.key; value.timeZoneIdentifier = day.timeZoneIdentifier
             value.practiceID = practiceID; value.promptSnapshot = promptSnapshot; value.tomorrowIntention = tomorrowIntention
             writer.insert(value); return value
@@ -243,20 +262,25 @@ final class JournalRepository {
     }
 
     @discardableResult
-    func updateEntry(id: UUID, text: String, mood: Mood?) throws -> SaveReceipt {
+    func updateEntry(id: UUID, text: String, mood: Mood?, themes: ThemeSelection? = nil) throws -> SaveReceipt {
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw RepositoryError.emptyContent }
         return try commit({ writer -> JournalEntry in
             guard let value = try entry(id: id, in: writer) else { throw RepositoryError.notFound }
-            value.text = text; value.mood = mood?.rawValue; value.updatedAt = .now; return value
+            value.text = text; value.mood = mood?.rawValue
+            if let themes { value.themes = themes }
+            value.updatedAt = .now; return value
         }, result: receipt)
     }
     @discardableResult
-    func updateRetro(id: UUID, wentWell: String, improve: String, tomorrow: String, mood: Mood?, tomorrowIntention: String? = nil) throws -> SaveReceipt {
+    func updateRetro(id: UUID, wentWell: String, improve: String, tomorrow: String, mood: Mood?, themes: ThemeSelection? = nil,
+                     tomorrowIntention: String? = nil) throws -> SaveReceipt {
         guard [wentWell, improve, tomorrow, tomorrowIntention ?? ""].contains(where: { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) || mood != nil else { throw RepositoryError.emptyContent }
         return try commit({ writer -> DailyRetro in
             guard let value = try retro(id: id, in: writer) else { throw RepositoryError.notFound }
             value.wentWell = wentWell; value.improve = improve; value.tomorrow = tomorrow
-            value.mood = mood?.rawValue; value.tomorrowIntention = tomorrowIntention; value.updatedAt = .now; return value
+            value.mood = mood?.rawValue; value.tomorrowIntention = tomorrowIntention
+            if let themes { value.themes = themes }
+            value.updatedAt = .now; return value
         }, result: receipt)
     }
     func deleteEntry(id: UUID) throws {
