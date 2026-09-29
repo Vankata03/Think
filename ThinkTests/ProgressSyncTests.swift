@@ -127,10 +127,12 @@ struct ProgressSyncTests {
         store.recordDailyQuestionAnswer()
         store.completePathStep()
         store.completePathStep()
+        store.undoPathStep(pathID: PathLibrary.deepFocus.id)
+        store.undoPathStep(pathID: PathLibrary.deepFocus.id)
         store.recordFocusSession()
         store.reset()
 
-        #expect(mutations.count == 6)
+        #expect(mutations.count == 7)
     }
 
     private func makeDefaults() -> UserDefaults {

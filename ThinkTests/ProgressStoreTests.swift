@@ -249,6 +249,253 @@ struct ProgressStoreTests {
         #expect(store.hasEarned(.path(1)))
     }
 
+    @Test func nextPathStepOpensAtSixOnTheFollowingDay() {
+        let store = makePathStore()
+
+        #expect(store.completePathStep(pathID: deepFocus, totalSteps: 21, at: time(day: 0, hour: 9)))
+
+        #expect(!store.canCompletePathStep(pathID: deepFocus, totalSteps: 21, at: time(day: 1, hour: 5, minute: 59)))
+        #expect(store.canCompletePathStep(pathID: deepFocus, totalSteps: 21, at: time(day: 1, hour: 6)))
+    }
+
+    @Test func lateNightPathStepStillWaitsForSixTheNextMorning() {
+        let store = makePathStore()
+
+        #expect(store.completePathStep(pathID: deepFocus, totalSteps: 21, at: time(day: 0, hour: 23, minute: 30)))
+
+        #expect(!store.canCompletePathStep(pathID: deepFocus, totalSteps: 21, at: time(day: 1, hour: 0, minute: 30)))
+        #expect(!store.completePathStep(pathID: deepFocus, totalSteps: 21, at: time(day: 1, hour: 5, minute: 59)))
+        #expect(store.completePathStep(pathID: deepFocus, totalSteps: 21, at: time(day: 1, hour: 6)))
+    }
+
+    @Test func openPathStepWaitsThroughAGapOfSeveralDays() {
+        let store = makePathStore()
+        #expect(store.completePathStep(pathID: deepFocus, totalSteps: 21, at: time(day: 0, hour: 9)))
+
+        #expect(store.completePathStep(pathID: deepFocus, totalSteps: 21, at: time(day: 5, hour: 20)))
+
+        #expect(store.activeRun(for: deepFocus)?.completedSteps == 2)
+        #expect(!store.canCompletePathStep(pathID: deepFocus, totalSteps: 21, at: time(day: 6, hour: 5, minute: 59)))
+        #expect(store.canCompletePathStep(pathID: deepFocus, totalSteps: 21, at: time(day: 6, hour: 6)))
+    }
+
+    @Test func legacyDeepFocusFieldsFollowTheSixOClockRule() {
+        let defaults = makeDefaults()
+        defaults.set(5, forKey: "pathCompletedDays")
+        defaults.set(time(day: 0, hour: 23, minute: 30), forKey: "lastPathCompletionDay")
+        var now = time(day: 1, hour: 5, minute: 59)
+        let store = ProgressStore(defaults: defaults, calendar: utcCalendar, now: { now })
+
+        #expect(!store.canCompletePathStepToday)
+
+        now = time(day: 1, hour: 6)
+        #expect(store.canCompletePathStepToday)
+    }
+
+    @Test func undoingTheOnlyPracticeOfTheDayDropsTheDayAndStreak() {
+        let defaults = makeDefaults()
+        let store = makePathStore(defaults: defaults)
+        store.setMoveCompleted(true, practiceID: "yesterday", at: time(day: -1, hour: 10))
+        #expect(store.completePathStep(pathID: deepFocus, totalSteps: 21, at: time(day: 0, hour: 9)))
+        #expect(store.displayedStreak == 2)
+
+        #expect(store.undoPathStep(pathID: deepFocus, at: time(day: 0, hour: 23, minute: 59)))
+
+        #expect(!store.hasCompleted(time(day: 0, hour: 9)))
+        #expect(store.displayedStreak == 1)
+        #expect(store.activities(on: time(day: 0, hour: 9)).isEmpty)
+        #expect(store.activeRun(for: deepFocus) == nil)
+        #expect(store.pathCompletedDays == 0)
+        #expect(store.lastPathCompletionDay == nil)
+        #expect(store.canCompletePathStep(pathID: deepFocus, totalSteps: 21, at: time(day: 0, hour: 23, minute: 59)))
+        #expect(!store.undoPathStep(pathID: deepFocus, at: time(day: 0, hour: 23, minute: 59)))
+        let reloaded = makePathStore(defaults: defaults)
+        #expect(reloaded.activeRun(for: deepFocus) == nil)
+        #expect(!reloaded.hasCompleted(time(day: 0, hour: 9)))
+    }
+
+    @Test func undoingAPathStepKeepsADayCreditedByTheMove() {
+        let store = makePathStore()
+        store.setMoveCompleted(true, practiceID: "today", at: time(day: 0, hour: 8))
+        #expect(store.completePathStep(pathID: deepFocus, totalSteps: 21, at: time(day: 0, hour: 9)))
+
+        #expect(store.undoPathStep(pathID: deepFocus, at: time(day: 0, hour: 10)))
+
+        #expect(store.hasCompleted(time(day: 0, hour: 9)))
+        #expect(store.displayedStreak == 1)
+        #expect(store.activities(on: time(day: 0, hour: 9)) == [.move])
+        #expect(store.activeRun(for: deepFocus) == nil)
+    }
+
+    @Test func undoingTheFirstStepTakesBackTheRunItStarted() {
+        let store = makePathStore()
+        #expect(store.completePathStep(pathID: deepFocus, totalSteps: 21, at: time(day: 0, hour: 9)))
+
+        #expect(store.undoPathStep(pathID: deepFocus, at: time(day: 0, hour: 10)))
+
+        #expect(store.runs(for: deepFocus).isEmpty)
+        #expect(store.lastPractisedDate(for: deepFocus) == nil)
+        #expect(store.pathCompletedDays == 0)
+    }
+
+    @Test func undoingTheFirstStepOfARepeatKeepsTheRunBeginAgainStarted() {
+        let store = makePathStore()
+        for day in 0..<21 {
+            #expect(store.completePathStep(pathID: deepFocus, totalSteps: 21, at: time(day: day, hour: 9)))
+        }
+        #expect(store.startNewRun(pathID: deepFocus, totalSteps: 21, at: time(day: 21, hour: 8)) != nil)
+        #expect(store.completePathStep(pathID: deepFocus, totalSteps: 21, at: time(day: 21, hour: 9)))
+
+        #expect(store.undoPathStep(pathID: deepFocus, at: time(day: 21, hour: 10)))
+
+        #expect(store.runs(for: deepFocus).count == 2)
+        #expect(store.activeRun(for: deepFocus)?.completedSteps == 0)
+        #expect(store.lastPractisedDate(for: deepFocus) == time(day: 21, hour: 8))
+    }
+
+    @Test func pathStepUndoEndsAtMidnightOfItsCompletionDay() {
+        let store = makePathStore()
+        #expect(store.completePathStep(pathID: deepFocus, totalSteps: 21, at: time(day: 0, hour: 23, minute: 30)))
+
+        #expect(!store.canUndoPathStep(pathID: deepFocus, at: time(day: 1, hour: 0, minute: 10)))
+        #expect(!store.undoPathStep(pathID: deepFocus, at: time(day: 1, hour: 0, minute: 10)))
+        #expect(store.activeRun(for: deepFocus)?.completedSteps == 1)
+    }
+
+    @Test func lastStepOfARunCannotBeUndone() {
+        let store = makePathStore()
+        for day in 0..<21 {
+            #expect(store.completePathStep(pathID: deepFocus, totalSteps: 21, at: time(day: day, hour: 9)))
+        }
+
+        #expect(!store.canUndoPathStep(pathID: deepFocus, at: time(day: 20, hour: 10)))
+        #expect(!store.undoPathStep(pathID: deepFocus, at: time(day: 20, hour: 10)))
+
+        #expect(store.activeRun(for: deepFocus)?.isComplete == true)
+        #expect(store.isPathUnlocked(PathLibrary.clearThinking.id))
+        #expect(store.hasCompleted(time(day: 20, hour: 9)))
+    }
+
+    @Test func undatedLegacyPathStepCannotBeUndone() {
+        let defaults = makeDefaults()
+        defaults.set(5, forKey: "pathCompletedDays")
+        defaults.set(time(day: 0, hour: 8), forKey: "lastPathCompletionDay")
+        let store = makePathStore(defaults: defaults)
+
+        #expect(!store.canUndoPathStep(pathID: deepFocus, at: time(day: 0, hour: 9)))
+        #expect(!store.undoPathStep(pathID: deepFocus, at: time(day: 0, hour: 9)))
+
+        #expect(store.pathCompletedDays == 5)
+        #expect(store.activeRun(for: deepFocus)?.completedSteps == 5)
+    }
+
+    @Test func repeatJustBegunKeepsItsPathsLastPractisedDate() {
+        let store = makePathStore()
+        for day in 0..<21 {
+            #expect(store.completePathStep(pathID: deepFocus, totalSteps: 21, at: time(day: day, hour: 9)))
+        }
+        #expect(store.completePathStep(pathID: clearThinking, totalSteps: 7, at: time(day: 22, hour: 9)))
+
+        #expect(store.startNewRun(pathID: deepFocus, totalSteps: 21, at: time(day: 25, hour: 10)) != nil)
+
+        #expect(store.lastPractisedDate(for: deepFocus) == time(day: 25, hour: 10))
+        #expect(store.lastPractisedDate(for: clearThinking) == time(day: 22, hour: 9))
+    }
+
+    @Test func undatedLegacyRunRanksByTheLegacyCompletionDay() {
+        let defaults = makeDefaults()
+        defaults.set(5, forKey: "pathCompletedDays")
+        defaults.set(time(day: -3, hour: 8), forKey: "lastPathCompletionDay")
+        let store = makePathStore(defaults: defaults)
+
+        #expect(store.lastPractisedDate(for: deepFocus) == time(day: -3, hour: 8))
+    }
+
+    @Test func pathWithNoDateHasNoLastPractisedDate() {
+        let defaults = makeDefaults()
+        defaults.set(5, forKey: "pathCompletedDays")
+        let store = makePathStore(defaults: defaults)
+
+        #expect(store.lastPractisedDate(for: deepFocus) == nil)
+        #expect(store.lastPractisedDate(for: clearThinking) == nil)
+    }
+
+    @Test func beginAgainStartsANewRunOnlyOnAFinishedPath() {
+        let store = makePathStore()
+        #expect(store.startNewRun(pathID: deepFocus, totalSteps: 21, at: time(day: 0, hour: 8)) == nil)
+        #expect(store.completePathStep(pathID: deepFocus, totalSteps: 21, at: time(day: 0, hour: 9)))
+        #expect(store.startNewRun(pathID: deepFocus, totalSteps: 21, at: time(day: 0, hour: 10)) == nil)
+        #expect(store.runs(for: deepFocus).count == 1)
+        for day in 1..<21 {
+            #expect(store.completePathStep(pathID: deepFocus, totalSteps: 21, at: time(day: day, hour: 9)))
+        }
+
+        #expect(store.startNewRun(pathID: deepFocus, totalSteps: 21, at: time(day: 20, hour: 10)) != nil)
+
+        #expect(store.runs(for: deepFocus).count == 2)
+        #expect(store.isPathUnlocked(clearThinking))
+        #expect(store.completePathStep(pathID: deepFocus, totalSteps: 21, at: time(day: 20, hour: 10)))
+    }
+
+    @Test func pathNeverFinishedHasNoCompletedRuns() {
+        let store = makePathStore()
+        #expect(store.completePathStep(pathID: deepFocus, totalSteps: 21, at: time(day: 0, hour: 9)))
+
+        #expect(store.finishedRunCount(for: deepFocus) == 0)
+        #expect(store.lastFinishedRunDate(for: deepFocus) == nil)
+        #expect(store.finishedRunCount(for: clearThinking) == 0)
+    }
+
+    @Test func oneFinishedRunCountsOnceWithItsLastDate() {
+        let store = makePathStore()
+        for day in 0..<21 {
+            #expect(store.completePathStep(pathID: deepFocus, totalSteps: 21, at: time(day: day, hour: 9)))
+        }
+
+        #expect(store.finishedRunCount(for: deepFocus) == 1)
+        #expect(store.lastFinishedRunDate(for: deepFocus) == time(day: 20, hour: 9))
+    }
+
+    @Test func severalFinishedRunsCountEachAndReadTheLatest() {
+        let store = makePathStore()
+        for day in 0..<21 {
+            #expect(store.completePathStep(pathID: deepFocus, totalSteps: 21, at: time(day: day, hour: 9)))
+        }
+        #expect(store.startNewRun(pathID: deepFocus, totalSteps: 21, at: time(day: 30, hour: 8)) != nil)
+        for day in 30..<51 {
+            #expect(store.completePathStep(pathID: deepFocus, totalSteps: 21, at: time(day: day, hour: 9)))
+        }
+        #expect(store.startNewRun(pathID: deepFocus, totalSteps: 21, at: time(day: 60, hour: 8)) != nil)
+        #expect(store.completePathStep(pathID: deepFocus, totalSteps: 21, at: time(day: 60, hour: 9)))
+
+        #expect(store.finishedRunCount(for: deepFocus) == 2)
+        #expect(store.lastFinishedRunDate(for: deepFocus) == time(day: 50, hour: 9))
+    }
+
+    @Test func finishedLegacyRunReadsTheLegacyDayOnlyWhileItIsTheActiveRun() {
+        let defaults = makeDefaults()
+        defaults.set(21, forKey: "pathCompletedDays")
+        defaults.set(time(day: -3, hour: 8), forKey: "lastPathCompletionDay")
+        let store = makePathStore(defaults: defaults)
+        #expect(store.finishedRunCount(for: deepFocus) == 1)
+        #expect(store.lastFinishedRunDate(for: deepFocus) == time(day: -3, hour: 8))
+
+        #expect(store.startNewRun(pathID: deepFocus, totalSteps: 21, at: time(day: 0, hour: 8)) != nil)
+        #expect(store.completePathStep(pathID: deepFocus, totalSteps: 21, at: time(day: 0, hour: 9)))
+
+        #expect(store.finishedRunCount(for: deepFocus) == 1)
+        #expect(store.lastFinishedRunDate(for: deepFocus) == nil)
+    }
+
+    @Test func finishedLegacyRunWithoutADateCountsWithoutALastDate() {
+        let defaults = makeDefaults()
+        defaults.set(21, forKey: "pathCompletedDays")
+        let store = makePathStore(defaults: defaults)
+
+        #expect(store.finishedRunCount(for: deepFocus) == 1)
+        #expect(store.lastFinishedRunDate(for: deepFocus) == nil)
+    }
+
     @Test func focusAchievementUsesAllTimeCompletedSessionCount() {
         let defaults = makeDefaults()
         defaults.set(50, forKey: "totalFocusSessions")
@@ -595,6 +842,24 @@ struct ProgressStoreTests {
         let defaults = UserDefaults(suiteName: suiteName)!
         defaults.removePersistentDomain(forName: suiteName)
         return defaults
+    }
+
+    private let deepFocus = PathLibrary.deepFocus.id
+    private let clearThinking = PathLibrary.clearThinking.id
+
+    private var utcCalendar: Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        return calendar
+    }
+
+    /// A time on a day counted from 2027-01-15 00:00 UTC, the local midnight of `utcCalendar`.
+    private func time(day: Int, hour: Int, minute: Int = 0) -> Date {
+        Date(timeIntervalSince1970: 1_799_971_200 + Double(day * 86_400 + hour * 3_600 + minute * 60))
+    }
+
+    private func makePathStore(defaults: UserDefaults? = nil) -> ProgressStore {
+        ProgressStore(defaults: defaults ?? makeDefaults(), calendar: utcCalendar, now: { time(day: 0, hour: 9) })
     }
 
     private func makeStoreApproaching(

@@ -45,9 +45,9 @@ struct PracticeProgressTests {
         let loaded = ProgressStore(defaults: d, calendar: calendar, now: { day })
         #expect(loaded.runs(for: PathLibrary.deepFocus.id).count == 2)
         #expect(loaded.activeRun(for: "clear-thinking")?.completedSteps == 1)
-        // Explicit repeat creates a different run, so its first step can be done today.
-        _ = loaded.startNewRun(pathID: "clear-thinking", totalSteps: 7, at: day)
-        #expect(loaded.completePathStep(pathID: "clear-thinking", totalSteps: 7, at: day))
+        // No mid-run restart: Begin again is only for a finished path.
+        #expect(loaded.startNewRun(pathID: "clear-thinking", totalSteps: 7, at: day) == nil)
+        #expect(!loaded.completePathStep(pathID: "clear-thinking", totalSteps: 7, at: day))
     }
 
     @Test func pathsUnlockInOrderAndStayUnlockedAfterRestartAndReload() {

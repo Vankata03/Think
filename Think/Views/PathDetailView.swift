@@ -79,7 +79,9 @@ struct PathDetailView: View {
                                     }
                                 }
                             }
-                            Button("Start a new run") { showRestart = true }
+                            if progress.activeRun(for: path.id)?.isComplete == true {
+                                Button("Start a new run") { showRestart = true }
+                            }
                         }.padding(.top, 20)
                     }
                 } else if let previous = progress.prerequisite(for: path.id) {
@@ -93,8 +95,9 @@ struct PathDetailView: View {
         .accessibilityIdentifier("PathDetail.\(path.id)")
         .confirmationDialog("Start a new run?", isPresented: $showRestart) {
             Button("Start a new run") {
-                let next = progress.startNewRun(pathID: path.id, totalSteps: path.steps.count)
-                selectedRunID = next.id
+                if let next = progress.startNewRun(pathID: path.id, totalSteps: path.steps.count) {
+                    selectedRunID = next.id
+                }
             }
         } message: { Text("Your earlier runs and achievements stay saved. The new run starts at day one.") }
     }

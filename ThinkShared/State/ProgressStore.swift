@@ -72,6 +72,7 @@ enum ProgressMutation: Sendable {
     case recordAppOpen
     case recordDailyQuestionAnswer
     case completePathStep
+    case undoPathStep
     case recordFocusSession
     case reset
     case activityChanged
@@ -685,12 +686,17 @@ final class ProgressStore {
         let oldCount = practiceActivities.count
         practiceActivities.removeAll { $0.id == id && $0.kind == .move }
         guard practiceActivities.count != oldCount else { return }
-        let day = calendar.startOfDay(for: date)
-        if !legacyDays.contains(day) && activities(on: date).isEmpty {
-            completedDays.remove(day)
-            recomputeStreak()
-        }
+        releaseDayIfUnpractised(date)
         persistPractice(); persistAllFields(); emit(.activityChanged)
+    }
+
+    /// After an activity is taken back, its day stays credited only by another
+    /// activity or as a legacy day.
+    private func releaseDayIfUnpractised(_ date: Date) {
+        let day = calendar.startOfDay(for: date)
+        guard !legacyDays.contains(day), activities(on: date).isEmpty else { return }
+        completedDays.remove(day)
+        recomputeStreak()
     }
 
     private func moveID(_ practiceID: String, date: Date) -> String {
@@ -706,14 +712,33 @@ final class ProgressStore {
         return PathLibrary.all[index - 1]
     }
 
+    /// Ranks the Paths hero: the later of the latest completion across every run and
+    /// the active run's start, so a repeat just begun keeps its place. Nil ranks last.
+    func lastPractisedDate(for pathID: String) -> Date? {
+        let runs = runs(for: pathID)
+        guard let active = runs.last else { return nil }
+        let latestCompletion = runs.compactMap(\.lastCompletionDate).max()
+        return [latestCompletion, active.startedAt].compactMap { $0 }.max() ?? lastCompletionDate(of: active)
+    }
+
+    /// "Completed n times" on a finished path.
+    func finishedRunCount(for pathID: String) -> Int { runs(for: pathID).filter(\.isComplete).count }
+
+    /// "Last on" beside the count: the latest finished run's last completion, nil when undated.
+    func lastFinishedRunDate(for pathID: String) -> Date? {
+        runs(for: pathID).last(where: \.isComplete).flatMap(lastCompletionDate(of:))
+    }
+
     func isPathUnlocked(_ pathID: String) -> Bool {
         guard let path = PathLibrary.all.first(where: { $0.id == pathID }), path.isAvailable else { return false }
         guard let previous = prerequisite(for: pathID) else { return true }
         return runs(for: previous.id).contains { $0.isComplete }
     }
 
+    /// Begin again: only a finished path starts a new run. There is no mid-run restart.
     @discardableResult
-    func startNewRun(pathID: String, totalSteps: Int, at date: Date = .now) -> PathRunProgress {
+    func startNewRun(pathID: String, totalSteps: Int, at date: Date = .now) -> PathRunProgress? {
+        guard activeRun(for: pathID)?.isComplete == true else { return nil }
         let run = createRun(pathID: pathID, totalSteps: totalSteps, at: date)
         emit(.pathRunChanged)
         return run
@@ -732,8 +757,22 @@ final class ProgressStore {
         guard totalSteps > 0, isPathUnlocked(pathID) else { return false }
         guard let run = activeRun(for: pathID) else { return true }
         guard !run.isComplete else { return false }
-        let last = run.lastCompletionDate ?? (run.startedAt == nil && pathID == PathLibrary.deepFocus.id ? lastPathCompletionDay : nil)
-        return last.map { !calendar.isDate($0, inSameDayAs: date) } ?? true
+        return lastCompletionDate(of: run).map { date >= nextStepOpening(after: $0) } ?? true
+    }
+
+    /// The next step opens at 06:00 on the day after a completion, when the day arc starts.
+    private func nextStepOpening(after completion: Date) -> Date {
+        let nextDay = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: completion))!
+        return calendar.date(bySettingHour: 6, minute: 0, second: 0, of: nextDay)!
+    }
+
+    /// A Deep focus run carried over without dated completions falls back to the
+    /// legacy field, which describes only the active run.
+    private func lastCompletionDate(of run: PathRunProgress) -> Date? {
+        if let date = run.lastCompletionDate { return date }
+        guard run.startedAt == nil, run.pathID == PathLibrary.deepFocus.id,
+              run.id == activeRun(for: run.pathID)?.id else { return nil }
+        return lastPathCompletionDay
     }
 
     @discardableResult
@@ -744,15 +783,45 @@ final class ProgressStore {
         let step = pathRuns[index].completedSteps + 1
         pathRuns[index].completions.append(PathStepCompletion(step: step, date: date))
         updateLegacyPathFields(pathID: pathID)
-        _ = recordActivitySilently(.path, id: "\(pathRuns[index].id.uuidString)-\(step)", at: date)
+        _ = recordActivitySilently(.path, id: pathActivityID(runID: pathRuns[index].id, step: step), at: date)
         persistPractice(); emit(.completePathStep)
         return true
     }
 
+    /// Same-day undo. Refused for a run's last step, which unlocked the next path
+    /// and may have earned an achievement, and for undated legacy steps.
+    func canUndoPathStep(pathID: String, at date: Date = .now) -> Bool {
+        guard let run = activeRun(for: pathID), !run.isComplete,
+              let last = run.completions.last else { return false }
+        return calendar.isDate(last.date, inSameDayAs: date)
+    }
+
+    /// Reverses everything `completePathStep` did, as `setMoveCompleted(false)` does for a move,
+    /// including the run a first step started. A run Begin again started stays.
+    @discardableResult
+    func undoPathStep(pathID: String, at date: Date = .now) -> Bool {
+        guard canUndoPathStep(pathID: pathID, at: date),
+              let index = pathRuns.lastIndex(where: { $0.pathID == pathID }),
+              let completion = pathRuns[index].completions.popLast() else { return false }
+        let activityID = pathActivityID(runID: pathRuns[index].id, step: completion.step)
+        practiceActivities.removeAll { $0.id == activityID && $0.kind == .path }
+        let run = pathRuns[index]
+        if run.completions.isEmpty && run.legacyCompletedSteps == 0 && run.startedAt == completion.date {
+            pathRuns.remove(at: index)
+        }
+        updateLegacyPathFields(pathID: pathID)
+        releaseDayIfUnpractised(completion.date)
+        persistPractice(); persistAllFields(); emit(.undoPathStep)
+        return true
+    }
+
+    private func pathActivityID(runID: UUID, step: Int) -> String { "\(runID.uuidString)-\(step)" }
+
     private func updateLegacyPathFields(pathID: String) {
-        guard pathID == PathLibrary.deepFocus.id, let run = activeRun(for: pathID) else { return }
-        pathCompletedDays = run.completedSteps
-        lastPathCompletionDay = run.lastCompletionDate
+        guard pathID == PathLibrary.deepFocus.id else { return }
+        let run = activeRun(for: pathID)
+        pathCompletedDays = run?.completedSteps ?? 0
+        lastPathCompletionDay = run?.lastCompletionDate
         defaults.set(pathCompletedDays, forKey: Key.pathCompletedDays)
         setOptional(lastPathCompletionDay, forKey: Key.lastPathCompletionDay)
     }
