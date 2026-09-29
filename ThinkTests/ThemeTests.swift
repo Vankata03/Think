@@ -74,7 +74,7 @@ struct ThemeTests {
         ])
     }
 
-    @Test func unrecognisedStoredValuesReadBackAsUntagged() {
+    @Test func unrecognisedStoredValuesReadBackAsNoTheme() {
         // A value written by a future version must degrade, not crash.
         #expect(Theme(stored: "travel") == nil)
         #expect(Theme(stored: nil) == nil)
@@ -128,7 +128,7 @@ struct ThemeStorageTests {
         return ModelContext(container)
     }
 
-    @Test func recordsAreUntaggedByDefault() {
+    @Test func recordsHaveNoThemeByDefault() {
         let entry = JournalEntry(prompt: "", text: "A note.", kind: JournalEntry.kindNote)
         let retro = DailyRetro(wentWell: "Shipped.", improve: "", tomorrow: "")
 
@@ -136,7 +136,7 @@ struct ThemeStorageTests {
         #expect(retro.theme == nil && retro.secondaryTheme == nil)
     }
 
-    @Test func taggedRecordsStoreTheRawValuesInOrder() {
+    @Test func themedRecordsStoreTheRawValuesInOrder() {
         let entry = JournalEntry(
             prompt: "", text: "A note.", kind: JournalEntry.kindNote,
             themes: ThemeSelection(primary: .work, secondary: .people)
@@ -196,7 +196,7 @@ struct ThemeStorageTests {
 @MainActor
 struct ThemeExportTests {
 
-    @Test func exportIncludesThemesOnlyForTaggedRecords() {
+    @Test func exportIncludesThemesOnlyForThemedRecords() {
         let tagged = JournalEntry(
             date: Date(timeIntervalSince1970: 1_700_000_000),
             prompt: "", text: "Tagged note.", kind: JournalEntry.kindNote,
@@ -290,7 +290,7 @@ private enum PreThemeSchema {
 @MainActor
 struct ThemeMigrationTests {
 
-    @Test func aStoreWrittenBeforeThemesOpensAndReadsBackUntagged() throws {
+    @Test func aStoreWrittenBeforeThemesOpensAndReadsBackWithoutThemes() throws {
         let directory = FileManager.default.temporaryDirectory
             .appendingPathComponent("ThemeMigrationTests-\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -323,7 +323,7 @@ struct ThemeMigrationTests {
         #expect(retros.allSatisfy { $0.theme == nil && $0.secondaryTheme == nil })
 
         // The migrated store takes themes like any new record.
-        entries[0].setThemes(ThemeSelection(primary: .home))
+        entries[0].themes = ThemeSelection(primary: .home)
         try context.save()
         #expect(try context.fetchCount(FetchDescriptor(predicate: JournalEntry.predicate(theme: .home))) == 1)
     }

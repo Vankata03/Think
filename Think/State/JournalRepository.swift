@@ -135,8 +135,9 @@ final class JournalRepository {
     }
 
     // `themes: nil` on any save or update leaves the stored themes as they
-    // are (a new record starts untagged), so a caller without the Theme chip
-    // never clears them. An empty selection clears them.
+    // are (a new record starts with none), so a caller without the Theme
+    // chip never clears them; an empty selection clears them. Unlike
+    // `mood: nil`, which clears the mood.
     @discardableResult
     func saveAnswer(text: String, practiceID: String? = nil, prompt: String, mood: Mood? = nil, themes: ThemeSelection? = nil,
                     day: CivilDay = .today(), date: Date = .now, recordID: UUID = UUID()) throws -> SaveReceipt {
@@ -212,11 +213,11 @@ final class JournalRepository {
                 // Date, civil day, zone and links stay as first captured; an
                 // identical resave is a no-op so nothing duplicates or churns.
                 let intentionChanged = sessionID != nil && existing.prompt != prompt
-                let themesChanged = themes.map { $0 != ThemeSelection(stored: existing.theme, secondary: existing.secondaryTheme) } ?? false
+                let themesChanged = themes.map { $0 != existing.themes } ?? false
                 if existing.text != text || existing.mood != mood?.rawValue || intentionChanged || themesChanged {
                     existing.text = text; existing.mood = mood?.rawValue
                     if intentionChanged { existing.prompt = prompt }
-                    if let themes { existing.setThemes(themes) }
+                    if let themes { existing.themes = themes }
                     existing.updatedAt = .now
                 }
                 return existing
@@ -242,12 +243,12 @@ final class JournalRepository {
         guard [wentWell, improve, tomorrow, tomorrowIntention ?? ""].contains(where: { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) || mood != nil else { throw RepositoryError.emptyContent }
         return try commit({ writer -> DailyRetro in
             if let existing = try retro(id: recordID, in: writer) {
-                let themesChanged = themes.map { $0 != ThemeSelection(stored: existing.theme, secondary: existing.secondaryTheme) } ?? false
+                let themesChanged = themes.map { $0 != existing.themes } ?? false
                 if existing.wentWell != wentWell || existing.improve != improve || existing.tomorrow != tomorrow
                     || existing.mood != mood?.rawValue || existing.tomorrowIntention != tomorrowIntention || themesChanged {
                     existing.wentWell = wentWell; existing.improve = improve; existing.tomorrow = tomorrow
                     existing.mood = mood?.rawValue; existing.tomorrowIntention = tomorrowIntention
-                    if let themes { existing.setThemes(themes) }
+                    if let themes { existing.themes = themes }
                     existing.updatedAt = .now
                 }
                 return existing
@@ -266,7 +267,7 @@ final class JournalRepository {
         return try commit({ writer -> JournalEntry in
             guard let value = try entry(id: id, in: writer) else { throw RepositoryError.notFound }
             value.text = text; value.mood = mood?.rawValue
-            if let themes { value.setThemes(themes) }
+            if let themes { value.themes = themes }
             value.updatedAt = .now; return value
         }, result: receipt)
     }
@@ -278,7 +279,7 @@ final class JournalRepository {
             guard let value = try retro(id: id, in: writer) else { throw RepositoryError.notFound }
             value.wentWell = wentWell; value.improve = improve; value.tomorrow = tomorrow
             value.mood = mood?.rawValue; value.tomorrowIntention = tomorrowIntention
-            if let themes { value.setThemes(themes) }
+            if let themes { value.themes = themes }
             value.updatedAt = .now; return value
         }, result: receipt)
     }

@@ -19,9 +19,10 @@ final class DailyRetro {
     var tomorrow: String = ""
     /// Raw `Mood` value, or nil when the retrospective is untagged.
     var mood: String?
-    /// Raw `Theme` values for the retrospective as a whole, primary then
-    /// secondary, or nil when untagged.
+    /// Raw primary `Theme` value for the retrospective as a whole, or nil
+    /// when it has no theme.
     var theme: String?
+    /// Raw secondary `Theme` value; only ever set alongside `theme`.
     var secondaryTheme: String?
     var recordID: UUID?
     var civilDay: String?
@@ -48,12 +49,16 @@ final class DailyRetro {
         self.improve = improve
         self.tomorrow = tomorrow
         self.mood = mood?.rawValue
-        setThemes(themes)
+        self.themes = themes
     }
 
-    func setThemes(_ themes: ThemeSelection) {
-        theme = themes.primary?.rawValue
-        secondaryTheme = themes.secondary?.rawValue
+    /// Both themes, read and written as one selection.
+    var themes: ThemeSelection {
+        get { ThemeSelection(stored: theme, secondary: secondaryTheme) }
+        set {
+            theme = newValue.primary?.rawValue
+            secondaryTheme = newValue.secondary?.rawValue
+        }
     }
 
     /// Retrospectives whose primary or secondary theme is `theme`.

@@ -10,7 +10,7 @@ import Foundation
 /// A fixed set rather than open labels, so every theme can be localised,
 /// filtered and counted across weeks. Themes are words, not symbols. Models
 /// store the raw value, so a value written by a future version degrades to
-/// "untagged" instead of failing to load. Weekly-review entries never carry
+/// "no theme" instead of failing to load. Weekly-review entries never carry
 /// a theme; they summarise the week rather than being part of it.
 nonisolated enum Theme: String, CaseIterable, Identifiable, Sendable {
     case work

@@ -37,7 +37,7 @@ struct JournalExport {
                 text: $0.text,
                 kind: $0.kind,
                 mood: Mood(stored: $0.mood),
-                themes: ThemeSelection(stored: $0.theme, secondary: $0.secondaryTheme)
+                themes: $0.themes
             )
         }
         self.retrospectives = retrospectives.map {
@@ -47,7 +47,7 @@ struct JournalExport {
                 improve: $0.improve,
                 tomorrow: $0.tomorrow,
                 mood: Mood(stored: $0.mood),
-                themes: ThemeSelection(stored: $0.theme, secondary: $0.secondaryTheme)
+                themes: $0.themes
             )
         }
     }
@@ -149,9 +149,9 @@ struct JournalExport {
         return blocks.joined(separator: "\n\n----------------------------------------\n\n")
     }
 
-    /// English names, primary first, like the mood line; nil when untagged.
-    private static func themesLine(_ themes: ThemeSelection) -> String? {
-        guard !themes.isEmpty else { return nil }
-        return "Themes: " + themes.themes.map(\.exportLabel).joined(separator: ", ")
+    /// English names, primary first, like the mood line; nil without a theme.
+    private static func themesLine(_ selection: ThemeSelection) -> String? {
+        guard !selection.isEmpty else { return nil }
+        return "Themes: " + selection.themes.map(\.exportLabel).joined(separator: ", ")
     }
 }
