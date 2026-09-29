@@ -39,7 +39,7 @@ struct ThinkApp: App {
     @State private var dataReset: AppDataResetCoordinator
     @State private var practicePreferences: PracticePreferencesStore
     @State private var privacyShield = AppPrivacyShield()
-    @AppStorage(Appearance.storageKey) private var appearance = Appearance.system
+    @AppStorage(Appearance.storageKey) private var appearance = Appearance.defaultChoice
     @AppStorage(Onboarding.completedKey) private var completedOnboarding = false
     private let isUITesting: Bool
     private let journalContainer: ModelContainer
@@ -56,6 +56,7 @@ struct ThinkApp: App {
             UserDefaults.standard.removePersistentDomain(forName: bundleIdentifier)
             appGroupDefaults.removeObject(forKey: SharedDefaults.pomodoroTimerStateKey)
         }
+        Appearance.seedDefault(in: .standard)
         let arguments = ProcessInfo.processInfo.arguments
         if isUITesting && arguments.contains("-ui-journal-locked") {
             UserDefaults.standard.set(true, forKey: JournalLock.enabledKey)

@@ -28,7 +28,7 @@ Fold on a 6.1-inch phone at the default size: arc, line, next-act panel with its
 The one graphic on the screen. A half circle whose diameter is the content width minus 60pt, capped at a 132pt radius; the height of the row is the radius plus 78pt.
 
 - Track: `separator`, 3pt, round caps. Elapsed: `accent`, same stroke, from 06:00 to now. Before 06:00 the elapsed arc is empty; after 22:00 it is full.
-- Sun: 18pt `accent` disc with a 30pt `accent` at 25% halo, at the current hour. Drawn under the markers.
+- Sun: 18pt `accent` disc with a 30pt `accent` at 25% halo, at the current hour. Drawn under the markers. Each marker sits on a 2pt ring of `background`, so the sun passes behind it, and the halo fades out while it would overlap a marker (section 8).
 - Markers at 08:00 (question), 14:00 (move) and 20:00 (retro, the hour the retro act opens), symmetric about the top of the arc: 28pt discs. Done: `success` fill, black check. Next: `accent` fill, the act's symbol in `accentOnFill`. Later: `background` fill, 1.5pt dashed `secondaryLabel` ring, symbol in `secondaryLabel`.
 - Captions: `graphicCaption` role (`.caption2` semibold), in the marker's colour (`success`, `accentInk`, `secondaryLabel`), outside the curve: above and 16pt left of the question marker, above the move marker, above and 16pt right of the retro marker. Captions never cross the arc.
 - Centre: "<Weekday> · *n* of 3" in `footnote` semibold `secondaryLabel`, and the time in the `numeral` role with monospaced digits. "06:00" and "22:00" in `graphicCaption` under the arc ends, in the device's clock format.
@@ -83,6 +83,6 @@ Section 11 applies. Specific to Today:
 
 ## 8. Open for the build
 
-- The sun overlaps a marker when the hour is within about 20 minutes of it (seen at 08:30 against the question at 08:00). Either shift the question marker to 07:30, or hide the sun's halo within 20pt of a marker. Decide in the build ticket after both are tried.
-- The retro marker sits at 20:00, when the retro act opens; the prototype drew it near 19:00, before the act was available. Check that the right-hand caption ("Rückblick", "Ретро") still clears the arc end at the default size.
+- Resolved in the [design foundation build](https://github.com/Vankata03/Think/issues/104) (2026-09-28): the question marker stays at 08:00 and the halo gives way. Both options were drawn with the production `DayArcView` in Simulator renders, in both appearances; not yet on a physical device. Shifting the question marker to 07:30 only moved the overlap earlier: the sun passes every marker once a day, so at 14:00 the halo still ringed the move marker, and the arc lost its symmetry and its match with the 08:00 daily line. Hiding the halo alone left the sun's disc bulging out of the `next` marker as one yellow blob, since both are `accent`. What ships: the halo fades out between touching a marker (29pt between centres) and the sun's disc touching it (23pt), and each marker sits on a 2pt ring of `background` that separates it from the sun and the stroke. `DayArcGeometry.haloOpacity(atHour:)` holds the rule and its unit tests.
+- The retro marker sits at 20:00, when the retro act opens; the prototype drew it near 19:00, before the act was available. Checked in the same build at the default size on a 362pt row: "Rückblick" ends about 17pt inside the row edge and stays clear of the curve, and "Ретро" is shorter.
 - `lineLarge` is `.title`, not `.largeTitle` as design-system section 3.1 said; that table is updated. `.largeTitle` plus the arc pushed the panel below the fold on device.

@@ -123,6 +123,7 @@ enum ThinkAppTab: Hashable {
     case today
     case paths
     case focus
+    case journal
     case profile
 }
 
