@@ -198,8 +198,8 @@ final class JournalRepository {
     }
     @discardableResult
     func saveFocusNote(text: String, intention: String, sessionID: String, completedAt: Date = .now,
-                       recordID: UUID = UUID()) throws -> SaveReceipt {
-        try saveEntry(text: text, prompt: intention, kind: JournalEntry.kindFocus, mood: nil, themes: nil,
+                       mood: Mood? = nil, themes: ThemeSelection? = nil, recordID: UUID = UUID()) throws -> SaveReceipt {
+        try saveEntry(text: text, prompt: intention, kind: JournalEntry.kindFocus, mood: mood, themes: themes,
                       day: CivilDay(date: completedAt), date: completedAt, recordID: recordID, sessionID: sessionID)
     }
     private func saveEntry(text: String, prompt: String, kind: String, mood: Mood?, themes: ThemeSelection?, day: CivilDay,

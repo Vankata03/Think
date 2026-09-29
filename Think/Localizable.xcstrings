@@ -170,6 +170,7 @@
       }
     },
     "How is it going?" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -205,6 +206,52 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Como está indo?"
+          }
+        }
+      }
+    },
+    "Intention for tomorrow" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Намерение за утре"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Vorsatz für morgen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Intention for tomorrow"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Intención para mañana"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Intention pour demain"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Intenzione per domani"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Intenção para amanhã"
           }
         }
       }
@@ -245,6 +292,52 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Baixo"
+          }
+        }
+      }
+    },
+    "No theme" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Без тема"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Kein Thema"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No theme"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sin tema"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Aucun thème"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Nessun tema"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sem tema"
           }
         }
       }
@@ -330,6 +423,52 @@
         }
       }
     },
+    "Retro" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Равносметка"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Rückblick"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retro"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Reflexión"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Bilan"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Bilancio"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Balanço"
+          }
+        }
+      }
+    },
     "Sharp" : {
       "localizations" : {
         "bg" : {
@@ -366,6 +505,52 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Aguçado"
+          }
+        }
+      }
+    },
+    "Start writing" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Започни да пишеш"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Schreib los"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start writing"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Empieza a escribir"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Commencez à écrire"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Inizia a scrivere"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Comece a escrever"
           }
         }
       }
@@ -447,6 +632,52 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "O iCloud informou um erro no último backup"
+          }
+        }
+      }
+    },
+    "Up to two" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "До две"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Bis zu zwei"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Up to two"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Hasta dos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Jusqu’à deux"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Fino a due"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Até dois"
           }
         }
       }
@@ -1874,6 +2105,52 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Permita notificações apenas de pessoas que realmente precisam de você."
+          }
+        }
+      }
+    },
+    "Answer" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Отговор"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Antwort"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Answer"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Respuesta"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Réponse"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Risposta"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Resposta"
           }
         }
       }
@@ -5349,6 +5626,7 @@
       }
     },
     "New retrospective" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -8333,6 +8611,7 @@
       }
     },
     "Start writing..." : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -13119,6 +13398,7 @@
       }
     },
     "Could not open the retrospective" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -13165,6 +13445,7 @@
       }
     },
     "Could not read the saved edit. The retrospective is unchanged." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -14177,6 +14458,7 @@
       }
     },
     "Edit entry" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -15927,6 +16209,7 @@
       }
     },
     "More than one retrospective exists for today. Choose one to edit; the others are kept and can be opened from the journal." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -19516,6 +19799,7 @@
       }
     },
     "Today's retrospective has no identity yet and cannot be edited." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -20254,6 +20538,7 @@
       }
     },
     "Which retrospective?" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -20300,6 +20585,7 @@
       }
     },
     "Write a new retrospective" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

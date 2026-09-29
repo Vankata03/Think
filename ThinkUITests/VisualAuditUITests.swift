@@ -62,6 +62,54 @@ final class VisualAuditUITests: XCTestCase {
         capture(app, "12 Journal detail")
     }
 
+    /// The journal editor across the acceptance floor (`journal.md`
+    /// section 13): both appearances, AX3, and `de` and `bg` on the chips.
+    /// Asserts the chips stay on screen and stack at AX3; the screenshots
+    /// show the long entry staying above the keyboard (`JRN-4`).
+    @MainActor
+    func testCaptureJournalEditor() throws {
+        continueAfterFailure = false
+        let runs: [(name: String, appearance: String, language: String, locale: String, ax3: Bool, labels: [String])] = [
+            ("dark en", "dark", "en", "en_US", false, ["Sharp", "Learning", "Making"]),
+            ("light en", "light", "en", "en_US", false, ["Sharp", "Learning", "Making"]),
+            ("dark de AX3", "dark", "de", "de_DE", true, ["Klar", "Lernen", "Gestalten"]),
+            ("light bg AX3", "light", "bg", "bg_BG", true, ["Изострено", "Учене", "Творене"]),
+        ]
+        for run in runs {
+            let app = XCUIApplication()
+            app.launchArguments = ["-ui-testing", "-appearance", run.appearance,
+                                   "-AppleLanguages", "(\(run.language))", "-AppleLocale", run.locale]
+            if run.ax3 { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXL"] }
+            app.launch()
+            let write = app.buttons["WriteDailyAnswer"]
+            reveal(write, in: app)
+            write.tap()
+            let mood = app.buttons["MoodChip"]
+            let theme = app.buttons["ThemeChip"]
+            XCTAssertTrue(theme.waitForExistence(timeout: 3))
+            capture(app, "Editor \(run.name) empty")
+
+            mood.tap()
+            app.buttons[run.labels[0]].tap()
+            theme.tap()
+            app.buttons[run.labels[1]].tap()
+            capture(app, "Editor \(run.name) theme menu")
+            app.buttons[run.labels[2]].tap()
+            app.navigationBars.firstMatch.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            let width = app.windows.firstMatch.frame.width
+            XCTAssertLessThanOrEqual(mood.frame.maxX, width)
+            XCTAssertLessThanOrEqual(theme.frame.maxX, width)
+            if run.ax3 { XCTAssertGreaterThanOrEqual(theme.frame.minY, mood.frame.maxY) }
+            capture(app, "Editor \(run.name) chips")
+
+            let field = app.descendants(matching: .any).matching(identifier: "JournalEntryInput").firstMatch
+            field.tap()
+            field.typeText((1...14).map { "Line \($0) of a long entry that keeps going" }.joined(separator: "\n"))
+            capture(app, "Editor \(run.name) long entry")
+            app.terminate()
+        }
+    }
+
     @MainActor
     private func reveal(_ element: XCUIElement, in app: XCUIApplication) {
         for _ in 0..<6 {

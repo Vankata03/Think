@@ -81,7 +81,7 @@ final class JournalAuditUITests: XCTestCase {
         let field = app.descendants(matching: .any).matching(identifier: "NewNoteInput").firstMatch
         field.tap()
         field.typeText("Keep this failed draft")
-        app.buttons["Close"].tap()
+        app.buttons["CancelJournalEditor"].tap()
         XCTAssertTrue(app.descendants(matching: .any)["JournalSaveError"].waitForExistence(timeout: 3))
         XCTAssertTrue(field.exists)
         XCTAssertTrue((field.value as? String)?.contains("Keep this failed draft") == true)
@@ -97,7 +97,7 @@ final class JournalAuditUITests: XCTestCase {
         field.typeText(marker)
         app.buttons["SaveNewNote"].tap()
         XCTAssertTrue(app.descendants(matching: .any)["JournalSaveError"].waitForExistence(timeout: 3))
-        app.buttons["Close"].tap()
+        app.buttons["CancelJournalEditor"].tap()
         app.terminate()
         app.launchArguments = ["-ui-testing", "-ui-preserve-drafts", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
         app.launch()

@@ -35,6 +35,7 @@ extension JournalDraft {
         )
         draft.text = entry.text
         draft.mood = entry.mood
+        draft.themes = entry.themes
         draft.tomorrowIntention = entry.nextIntention
         return draft
     }
@@ -54,6 +55,7 @@ extension JournalDraft {
         )
         draft.fields = ["wentWell": retro.wentWell, "improve": retro.improve, "tomorrow": retro.tomorrow]
         draft.mood = retro.mood
+        draft.themes = retro.themes
         draft.tomorrowIntention = retro.tomorrowIntention
         return draft
     }
