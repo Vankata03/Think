@@ -55,6 +55,15 @@ nonisolated struct DayArcGeometry: Equatable {
         ArcPosition.point(fraction: Self.fraction(forHour: hour), center: center, radius: radius)
     }
 
+    /// The centre x for text of `width` that wants to sit at `x`, nudged
+    /// inward so it stays inside a row `rowWidth` wide. A long caption on a
+    /// narrow row ("Rückblick" beside the retro marker) moves in rather
+    /// than past the edge.
+    static func clampedCentre(_ x: CGFloat, width: CGFloat, within rowWidth: CGFloat) -> CGFloat {
+        guard width < rowWidth else { return rowWidth / 2 }
+        return min(max(x, width / 2), rowWidth - width / 2)
+    }
+
     /// The sun is drawn under the markers. Its halo would ring a marker it
     /// passes, so the halo fades out from the moment it touches a marker
     /// until the sun's own disc does, and is gone while the disc overlaps.
@@ -162,13 +171,19 @@ struct DayArcView: View {
                     let (markerHour, marker) = pair
                     let point = geometry.point(forHour: markerHour)
                     disc(for: marker).position(point)
-                    caption(for: marker, at: point)
+                    caption(for: marker)
+                        .modifier(InsideRow(point: CGPoint(
+                            x: point.x + marker.captionSide * DayArcGeometry.captionShift,
+                            y: point.y - DayArcGeometry.captionRise
+                        )))
                 }
                 if let now {
                     centreText(now).position(x: center.x, y: center.y - DayArcGeometry.centreTextRise)
                 }
-                endLabel(atHour: 6).position(x: center.x - radius, y: center.y + DayArcGeometry.endLabelDrop)
-                endLabel(atHour: 22).position(x: center.x + radius, y: center.y + DayArcGeometry.endLabelDrop)
+                endLabel(atHour: 6)
+                    .modifier(InsideRow(point: CGPoint(x: center.x - radius, y: center.y + DayArcGeometry.endLabelDrop)))
+                endLabel(atHour: 22)
+                    .modifier(InsideRow(point: CGPoint(x: center.x + radius, y: center.y + DayArcGeometry.endLabelDrop)))
             }
             .animation(hourAnimation, value: fraction)
         }
@@ -216,15 +231,11 @@ struct DayArcView: View {
 
     /// Captions sit outside the curve so they never cross it: above and
     /// left of the question, above the move, above and right of the retro.
-    private func caption(for marker: Marker, at point: CGPoint) -> some View {
+    private func caption(for marker: Marker) -> some View {
         Text(marker.caption)
             .font(.think(.graphicCaption))
             .foregroundStyle(captionColor(states[keyPath: marker.state]))
             .fixedSize()
-            .position(
-                x: point.x + marker.captionSide * DayArcGeometry.captionShift,
-                y: point.y - DayArcGeometry.captionRise
-            )
     }
 
     private func captionColor(_ state: StepDisc.State) -> Color {
@@ -287,6 +298,39 @@ struct DayArcView: View {
     }
 }
 
+/// Centres text on a point of the arc like `.position`, but keeps it inside
+/// the row (`DayArcGeometry.clampedCentre`) and above the curve.
+private struct InsideRow: ViewModifier {
+    var point: CGPoint
+
+    func body(content: Content) -> some View {
+        InsideRowLayout(point: point) { content }
+    }
+}
+
+private struct InsideRowLayout: Layout {
+    var point: CGPoint
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        proposal.replacingUnspecifiedDimensions()
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+            let x = DayArcGeometry.clampedCentre(point.x, width: size.width, within: bounds.width)
+            // Text nudged inward rises as far as it moved, so a caption
+            // pushed toward the curve still clears it.
+            let y = point.y - abs(point.x - x)
+            subview.place(
+                at: CGPoint(x: bounds.minX + x, y: bounds.minY + y),
+                anchor: .center,
+                proposal: ProposedViewSize(size)
+            )
+        }
+    }
+}
+
 // MARK: - Previews
 
 private func previewDate(_ hour: Int, _ minute: Int = 0) -> Date {
@@ -313,6 +357,12 @@ private func previewArc(_ hour: Int, _ minute: Int = 0, states: DayArcView.State
 
 #Preview("After 22:00") {
     previewArc(22, 40, states: .init(question: .done, move: .done, retro: .done))
+}
+
+#Preview("Narrow row") {
+    let date = previewDate(20, 10)
+    DayArcView(hour: DayArcGeometry.hour(of: date), states: .init(question: .done, move: .done, retro: .next), now: date)
+        .frame(width: 260)
 }
 
 #Preview("Onboarding picture") {

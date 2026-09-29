@@ -95,4 +95,21 @@ struct DayArcGeometryTests {
         let opacity = geometry.haloOpacity(atHour: hour)
         #expect(abs(opacity - 0.5) < 0.01)
     }
+
+    @Test func textInsideTheRowKeepsItsCentre() {
+        #expect(DayArcGeometry.clampedCentre(160, width: 50, within: 260) == 160)
+    }
+
+    @Test func textPastTheRightEdgeIsNudgedInward() {
+        // "Rückblick" beside the retro marker on a 260pt row.
+        #expect(DayArcGeometry.clampedCentre(238, width: 56, within: 260) == 232)
+    }
+
+    @Test func textPastTheLeftEdgeIsNudgedInward() {
+        #expect(DayArcGeometry.clampedCentre(12, width: 48, within: 260) == 24)
+    }
+
+    @Test func textWiderThanTheRowIsCentred() {
+        #expect(DayArcGeometry.clampedCentre(20, width: 300, within: 260) == 130)
+    }
 }
