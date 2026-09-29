@@ -38,6 +38,9 @@ final class ThinkUITests: XCTestCase {
     @MainActor
     func testTabsExposePrimarySections() throws {
         let app = launchApp()
+        let tabs = app.tabBars.buttons
+        XCTAssertEqual(tabs.count, 5)
+        XCTAssertEqual(tabs.element(boundBy: 3).label, "Journal")
 
         app.tabBars.buttons.element(boundBy: 1).tap()
         XCTAssertTrue(app.descendants(matching: .any)["Path.deep-focus"].waitForExistence(timeout: 2))
@@ -46,6 +49,9 @@ final class ThinkUITests: XCTestCase {
         XCTAssertTrue(app.descendants(matching: .any)["FocusTimer"].waitForExistence(timeout: 2))
 
         app.tabBars.buttons.element(boundBy: 3).tap()
+        XCTAssertTrue(app.descendants(matching: .any)["JournalView"].waitForExistence(timeout: 2))
+
+        app.tabBars.buttons.element(boundBy: 4).tap()
         XCTAssertTrue(app.descendants(matching: .any)["ProfileProgress"].waitForExistence(timeout: 2))
     }
 
@@ -53,7 +59,7 @@ final class ThinkUITests: XCTestCase {
     func testProfileExposesPrivacyActions() throws {
         let app = launchApp()
 
-        app.tabBars.buttons.element(boundBy: 3).tap()
+        app.tabBars.buttons.element(boundBy: 4).tap()
         app.descendants(matching: .any)["ProfileSettings"].tap()
 
         XCTAssertTrue(app.buttons["Export journal"].waitForExistence(timeout: 2))
@@ -68,7 +74,7 @@ final class ThinkUITests: XCTestCase {
     func testProfileShowsCloudBackupStatus() throws {
         let app = launchApp()
 
-        app.tabBars.buttons.element(boundBy: 3).tap()
+        app.tabBars.buttons.element(boundBy: 4).tap()
         app.descendants(matching: .any)["ProfileSettings"].tap()
 
         let row = app.descendants(matching: .any)["CloudBackup"]
@@ -145,13 +151,11 @@ final class ThinkUITests: XCTestCase {
     }
 
     @MainActor
-    func testCanCreateJournalNoteFromProfile() throws {
+    func testCanCreateJournalNoteFromJournalTab() throws {
         let note = "UI note \(UUID().uuidString)"
         let app = launchApp()
 
-        app.tabBars.buttons.element(boundBy: 3).tap()
-        XCTAssertTrue(app.buttons["Journal"].waitForExistence(timeout: 3))
-        app.buttons["Journal"].tap()
+        app.tabBars.buttons["Journal"].tap()
         XCTAssertTrue(app.descendants(matching: .any)["JournalView"].waitForExistence(timeout: 2))
 
         app.buttons["NewNote"].tap()
@@ -202,7 +206,7 @@ final class ThinkUITests: XCTestCase {
         XCTAssertTrue(favoriteButton.waitForExistence(timeout: 5))
         favoriteButton.tap()
 
-        app.tabBars.buttons.element(boundBy: 3).tap()
+        app.tabBars.buttons.element(boundBy: 4).tap()
         app.descendants(matching: .any)["Favorites"].tap()
 
         let list = app.descendants(matching: .any)["FavoritesView"]
@@ -216,7 +220,7 @@ final class ThinkUITests: XCTestCase {
         XCTAssertTrue(favoriteButton.waitForExistence(timeout: 3))
         favoriteButton.tap()
 
-        app.tabBars.buttons.element(boundBy: 3).tap()
+        app.tabBars.buttons.element(boundBy: 4).tap()
         app.descendants(matching: .any)["Favorites"].tap()
 
         XCTAssertTrue(app.staticTexts["FavoritesEmpty"].waitForExistence(timeout: 3))

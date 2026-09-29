@@ -8,7 +8,7 @@ final class JournalAuditUITests: XCTestCase {
         let app = launch(["-ui-journal-locked", "-ui-auth-failure", "-ui-seed-journal"])
         XCTAssertFalse(app.staticTexts["PRIVATE AUDIT ANSWER"].exists)
         XCTAssertFalse(app.staticTexts["PRIVATE AUDIT RETRO"].exists)
-        app.buttons["Journal"].tap()
+        app.tabBars.buttons["Journal"].tap()
         let unlockExists = app.buttons["UnlockJournal"].waitForExistence(timeout: 3)
         if !unlockExists {
             print("LOCK_FIXTURE_UI \(app.debugDescription)")
@@ -34,7 +34,7 @@ final class JournalAuditUITests: XCTestCase {
         homeCapture.name = "Home unlock alignment"
         homeCapture.lifetime = .keepAlways
         add(homeCapture)
-        app.buttons["Journal"].tap()
+        app.tabBars.buttons["Journal"].tap()
         XCTAssertTrue(app.descendants(matching: .any)["JournalView"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["PRIVATE AUDIT ANSWER"].waitForExistence(timeout: 3))
         app.staticTexts["PRIVATE AUDIT ANSWER"].tap()
@@ -44,7 +44,7 @@ final class JournalAuditUITests: XCTestCase {
     @MainActor
     func testJournalFiltersScrollWithEntries() throws {
         let app = launch(["-ui-seed-journal", "-ui-seed-journal-scroll"])
-        app.buttons["Journal"].tap()
+        app.tabBars.buttons["Journal"].tap()
         let controls = app.descendants(matching: .any)["JournalFilters"]
         XCTAssertTrue(controls.waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["SCROLL AUDIT NOTE 11"].waitForExistence(timeout: 3))
@@ -68,7 +68,7 @@ final class JournalAuditUITests: XCTestCase {
     @MainActor
     func testBlankNoteCaptureRemainsAvailableFromLockedJournal() throws {
         let app = launch(["-ui-journal-locked"])
-        app.buttons["Journal"].tap()
+        app.tabBars.buttons["Journal"].tap()
         XCTAssertTrue(app.buttons["NewNote"].waitForExistence(timeout: 3))
         app.buttons["NewNote"].tap()
         XCTAssertTrue(app.descendants(matching: .any)["NewNoteSheet"].waitForExistence(timeout: 3))
@@ -101,7 +101,7 @@ final class JournalAuditUITests: XCTestCase {
         app.terminate()
         app.launchArguments = ["-ui-testing", "-ui-preserve-drafts", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
         app.launch()
-        app.buttons["Journal"].tap()
+        app.tabBars.buttons["Journal"].tap()
         XCTAssertTrue(app.buttons["RecoverDrafts"].waitForExistence(timeout: 3))
         app.buttons["RecoverDrafts"].tap()
         XCTAssertTrue(app.staticTexts[marker].waitForExistence(timeout: 3))
@@ -141,7 +141,7 @@ final class JournalAuditUITests: XCTestCase {
 
     @MainActor
     private func openBlankNote(_ app: XCUIApplication) {
-        app.buttons["Journal"].tap()
+        app.tabBars.buttons["Journal"].tap()
         XCTAssertTrue(app.buttons["NewNote"].waitForExistence(timeout: 3))
         app.buttons["NewNote"].tap()
         XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "NewNoteInput").firstMatch.waitForExistence(timeout: 3))
