@@ -19,6 +19,10 @@ final class DailyRetro {
     var tomorrow: String = ""
     /// Raw `Mood` value, or nil when the retrospective is untagged.
     var mood: String?
+    /// Raw `Theme` values for the retrospective as a whole, primary then
+    /// secondary, or nil when untagged.
+    var theme: String?
+    var secondaryTheme: String?
     var recordID: UUID?
     var civilDay: String?
     var timeZoneIdentifier: String?
@@ -32,7 +36,8 @@ final class DailyRetro {
         wentWell: String,
         improve: String,
         tomorrow: String,
-        mood: Mood? = nil
+        mood: Mood? = nil,
+        themes: ThemeSelection = ThemeSelection()
     ) {
         let day = CivilDay(date: date)
         self.recordID = UUID()
@@ -43,5 +48,17 @@ final class DailyRetro {
         self.improve = improve
         self.tomorrow = tomorrow
         self.mood = mood?.rawValue
+        setThemes(themes)
+    }
+
+    func setThemes(_ themes: ThemeSelection) {
+        theme = themes.primary?.rawValue
+        secondaryTheme = themes.secondary?.rawValue
+    }
+
+    /// Retrospectives whose primary or secondary theme is `theme`.
+    static func predicate(theme: Theme) -> Predicate<DailyRetro> {
+        let raw: String? = theme.rawValue
+        return #Predicate { $0.theme == raw || $0.secondaryTheme == raw }
     }
 }

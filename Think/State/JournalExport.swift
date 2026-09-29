@@ -12,6 +12,7 @@ struct JournalExport {
         let text: String
         let kind: String
         let mood: Mood?
+        let themes: ThemeSelection
     }
 
     struct Retrospective {
@@ -20,6 +21,7 @@ struct JournalExport {
         let improve: String
         let tomorrow: String
         let mood: Mood?
+        let themes: ThemeSelection
     }
 
     let exportedAt: Date
@@ -34,7 +36,8 @@ struct JournalExport {
                 prompt: $0.prompt,
                 text: $0.text,
                 kind: $0.kind,
-                mood: Mood(stored: $0.mood)
+                mood: Mood(stored: $0.mood),
+                themes: ThemeSelection(stored: $0.theme, secondary: $0.secondaryTheme)
             )
         }
         self.retrospectives = retrospectives.map {
@@ -43,7 +46,8 @@ struct JournalExport {
                 wentWell: $0.wentWell,
                 improve: $0.improve,
                 tomorrow: $0.tomorrow,
-                mood: Mood(stored: $0.mood)
+                mood: Mood(stored: $0.mood),
+                themes: ThemeSelection(stored: $0.theme, secondary: $0.secondaryTheme)
             )
         }
     }
@@ -95,6 +99,9 @@ struct JournalExport {
             if let mood = entry.mood {
                 lines.append("Mood: \(mood.exportLabel)")
             }
+            if let themes = Self.themesLine(entry.themes) {
+                lines.append(themes)
+            }
             if entry.kind == JournalEntry.kindQuestion {
                 if !entry.prompt.isEmpty {
                     lines.append("Prompt: \(entry.prompt)")
@@ -128,6 +135,9 @@ struct JournalExport {
             if let mood = retrospective.mood {
                 lines.append("Mood: \(mood.exportLabel)")
             }
+            if let themes = Self.themesLine(retrospective.themes) {
+                lines.append(themes)
+            }
             lines.append(contentsOf: [
                 "What went well:\n\(retrospective.wentWell)",
                 "What could improve:\n\(retrospective.improve)",
@@ -137,5 +147,11 @@ struct JournalExport {
         })
 
         return blocks.joined(separator: "\n\n----------------------------------------\n\n")
+    }
+
+    /// English names, primary first, like the mood line; nil when untagged.
+    private static func themesLine(_ themes: ThemeSelection) -> String? {
+        guard !themes.isEmpty else { return nil }
+        return "Themes: " + themes.themes.map(\.exportLabel).joined(separator: ", ")
     }
 }
