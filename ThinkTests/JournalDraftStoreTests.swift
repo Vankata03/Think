@@ -15,6 +15,41 @@ import Testing
         #expect(recovered.context.civilDay != day.next)
         #expect(recovered.containsPrivateContent)
     }
+    @Test(arguments: JournalDraft.Kind.allCases)
+    func moodAndThemesSurviveRelaunchForEveryKind(kind: JournalDraft.Kind) throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        var draft = JournalDraft(kind: kind)
+        draft.text = "Half a thought"
+        draft.fields = ["wentWell": "Shipped it"]
+        draft.mood = Mood.good.rawValue
+        draft.themes = ThemeSelection(primary: .work, secondary: .rest)
+        try JournalDraftStore(directory: directory).save(draft)
+        let recovered = try #require(try JournalDraftStore(directory: directory).draft(id: draft.id))
+        #expect(recovered.text == "Half a thought" && recovered.fields == ["wentWell": "Shipped it"])
+        #expect(recovered.mood == "good")
+        // A weekly review summarises the week and never carries a theme.
+        #expect(recovered.themes == (kind == .weeklyReview ? ThemeSelection() : ThemeSelection(primary: .work, secondary: .rest)))
+    }
+    @Test func draftsWrittenBeforeThemesStillDecode() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let id = UUID()
+        let legacy = """
+        {"id":"\(id.uuidString)","kind":"note","context":{"civilDay":{"key":"2026-09-11","timeZoneIdentifier":"Europe/Sofia"}},
+         "text":"Old draft","fields":{},"mood":"low","createdAt":0,"updatedAt":0}
+        """
+        try Data(legacy.utf8).write(to: directory.appendingPathComponent(id.uuidString + ".json"))
+        let recovered = try #require(try JournalDraftStore(directory: directory).draft(id: id))
+        #expect(recovered.text == "Old draft" && recovered.mood == "low")
+        #expect(recovered.themes.isEmpty)
+    }
+    @Test func aThemeAloneIsPrivateContent() {
+        var draft = JournalDraft(kind: .note)
+        draft.themes = ThemeSelection(primary: .health)
+        #expect(draft.containsPrivateContent)
+    }
     @Test func blankCaptureNeedsNoRecoveryGateAndErrorsAreExplicit() throws {
         #expect(!JournalDraft(kind: .note).containsPrivateContent)
         let location = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)

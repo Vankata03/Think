@@ -37,12 +37,14 @@ struct TodayView: View {
     @State private var carriedIntention: String?
     @State private var journalError: String?
     @State private var draftError: String?
+    @State private var retroError: String?
 
-    /// The draft handed to the editor sheet. Its context is frozen when
-    /// the sheet opens; a day change underneath does not rewrite it.
-    @State private var answerEditor: JournalDraft?
+    /// The answer or retro draft handed to the editor sheet. Its context
+    /// is frozen when the sheet opens; a day change underneath does not
+    /// rewrite it.
+    @State private var editorDraft: JournalDraft?
+    @State private var editorNotice: String?
     @State private var showingShareCard = false
-    @State private var showingRetro = false
     @State private var showingStreakCalendar = false
     @State private var appeared = false
 
@@ -135,8 +137,8 @@ struct TodayView: View {
             .onChange(of: day) { _, _ in reloadJournal() }
             .onChange(of: lock.isLocked) { _, _ in reloadJournal() }
             .onChange(of: repository.revision) { _, _ in reloadJournal() }
-            .sheet(item: $answerEditor) { draft in
-                JournalEditor(draft: draft, notice: draftError)
+            .sheet(item: $editorDraft) { draft in
+                JournalEditor(draft: draft, notice: editorNotice)
             }
         }
     }
@@ -437,10 +439,14 @@ struct TodayView: View {
                 detail: todaysRetro == nil ? "2 minutes" : "written"
             )
 
+            if let retroError {
+                errorRow(retroError, identifier: "TodayRetroError") { openRetroEditor() }
+            }
+
             if lock.isLocked {
                 actionButton("Begin retrospective", systemImage: "moon.stars", prominent: nextAction == .retro) {
                     haptics.play(.selection)
-                    showingRetro = true
+                    openRetroEditor()
                 }
                 .accessibilityIdentifier("BeginRetrospective")
             } else if let selection = todaysRetro {
@@ -456,7 +462,7 @@ struct TodayView: View {
                     .accessibilityIdentifier("ReadRetrospective")
                     Button {
                         haptics.play(.selection)
-                        showingRetro = true
+                        openRetroEditor()
                     } label: {
                         Label("Edit retrospective", systemImage: "pencil")
                             .frame(maxWidth: .infinity)
@@ -468,16 +474,13 @@ struct TodayView: View {
             } else {
                 actionButton("Begin retrospective", systemImage: "moon.stars", prominent: nextAction == .retro) {
                     haptics.play(.selection)
-                    showingRetro = true
+                    openRetroEditor()
                 }
                 .accessibilityIdentifier("BeginRetrospective")
             }
         }
         .padding(24)
         .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 24))
-        .sheet(isPresented: $showingRetro) {
-            RetroSheet()
-        }
     }
 
     @ViewBuilder
@@ -691,27 +694,26 @@ struct TodayView: View {
         }
     }
 
-    /// Captures today's context once and hands it to the editor. Locked:
-    /// a blank draft, with no lookup of saved text or unsaved drafts.
-    /// Unlocked: resume the day's answer draft if one exists. Unreadable
-    /// draft files are reported but never block writing: a fresh draft has
-    /// its own identity, so it cannot overwrite the file that failed to read.
+    /// Captures today's context once and hands the answer to the editor.
     private func openAnswerEditor() {
-        let context = JournalDraft.Context(civilDay: day, practiceID: practice.id, promptSnapshot: practice.question)
-        guard !lock.isLocked else {
-            answerEditor = JournalDraft(kind: .answer, context: context)
-            return
-        }
+        let opened = JournalEditorOpening.answer(day: day, practiceID: practice.id, prompt: practice.question,
+                                                 locked: lock.isLocked, drafts: drafts)
+        draftError = opened.notice
+        editorNotice = opened.notice
+        editorDraft = opened.draft
+    }
+
+    /// Opens the day's retro: the written one for Edit, an unsaved one
+    /// resumed, or a blank one. A retro that cannot be read opens nothing.
+    private func openRetroEditor() {
         do {
-            let listing = try drafts.listing(kind: .answer)
-            let pending = listing.drafts.first { $0.context.practiceID == practice.id && $0.context.civilDay.key == day.key }
-            draftError = listing.unreadableCount > 0
-                ? String(localized: "An unsaved draft could not be read. It was left untouched; check Drafts in Journal.")
-                : nil
-            answerEditor = pending ?? JournalDraft(kind: .answer, context: context)
+            let opened = try JournalEditorOpening.retro(day: day, practiceID: practice.id, prompt: practice.question,
+                                                        locked: lock.isLocked, repository: repository, drafts: drafts)
+            retroError = nil
+            editorNotice = opened.notice
+            editorDraft = opened.draft
         } catch {
-            draftError = String(localized: "Unsaved drafts could not be checked. Your writing here starts fresh; earlier drafts were left untouched.")
-            answerEditor = JournalDraft(kind: .answer, context: context)
+            retroError = String(localized: "Today's retrospective could not be read. Nothing was changed.")
         }
     }
 }

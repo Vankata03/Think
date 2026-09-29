@@ -155,7 +155,6 @@ struct JournalView: View {
     @State private var unreadableDraftCount = 0
     @State private var loadError: String?
     @State private var composingNote: JournalDraft?
-    @State private var composingRetro = false
     @State private var authenticating = false
 
     private var queryKey: QueryKey {
@@ -194,27 +193,19 @@ struct JournalView: View {
             // while locked; only reading is gated.
             if section != .focus {
                 ToolbarItem(placement: .topBarTrailing) {
+                    // Retros begin on Today; here + is always a new note.
                     Button {
-                        if section == .retros {
-                            composingRetro = true
-                        } else {
-                            composingNote = JournalDraft(kind: .note)
-                        }
+                        composingNote = JournalDraft(kind: .note)
                     } label: {
                         Image(systemName: "plus")
                     }
-                    .accessibilityLabel(section == .retros
-                                        ? String(localized: "New retrospective")
-                                        : String(localized: "New note"))
+                    .accessibilityLabel(String(localized: "New note"))
                     .accessibilityIdentifier("NewNote")
                 }
             }
         }
         .sheet(item: $composingNote) { draft in
             JournalEditor(draft: draft)
-        }
-        .sheet(isPresented: $composingRetro) {
-            RetroSheet()
         }
         .task {
             // Ask straight away: the gate's Unlock button is the retry

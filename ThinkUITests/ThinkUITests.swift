@@ -88,20 +88,69 @@ final class ThinkUITests: XCTestCase {
     }
 
     @MainActor
-    func testMoodChipTogglesOnAndOff() throws {
+    func testMoodChipPicksAndClearsAMood() throws {
         let app = launchApp()
         app.buttons["WriteDailyAnswer"].tap()
 
-        let chip = app.descendants(matching: .any)["Mood.steady"]
+        let chip = app.buttons["MoodChip"]
         XCTAssertTrue(chip.waitForExistence(timeout: 3))
-        XCTAssertFalse(chip.isSelected)
+        XCTAssertEqual(chip.value as? String, "No mood")
 
         chip.tap()
-        XCTAssertTrue(chip.isSelected)
+        app.buttons["Steady"].tap()
+        XCTAssertEqual(chip.value as? String, "Steady")
 
-        // Tapping the selected chip clears it, so a mis-tap is never sticky.
         chip.tap()
-        XCTAssertFalse(chip.isSelected)
+        app.buttons["No mood"].tap()
+        XCTAssertEqual(chip.value as? String, "No mood")
+    }
+
+    @MainActor
+    func testThemeChipFollowsTheSelectionRulesAndReloadsThroughEdit() throws {
+        let note = "Theme note \(UUID().uuidString)"
+        let app = launchApp()
+        app.tabBars.buttons["Journal"].tap()
+        app.buttons["NewNote"].tap()
+        let chip = app.buttons["ThemeChip"]
+        XCTAssertTrue(chip.waitForExistence(timeout: 3))
+        XCTAssertEqual(chip.value as? String, "No theme")
+
+        // The menu stays open while picking: three taps in one visit.
+        chip.tap()
+        app.buttons["Work"].tap()
+        app.buttons["People"].tap()
+        app.buttons["Health"].tap()
+        dismissMenu(app)
+        // A third pick replaces the secondary.
+        XCTAssertEqual(chip.value as? String, "Work · Health")
+
+        // Clearing the primary promotes the secondary.
+        chip.tap()
+        app.buttons["Work"].tap()
+        dismissMenu(app)
+        XCTAssertEqual(chip.value as? String, "Health")
+
+        app.buttons["MoodChip"].tap()
+        app.buttons["Good"].tap()
+        let field = app.descendants(matching: .any).matching(identifier: "NewNoteInput").firstMatch
+        field.tap()
+        field.typeText(note)
+        app.buttons["SaveNewNote"].tap()
+
+        XCTAssertTrue(app.staticTexts[note].waitForExistence(timeout: 3))
+        app.staticTexts[note].tap()
+        XCTAssertTrue(app.buttons["EntryActions"].waitForExistence(timeout: 3))
+        app.buttons["EntryActions"].tap()
+        app.buttons["EditEntry"].tap()
+        XCTAssertTrue(chip.waitForExistence(timeout: 3))
+        XCTAssertEqual(chip.value as? String, "Health")
+        XCTAssertEqual(app.buttons["MoodChip"].value as? String, "Good")
+    }
+
+    /// Taps the editor's day line, outside the open menu, to close it.
+    @MainActor
+    private func dismissMenu(_ app: XCUIApplication) {
+        app.navigationBars.firstMatch.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
     }
 
     @MainActor

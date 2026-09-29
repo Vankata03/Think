@@ -22,6 +22,10 @@ nonisolated struct JournalDraft: Codable, Identifiable, Equatable, Sendable {
     var text: String = ""
     var fields: [String: String] = [:]
     var mood: String?
+    /// Raw primary and secondary `Theme` values, as the records store them.
+    /// Drafts written before themes existed decode with both nil.
+    var theme: String?
+    var secondaryTheme: String?
     var energy: String?
     var outcome: String?
     var tomorrowIntention: String?
@@ -31,8 +35,18 @@ nonisolated struct JournalDraft: Codable, Identifiable, Equatable, Sendable {
     init(id: UUID = UUID(), kind: Kind, context: Context = Context(), now: Date = .now) {
         self.id = id; self.kind = kind; self.context = context; self.createdAt = now; self.updatedAt = now
     }
+    /// Both themes as one selection. A weekly review summarises the week
+    /// rather than being part of it, so setting themes on one stores none.
+    var themes: ThemeSelection {
+        get { ThemeSelection(stored: theme, secondary: secondaryTheme) }
+        set {
+            let stored = kind == .weeklyReview ? ThemeSelection() : newValue
+            theme = stored.primary?.rawValue
+            secondaryTheme = stored.secondary?.rawValue
+        }
+    }
     var containsPrivateContent: Bool {
-        !text.isEmpty || fields.values.contains { !$0.isEmpty } || mood != nil || energy != nil
+        !text.isEmpty || fields.values.contains { !$0.isEmpty } || mood != nil || theme != nil || energy != nil
         || outcome != nil || tomorrowIntention != nil || context.editingRecordID != nil
         || context.sessionID != nil
     }
