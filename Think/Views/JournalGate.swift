@@ -1,37 +1,41 @@
 import SwiftUI
 
+/// The Locked state of design-system section 8, shown in place of any
+/// journal screen while the lock is engaged (`design/journal.md` section
+/// 7). Face ID is asked for when a screen appears; Unlock is the retry.
 struct JournalGate: View {
     @Environment(JournalLock.self) private var lock
     @State private var authenticating = false
+
     var body: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "lock.fill").font(.largeTitle).foregroundStyle(.tint)
-            Text("Your journal is locked").font(.headline)
-            Text("Unlock to read your notes, answers, and retrospectives.")
-                .foregroundStyle(.secondary).multilineTextAlignment(.center)
+        ContentUnavailableView {
+            Label("Your journal is locked.", systemImage: ThinkSymbol.lock)
+        } description: {
+            if !lock.canAuthenticate { Text(lock.availability.settingSubtitle) }
+        } actions: {
             Button("Unlock") {
                 Task { authenticating = true; _ = await lock.authenticate(); authenticating = false }
             }
-            .buttonStyle(.borderedProminent)
-            .tint(Color("AccentColor"))
-            .foregroundStyle(.black)
+            .thinkButton(.secondary)
             .disabled(authenticating || !lock.canAuthenticate)
             .accessibilityIdentifier("UnlockJournal")
-            if !lock.canAuthenticate { Text(lock.availability.settingSubtitle).font(.footnote).foregroundStyle(.secondary) }
         }
-        .padding(28).frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(.systemGroupedBackground))
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(ThinkColor.background)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("JournalLocked")
     }
 }
 
+/// The temporary-storage warning: a row above the content, never instead
+/// of it (design-system section 8, Unavailable).
 struct JournalStorageWarning: View {
     @Environment(JournalRepository.self) private var repository
     var body: some View {
         if repository.storageWarning != nil {
-            Label("This session is temporary. Saved entries will be lost when Think closes.", systemImage: "exclamationmark.triangle")
-                .font(.callout).foregroundStyle(.orange).accessibilityIdentifier("JournalStorageWarning")
+            Label("This session is temporary. Saved entries will be lost when Think closes.", systemImage: ThinkSymbol.unavailable)
+                .font(.think(.secondary))
+                .accessibilityIdentifier("JournalStorageWarning")
         }
     }
 }
