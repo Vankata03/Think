@@ -37,9 +37,7 @@ final class VisualAuditUITests: XCTestCase {
         capture(app, "06 Focus controls")
         app.tabBars.buttons.element(boundBy: 4).tap()
         capture(app, "07 Your practice")
-        let settings = app.buttons["ProfileSettings"]
-        reveal(settings, in: app)
-        settings.tap()
+        app.navigationBars.buttons["Settings"].tap()
         capture(app, "08 Settings top")
         app.swipeUp()
         capture(app, "09 Settings lower")
@@ -110,6 +108,49 @@ final class VisualAuditUITests: XCTestCase {
             XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 3))
             app.typeText((1...14).map { "Line \($0) of a long entry that keeps going" }.joined(separator: "\n"))
             capture(app, "Editor \(run.name) long entry")
+            app.terminate()
+        }
+    }
+
+    /// Settings across the acceptance floor (`progress-settings.md`
+    /// section 6): both appearances, and AX3 in `en`, `bg` and `de`. The
+    /// gear is labelled "Settings", and the Form scrolls its last row,
+    /// About's version, fully above the tab bar.
+    @MainActor
+    func testCaptureSettings() throws {
+        continueAfterFailure = false
+        let runs: [(name: String, appearance: String, language: String, locale: String, ax3: Bool)] = [
+            ("dark en", "dark", "en", "en_US", false),
+            ("light en", "light", "en", "en_US", false),
+            ("dark en AX3", "dark", "en", "en_US", true),
+            ("light bg AX3", "light", "bg", "bg_BG", true),
+            ("dark de AX3", "dark", "de", "de_DE", true),
+        ]
+        for run in runs {
+            let app = XCUIApplication()
+            app.launchArguments = ["-ui-testing", "-appearance", run.appearance,
+                                   "-AppleLanguages", "(\(run.language))", "-AppleLocale", run.locale]
+            if run.ax3 { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXL"] }
+            app.launch()
+            app.tabBars.buttons.element(boundBy: 4).tap()
+            let gear = app.navigationBars.buttons["Settings"]
+            XCTAssertTrue(gear.waitForExistence(timeout: 3))
+            if run.language == "en" { XCTAssertEqual(gear.label, "Settings") }
+            gear.tap()
+            XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "DailyLineReminder").firstMatch.waitForExistence(timeout: 3))
+            capture(app, "Settings \(run.name) top")
+
+            let version = app.descendants(matching: .any).matching(identifier: "AppVersion").firstMatch
+            var swipes = 0
+            while !(version.exists && version.isHittable) && swipes < 30 {
+                app.swipeUp()
+                swipes += 1
+                if swipes % 3 == 0 { capture(app, "Settings \(run.name) scroll \(swipes / 3)") }
+            }
+            app.swipeUp()
+            XCTAssertTrue(version.isHittable)
+            XCTAssertLessThanOrEqual(version.frame.maxY, app.tabBars.firstMatch.frame.minY, "About sits above the tab bar")
+            capture(app, "Settings \(run.name) bottom")
             app.terminate()
         }
     }

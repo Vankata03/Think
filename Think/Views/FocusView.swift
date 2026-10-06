@@ -8,12 +8,10 @@ import SwiftData
 import AppIntents
 
 private enum FocusSheet: Identifiable {
-    case focusTip
     case sessionDuration
 
     var id: String {
         switch self {
-        case .focusTip: "focusTip"
         case .sessionDuration: "sessionDuration"
         }
     }
@@ -77,14 +75,6 @@ struct FocusView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        presentedSheet = .focusTip
-                    } label: {
-                        Image(systemName: "lightbulb")
-                    }
-                    .accessibilityLabel("Tip: silence distractions")
-                }
                 ToolbarItem(placement: .topBarTrailing) {
                     NavigationLink {
                         FocusStatsView()
@@ -96,13 +86,11 @@ struct FocusView: View {
                 }
             }
             .background(Color(.systemGroupedBackground).ignoresSafeArea())
-            // One presentation channel for all three sheets: two `.sheet`
+            // One presentation channel for every sheet: two `.sheet`
             // modifiers on the same view can race, and a work phase can
             // finish while the duration sheet is open.
             .sheet(item: $presentedSheet) { sheet in
                 switch sheet {
-                case .focusTip:
-                    FocusTipSheet()
                 case .sessionDuration:
                     FocusDurationSheet(timer: timer)
                 }
@@ -617,52 +605,6 @@ private struct FocusCountdownView: View {
                 .monospacedDigit().minimumScaleFactor(0.5).lineLimit(1)
             Text(timer.phase.label).font(.subheadline).foregroundStyle(.secondary)
         }
-    }
-}
-
-private struct FocusTipSheet: View {
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        NavigationStack {
-            List {
-                Section {
-                    Text("Apps can't turn on a Focus for you — Apple keeps that under your control. Set it up once and your phone goes quiet automatically whenever you start a session here.")
-                        .font(.subheadline)
-                }
-
-                Section("Create a Deep Work Focus") {
-                    tipRow(number: 1, text: "Open Settings, then Focus.")
-                    tipRow(number: 2, text: "Tap + and choose Custom. Name it Deep Work.")
-                    tipRow(number: 3, text: "Allow notifications only from people who genuinely need you.")
-                }
-
-                Section("Turn it on automatically") {
-                    tipRow(number: 1, text: "Open the Shortcuts app, then Automation.")
-                    tipRow(number: 2, text: "Tap +, choose App, pick Think, select Is Opened.")
-                    tipRow(number: 3, text: "Add the action Set Focus, choose Deep Work, and set Run Immediately.")
-                }
-            }
-            .navigationTitle("Silence distractions")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { dismiss() }
-                }
-            }
-        }
-    }
-
-    private func tipRow(number: Int, text: LocalizedStringKey) -> some View {
-        HStack(alignment: .top, spacing: 12) {
-            Text("\(number)")
-                .font(.subheadline.weight(.medium))
-                .frame(width: 22, height: 22)
-                .background(Color(.tertiarySystemFill), in: Circle())
-            Text(text)
-                .font(.subheadline)
-        }
-        .padding(.vertical, 2)
     }
 }
 
