@@ -223,8 +223,9 @@ final class ThinkUITests: XCTestCase {
         field.typeText(note)
         app.buttons["SaveNewNote"].tap()
 
-        XCTAssertTrue(app.staticTexts[note].waitForExistence(timeout: 3))
-        app.staticTexts[note].tap()
+        let row = journalRow(app, containing: note)
+        XCTAssertTrue(row.waitForExistence(timeout: 3))
+        row.tap()
         XCTAssertTrue(app.buttons["EntryActions"].waitForExistence(timeout: 3))
         app.buttons["EntryActions"].tap()
         app.buttons["EditEntry"].tap()
@@ -300,7 +301,14 @@ final class ThinkUITests: XCTestCase {
         noteField.typeText(note)
         app.buttons["SaveNewNote"].tap()
 
-        XCTAssertTrue(app.staticTexts[note].waitForExistence(timeout: 3))
+        XCTAssertTrue(journalRow(app, containing: note).waitForExistence(timeout: 3))
+    }
+
+    /// A Journal row is one accessibility element whose label holds the
+    /// kind, the first sentence and the rest (`design/journal.md` section 4).
+    @MainActor
+    private func journalRow(_ app: XCUIApplication, containing text: String) -> XCUIElement {
+        app.buttons.matching(NSPredicate(format: "label CONTAINS %@", text)).firstMatch
     }
 
     @MainActor
