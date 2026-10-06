@@ -391,6 +391,9 @@ struct JournalView: View {
         guard !lock.isLocked else { return }
         do {
             journalEmpty = try !repository.hasRecords()
+            // The Empty state hides the filter menu, so a filter left on
+            // would hide the next note behind a menu nobody can see.
+            if journalEmpty && filter.isActive { filter.clear() }
             hasFocusNotes = try repository.hasRecords(kind: JournalEntry.kindFocus)
             if versions?.revision != repository.revision {
                 versions = (repository.revision, try repository.versionRecordIDs())

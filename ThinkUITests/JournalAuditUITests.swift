@@ -105,6 +105,50 @@ final class JournalAuditUITests: XCTestCase {
         XCTAssertFalse(line.exists)
     }
 
+    /// A trailing swipe asks before deleting and keeps the row until the
+    /// deletion is confirmed (`design/journal.md` section 2). Deleting the
+    /// last record under a filter shows the whole-journal Empty state, and
+    /// the filter does not outlive it (section 9).
+    @MainActor
+    func testSwipeDeleteConfirmsAndTheLastDeletionShowsEmpty() throws {
+        let app = launch(["-ui-seed-journal"])
+        app.tabBars.buttons["Journal"].tap()
+        let retro = journalRow(app, containing: "PRIVATE AUDIT RETRO")
+        XCTAssertTrue(retro.waitForExistence(timeout: 3))
+
+        retro.swipeLeft()
+        app.buttons["Delete"].firstMatch.tap()
+        XCTAssertTrue(app.staticTexts["Delete this retro?"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["It is removed from this device and your iCloud."].exists)
+        XCTAssertTrue(retro.exists)
+        app.buttons["ConfirmDeleteEntry"].firstMatch.tap()
+        XCTAssertTrue(retro.waitForNonExistence(timeout: 3))
+
+        chooseFilter(app, "Answers")
+        XCTAssertTrue(app.descendants(matching: .any)["JournalActiveFilters"].waitForExistence(timeout: 3))
+        let answer = journalRow(app, containing: "PRIVATE AUDIT ANSWER")
+        XCTAssertTrue(answer.waitForExistence(timeout: 3))
+        answer.swipeLeft()
+        app.buttons["Delete"].firstMatch.tap()
+        XCTAssertTrue(app.staticTexts["Delete this entry?"].waitForExistence(timeout: 3))
+        app.buttons["ConfirmDeleteEntry"].firstMatch.tap()
+
+        XCTAssertTrue(app.staticTexts["Nothing written yet."].waitForExistence(timeout: 3))
+        XCTAssertFalse(app.buttons["JournalFilterMenu"].exists)
+        XCTAssertFalse(app.descendants(matching: .any)["JournalActiveFilters"].exists)
+        XCTAssertFalse(app.staticTexts["No entries match."].exists)
+
+        // The first note after Empty is not hidden by a filter nobody can see.
+        app.buttons["Write a note"].tap()
+        let field = app.descendants(matching: .any).matching(identifier: "NewNoteInput").firstMatch
+        XCTAssertTrue(field.waitForExistence(timeout: 3))
+        field.tap()
+        field.typeText("First note after empty")
+        app.buttons["SaveNewNote"].tap()
+        XCTAssertTrue(journalRow(app, containing: "First note after empty").waitForExistence(timeout: 3))
+        XCTAssertFalse(app.descendants(matching: .any)["JournalActiveFilters"].exists)
+    }
+
     @MainActor
     func testBlankNoteCaptureRemainsAvailableFromLockedJournal() throws {
         let app = launch(["-ui-journal-locked"])
