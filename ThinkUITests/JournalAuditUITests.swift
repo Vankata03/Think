@@ -27,13 +27,19 @@ final class JournalAuditUITests: XCTestCase {
     @MainActor
     func testSuccessfulUnlockShowsSeededJournalAndDetailActions() throws {
         let app = launch(["-ui-journal-locked", "-ui-auth-success", "-ui-seed-journal"])
-        let unlock = app.buttons["UnlockToRead"]
-        XCTAssertTrue(unlock.waitForExistence(timeout: 3))
-        for _ in 0..<3 where !unlock.isHittable { app.swipeUp() }
+        // Today shows that the answer exists, never its text; opening it
+        // asks Face ID first, then pushes the read detail.
+        let answered = app.buttons["Act.question.done"]
+        XCTAssertTrue(answered.waitForExistence(timeout: 3))
+        for _ in 0..<3 where !answered.isHittable { app.swipeUp() }
+        XCTAssertFalse(app.staticTexts["PRIVATE AUDIT ANSWER"].exists)
         let homeCapture = XCTAttachment(screenshot: app.screenshot())
-        homeCapture.name = "Home unlock alignment"
+        homeCapture.name = "Today locked answer row"
         homeCapture.lifetime = .keepAlways
         add(homeCapture)
+        answered.tap()
+        XCTAssertTrue(app.staticTexts["PRIVATE AUDIT ANSWER"].waitForExistence(timeout: 3))
+        app.navigationBars.buttons.element(boundBy: 0).tap()
         app.tabBars.buttons["Journal"].tap()
         XCTAssertTrue(app.descendants(matching: .any)["JournalView"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["PRIVATE AUDIT ANSWER"].waitForExistence(timeout: 3))
@@ -123,8 +129,7 @@ final class JournalAuditUITests: XCTestCase {
         XCTAssertTrue(note.waitForExistence(timeout: 3))
         XCTAssertEqual(note.value as? String, "Original focus note")
         app.navigationBars.buttons.element(boundBy: 0).tap()
-        app.tabBars.buttons.element(boundBy: 0).tap()
-        app.buttons["OpenJournal"].tap()
+        app.tabBars.buttons["Journal"].tap()
         XCTAssertFalse(app.buttons["RecoverDrafts"].exists)
         app.tabBars.buttons.element(boundBy: 2).tap()
         session.tap()

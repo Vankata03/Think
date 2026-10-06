@@ -110,7 +110,6 @@ struct ProfileView: View {
                     header
                     progressPanel
                     journalPanel
-                    favoritesPanel
                     NavigationLink(destination: PracticeDiscoveryView()) {
                         Label("Find a practice", systemImage: "sparkle.magnifyingglass")
                             .font(.headline).foregroundStyle(.primary)
@@ -297,39 +296,6 @@ struct ProfileView: View {
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("Journal")
-    }
-
-    private var favoritesPanel: some View {
-        NavigationLink {
-            FavoritesView()
-        } label: {
-            HStack(spacing: 14) {
-                Image(systemName: "heart")
-                    .font(.title3)
-                    .foregroundStyle(Color.accentColor)
-                    .frame(width: 32)
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Saved lines")
-                        .font(.headline)
-                        .foregroundStyle(.primary)
-                    Text("The lines you kept")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.footnote.weight(.bold))
-                    .foregroundStyle(.secondary)
-            }
-            .padding(14)
-            .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .stroke(.separator.opacity(0.6), lineWidth: 1)
-            }
-        }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier("Favorites")
     }
 
     /// Status only. Mirroring is decided when the SwiftData container is

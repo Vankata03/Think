@@ -22,10 +22,10 @@ final class VisualAuditUITests: XCTestCase {
             app.launchArguments += ["-AppleLanguages", "(\(language))", "-AppleLocale", "de_DE"]
         }
         app.launch()
-        XCTAssertTrue(app.buttons["OpenJournal"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any)["TodayDayArc"].waitForExistence(timeout: 5))
         capture(app, "01 Today top")
         app.swipeUp()
-        capture(app, "02 Today activities")
+        capture(app, "02 Today acts")
         app.tabBars.buttons.element(boundBy: 1).tap()
         capture(app, "03 Paths")
         app.buttons["Path.deep-focus"].tap()
@@ -54,7 +54,7 @@ final class VisualAuditUITests: XCTestCase {
 
         app.terminate()
         app.launch()
-        app.buttons["OpenJournal"].tap()
+        app.tabBars.buttons["Journal"].tap()
         let answer = app.staticTexts["PRIVATE AUDIT ANSWER"]
         reveal(answer, in: app)
         capture(app, "11 Journal")

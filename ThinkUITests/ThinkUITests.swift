@@ -15,24 +15,13 @@ final class ThinkUITests: XCTestCase {
     func testLaunchShowsTodayCoreLoop() throws {
         let app = launchApp()
 
-        XCTAssertTrue(app.descendants(matching: .any)["QuestionOfTheDayCard"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.buttons["ShareQuote"].waitForExistence(timeout: 2))
-        XCTAssertTrue(app.descendants(matching: .any)["ActivityLog"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.descendants(matching: .any)["TodayDayArc"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any)["NextActPanel"].exists)
+        XCTAssertTrue(app.buttons["ShareQuote"].exists)
+        XCTAssertTrue(app.buttons["OpenSavedLines"].exists)
+        XCTAssertTrue(app.buttons["TodayStreak"].exists)
+        XCTAssertFalse(app.buttons["OpenJournal"].exists)
         XCTAssertTrue(app.tabBars.buttons.element(boundBy: 0).isSelected)
-    }
-
-    @MainActor
-    func testHomeKeepsMoveVisibleAndReversible() throws {
-        let app = launchApp()
-        let move = app.buttons["TodaysMoveToggle"]
-        XCTAssertTrue(move.waitForExistence(timeout: 5))
-        for _ in 0..<3 where !move.isHittable { app.swipeUp() }
-        move.tap()
-        XCTAssertEqual(move.label, "Today's move done. Undo")
-        move.tap()
-        XCTAssertEqual(move.label, "Mark today's move done")
-        XCTAssertTrue(app.buttons["WriteDailyAnswer"].exists)
-        XCTAssertFalse(app.segmentedControls["DailyPracticePicker"].exists)
     }
 
     @MainActor
@@ -166,6 +155,8 @@ final class ThinkUITests: XCTestCase {
         XCTAssertTrue(app.descendants(matching: .any)["CardStyle.clay"].waitForExistence(timeout: 2))
         XCTAssertTrue(app.descendants(matching: .any)["CardStyle.forest"].waitForExistence(timeout: 2))
         XCTAssertTrue(app.buttons["SaveShareCard"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["ShareCardShare"].exists)
+        XCTAssertEqual(app.buttons["DismissShareCard"].label, "Close")
         app.buttons["DismissShareCard"].tap()
     }
 
@@ -233,8 +224,10 @@ final class ThinkUITests: XCTestCase {
         field.typeText(answer)
         app.buttons["SaveJournalEntry"].tap()
 
-        XCTAssertTrue(app.descendants(matching: .any)["DailyQuestionAnswered"].waitForExistence(timeout: 3))
-        app.buttons["ReadDailyAnswer"].tap()
+        let answered = app.buttons["Act.question.done"]
+        XCTAssertTrue(answered.waitForExistence(timeout: 3))
+        XCTAssertFalse(app.staticTexts[answer].exists)
+        answered.tap()
         XCTAssertTrue(app.staticTexts[answer].waitForExistence(timeout: 2))
     }
 
@@ -245,34 +238,6 @@ final class ThinkUITests: XCTestCase {
             app.launchArguments = englishLaunchArguments
             app.launch()
         }
-    }
-
-    @MainActor
-    func testSavingTodaysLineFillsAndEmptiesTheFavoritesList() throws {
-        let app = launchApp()
-
-        let favoriteButton = app.buttons["FavoriteQuote"]
-        XCTAssertTrue(favoriteButton.waitForExistence(timeout: 5))
-        favoriteButton.tap()
-
-        app.tabBars.buttons.element(boundBy: 4).tap()
-        app.descendants(matching: .any)["Favorites"].tap()
-
-        let list = app.descendants(matching: .any)["FavoritesView"]
-        XCTAssertTrue(list.waitForExistence(timeout: 3))
-        XCTAssertFalse(app.staticTexts["FavoritesEmpty"].exists)
-        XCTAssertEqual(list.cells.count, 1)
-
-        app.navigationBars.buttons.element(boundBy: 0).tap()
-        app.tabBars.buttons.element(boundBy: 0).tap()
-
-        XCTAssertTrue(favoriteButton.waitForExistence(timeout: 3))
-        favoriteButton.tap()
-
-        app.tabBars.buttons.element(boundBy: 4).tap()
-        app.descendants(matching: .any)["Favorites"].tap()
-
-        XCTAssertTrue(app.staticTexts["FavoritesEmpty"].waitForExistence(timeout: 3))
     }
 
     private func launchApp() -> XCUIApplication {

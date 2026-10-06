@@ -42,12 +42,8 @@ struct PracticeDiscoveryView: View {
                     Text("Try another theme or a little more time.").foregroundStyle(.secondary)
                 }
                 ForEach(preferences.suggestions.prefix(20)) { practice in
-                    NavigationLink {
-                        PracticeDetailView(practiceID: practice.id, version: practice.version)
-                    } label: {
-                        Text(practice.quote.text).font(.system(.body, design: .serif))
-                            .padding(.vertical, 6)
-                    }
+                    Text(practice.quote.text).font(.system(.body, design: .serif))
+                        .padding(.vertical, 6)
                 }
             }
         }

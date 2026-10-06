@@ -7,130 +7,135 @@ import Combine
 import SwiftUI
 import SwiftData
 
-/// The day's practice at a glance. Today owns no unsaved text: every
-/// answer is captured, resumed, and saved by `JournalEditor`, which is
-/// handed an immutable draft context at the moment the sheet opens. The
-/// view itself only reads — and every read of saved journal content is
-/// gated by `JournalLock` before anything private reaches the screen.
+/// Today walks the person through the ritual (`design/today.md`): the day
+/// arc, the daily line, one panel for the act that is next, and a section
+/// for the acts done or later. Today owns no unsaved text: answers and
+/// retros are written in `JournalEditor`, and saved journal content is only
+/// ever shown on the Journal's read detail, behind `JournalLock`.
 struct TodayView: View {
     @Environment(ProgressStore.self) private var progress
     @Environment(FavoritesStore.self) private var favorites
-    @Environment(AppIntentRouter.self) private var router
     @Environment(JournalRepository.self) private var repository
     @Environment(JournalDraftStore.self) private var drafts
     @Environment(JournalLock.self) private var lock
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.haptics) private var haptics
     @Environment(\.scenePhase) private var scenePhase
 
-    /// Wall clock, refreshed each minute and on foreground/time changes.
+    /// Wall clock, refreshed each minute and on foreground or time changes.
     /// The civil day and practice derive from it, so a midnight spent idle
     /// on this screen still rolls the question over.
-    @State private var now = Date.now
-    @State private var day = CivilDay.today()
-    @State private var practice = ContentLibrary.dailyPractice()
+    @State private var now = TodayClock.now()
+    @State private var day = CivilDay.today(now: TodayClock.now())
+    @State private var practice = ContentLibrary.dailyPractice(for: TodayClock.now())
 
     @State private var todaysAnswer: DailySelection<JournalRepository.EntrySnapshot>?
     @State private var todaysRetro: DailySelection<JournalRepository.RetroSnapshot>?
-    @State private var carriedIntention: String?
     @State private var journalError: String?
     @State private var draftError: String?
     @State private var retroError: String?
 
-    /// The answer or retro draft handed to the editor sheet. Its context
-    /// is frozen when the sheet opens; a day change underneath does not
+    /// The answer or retro draft handed to the editor sheet. Its context is
+    /// frozen when the sheet opens; a day change underneath does not
     /// rewrite it.
     @State private var editorDraft: JournalDraft?
     @State private var editorNotice: String?
+    @State private var openRecord: OpenRecord?
     @State private var showingShareCard = false
     @State private var showingStreakCalendar = false
-    @State private var appeared = false
 
-    private enum NextAction { case answer, move, retro, none }
+    @ThinkSpacing.Scaled(ThinkSpacing.s) private var rowSpacing
+    @ThinkSpacing.Scaled(ThinkSpacing.m) private var panelSpacing
 
-    private static let activityOrder: [PracticeActivityKind] = [.answer, .move, .retro, .note, .focus, .path]
-
-    private var quote: Quote { practice.quote }
-    private var isEvening: Bool { Calendar.current.component(.hour, from: now) >= 20 }
-    private var activities: Set<PracticeActivityKind> { progress.activities(on: now) }
-    private var moveDone: Bool { progress.isMoveCompleted(practiceID: practice.id, at: now) }
-    private var stacksVertically: Bool { dynamicTypeSize.isAccessibilitySize }
-
-    /// Whether an answer exists today, for choosing the next action only.
-    /// The progress ledger is not journal content, so it may inform this
-    /// while locked; the saved text itself never shows without unlocking.
-    private var answeredToday: Bool { todaysAnswer != nil || activities.contains(.answer) }
-    private var retroWrittenToday: Bool { todaysRetro != nil || activities.contains(.retro) }
-    private var showsRetroCard: Bool { isEvening || retroWrittenToday }
-
-    private var nextAction: NextAction {
-        if !answeredToday { return .answer }
-        if !moveDone { return .move }
-        if isEvening && !retroWrittenToday { return .retro }
-        return .none
+    /// A written answer or retro pushed onto the Journal's read detail.
+    private enum OpenRecord: Hashable {
+        case answer(UUID)
+        case retro(UUID)
     }
 
+    private var quote: Quote { practice.quote }
+
+    /// Whether an answer or retro exists today. The progress ledger is not
+    /// journal content, so it may decide this while locked; the saved text
+    /// itself never shows on this screen.
+    private var ritual: TodayRitual {
+        let activities = progress.activities(on: now)
+        return TodayRitual(
+            answered: todaysAnswer != nil || activities.contains(.answer),
+            moveDone: progress.isMoveCompleted(practiceID: practice.id, at: now),
+            retroWritten: todaysRetro != nil || activities.contains(.retro),
+            hour: DayArcGeometry.hour(of: now)
+        )
+    }
+
+    private var stateAnimation: Animation? { ThinkMotion.stateAnimation(reduceMotion: reduceMotion) }
+
     var body: some View {
+        let ritual = ritual
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    ritualHeader
-                    quoteCard
-                    moveCard
-                    questionCard
-                    if showsRetroCard {
-                        retroCard
-                            .transition(ThinkMotion.stateTransition(reduceMotion: reduceMotion))
-                    }
-                    activityLog
+            List {
+                Section {
+                    DayArcView(hour: ritual.hour, states: ritual.arcStates, now: now)
+                        .padding(.horizontal, dynamicTypeSize.isAccessibilitySize ? ThinkSpacing.l : 0)
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets())
+                        .accessibilityIdentifier("TodayDayArc")
+                    dailyLine
+                        .listRowBackground(Color.clear)
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 18)
-                .padding(.bottom, 32)
-                .opacity(appeared ? 1 : 0)
-                .offset(y: appeared || reduceMotion ? 0 : 16)
-                .animation(ThinkMotion.stateAnimation(reduceMotion: reduceMotion), value: showsRetroCard)
+                .listSectionSeparator(.hidden)
+
+                Section {
+                    JournalStorageWarning()
+                    if let journalError {
+                        errorRow(journalError, identifier: "TodayJournalError") { reloadJournal() }
+                    }
+                    if let draftError {
+                        errorRow(draftError, identifier: "TodayDraftError") { openAnswerEditor() }
+                    }
+                    if let retroError {
+                        errorRow(retroError, identifier: "TodayRetroError") { openRetroEditor() }
+                    }
+                    switch ritual.panel {
+                    case .act(let act): nextActPanel(act)
+                    case .complete: completeRow
+                    }
+                }
+
+                Section {
+                    ForEach(ritual.otherActs, id: \.self) { act in
+                        actRow(act, done: ritual.isDone(act))
+                    }
+                }
             }
+            .listStyle(.insetGrouped)
+            .animation(stateAnimation, value: ritual)
             .navigationTitle("Today")
             .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    NavigationLink {
-                        JournalView()
-                    } label: {
-                        Image(systemName: "book.closed")
-                    }
-                    .accessibilityLabel("Journal")
-                    .accessibilityIdentifier("OpenJournal")
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    streakBadge
+            .toolbar { toolbar }
+            .navigationDestination(item: $openRecord) { record in
+                switch record {
+                case .answer(let id): JournalEntryDetailView(recordID: id)
+                case .retro(let id): JournalRetroDetailView(recordID: id)
                 }
             }
-            .toolbarBackground(.hidden, for: .navigationBar)
-            .background(Color(.systemGroupedBackground).ignoresSafeArea())
-            .scrollContentBackground(.hidden)
             .onAppear {
-                refreshClock(.now)
+                refreshClock(TodayClock.now())
                 reloadJournal()
-                withAnimation(ThinkMotion.stateAnimation(reduceMotion: reduceMotion)) {
-                    appeared = true
-                }
             }
-            .onReceive(Timer.publish(every: 60, on: .main, in: .common).autoconnect()) { date in
-                refreshClock(date)
+            .onReceive(Timer.publish(every: 60, on: .main, in: .common).autoconnect()) { _ in
+                refreshClock(TodayClock.now())
             }
             .onReceive(NotificationCenter.default.publisher(for: .NSSystemTimeZoneDidChange)) { _ in
-                refreshClock(.now)
+                refreshClock(TodayClock.now())
             }
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in
-                refreshClock(.now)
+                refreshClock(TodayClock.now())
             }
             .onChange(of: scenePhase) { _, phase in
                 if phase == .active {
-                    refreshClock(.now)
+                    refreshClock(TodayClock.now())
                     reloadJournal()
                 }
             }
@@ -140,523 +145,352 @@ struct TodayView: View {
             .sheet(item: $editorDraft) { draft in
                 JournalEditor(draft: draft, notice: editorNotice)
             }
-        }
-    }
-
-    // MARK: - Header
-
-    private var ritualHeader: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(now.formatted(.dateTime.weekday(.wide).month(.abbreviated).day()))
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.secondary)
-
-            if let carriedIntention, !carriedIntention.isEmpty {
-                DisclosureGroup("Carried from yesterday") {
-                    Text(carriedIntention)
-                        .font(.body).foregroundStyle(.primary)
-                        .padding(.top, 8)
-                }
-                .font(.subheadline).foregroundStyle(.secondary)
-                .accessibilityIdentifier("CarriedIntention")
+            .sheet(isPresented: $showingShareCard) {
+                ShareCardSheet(quote: quote)
+            }
+            .sheet(isPresented: $showingStreakCalendar) {
+                StreakCalendarSheet()
             }
         }
     }
 
-    /// Streak-zero copy follows the "no guilt" principle: a fresh user
-    /// is invited to start, a lapsed one to begin again.
-    private var streakCaption: String {
-        if progress.displayedStreak > 0 { return String(localized: "streak") }
-        return progress.lastCompletedDay == nil
-            ? String(localized: "start today")
-            : String(localized: "begin again")
+    // MARK: - Toolbar
+
+    /// Bookmark, fixed spacer, streak (design-system 13.3). No leading item.
+    @ToolbarContentBuilder
+    private var toolbar: some ToolbarContent {
+        ToolbarItem(placement: .topBarTrailing) {
+            NavigationLink {
+                SavedLinesView()
+            } label: {
+                Label("Saved lines", systemImage: ThinkSymbol.savedLine)
+            }
+            .accessibilityIdentifier("OpenSavedLines")
+        }
+        ToolbarSpacer(.fixed, placement: .topBarTrailing)
+        ToolbarItem(placement: .topBarTrailing) {
+            streakItem
+        }
     }
 
-    private var streakAccessibilityLabel: String {
-        guard progress.displayedStreak > 0 else { return streakCaption }
-        return String(localized: "\(progress.displayedStreak) day streak")
+    private var streak: StreakPresentation {
+        StreakPresentation(
+            streak: progress.displayedStreak,
+            completedPracticeCount: 0,
+            hasPractised: progress.lastCompletedDay != nil
+        )
     }
 
-    private var streakBadge: some View {
-        Button {
+    /// The flame and the numeral in `accentInk` while the streak is alive.
+    /// At zero the flame alone, in `secondaryLabel`, titled with the
+    /// two-state copy ("Start today." or "Begin again.").
+    private var streakItem: some View {
+        let count = progress.displayedStreak
+        return Button {
             haptics.play(.selection)
             showingStreakCalendar = true
         } label: {
-            HStack(spacing: 4) {
-                Image(systemName: "flame.fill")
-                    .font(.body)
-                if progress.displayedStreak > 0 {
-                    Text("\(progress.displayedStreak)")
-                        .font(.system(.subheadline, design: .rounded).weight(.bold))
-                        .monospacedDigit()
+            HStack(spacing: ThinkSpacing.xs) {
+                Image(systemName: ThinkSymbol.streak)
+                if count > 0 {
+                    Text(count, format: .number)
+                        .font(.think(.numeral))
                 }
             }
-            .foregroundStyle(progress.displayedStreak > 0 ? Color.accentColor : .secondary)
+            .foregroundStyle(count > 0 ? ThinkColor.accentInk : ThinkColor.secondaryLabel)
         }
-        .accessibilityLabel(streakAccessibilityLabel)
-        .accessibilityHint("Shows your streak calendar")
-        .sheet(isPresented: $showingStreakCalendar) {
-            StreakCalendarSheet()
-        }
+        .accessibilityLabel(count > 0 ? String(localized: "\(count) day streak") : streak.streakText)
+        .accessibilityHint(Text("Shows your streak calendar"))
+        .accessibilityIdentifier("TodayStreak")
     }
 
-    // MARK: - Quote and move
+    // MARK: - Daily line
+
+    /// The line, then its attribution with save and share. No link anywhere
+    /// on the line: practice detail left the app.
+    private var dailyLine: some View {
+        VStack(alignment: .leading, spacing: rowSpacing) {
+            Text(quote.text)
+                .font(.think(.lineLarge))
+                .foregroundStyle(ThinkColor.label)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("TodayDailyLine")
+            let layout = dynamicTypeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: rowSpacing))
+                : AnyLayout(HStackLayout(alignment: .center, spacing: rowSpacing))
+            layout {
+                if let attribution = quote.attribution {
+                    Text(attribution)
+                        .font(.think(.caption))
+                        .foregroundStyle(ThinkColor.secondaryLabel)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 0) }
+                HStack(spacing: rowSpacing) {
+                    saveButton
+                    Button("Share", systemImage: ThinkSymbol.share) {
+                        haptics.play(.selection)
+                        showingShareCard = true
+                    }
+                    .accessibilityIdentifier("ShareQuote")
+                }
+                .labelStyle(.iconOnly)
+                .buttonStyle(.borderless)
+                .font(.body)
+                .foregroundStyle(ThinkColor.label)
+            }
+        }
+        .padding(.vertical, ThinkSpacing.xs)
+    }
 
     /// Keeping a line is a quiet act: the fill change and the selection
-    /// haptic are the whole feedback. No bounce, no particles.
-    private var favoriteButton: some View {
-        let isFavorite = favorites.isFavorite(quote)
-
-        return Button {
+    /// haptic are the whole feedback.
+    private var saveButton: some View {
+        let isSaved = favorites.isFavorite(quote)
+        return Button(
+            isSaved ? String(localized: "Remove from saved lines") : String(localized: "Save this line"),
+            systemImage: isSaved ? "\(ThinkSymbol.savedLine).fill" : ThinkSymbol.savedLine
+        ) {
             haptics.play(.selection)
-            withAnimation(ThinkMotion.stateAnimation(reduceMotion: reduceMotion)) {
+            withAnimation(stateAnimation) {
                 _ = favorites.toggle(quote)
             }
-        } label: {
-            Image(systemName: isFavorite ? "heart.fill" : "heart")
-                .foregroundStyle(isFavorite ? Color.accessibleAccent(for: colorScheme) : Color.secondary)
-                .contentTransition(.symbolEffect(.replace))
         }
-        .buttonStyle(.plain)
+        .contentTransition(.symbolEffect(.replace))
         .frame(minWidth: 44, minHeight: 44)
-        .tint(Color.accessibleAccent(for: colorScheme))
-        .accessibilityLabel(isFavorite
-                            ? String(localized: "Remove from saved lines")
-                            : String(localized: "Save this line"))
         .accessibilityIdentifier("FavoriteQuote")
     }
 
-    private var quoteCard: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Rectangle()
-                .fill(Color.accentColor)
-                .frame(width: 42, height: 4)
-                .clipShape(Capsule())
+    // MARK: - Next act
 
-            Text(quote.text)
-                .font(.system(.title2, design: .serif).weight(.medium))
-                .foregroundStyle(.primary)
-                .lineSpacing(2)
+    /// The panel for the act that is next, with the screen's one primary.
+    private func nextActPanel(_ act: TodayRitual.Act) -> some View {
+        VStack(alignment: .leading, spacing: panelSpacing) {
+            Label {
+                Text("Next · \(Text(actName(act)))")
+            } icon: {
+                Image(systemName: symbol(act))
+            }
+            .font(.think(.caption))
+            .fontWeight(.semibold)
+            .foregroundStyle(ThinkColor.accentInk)
+
+            Text(panelText(act))
+                .font(act == .question ? .think(.question) : .think(.body))
+                .foregroundStyle(ThinkColor.label)
                 .fixedSize(horizontal: false, vertical: true)
 
-            HStack(spacing: 8) {
-                if let attribution = quote.attribution {
-                    Text(attribution)
-                        .font(.footnote).foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                Spacer(minLength: 0)
-                NavigationLink {
-                    PracticeDetailView(practiceID: practice.id, version: practice.version)
-                } label: {
-                    Image(systemName: "info.circle")
-                        .frame(width: 44, height: 44)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("About this practice")
-                .accessibilityIdentifier("PracticeSource")
-                favoriteButton
-                Button {
-                    haptics.play(.selection)
-                    showingShareCard = true
-                } label: {
-                    Image(systemName: "square.and.arrow.up")
-                        .foregroundStyle(Color.accessibleAccent(for: colorScheme))
-                        .frame(width: 44, height: 44)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Share")
-                .accessibilityIdentifier("ShareQuote")
-
-            }
-            .foregroundStyle(.secondary)
-        }
-        .padding(24)
-        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
-        .sheet(isPresented: $showingShareCard) {
-            ShareCardSheet(quote: quote)
-        }
-    }
-
-    /// Marking the move is reversible on purpose: a tap made by mistake,
-    /// or a day that turned out differently, can be taken back.
-    private var moveToggle: some View {
-        let done = moveDone
-        return actionButton(
-            done ? "Done — undo" : "Mark the move done",
-            systemImage: done ? "checkmark.circle.fill" : "circle",
-            prominent: !done && nextAction == .move
-        ) {
-            haptics.play(done ? .selection : .success)
-            withAnimation(ThinkMotion.stateAnimation(reduceMotion: reduceMotion)) {
-                progress.setMoveCompleted(!done, practiceID: practice.id, at: .now)
-            }
-        }
-        .accessibilityLabel(done ? String(localized: "Today's move done. Undo") : String(localized: "Mark today's move done"))
-        .accessibilityIdentifier("TodaysMoveToggle")
-    }
-
-    // MARK: - Question of the day
-
-    private var moveCard: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            Label("Today's move", systemImage: "arrow.up.right")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.secondary)
-            Text(practice.action)
-                .font(.body.weight(.medium))
-                .fixedSize(horizontal: false, vertical: true)
-            moveToggle
-        }
-        .padding(24)
-        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 24))
-    }
-
-    private var questionCard: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            Label("Question of the day", systemImage: "square.and.pencil")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.secondary)
-            JournalStorageWarning()
-
-            Text(practice.question)
-                .font(.body.weight(.semibold))
-                .foregroundStyle(.primary)
-                .fixedSize(horizontal: false, vertical: true)
-
-            if let journalError {
-                errorRow(journalError, identifier: "TodayJournalError") { reloadJournal() }
-            }
-            if let draftError {
-                errorRow(draftError, identifier: "TodayDraftError") { openAnswerEditor() }
-            }
-
-            if lock.isLocked {
-                lockedAnswerState
-                    .transition(ThinkMotion.stateTransition(reduceMotion: reduceMotion))
-            } else if let selection = todaysAnswer {
-                answeredState(selection)
-                    .transition(ThinkMotion.stateTransition(reduceMotion: reduceMotion))
-            } else {
-                writeAnswerButton(prominent: nextAction == .answer)
-                    .transition(ThinkMotion.stateTransition(reduceMotion: reduceMotion))
-            }
-        }
-        .padding(24)
-        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 24))
-        .animation(ThinkMotion.stateAnimation(reduceMotion: reduceMotion), value: todaysAnswer?.primary.recordID)
-        .animation(ThinkMotion.stateAnimation(reduceMotion: reduceMotion), value: lock.isLocked)
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("QuestionOfTheDayCard")
-    }
-
-    /// Locked: nothing saved is read or shown. Writing stays open through
-    /// a blank draft — no repository or draft lookup happens on this path.
-    private var lockedAnswerState: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Label("Journal locked", systemImage: "lock.fill")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.secondary)
-            VStack(spacing: 10) {
-                Button {
-                    Task { _ = await lock.authenticate() }
-                } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: "lock.open")
-                            .frame(width: 20)
-                        Text("Unlock to read")
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 4)
-                }
-                .buttonStyle(.bordered)
-                .tint(Color.accessibleAccent(for: colorScheme))
-                .disabled(!lock.canAuthenticate)
-                .accessibilityLabel("Unlock to read")
-                .accessibilityIdentifier("UnlockToRead")
-
-                writeAnswerButton(prominent: false)
-            }
-            if !lock.canAuthenticate {
-                Text(lock.availability.settingSubtitle)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    private func writeAnswerButton(prominent: Bool) -> some View {
-        actionButton("Write answer", systemImage: "square.and.pencil", prominent: prominent) {
-            haptics.play(.selection)
-            openAnswerEditor()
-        }
-        .accessibilityIdentifier("WriteDailyAnswer")
-    }
-
-    /// Saved text stays collapsed behind an explicit read. The detail view
-    /// re-checks the lock itself, so nothing private renders on this card.
-    private func answeredState(_ selection: DailySelection<JournalRepository.EntrySnapshot>) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Label("Answered", systemImage: "checkmark.circle.fill")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.green)
-                .accessibilityIdentifier("DailyQuestionAnswered")
-            if selection.hasConflicts {
-                Text("\(selection.all.count) versions were written for today. All are kept.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
-            NavigationLink {
-                answerDestination(selection)
+            Button {
+                perform(act)
             } label: {
-                Label(selection.hasConflicts ? "Read answers" : "Read answer", systemImage: "book")
-                    .frame(maxWidth: .infinity)
+                Label(buttonTitle(act), systemImage: symbol(act))
+                    .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? .infinity : nil)
             }
-            .buttonStyle(.bordered)
-            .tint(Color.accessibleAccent(for: colorScheme))
-            .accessibilityIdentifier("ReadDailyAnswer")
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    @ViewBuilder
-    private func answerDestination(_ selection: DailySelection<JournalRepository.EntrySnapshot>) -> some View {
-        if !selection.hasConflicts, let id = selection.primary.recordID {
-            JournalEntryDetailView(recordID: id)
-        } else {
-            JournalDayVariantsView(day: selection.primary.day, records: .answers(selection.all))
-        }
-    }
-
-    // MARK: - Retrospective
-
-    private var retroCard: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            sectionHeader(
-                "Evening retrospective",
-                detail: todaysRetro == nil ? "2 minutes" : "written"
-            )
-
-            if let retroError {
-                errorRow(retroError, identifier: "TodayRetroError") { openRetroEditor() }
-            }
-
-            if lock.isLocked {
-                actionButton("Begin retrospective", systemImage: "moon.stars", prominent: nextAction == .retro) {
-                    haptics.play(.selection)
-                    openRetroEditor()
-                }
-                .accessibilityIdentifier("BeginRetrospective")
-            } else if let selection = todaysRetro {
-                adaptiveRow {
-                    NavigationLink {
-                        retroDestination(selection)
-                    } label: {
-                        Label("Read retrospective", systemImage: "book")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.bordered)
-                    .tint(Color.accessibleAccent(for: colorScheme))
-                    .accessibilityIdentifier("ReadRetrospective")
-                    Button {
-                        haptics.play(.selection)
-                        openRetroEditor()
-                    } label: {
-                        Label("Edit retrospective", systemImage: "pencil")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.bordered)
-                    .tint(Color.accessibleAccent(for: colorScheme))
-                    .accessibilityIdentifier("EditRetrospective")
-                }
-            } else {
-                actionButton("Begin retrospective", systemImage: "moon.stars", prominent: nextAction == .retro) {
-                    haptics.play(.selection)
-                    openRetroEditor()
-                }
-                .accessibilityIdentifier("BeginRetrospective")
-            }
-        }
-        .padding(24)
-        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 24))
-    }
-
-    @ViewBuilder
-    private func retroDestination(_ selection: DailySelection<JournalRepository.RetroSnapshot>) -> some View {
-        if !selection.hasConflicts, let id = selection.primary.recordID {
-            JournalRetroDetailView(recordID: id)
-        } else {
-            JournalDayVariantsView(day: selection.primary.day, records: .retros(selection.all))
-        }
-    }
-
-    // MARK: - Training log
-
-    /// Named activities from the progress ledger. Opening the app records
-    /// nothing, so an empty day reads as empty rather than as one of four.
-    private var activityLog: some View {
-        let done = activities
-        return VStack(alignment: .leading, spacing: 12) {
-            DisclosureGroup {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: stacksVertically ? 260 : 150), spacing: 10, alignment: .leading)],
-                          alignment: .leading, spacing: 10) {
-                    ForEach(Self.activityOrder, id: \.self) { kind in
-                        activityChip(kind, done: done.contains(kind))
-                    }
-                }.padding(.top, 12)
-                statsRow.padding(.top, 12)
-            } label: {
-                Text(done.isEmpty
-                     ? String(localized: "Nothing logged yet today.")
-                     : String(localized: "\(done.count) logged today"))
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .padding(16)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .accessibilityIdentifier("ActivityLog")
-    }
-
-    private func activityChip(_ kind: PracticeActivityKind, done: Bool) -> some View {
-        HStack(spacing: 8) {
-            Image(systemName: done ? "checkmark.circle.fill" : "circle")
-                .foregroundStyle(done ? Color.green : Color.secondary)
-            Text(activityLabel(kind))
-                .font(.subheadline)
-                .foregroundStyle(done ? .primary : .secondary)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .accessibilityElement(children: .combine)
-        .accessibilityValue(done ? String(localized: "done") : String(localized: "not yet"))
-        .accessibilityIdentifier("Activity.\(kind.rawValue)")
-    }
-
-    private func activityLabel(_ kind: PracticeActivityKind) -> String {
-        switch kind {
-        case .answer: String(localized: "Answered the question")
-        case .note: String(localized: "Wrote a note")
-        case .retro: String(localized: "Retrospective")
-        case .move: String(localized: "Today's move")
-        case .path: String(localized: "Path step")
-        case .focus: String(localized: "Focus session")
-        }
-    }
-
-    private var statsRow: some View {
-        adaptiveRow {
-            metricTile(
-                value: "\(progress.focusSessionsToday)",
-                label: String(localized: "Focus sessions today"),
-                systemImage: "timer",
-                hint: String(localized: "Opens Focus")
-            ) { router.selectedTab = .focus }
-            .accessibilityIdentifier("FocusMetric")
-            metricTile(
-                value: progress.pathCompletedDays > 0
-                    ? String(localized: "Day \(progress.pathCompletedDays)")
-                    : String(localized: "Not started"),
-                label: PathLibrary.deepFocus.name,
-                systemImage: "point.topleft.down.to.point.bottomright.curvepath",
-                hint: String(localized: "Opens Paths")
-            ) { router.selectedTab = .paths }
-            .accessibilityIdentifier("PathMetric")
-        }
-        .accessibilityIdentifier("TrainingLog")
-    }
-
-    // MARK: - Building blocks
-
-    private func sectionHeader(_ title: LocalizedStringKey, detail: LocalizedStringKey? = nil) -> some View {
-        HStack(alignment: .lastTextBaseline) {
-            Text(title)
-                .font(.caption.weight(.semibold))
-                .textCase(.uppercase)
-            Spacer()
-            if let detail {
-                Text(detail)
-                    .font(.caption)
-            }
-        }
-        .foregroundStyle(.secondary)
-        .accessibilityElement(children: .combine)
-    }
-
-    /// Side by side at regular sizes, stacked at accessibility sizes.
-    private func adaptiveRow<Content: View>(@ViewBuilder content: () -> Content) -> some View {
-        let layout = stacksVertically
-            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 12))
-            : AnyLayout(HStackLayout(alignment: .center, spacing: 12))
-        return layout { content() }
-    }
-
-    /// One action per card; only the day's next step is prominent.
-    @ViewBuilder
-    private func actionButton(_ title: LocalizedStringKey, systemImage: String, prominent: Bool,
-                              action: @escaping () -> Void) -> some View {
-        if prominent {
-            Button(action: action) {
-                Label(title, systemImage: systemImage)
-                    .foregroundStyle(Color.prominentButtonForeground(for: colorScheme))
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.borderedProminent)
+            .thinkButton(.primary)
             .controlSize(.large)
-            .tint(Color("AccentColor"))
-        } else {
-            Button(action: action) {
-                Label(title, systemImage: systemImage)
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.bordered)
-            .tint(Color.accessibleAccent(for: colorScheme))
+            .accessibilityIdentifier(buttonIdentifier(act))
         }
+        .padding(.vertical, ThinkSpacing.xs)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("NextActPanel")
+    }
+
+    private var completeRow: some View {
+        Label {
+            VStack(alignment: .leading, spacing: ThinkSpacing.xs) {
+                Text("Practice complete")
+                    .font(.think(.heading))
+                    .foregroundStyle(ThinkColor.label)
+                Text("Day \(progress.displayedStreak) of your streak.")
+                    .font(.think(.secondary))
+                    .foregroundStyle(ThinkColor.secondaryLabel)
+            }
+        } icon: {
+            Image(systemName: ThinkSymbol.done)
+                .foregroundStyle(ThinkColor.success)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("PracticeComplete")
+    }
+
+    // MARK: - Acts done or later
+
+    /// Done answer and retro rows push the read detail; the move's done row
+    /// is a fact, not a door, with a trailing-swipe Undo for a mistaken tap.
+    /// Row text never shows journal content.
+    @ViewBuilder
+    private func actRow(_ act: TodayRitual.Act, done: Bool) -> some View {
+        if !done {
+            Label {
+                Text(laterText(act))
+                    .foregroundStyle(ThinkColor.secondaryLabel)
+            } icon: {
+                Image(systemName: symbol(act))
+                    .foregroundStyle(ThinkColor.secondaryLabel)
+            }
+            .accessibilityIdentifier("Act.\(identifier(act)).later")
+        } else if act == .move {
+            doneLabel(act)
+                .accessibilityIdentifier("Act.move.done")
+                .swipeActions(edge: .trailing) {
+                    Button("Undo", systemImage: "arrow.uturn.backward") {
+                        haptics.play(.selection)
+                        withAnimation(stateAnimation) {
+                            progress.setMoveCompleted(false, practiceID: practice.id, at: TodayClock.now())
+                        }
+                    }
+                    .accessibilityIdentifier("UndoMove")
+                }
+        } else {
+            Button {
+                open(act)
+            } label: {
+                HStack {
+                    doneLabel(act)
+                    Spacer(minLength: 0)
+                    Image(systemName: "chevron.right")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(ThinkColor.tertiaryLabel)
+                        .accessibilityHidden(true)
+                }
+                .contentShape(.rect)
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("Act.\(identifier(act)).done")
+        }
+    }
+
+    private func doneLabel(_ act: TodayRitual.Act) -> some View {
+        Label {
+            Text(doneText(act))
+                .foregroundStyle(ThinkColor.label)
+        } icon: {
+            Image(systemName: ThinkSymbol.done)
+                .foregroundStyle(ThinkColor.success)
+        }
+    }
+
+    // MARK: - Copy
+
+    private func symbol(_ act: TodayRitual.Act) -> String {
+        switch act {
+        case .question: ThinkSymbol.question
+        case .move: ThinkSymbol.move
+        case .retro: ThinkSymbol.retro
+        }
+    }
+
+    private func actName(_ act: TodayRitual.Act) -> LocalizedStringResource {
+        switch act {
+        case .question: "Question of the day"
+        case .move: "Today's move"
+        case .retro: "Evening retro"
+        }
+    }
+
+    private func panelText(_ act: TodayRitual.Act) -> String {
+        switch act {
+        case .question: practice.question
+        case .move: practice.action
+        case .retro: String(localized: "Close the day. Two honest minutes.")
+        }
+    }
+
+    private func buttonTitle(_ act: TodayRitual.Act) -> LocalizedStringKey {
+        switch act {
+        case .question: "Write answer"
+        case .move: "Done"
+        case .retro: "Begin retro"
+        }
+    }
+
+    private func buttonIdentifier(_ act: TodayRitual.Act) -> String {
+        switch act {
+        case .question: "WriteDailyAnswer"
+        case .move: "MarkMoveDone"
+        case .retro: "BeginRetro"
+        }
+    }
+
+    private func identifier(_ act: TodayRitual.Act) -> String {
+        switch act {
+        case .question: "question"
+        case .move: "move"
+        case .retro: "retro"
+        }
+    }
+
+    private func doneText(_ act: TodayRitual.Act) -> LocalizedStringKey {
+        switch act {
+        case .question: "Question answered"
+        case .move: "Move done"
+        case .retro: "Retro written"
+        }
+    }
+
+    private func laterText(_ act: TodayRitual.Act) -> String {
+        switch act {
+        case .question: String(localized: "Question of the day")
+        case .move: String(localized: "Today's move · after the question")
+        case .retro: String(localized: "Evening retro · \(retroOpening.formatted(.dateTime.hour().minute()))")
+        }
+    }
+
+    /// 20:00 today, written in the device's clock format.
+    private var retroOpening: Date {
+        Calendar.current.date(bySettingHour: Int(TodayRitual.retroOpeningHour), minute: 0, second: 0, of: now) ?? now
     }
 
     private func errorRow(_ message: String, identifier: String, retry: @escaping () -> Void) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: rowSpacing) {
             Text(message)
-                .font(.footnote)
-                .foregroundStyle(.red)
+                .font(.think(.caption))
+                .foregroundStyle(ThinkColor.destructive)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier(identifier)
             Button("Try again", action: retry)
-                .buttonStyle(.bordered)
+                .thinkButton(.secondary)
                 .controlSize(.small)
                 .accessibilityIdentifier("\(identifier)Retry")
         }
     }
 
-    private func metricTile(value: String, label: String, systemImage: String, hint: String,
-                            action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            VStack(alignment: .leading, spacing: 10) {
-                Image(systemName: systemImage)
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(Color.accentColor)
-                Text(value)
-                    .font(.system(.title3, design: .rounded).weight(.semibold))
-                    .monospacedDigit()
-                    .foregroundStyle(.primary)
-                Text(verbatim: label)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
+    // MARK: - Actions
+
+    private func perform(_ act: TodayRitual.Act) {
+        switch act {
+        case .question:
+            haptics.play(.selection)
+            openAnswerEditor()
+        case .move:
+            haptics.play(.success)
+            withAnimation(stateAnimation) {
+                progress.setMoveCompleted(true, practiceID: practice.id, at: TodayClock.now())
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(16)
-            .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .stroke(.separator.opacity(0.6), lineWidth: 1)
+        case .retro:
+            haptics.play(.selection)
+            openRetroEditor()
+        }
+    }
+
+    /// Opening an answer or retro asks Face ID first; the detail re-checks
+    /// the lock itself, so nothing private renders without it.
+    private func open(_ act: TodayRitual.Act) {
+        haptics.play(.selection)
+        Task {
+            if lock.isLocked {
+                guard await lock.authenticate() else { return }
+            }
+            reloadJournal()
+            switch act {
+            case .question:
+                if let id = todaysAnswer?.primary.recordID { openRecord = .answer(id) }
+            case .retro:
+                if let id = todaysRetro?.primary.recordID { openRecord = .retro(id) }
+            case .move:
+                break
             }
         }
-        .buttonStyle(.plain)
-        .accessibilityElement(children: .combine)
-        .accessibilityHint(hint)
     }
 
     // MARK: - State
@@ -677,19 +511,16 @@ struct TodayView: View {
         guard !lock.isLocked else {
             todaysAnswer = nil
             todaysRetro = nil
-            carriedIntention = nil
             journalError = nil
             return
         }
         do {
             todaysAnswer = try repository.answer(for: day)
             todaysRetro = try repository.retro(for: day)
-            carriedIntention = try repository.carriedIntention(for: day)
             journalError = nil
         } catch {
             todaysAnswer = nil
             todaysRetro = nil
-            carriedIntention = nil
             journalError = String(localized: "Your journal could not be read. Nothing was changed.")
         }
     }
@@ -703,8 +534,8 @@ struct TodayView: View {
         editorDraft = opened.draft
     }
 
-    /// Opens the day's retro: the written one for Edit, an unsaved one
-    /// resumed, or a blank one. A retro that cannot be read opens nothing.
+    /// Opens a new retro, or an unsaved one resumed. A retro that cannot be
+    /// read opens nothing.
     private func openRetroEditor() {
         do {
             let opened = try JournalEditorOpening.retro(day: day, practiceID: practice.id, prompt: practice.question,
@@ -718,6 +549,25 @@ struct TodayView: View {
     }
 }
 
+/// Today's clock. UI tests pin the hour with `-ui-today-hour <hour>` so a
+/// whole day can be walked: `-ui-today-hour 20.5` is 20:30 today.
+enum TodayClock {
+    private static let pinnedHour: Double? = {
+        let arguments = ProcessInfo.processInfo.arguments
+        guard arguments.contains("-ui-testing"),
+              let index = arguments.firstIndex(of: "-ui-today-hour"),
+              arguments.indices.contains(index + 1) else { return nil }
+        return Double(arguments[index + 1])
+    }()
+
+    static func now() -> Date {
+        let date = Date.now
+        guard let pinnedHour else { return date }
+        let minutes = Int((pinnedHour * 60).rounded())
+        return Calendar.current.date(bySettingHour: minutes / 60, minute: minutes % 60, second: 0, of: date) ?? date
+    }
+}
+
 #Preview {
     let container = try! ModelContainer(
         for: JournalEntry.self, DailyRetro.self, FocusSessionMetadata.self,
@@ -726,10 +576,8 @@ struct TodayView: View {
     return TodayView()
         .environment(ProgressStore())
         .environment(FavoritesStore(defaults: .standard))
-        .environment(AppIntentRouter.shared)
         .environment(JournalLock(authenticator: UnavailableJournalAuthenticator()))
         .environment(JournalRepository(modelContext: ModelContext(container), storage: .emergencyInMemory))
         .environment(JournalDraftStore(directory: FileManager.default.temporaryDirectory.appendingPathComponent("TodayPreviewDrafts", isDirectory: true)))
-        .environment(PracticePreferencesStore())
         .modelContainer(container)
 }

@@ -11,6 +11,15 @@ nonisolated struct StreakPresentation: Equatable, Sendable {
 
     let streak: Int
     let completedPracticeCount: Int
+    /// Whether any day was ever practised: a zero streak then reads as
+    /// lapsed ("Begin again.") rather than new ("Start today.").
+    let hasPractised: Bool
+
+    init(streak: Int, completedPracticeCount: Int, hasPractised: Bool = false) {
+        self.streak = streak
+        self.completedPracticeCount = completedPracticeCount
+        self.hasPractised = hasPractised || streak > 0
+    }
 
     static let placeholder = StreakPresentation(streak: 5, completedPracticeCount: 2)
 
@@ -35,7 +44,11 @@ nonisolated struct StreakPresentation: Equatable, Sendable {
                 )
             )
         }
-        return String(localized: LocalizedStringResource("Begin today", table: "StreakPresentation"))
+        // Two-state copy, design-system section 8: never practised versus lapsed.
+        if hasPractised {
+            return String(localized: LocalizedStringResource("Begin again.", table: "StreakPresentation"))
+        }
+        return String(localized: LocalizedStringResource("Start today.", table: "StreakPresentation"))
     }
 
     var todayText: String {
@@ -60,7 +73,8 @@ nonisolated struct StreakPresentation: Equatable, Sendable {
                 in: defaults,
                 calendar: calendar,
                 now: now
-            )
+            ),
+            hasPractised: defaults.object(forKey: ProgressStore.lastCompletedDayKey) != nil
         )
     }
 }

@@ -94,6 +94,10 @@ struct ThinkApp: App {
             _ = try? repository.saveAnswer(text: "PRIVATE AUDIT ANSWER", practiceID: ContentLibrary.dailyPractice().id, prompt: "PRIVATE AUDIT PROMPT")
             _ = try? repository.saveRetro(wentWell: "PRIVATE AUDIT RETRO", improve: "PRIVATE AUDIT IMPROVE", tomorrow: "PRIVATE AUDIT TOMORROW")
         }
+        if isUITesting && arguments.contains("-ui-seed-answer") {
+            // Today's answer alone, so Today opens on the move.
+            _ = try? repository.saveAnswer(text: "PRIVATE AUDIT ANSWER", practiceID: ContentLibrary.dailyPractice().id, prompt: "PRIVATE AUDIT PROMPT")
+        }
         if isUITesting && arguments.contains("-ui-seed-journal-scroll") {
             // Enough entries to require scrolling even on the largest CI phone.
             for index in 0..<12 {
