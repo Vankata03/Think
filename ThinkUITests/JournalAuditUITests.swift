@@ -68,7 +68,7 @@ final class JournalAuditUITests: XCTestCase {
 
     @MainActor
     func testSuccessfulUnlockShowsSeededJournalAndDetailActions() throws {
-        let app = launch(["-ui-journal-locked", "-ui-auth-success", "-ui-seed-journal"])
+        let app = launch(["-ui-journal-locked", "-ui-auth-success", "-ui-seed-journal", "-ui-seed-ledger"])
         // Today shows that the answer exists, never its text; opening it
         // asks Face ID first, then pushes the read detail.
         let answered = app.buttons["Act.question.done"]

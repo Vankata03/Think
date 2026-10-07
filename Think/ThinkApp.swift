@@ -92,8 +92,9 @@ struct ThinkApp: App {
             })
         _journalDrafts = State(initialValue: drafts)
         _journalRepository = State(initialValue: repository)
+        var seededAnswerID: UUID?
         if isUITesting && arguments.contains("-ui-seed-journal") {
-            _ = try? repository.saveAnswer(text: "PRIVATE AUDIT ANSWER", practiceID: ContentLibrary.dailyPractice().id, prompt: "PRIVATE AUDIT PROMPT")
+            seededAnswerID = try? repository.saveAnswer(text: "PRIVATE AUDIT ANSWER", practiceID: ContentLibrary.dailyPractice().id, prompt: "PRIVATE AUDIT PROMPT").recordID
             _ = try? repository.saveRetro(wentWell: "PRIVATE AUDIT RETRO", improve: "PRIVATE AUDIT IMPROVE", tomorrow: "PRIVATE AUDIT TOMORROW")
         }
         if isUITesting && arguments.contains("-ui-seed-answer") {
@@ -142,6 +143,11 @@ struct ThinkApp: App {
             progressDefaults = appGroupDefaults
         }
         let progressStore = ProgressStore(defaults: progressDefaults)
+        if isUITesting && arguments.contains("-ui-seed-ledger"), let seededAnswerID {
+            // What the editor records on save, so a locked Today knows the
+            // seeded answer exists without reading it.
+            progressStore.recordActivity(.answer, id: seededAnswerID.uuidString)
+        }
         if isUITesting && arguments.contains("-ui-seed-focus") {
             let sessionID = "audit-focus-session"
             progressStore.recordFocusSession(durationMinutes: 25, eventID: sessionID, actualActiveSeconds: 1500)
