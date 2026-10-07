@@ -63,7 +63,9 @@ struct ThinkApp: App {
         }
         let authenticator: any JournalAuthenticator
         if isUITesting {
-            if arguments.contains("-ui-auth-success") || arguments.contains("-ui-auth-failure") {
+            if arguments.contains("-ui-auth-fail-once") {
+                authenticator = UITestJournalAuthenticator(succeeds: true, failuresFirst: 1)
+            } else if arguments.contains("-ui-auth-success") || arguments.contains("-ui-auth-failure") {
                 authenticator = UITestJournalAuthenticator(succeeds: arguments.contains("-ui-auth-success"))
             } else {
                 authenticator = UnavailableJournalAuthenticator()
@@ -99,6 +101,32 @@ struct ThinkApp: App {
             for index in 0..<12 {
                 _ = try? repository.saveNote(text: "SCROLL AUDIT NOTE \(index)")
             }
+        }
+        if isUITesting && arguments.contains("-ui-seed-journal-list") {
+            // Every row shape of the Journal list (`design/journal.md`
+            // section 4): each kind, moods, themes, a second version of
+            // today's answer and an unsaved draft.
+            let now = Date.now
+            let today = CivilDay.today()
+            _ = try? repository.saveAnswer(text: "Probably nothing different, which is the honest answer.",
+                                           practiceID: ContentLibrary.dailyPractice().id, prompt: "PRIVATE AUDIT PROMPT",
+                                           mood: .flat, date: today.start.addingTimeInterval(60))
+            _ = try? repository.saveNote(text: "Lunch with Maya. She said the thing about owning the calendar again.",
+                                         mood: .steady, themes: ThemeSelection(primary: .people), date: now.addingTimeInterval(-60))
+            let yesterday = today.previous
+            _ = try? repository.saveRetro(wentWell: "Shipped the draft before dinner.", improve: "Started late; the morning went to email.",
+                                          tomorrow: "Block 9 to 11 before opening anything.", mood: .good,
+                                          themes: ThemeSelection(primary: .work, secondary: .making), day: yesterday,
+                                          date: yesterday.start.addingTimeInterval(21 * 3_600))
+            let twoDaysAgo = today.adding(days: -2)
+            _ = try? repository.saveFocusNote(text: "Got the opening scene down; the middle still drags.", intention: "Write chapter 3",
+                                              sessionID: "audit-list-session", completedAt: twoDaysAgo.start.addingTimeInterval(14 * 3_600),
+                                              themes: ThemeSelection(primary: .making))
+            _ = try? repository.saveWeeklyReview(text: "Five of seven days. Plan the practice before the trip.",
+                                                 nextIntention: "Pack the practice.", weekStart: today.adding(days: -6).start)
+            var draft = JournalDraft(kind: .note)
+            draft.text = "Half a thought about the weekend"
+            try? drafts.save(draft)
         }
         let progressDefaults: UserDefaults
         if isUITesting, let bundleIdentifier = Bundle.main.bundleIdentifier {
@@ -275,6 +303,10 @@ struct ThinkApp: App {
             // Owned by the app, not by JournalView: the lock has to keep
             // its grace period while the journal is off screen.
             journalLock.scenePhaseChanged(to: phase)
+            // UI tests cannot wait out the relock grace period.
+            if isUITesting && phase == .background && ProcessInfo.processInfo.arguments.contains("-ui-relock-on-background") {
+                journalLock.lock()
+            }
             privacyShield.scenePhaseChanged(to: phase)
             if phase == .active {
                 timer.resync()
@@ -298,8 +330,13 @@ struct ThinkApp: App {
 private final class UITestJournalAuthenticator: JournalAuthenticator {
     let availability = JournalLockAvailability.passcodeOnly
     let succeeds: Bool
-    init(succeeds: Bool) { self.succeeds = succeeds }
-    func authenticate(reason: String) async -> Bool { succeeds }
+    /// Attempts that fail before `succeeds` applies, to exercise retry.
+    private var failuresFirst: Int
+    init(succeeds: Bool, failuresFirst: Int = 0) { self.succeeds = succeeds; self.failuresFirst = failuresFirst }
+    func authenticate(reason: String) async -> Bool {
+        guard failuresFirst == 0 else { failuresFirst -= 1; return false }
+        return succeeds
+    }
 }
 
 private enum UITestJournalFailure: Error { case save }

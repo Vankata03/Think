@@ -85,11 +85,14 @@ final class FocusStageUITests: XCTestCase {
         app.buttons["FocusPrimary"].tap()
 
         app.tabBars.buttons.element(boundBy: 4).tap()
-        let settings = app.descendants(matching: .any)["ProfileSettings"]
-        if settings.waitForExistence(timeout: 2) { settings.tap() }
+        let gear = app.navigationBars.buttons["Settings"]
+        XCTAssertTrue(gear.waitForExistence(timeout: 3))
+        gear.tap()
         let lock = app.switches["LockJournal"]
-        for _ in 0..<8 where !lock.isHittable { app.swipeUp() }
+        for _ in 0..<12 where !(lock.exists && lock.isHittable) { app.swipeUp() }
+        // A Form toggle's own switch sits at the trailing edge of the row.
         lock.switches.firstMatch.exists ? lock.switches.firstMatch.tap() : lock.tap()
+        XCTAssertEqual(lock.value as? String, "1")
 
         let accessory = app.buttons["FocusAccessory"]
         XCTAssertTrue(accessory.waitForExistence(timeout: 3))
