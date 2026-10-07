@@ -55,36 +55,122 @@ final class ThinkUITests: XCTestCase {
         XCTAssertTrue(app.descendants(matching: .any)["ProfileProgress"].waitForExistence(timeout: 2))
     }
 
+    /// Every control that lived in Profile's settings is in the one
+    /// Settings Form behind the gear, in the order of
+    /// `progress-settings.md` section 3, and Profile keeps none of them.
     @MainActor
-    func testProfileExposesPrivacyActions() throws {
+    func testSettingsGearOpensEveryControlInOrder() throws {
         let app = launchApp()
-
         app.tabBars.buttons.element(boundBy: 4).tap()
-        app.descendants(matching: .any)["ProfileSettings"].tap()
+        XCTAssertFalse(app.descendants(matching: .any)["ProfileSettings"].exists)
+        XCTAssertFalse(app.buttons["Export journal"].exists)
 
-        XCTAssertTrue(app.buttons["Export journal"].waitForExistence(timeout: 2))
-        XCTAssertTrue(app.buttons["Delete all data"].waitForExistence(timeout: 2))
+        openSettings(app)
 
-        app.buttons["Delete all data"].tap()
-        XCTAssertTrue(app.alerts["Delete all data?"].waitForExistence(timeout: 2))
-        app.alerts.buttons["Cancel"].tap()
+        let rows = [
+            "Appearance.system", "Appearance.light", "Appearance.dark",
+            "DailyLineReminder", "EveningRetroReminder",
+            "SilenceDistractions", "SessionEndAlerts", "HealthMindfulMinutes",
+            "CloudBackup",
+            "LockJournal", "ShowIntentionOnLockScreen",
+            "Export journal", "Delete all data",
+            "ShareIdea", "ReportProblem", "RateThink",
+            "HelpAndSupport", "PrivacyPolicy", "AppVersion",
+        ]
+        var previous: XCUIElement?
+        for identifier in rows {
+            let row = app.descendants(matching: .any).matching(identifier: identifier).firstMatch
+            reveal(row, in: app)
+            // Rows come down the Form in the brief's order.
+            if let previous, previous.exists {
+                XCTAssertLessThan(previous.frame.minY, row.frame.minY, identifier)
+            }
+            previous = row
+        }
     }
 
     @MainActor
-    func testProfileShowsCloudBackupStatus() throws {
+    func testSettingsKeepsDeleteConfirmationAndExportAuthentication() throws {
         let app = launchApp()
-
         app.tabBars.buttons.element(boundBy: 4).tap()
-        app.descendants(matching: .any)["ProfileSettings"].tap()
+        openSettings(app)
+
+        let delete = app.buttons["Delete all data"]
+        reveal(delete, in: app)
+        delete.tap()
+        XCTAssertTrue(app.alerts["Delete all data?"].waitForExistence(timeout: 2))
+        app.alerts.buttons["Cancel"].tap()
+
+        // UI tests have no device authentication, so export stops at the
+        // authentication step: no share sheet and no error alert.
+        let export = app.buttons["Export journal"]
+        reveal(export, in: app)
+        export.tap()
+        XCTAssertFalse(app.alerts["Export failed"].waitForExistence(timeout: 1))
+        XCTAssertTrue(app.navigationBars["Settings"].exists)
+    }
+
+    @MainActor
+    func testSettingsShowsCloudBackupStatusApartFromItsExplanation() throws {
+        let app = launchApp()
+        app.tabBars.buttons.element(boundBy: 4).tap()
+        openSettings(app)
 
         let row = app.descendants(matching: .any)["CloudBackup"]
-        XCTAssertTrue(row.waitForExistence(timeout: 2))
+        reveal(row, in: app)
         // UI tests run on a throwaway in-memory store, so the row must
-        // report the explicit off state and say entries stay on device.
+        // report the explicit off state.
         XCTAssertTrue(row.label.contains("iCloud sync"))
         XCTAssertTrue(row.label.contains("Off"))
-        XCTAssertTrue(row.label.contains("when available"))
         XCTAssertFalse(row.label.contains("On —"))
+        // The explanation is footer text, not part of the status (SET-8).
+        XCTAssertFalse(row.label.contains("when available"))
+        let footer = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "when available")).firstMatch
+        XCTAssertTrue(footer.exists)
+    }
+
+    @MainActor
+    func testSessionEndAlertsSwitchesOff() throws {
+        let app = launchApp()
+        app.tabBars.buttons.element(boundBy: 4).tap()
+        openSettings(app)
+
+        let alerts = app.switches["SessionEndAlerts"]
+        reveal(alerts, in: app)
+        XCTAssertEqual(alerts.value as? String, "1")
+        alerts.switches.firstMatch.tap()
+        XCTAssertEqual(alerts.value as? String, "0")
+    }
+
+    @MainActor
+    func testSilenceDistractionsGuideMovedFromFocusToSettings() throws {
+        let app = launchApp()
+        app.tabBars.buttons.element(boundBy: 2).tap()
+        XCTAssertTrue(app.descendants(matching: .any)["FocusTimer"].waitForExistence(timeout: 3))
+        XCTAssertFalse(app.buttons["Tip: silence distractions"].exists)
+
+        app.tabBars.buttons.element(boundBy: 4).tap()
+        openSettings(app)
+        let row = app.buttons["SilenceDistractions"]
+        reveal(row, in: app)
+        row.tap()
+        XCTAssertTrue(app.navigationBars["Silence distractions"].waitForExistence(timeout: 2))
+    }
+
+    @MainActor
+    private func openSettings(_ app: XCUIApplication) {
+        let gear = app.navigationBars.buttons["Settings"]
+        XCTAssertTrue(gear.waitForExistence(timeout: 3))
+        gear.tap()
+        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 3))
+    }
+
+    @MainActor
+    private func reveal(_ element: XCUIElement, in app: XCUIApplication) {
+        for _ in 0..<12 where !(element.exists && element.isHittable) {
+            app.swipeUp()
+        }
+        XCTAssertTrue(element.isHittable, element.identifier)
     }
 
     @MainActor
@@ -137,8 +223,9 @@ final class ThinkUITests: XCTestCase {
         field.typeText(note)
         app.buttons["SaveNewNote"].tap()
 
-        XCTAssertTrue(app.staticTexts[note].waitForExistence(timeout: 3))
-        app.staticTexts[note].tap()
+        let row = journalRow(app, containing: note)
+        XCTAssertTrue(row.waitForExistence(timeout: 3))
+        row.tap()
         XCTAssertTrue(app.buttons["EntryActions"].waitForExistence(timeout: 3))
         app.buttons["EntryActions"].tap()
         app.buttons["EditEntry"].tap()
@@ -214,7 +301,14 @@ final class ThinkUITests: XCTestCase {
         noteField.typeText(note)
         app.buttons["SaveNewNote"].tap()
 
-        XCTAssertTrue(app.staticTexts[note].waitForExistence(timeout: 3))
+        XCTAssertTrue(journalRow(app, containing: note).waitForExistence(timeout: 3))
+    }
+
+    /// A Journal row is one accessibility element whose label holds the
+    /// kind, the first sentence and the rest (`design/journal.md` section 4).
+    @MainActor
+    private func journalRow(_ app: XCUIApplication, containing text: String) -> XCUIElement {
+        app.buttons.matching(NSPredicate(format: "label CONTAINS %@", text)).firstMatch
     }
 
     @MainActor
