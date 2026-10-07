@@ -6,9 +6,8 @@
 import SwiftUI
 import SwiftData
 
-/// The five tabs of design-system section 13.8. The Journal tab shows the
-/// existing journal until the Journal list build replaces it; the fifth tab
-/// keeps Profile until the Progress build renames and replaces it.
+/// The five tabs of design-system section 13.8. The fifth tab keeps Profile
+/// until the Progress build renames and replaces it.
 struct RootTabView: View {
     @Environment(AppIntentRouter.self) private var appIntentRouter
 

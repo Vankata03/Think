@@ -37,9 +37,7 @@ final class VisualAuditUITests: XCTestCase {
         capture(app, "06 Focus controls")
         app.tabBars.buttons.element(boundBy: 4).tap()
         capture(app, "07 Your practice")
-        let settings = app.buttons["ProfileSettings"]
-        reveal(settings, in: app)
-        settings.tap()
+        app.navigationBars.buttons["Settings"].tap()
         capture(app, "08 Settings top")
         app.swipeUp()
         capture(app, "09 Settings lower")
@@ -55,7 +53,7 @@ final class VisualAuditUITests: XCTestCase {
         app.terminate()
         app.launch()
         app.tabBars.buttons["Journal"].tap()
-        let answer = app.staticTexts["PRIVATE AUDIT ANSWER"]
+        let answer = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "PRIVATE AUDIT ANSWER")).firstMatch
         reveal(answer, in: app)
         capture(app, "11 Journal")
         answer.tap()
@@ -111,6 +109,192 @@ final class VisualAuditUITests: XCTestCase {
             app.typeText((1...14).map { "Line \($0) of a long entry that keeps going" }.joined(separator: "\n"))
             capture(app, "Editor \(run.name) long entry")
             app.terminate()
+        }
+    }
+
+    /// Settings across the acceptance floor (`progress-settings.md`
+    /// section 6): both appearances, and AX3 in `en`, `bg` and `de`. The
+    /// gear is labelled "Settings", and the Form scrolls its last row,
+    /// About's version, fully above the tab bar.
+    @MainActor
+    func testCaptureSettings() throws {
+        continueAfterFailure = false
+        let runs: [(name: String, appearance: String, language: String, locale: String, ax3: Bool)] = [
+            ("dark en", "dark", "en", "en_US", false),
+            ("light en", "light", "en", "en_US", false),
+            ("dark en AX3", "dark", "en", "en_US", true),
+            ("light bg AX3", "light", "bg", "bg_BG", true),
+            ("dark de AX3", "dark", "de", "de_DE", true),
+        ]
+        for run in runs {
+            let app = XCUIApplication()
+            app.launchArguments = ["-ui-testing", "-appearance", run.appearance,
+                                   "-AppleLanguages", "(\(run.language))", "-AppleLocale", run.locale]
+            if run.ax3 { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXL"] }
+            app.launch()
+            app.tabBars.buttons.element(boundBy: 4).tap()
+            let gear = app.navigationBars.buttons["Settings"]
+            XCTAssertTrue(gear.waitForExistence(timeout: 3))
+            if run.language == "en" { XCTAssertEqual(gear.label, "Settings") }
+            gear.tap()
+            XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "DailyLineReminder").firstMatch.waitForExistence(timeout: 3))
+            capture(app, "Settings \(run.name) top")
+
+            let version = app.descendants(matching: .any).matching(identifier: "AppVersion").firstMatch
+            var swipes = 0
+            while !(version.exists && version.isHittable) && swipes < 30 {
+                app.swipeUp()
+                swipes += 1
+                if swipes % 3 == 0 { capture(app, "Settings \(run.name) scroll \(swipes / 3)") }
+            }
+            app.swipeUp()
+            XCTAssertTrue(version.isHittable)
+            XCTAssertLessThanOrEqual(version.frame.maxY, app.tabBars.firstMatch.frame.minY, "About sits above the tab bar")
+            capture(app, "Settings \(run.name) bottom")
+            app.terminate()
+        }
+    }
+
+    /// The Journal list across the acceptance floor (`design/journal.md`
+    /// section 13): both appearances, AX3, and `de` and `bg` on the filter
+    /// names and headers. Captures the timeline, the filter menu, a filter
+    /// with its active line, the Empty state and the Locked state, for the
+    /// comparison with `JRN-1`, `JRN-2` and `JRN-5` in the inventory.
+    @MainActor
+    func testCaptureJournalList() throws {
+        continueAfterFailure = false
+        let runs: [(name: String, appearance: String, language: String, locale: String, ax3: Bool, retros: String)] = [
+            ("dark en", "dark", "en", "en_GB", false, "Retros"),
+            ("light en", "light", "en", "en_GB", false, "Retros"),
+            ("dark de AX3", "dark", "de", "de_DE", true, "Rückblicke"),
+            ("light bg AX3", "light", "bg", "bg_BG", true, "Равносметки"),
+        ]
+        for run in runs {
+            var arguments = ["-ui-testing", "-appearance", run.appearance,
+                             "-AppleLanguages", "(\(run.language))", "-AppleLocale", run.locale]
+            if run.ax3 { arguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXL"] }
+
+            let app = XCUIApplication()
+            app.launchArguments = arguments + ["-ui-seed-journal-list"]
+            app.launch()
+            app.tabBars.buttons.element(boundBy: 3).tap()
+            let menu = app.buttons["JournalFilterMenu"]
+            XCTAssertTrue(menu.waitForExistence(timeout: 3))
+            XCTAssertTrue(app.buttons["RecoverDrafts"].exists)
+            let width = app.windows.firstMatch.frame.width
+            for row in app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'JournalRow.'")).allElementsBoundByIndex
+            where row.isHittable {
+                XCTAssertLessThanOrEqual(row.frame.maxX, width)
+            }
+            capture(app, "Journal \(run.name) timeline")
+            // The detail at the same size, for `JRN-5` and `JRN-6`.
+            // At AX3 a row's centre can sit under the tab bar; tap its top.
+            let firstRow = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'JournalRow.'")).firstMatch
+            firstRow.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.1)).tap()
+            XCTAssertTrue(app.descendants(matching: .any)["JournalEntryDetail"].waitForExistence(timeout: 3))
+            capture(app, "Journal \(run.name) detail")
+            app.swipeUp()
+            capture(app, "Journal \(run.name) detail scrolled")
+            // Reselecting the tab pops to the list in every language.
+            app.tabBars.buttons.element(boundBy: 3).tap()
+            XCTAssertTrue(menu.waitForExistence(timeout: 3) && menu.isHittable)
+            app.swipeUp()
+            capture(app, "Journal \(run.name) timeline scrolled")
+            app.swipeDown()
+            app.swipeDown()
+
+            menu.tap()
+            capture(app, "Journal \(run.name) filter menu")
+            app.buttons[run.retros].firstMatch.tap()
+            let line = app.descendants(matching: .any)["JournalActiveFilters"]
+            XCTAssertTrue(line.waitForExistence(timeout: 3))
+            XCTAssertLessThanOrEqual(app.buttons["JournalClearFilters"].frame.maxX, width)
+            XCTAssertFalse(app.buttons["RecoverDrafts"].exists)
+            capture(app, "Journal \(run.name) filtered")
+            if run.language == "en" {
+                // The No-match states of design-system section 8, with their lines.
+                app.buttons["JournalClearFilters"].tap()
+                menu.tap()
+                app.buttons["Theme"].firstMatch.tap()
+                app.buttons["Money"].firstMatch.tap()
+                XCTAssertTrue(app.staticTexts["No entries match."].waitForExistence(timeout: 3))
+                XCTAssertTrue(app.buttons["Clear filters"].exists)
+                capture(app, "Journal \(run.name) filter no match")
+                app.buttons["Clear filters"].tap()
+                let search = app.searchFields.firstMatch
+                search.tap()
+                search.typeText("zzqx")
+                let noResults = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "zzqx")).firstMatch
+                XCTAssertTrue(noResults.waitForExistence(timeout: 3))
+                capture(app, "Journal \(run.name) search no match")
+            }
+            app.terminate()
+
+            app.launchArguments = arguments
+            app.launch()
+            app.tabBars.buttons.element(boundBy: 3).tap()
+            XCTAssertTrue(app.descendants(matching: .any)["JournalEmpty"].waitForExistence(timeout: 3))
+            XCTAssertFalse(app.buttons["JournalFilterMenu"].exists)
+            if run.language == "en" {
+                XCTAssertTrue(app.staticTexts["Nothing written yet."].exists)
+                XCTAssertTrue(app.buttons["Write a note"].exists)
+            }
+            capture(app, "Journal \(run.name) empty")
+            app.terminate()
+
+            app.launchArguments = arguments + ["-ui-journal-locked", "-ui-auth-failure", "-ui-seed-journal-list"]
+            app.launch()
+            app.tabBars.buttons.element(boundBy: 3).tap()
+            XCTAssertTrue(app.buttons["UnlockJournal"].waitForExistence(timeout: 3))
+            capture(app, "Journal \(run.name) locked")
+            app.terminate()
+        }
+    }
+
+    /// Today across its acceptance floor (`today.md` section 7): both
+    /// appearances, `de` and `bg` arc captions at the default size, and the
+    /// linear arc and wrapping button at AX3. At the default size the arc,
+    /// the line and the next-act panel with its button sit above the fold.
+    @MainActor
+    func testCaptureToday() throws {
+        continueAfterFailure = false
+        let runs: [(name: String, appearance: String, language: String, locale: String, ax3: Bool)] = [
+            ("dark en", "dark", "en", "en_US", false),
+            ("light en", "light", "en", "en_US", false),
+            ("dark de", "dark", "de", "de_DE", false),
+            ("light bg", "light", "bg", "bg_BG", false),
+            ("dark de AX3", "dark", "de", "de_DE", true),
+            ("light bg AX3", "light", "bg", "bg_BG", true),
+        ]
+        for run in runs {
+            for hour in ["10.5", "20.5"] {
+                let app = XCUIApplication()
+                app.launchArguments = ["-ui-testing", "-ui-seed-answer", "-ui-today-hour", hour,
+                                       "-appearance", run.appearance,
+                                       "-AppleLanguages", "(\(run.language))", "-AppleLocale", run.locale]
+                if run.ax3 { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXL"] }
+                app.launch()
+                let button = app.buttons["MarkMoveDone"]
+                XCTAssertTrue(app.descendants(matching: .any)["TodayDayArc"].waitForExistence(timeout: 5))
+                if run.ax3 {
+                    capture(app, "Today \(run.name) \(hour) arc")
+                    for _ in 0..<8 where !button.isHittable { app.swipeUp() }
+                }
+                XCTAssertTrue(button.waitForExistence(timeout: 3))
+                if !run.ax3 {
+                    let fold = app.tabBars.firstMatch.frame.minY
+                    XCTAssertLessThanOrEqual(button.frame.maxY, fold, "Next-act button below the fold, \(run.name) at \(hour)")
+                }
+                capture(app, "Today \(run.name) \(hour) top")
+                if hour == "20.5" {
+                    button.tap()
+                    XCTAssertTrue(app.buttons["BeginRetro"].waitForExistence(timeout: 3))
+                    capture(app, "Today \(run.name) \(hour) retro")
+                    app.swipeUp()
+                    capture(app, "Today \(run.name) \(hour) acts")
+                }
+                app.terminate()
+            }
         }
     }
 

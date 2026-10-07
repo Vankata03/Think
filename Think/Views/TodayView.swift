@@ -4,8 +4,8 @@
 //
 
 import Combine
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 /// Today walks the person through the ritual (`design/today.md`): the day
 /// arc, the daily line, one panel for the act that is next, and a section
@@ -80,11 +80,12 @@ struct TodayView: View {
                         .padding(.horizontal, dynamicTypeSize.isAccessibilitySize ? ThinkSpacing.l : 0)
                         .listRowBackground(Color.clear)
                         .listRowInsets(EdgeInsets())
+                        .listRowSeparator(.hidden)
                         .accessibilityIdentifier("TodayDayArc")
                     dailyLine
                         .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
                 }
-                .listSectionSeparator(.hidden)
 
                 Section {
                     JournalStorageWarning()
@@ -110,6 +111,10 @@ struct TodayView: View {
                 }
             }
             .listStyle(.insetGrouped)
+            .labelStyle(TodayRowLabelStyle())
+            // Compact so the next act's button stays above the fold on a
+            // 6.1-inch phone with a long `de` move (today.md section 2).
+            .listSectionSpacing(.compact)
             .animation(stateAnimation, value: ritual)
             .navigationTitle("Today")
             .navigationBarTitleDisplayMode(.large)
@@ -165,6 +170,7 @@ struct TodayView: View {
             } label: {
                 Label("Saved lines", systemImage: ThinkSymbol.savedLine)
             }
+            .tint(ThinkColor.label)
             .accessibilityIdentifier("OpenSavedLines")
         }
         ToolbarSpacer(.fixed, placement: .topBarTrailing)
@@ -215,7 +221,8 @@ struct TodayView: View {
                 .foregroundStyle(ThinkColor.label)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("TodayDailyLine")
-            let layout = dynamicTypeSize.isAccessibilitySize
+            let layout =
+                dynamicTypeSize.isAccessibilitySize
                 ? AnyLayout(VStackLayout(alignment: .leading, spacing: rowSpacing))
                 : AnyLayout(HStackLayout(alignment: .center, spacing: rowSpacing))
             layout {
@@ -287,7 +294,11 @@ struct TodayView: View {
                     .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? .infinity : nil)
             }
             .thinkButton(.primary)
-            .controlSize(.large)
+            // At AX sizes the title alone fills the row and wraps between
+            // words; a capsule around wrapped text would balloon.
+            .labelStyle(.adaptiveTitleOnly(dynamicTypeSize.isAccessibilitySize))
+            .buttonBorderShape(dynamicTypeSize.isAccessibilitySize ? .roundedRectangle : .automatic)
+            .controlSize(dynamicTypeSize.isAccessibilitySize ? .regular : .large)
             .accessibilityIdentifier(buttonIdentifier(act))
         }
         .padding(.vertical, ThinkSpacing.xs)
@@ -527,8 +538,9 @@ struct TodayView: View {
 
     /// Captures today's context once and hands the answer to the editor.
     private func openAnswerEditor() {
-        let opened = JournalEditorOpening.answer(day: day, practiceID: practice.id, prompt: practice.question,
-                                                 locked: lock.isLocked, drafts: drafts)
+        let opened = JournalEditorOpening.answer(
+            day: day, practiceID: practice.id, prompt: practice.question,
+            locked: lock.isLocked, drafts: drafts)
         draftError = opened.notice
         editorNotice = opened.notice
         editorDraft = opened.draft
@@ -538,8 +550,9 @@ struct TodayView: View {
     /// read opens nothing.
     private func openRetroEditor() {
         do {
-            let opened = try JournalEditorOpening.retro(day: day, practiceID: practice.id, prompt: practice.question,
-                                                        locked: lock.isLocked, repository: repository, drafts: drafts)
+            let opened = try JournalEditorOpening.retro(
+                day: day, practiceID: practice.id, prompt: practice.question,
+                locked: lock.isLocked, repository: repository, drafts: drafts)
             retroError = nil
             editorNotice = opened.notice
             editorDraft = opened.draft
@@ -555,8 +568,9 @@ enum TodayClock {
     private static let pinnedHour: Double? = {
         let arguments = ProcessInfo.processInfo.arguments
         guard arguments.contains("-ui-testing"),
-              let index = arguments.firstIndex(of: "-ui-today-hour"),
-              arguments.indices.contains(index + 1) else { return nil }
+            let index = arguments.firstIndex(of: "-ui-today-hour"),
+            arguments.indices.contains(index + 1)
+        else { return nil }
         return Double(arguments[index + 1])
     }()
 
@@ -580,4 +594,41 @@ enum TodayClock {
         .environment(JournalRepository(modelContext: ModelContext(container), storage: .emergencyInMemory))
         .environment(JournalDraftStore(directory: FileManager.default.temporaryDirectory.appendingPathComponent("TodayPreviewDrafts", isDirectory: true)))
         .modelContainer(container)
+}
+
+/// Today's row labels: the system label at regular sizes; at accessibility
+/// sizes the symbol stacks above its text, so "Today's move · after the
+/// question" keeps the full row width and wraps between words
+/// (design-system 3.2).
+private struct TodayRowLabelStyle: LabelStyle {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    func makeBody(configuration: Configuration) -> some View {
+        if dynamicTypeSize.isAccessibilitySize {
+            VStack(alignment: .leading, spacing: ThinkSpacing.xs) {
+                configuration.icon
+                configuration.title
+            }
+        } else {
+            Label(configuration)
+        }
+    }
+}
+
+private struct AdaptiveTitleOnlyLabelStyle: LabelStyle {
+    var titleOnly: Bool
+
+    func makeBody(configuration: Configuration) -> some View {
+        if titleOnly {
+            configuration.title
+        } else {
+            Label(configuration)
+        }
+    }
+}
+
+extension LabelStyle where Self == AdaptiveTitleOnlyLabelStyle {
+    fileprivate static func adaptiveTitleOnly(_ titleOnly: Bool) -> AdaptiveTitleOnlyLabelStyle {
+        AdaptiveTitleOnlyLabelStyle(titleOnly: titleOnly)
+    }
 }

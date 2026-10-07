@@ -102,97 +102,6 @@ func existingEditingDraft(for recordID: UUID, in drafts: JournalDraftStore) thro
     try drafts.drafts().first { $0.context.editingRecordID == recordID }
 }
 
-// MARK: - Shared rows
-
-struct JournalMoodBadge: View {
-    let mood: Mood?
-    var body: some View {
-        if let mood {
-            Label(mood.label, systemImage: mood.systemImage)
-                .font(.caption)
-                .foregroundStyle(Color.accentColor)
-                .accessibilityLabel(mood.label)
-        }
-    }
-}
-
-struct JournalEntryRow: View {
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    let entry: JournalRepository.EntrySnapshot
-    var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            metadataLayout {
-                Text(entry.date.formatted(date: .abbreviated, time: .shortened))
-                Text(entry.kindLabel)
-                JournalMoodBadge(mood: Mood(stored: entry.mood))
-            }
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            if !entry.prompt.isEmpty {
-                Text(entry.prompt).font(.subheadline.weight(.medium)).foregroundStyle(.primary)
-            }
-            Text(entry.text)
-                .font(.body)
-                .foregroundStyle(entry.prompt.isEmpty ? .primary : .secondary)
-                .lineLimit(4)
-        }
-        .padding(.vertical, 4)
-        .accessibilityElement(children: .combine)
-    }
-    private var metadataLayout: AnyLayout {
-        dynamicTypeSize.isAccessibilitySize
-            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
-            : AnyLayout(HStackLayout(spacing: 6))
-    }
-}
-
-struct JournalRetroRow: View {
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    let retro: JournalRepository.RetroSnapshot
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            metadataLayout {
-                Text(retro.date.formatted(date: .abbreviated, time: .omitted))
-                Text("Retrospective")
-                JournalMoodBadge(mood: Mood(stored: retro.mood))
-            }
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            RetroFieldText("Went well", systemImage: "checkmark.circle", text: retro.wentWell, lineLimit: 2)
-            RetroFieldText("Improve", systemImage: "arrow.up.circle", text: retro.improve, lineLimit: 2)
-            RetroFieldText("Tomorrow", systemImage: "sunrise", text: retro.tomorrow, lineLimit: 2)
-            RetroFieldText("Intention", systemImage: "arrow.turn.down.right", text: retro.tomorrowIntention ?? "", lineLimit: 2)
-        }
-        .padding(.vertical, 4)
-        .accessibilityElement(children: .combine)
-    }
-    private var metadataLayout: AnyLayout {
-        dynamicTypeSize.isAccessibilitySize
-            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
-            : AnyLayout(HStackLayout(spacing: 6))
-    }
-}
-
-struct RetroFieldText: View {
-    let title: LocalizedStringKey
-    let systemImage: String
-    let text: String
-    var lineLimit: Int? = nil
-    init(_ title: LocalizedStringKey, systemImage: String, text: String, lineLimit: Int? = nil) {
-        self.title = title; self.systemImage = systemImage; self.text = text; self.lineLimit = lineLimit
-    }
-    var body: some View {
-        if !text.isEmpty {
-            VStack(alignment: .leading, spacing: 2) {
-                Label(title, systemImage: systemImage)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(Color.accentColor)
-                Text(text).font(.body).foregroundStyle(.primary).lineLimit(lineLimit)
-            }
-        }
-    }
-}
-
 // MARK: - Entry detail
 
 /// Authenticated reader for one stored entry. Nothing private renders
@@ -262,10 +171,12 @@ struct JournalEntryDetailView: View {
                 if let error {
                     Text(error).foregroundStyle(.red).accessibilityIdentifier("JournalDetailError")
                 }
-                LabeledContent("Date", value: entry.date.formatted(date: .long, time: .shortened))
-                LabeledContent("Day", value: entry.day.key)
+                // One caption line, no key (`JRN-6`, `design/journal.md` section 5).
+                Text(JournalTimeline.fullDate(entry.day))
+                    .font(.think(.caption))
+                    .foregroundStyle(ThinkColor.secondaryLabel)
                 if let mood = Mood(stored: entry.mood) {
-                    LabeledContent("Mood") { JournalMoodBadge(mood: mood) }
+                    LabeledContent("Mood") { Label(mood.label, systemImage: mood.systemImage) }
                 }
                 if let updated = entry.updatedAt {
                     LabeledContent("Edited", value: updated.formatted(date: .abbreviated, time: .shortened))
@@ -290,9 +201,9 @@ struct JournalEntryDetailView: View {
                 Section {
                     ForEach(variants) { variant in
                         if let id = variant.recordID {
-                            NavigationLink { JournalEntryDetailView(recordID: id) } label: { JournalEntryRow(entry: variant) }
+                            NavigationLink { JournalEntryDetailView(recordID: id) } label: { JournalRow(content: JournalRowContent(variant)) }
                         } else {
-                            JournalEntryRow(entry: variant)
+                            JournalRow(content: JournalRowContent(variant))
                         }
                     }
                 } header: {
@@ -361,6 +272,8 @@ struct JournalRetroDetailView: View {
     @Environment(JournalDraftStore.self) private var drafts
     @Environment(JournalLock.self) private var lock
     @Environment(\.dismiss) private var dismiss
+    @ThinkSpacing.Scaled(ThinkSpacing.m) private var fieldGap
+    @ThinkSpacing.Scaled(ThinkSpacing.xs) private var promptGap
     @State private var retro: JournalRepository.RetroSnapshot?
     @State private var variants: [JournalRepository.RetroSnapshot] = []
     @State private var editing: JournalDraft?
@@ -420,10 +333,12 @@ struct JournalRetroDetailView: View {
                 if let error {
                     Text(error).foregroundStyle(.red).accessibilityIdentifier("JournalDetailError")
                 }
-                LabeledContent("Date", value: retro.date.formatted(date: .long, time: .shortened))
-                LabeledContent("Day", value: retro.day.key)
+                // One caption line, no key (`JRN-6`, `design/journal.md` section 5).
+                Text(JournalTimeline.fullDate(retro.day))
+                    .font(.think(.caption))
+                    .foregroundStyle(ThinkColor.secondaryLabel)
                 if let mood = Mood(stored: retro.mood) {
-                    LabeledContent("Mood") { JournalMoodBadge(mood: mood) }
+                    LabeledContent("Mood") { Label(mood.label, systemImage: mood.systemImage) }
                 }
                 if let updated = retro.updatedAt {
                     LabeledContent("Edited", value: updated.formatted(date: .abbreviated, time: .shortened))
@@ -433,11 +348,11 @@ struct JournalRetroDetailView: View {
                 Section("Question that day") { Text(prompt).font(.body) }
             }
             Section {
-                VStack(alignment: .leading, spacing: 12) {
-                    RetroFieldText("What went well?", systemImage: "checkmark.circle", text: retro.wentWell)
-                    RetroFieldText("What can improve?", systemImage: "arrow.up.circle", text: retro.improve)
-                    RetroFieldText("Ideas & tomorrow", systemImage: "sunrise", text: retro.tomorrow)
-                    RetroFieldText("Intention carried into the next day", systemImage: "arrow.turn.down.right", text: retro.tomorrowIntention ?? "")
+                VStack(alignment: .leading, spacing: fieldGap) {
+                    retroField("What went well?", retro.wentWell)
+                    retroField("What can improve?", retro.improve)
+                    retroField("Ideas & tomorrow", retro.tomorrow)
+                    retroField("Intention carried into the next day", retro.tomorrowIntention ?? "")
                 }
                 .textSelection(.enabled)
                 .accessibilityIdentifier("JournalRetroText")
@@ -446,9 +361,9 @@ struct JournalRetroDetailView: View {
                 Section {
                     ForEach(variants) { variant in
                         if let id = variant.recordID {
-                            NavigationLink { JournalRetroDetailView(recordID: id) } label: { JournalRetroRow(retro: variant) }
+                            NavigationLink { JournalRetroDetailView(recordID: id) } label: { JournalRow(content: JournalRowContent(variant)) }
                         } else {
-                            JournalRetroRow(retro: variant)
+                            JournalRow(content: JournalRowContent(variant))
                         }
                     }
                 } header: {
@@ -456,6 +371,17 @@ struct JournalRetroDetailView: View {
                 } footer: {
                     Text("Both versions are kept. Open one to edit or delete it explicitly.")
                 }
+            }
+        }
+    }
+
+    /// A retro prompt over its answer (`design/journal.md` section 5).
+    @ViewBuilder
+    private func retroField(_ prompt: LocalizedStringKey, _ text: String) -> some View {
+        if !text.isEmpty {
+            VStack(alignment: .leading, spacing: promptGap) {
+                Text(prompt).font(.think(.secondary)).fontWeight(.semibold).foregroundStyle(ThinkColor.secondaryLabel)
+                Text(text).font(.think(.body)).foregroundStyle(ThinkColor.label)
             }
         }
     }
@@ -529,17 +455,17 @@ struct JournalDayVariantsView: View {
                         case .answers(let entries):
                             ForEach(entries) { entry in
                                 if let id = entry.recordID {
-                                    NavigationLink { JournalEntryDetailView(recordID: id) } label: { JournalEntryRow(entry: entry) }
+                                    NavigationLink { JournalEntryDetailView(recordID: id) } label: { JournalRow(content: JournalRowContent(entry)) }
                                 } else {
-                                    JournalEntryRow(entry: entry)
+                                    JournalRow(content: JournalRowContent(entry))
                                 }
                             }
                         case .retros(let retros):
                             ForEach(retros) { retro in
                                 if let id = retro.recordID {
-                                    NavigationLink { JournalRetroDetailView(recordID: id) } label: { JournalRetroRow(retro: retro) }
+                                    NavigationLink { JournalRetroDetailView(recordID: id) } label: { JournalRow(content: JournalRowContent(retro)) }
                                 } else {
-                                    JournalRetroRow(retro: retro)
+                                    JournalRow(content: JournalRowContent(retro))
                                 }
                             }
                         }

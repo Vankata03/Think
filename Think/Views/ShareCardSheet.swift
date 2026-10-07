@@ -113,9 +113,11 @@ struct ShareCardSheet: View {
             Label("Share", systemImage: ThinkSymbol.share)
         }
         .thinkButton(.primary)
-        .simultaneousGesture(TapGesture().onEnded {
-            haptics.play(.selection)
-        })
+        .simultaneousGesture(
+            TapGesture().onEnded {
+                haptics.play(.selection)
+            }
+        )
         .accessibilityIdentifier("ShareCardShare")
     }
 

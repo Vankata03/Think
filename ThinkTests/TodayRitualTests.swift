@@ -4,6 +4,7 @@
 //
 
 import Testing
+
 @testable import Think
 
 /// Walks one day through the ritual as Today shows it (today.md sections 2

@@ -27,7 +27,8 @@ final class TodayUITests: XCTestCase {
         XCTAssertTrue(arc.label.contains("2 of 3"))
         XCTAssertEqual(app.buttons["TodayStreak"].label, "1 day streak")
 
-        let moveRow = app.descendants(matching: .any)["Act.move.done"]
+        let moveRow = app.cells.containing(.any, identifier: "Act.move.done").firstMatch
+        XCTAssertTrue(moveRow.waitForExistence(timeout: 3), app.debugDescription)
         reveal(moveRow, in: app)
         moveRow.swipeLeft()
         app.buttons["UndoMove"].tap()
