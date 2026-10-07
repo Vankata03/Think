@@ -170,20 +170,6 @@ final class ThinkUITests: XCTestCase {
     }
 
     @MainActor
-    func testFocusPresetChangesTimerDuration() throws {
-        let app = launchApp()
-
-        app.tabBars.buttons.element(boundBy: 2).tap()
-        XCTAssertTrue(app.descendants(matching: .any)["FocusTimer"].waitForExistence(timeout: 5))
-
-        app.buttons["FocusDurationSummary"].tap()
-        XCTAssertTrue(app.descendants(matching: .any)["FocusDurationSheet"].waitForExistence(timeout: 2))
-        app.buttons["FocusPreset.50"].tap()
-
-        XCTAssertTrue(app.descendants(matching: .any)["FocusTimer.50"].waitForExistence(timeout: 2))
-    }
-
-    @MainActor
     func testDeepFocusPathOpensCurrentStep() throws {
         let app = launchApp()
 

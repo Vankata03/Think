@@ -327,6 +327,29 @@ final class PomodoroTimer {
             && remainingSeconds == phaseTotalSeconds
     }
 
+    /// Work done in the session in flight, pauses excluded. Zero outside a
+    /// work phase.
+    var workSecondsDone: Double {
+        guard phase == .work, currentSessionID != nil, let accumulated = accumulatedActiveSeconds else { return 0 }
+        guard let start = activeSegmentStart else { return accumulated }
+        let finish = min(now(), endDate ?? now())
+        return accumulated + max(0, finish.timeIntervalSince(start))
+    }
+
+    /// End asks before ending only once a minute of work would be recorded
+    /// as partial effort; before that it ends at once (focus.md section 5).
+    var endAsksFirst: Bool {
+        workSecondsDone >= 60
+    }
+
+    /// The work minutes of the session that just finished, while its break
+    /// runs: the Focus stage's "Session done · *n* min". `nil` in work, and
+    /// in a break reached by skipping, which never counts the session.
+    var sessionDoneMinutes: Int? {
+        guard phase == .rest, let record = lastSessionRecord, record.isCompleted else { return nil }
+        return record.durationMinutes
+    }
+
     /// The duration the Focus wheel shows while idle, and what Start runs.
     var wheelPreset: Preset {
         .wheel(workMinutes: preset.workMinutes, restMinutes: preset.restMinutes)
