@@ -22,7 +22,9 @@ struct PathDetailView: View {
                     } icon: {
                         Image(systemName: ThinkSymbol.lock)
                     }
-                    .accessibilityIdentifier("PathLocked")
+                    // On the line, not the screen: an outer identifier would
+                    // replace the button's own.
+                    .accessibilityIdentifier("PathDetail.\(path.id)")
                 } actions: {
                     Button {
                         stack = [.path(previous.id)]
@@ -34,11 +36,11 @@ struct PathDetailView: View {
                 }
             } else {
                 PathDetailList(detail: detail, stack: $stack)
+                    .accessibilityIdentifier("PathDetail.\(path.id)")
             }
         }
         .navigationTitle(path.name)
         .navigationBarTitleDisplayMode(.inline)
-        .accessibilityIdentifier("PathDetail.\(path.id)")
     }
 }
 
@@ -111,7 +113,13 @@ private struct PathDetailList: View {
                         },
                         onSelect: { stack.append(.step(path: path.id, number: $0)) }
                     )
-                    .padding(.vertical, ThinkSpacing.s)
+                    // Narrow side insets keep seven 44pt targets on a 375pt
+                    // screen (paths.md section 12).
+                    .listRowInsets(
+                        EdgeInsets(
+                            top: ThinkSpacing.s, leading: ThinkSpacing.s, bottom: ThinkSpacing.s,
+                            trailing: ThinkSpacing.s)
+                    )
                     .listRowSeparator(.hidden)
                 }
             } header: {
@@ -142,18 +150,13 @@ private struct PathDetailList: View {
 
     /// Static: no chevron, no tap. Same-day trailing swipe undoes it.
     private func doneRow(_ number: Int, canUndo: Bool) -> some View {
-        Label {
-            VStack(alignment: .leading, spacing: ThinkSpacing.xs) {
-                Text("Step \(number) done", comment: "Paths hero after today's step is done.")
-                if let step = step(number) {
-                    Text(step.title)
-                        .font(.think(.secondary))
-                        .foregroundStyle(ThinkColor.secondaryLabel)
-                }
-            }
-        } icon: {
+        StatusRow {
             Image(systemName: ThinkSymbol.done)
                 .foregroundStyle(ThinkColor.success)
+        } title: {
+            Text("Step \(number) done", comment: "Paths hero after today's step is done.")
+        } detail: {
+            Text(step(number)?.title ?? "")
         }
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("PathDoneRow")
@@ -171,17 +174,26 @@ private struct PathDetailList: View {
     }
 
     private func nextRow(_ step: PathStep, number: Int, tomorrow: Bool) -> some View {
-        Label {
-            VStack(alignment: .leading, spacing: ThinkSpacing.xs) {
-                Text("Step \(number) · \(step.title)", comment: "Path detail: the next step's number and title.")
-                Text(detail.opening(tomorrow: tomorrow))
-                    .font(.think(.secondary))
-                    .foregroundStyle(ThinkColor.secondaryLabel)
-            }
-        } icon: {
+        StatusRow {
             Image(systemName: ThinkSymbol.lock)
                 .foregroundStyle(ThinkColor.secondaryLabel)
+        } title: {
+            Text("Step \(number) · \(step.title)", comment: "Path detail: the next step's number and title.")
+        } detail: {
+            Text(detail.opening(tomorrow: tomorrow))
         }
+    }
+
+    /// "Completed n times · last on date", or just the count when the run is undated.
+    /// Two strings, so the count keeps its plural rule from the list row.
+    private func completedLine(times: Int, lastOn: Date?) -> String {
+        let count = String(
+            localized: "Completed \(times) times", comment: "Paths list row: how many runs of a finished path are done.")
+        guard let lastOn else { return count }
+        let last = String(
+            localized: "last on \(lastOn.formatted(date: .abbreviated, time: .omitted))",
+            comment: "Path detail, finished: the date the last run was finished, after the run count.")
+        return "\(count) · \(last)"
     }
 
     /// The Begin-again state as a section above the trail (paths.md section 5.4).
@@ -195,17 +207,9 @@ private struct PathDetailList: View {
                 Image(systemName: path.icon)
                     .foregroundStyle(ThinkColor.secondaryLabel)
             }
-            Group {
-                if let lastOn {
-                    Text(
-                        "Completed \(times) times · last on \(lastOn.formatted(date: .abbreviated, time: .omitted))",
-                        comment: "Path detail, finished: finished runs and the date of the last one.")
-                } else {
-                    Text("Completed \(times) times", comment: "Paths list row: how many runs of a finished path are done.")
-                }
-            }
-            .font(.think(.secondary))
-            .foregroundStyle(ThinkColor.secondaryLabel)
+            Text(verbatim: completedLine(times: times, lastOn: lastOn))
+                .font(.think(.secondary))
+                .foregroundStyle(ThinkColor.secondaryLabel)
             if let continuation = path.continuation {
                 Text(continuation)
                     .font(.think(.secondary))
@@ -225,6 +229,28 @@ private struct PathDetailList: View {
             .accessibilityIdentifier("BeginAgain")
         }
         .padding(.vertical, ThinkSpacing.s)
+    }
+}
+
+/// A symbol on the title's first baseline with a secondary line under the
+/// title, so both lines share one leading edge at every text size.
+private struct StatusRow<Icon: View, Title: View, Detail: View>: View {
+    @ViewBuilder var icon: Icon
+    @ViewBuilder var title: Title
+    @ViewBuilder var detail: Detail
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: ThinkSpacing.m) {
+            icon
+            VStack(alignment: .leading, spacing: ThinkSpacing.xs) {
+                title
+                    .fixedSize(horizontal: false, vertical: true)
+                detail
+                    .font(.think(.secondary))
+                    .foregroundStyle(ThinkColor.secondaryLabel)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
     }
 }
 

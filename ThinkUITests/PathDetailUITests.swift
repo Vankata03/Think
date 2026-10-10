@@ -93,7 +93,7 @@ final class PathDetailUITests: XCTestCase {
     }
 
     @MainActor
-    func testFocusForTheStepLandsOnFocusWithTheIntentionSet() throws {
+    func testFocusForTheStepLandsOnFocusWithTheWheelAndIntentionSet() throws {
         let app = openDeepFocus(launch([]))
         let focus = app.buttons["FocusForStep"]
         XCTAssertTrue(focus.waitForExistence(timeout: 5))
@@ -103,12 +103,60 @@ final class PathDetailUITests: XCTestCase {
 
         XCTAssertTrue(app.descendants(matching: .any)["FocusTimer"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.tabBars.buttons["Focus"].isSelected)
-        let intention = app.textFields["FocusIntention"]
-        XCTAssertTrue(intention.waitForExistence(timeout: 3))
-        XCTAssertEqual(intention.value as? String, "Notice the pull")
+        XCTAssertEqual(app.pickerWheels.element(boundBy: 0).value as? String, "10 minutes")
+        XCTAssertEqual(app.descendants(matching: .any).matching(identifier: "FocusIntention").firstMatch.value as? String, "Notice the pull")
+        // No timer running: End only shows during a session.
+        XCTAssertFalse(app.buttons["FocusEnd"].exists)
     }
 
     @MainActor
+    func testFocusForTheStepOnlySwitchesTabsWhileASessionRuns() throws {
+        let app = launch([])
+        app.tabBars.buttons.element(boundBy: 2).tap()
+        let field = app.descendants(matching: .any).matching(identifier: "FocusIntention").firstMatch
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        field.tap()
+        field.typeText("Write the brief\n")
+        app.buttons["FocusPrimary"].tap()
+        XCTAssertTrue(app.buttons["FocusEnd"].waitForExistence(timeout: 3))
+
+        openDeepFocus(app).buttons["FocusForStep"].tap()
+
+        XCTAssertTrue(app.buttons["FocusEnd"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.tabBars.buttons["Focus"].isSelected)
+        XCTAssertEqual(app.staticTexts["FocusIntentionText"].label, "Write the brief")
+    }
+
+    /// paths.md section 12: every disc keeps a 44pt target at the largest
+    /// non-accessibility size. Run on the narrowest iPhone (375pt) too.
+    @MainActor
+    func testTrailDiscsKeepTheirTargetsAtTheLargestTextSize() throws {
+        let app = openDeepFocus(
+            launch(["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryXXXL"]))
+        let width = app.windows.firstMatch.frame.width
+        var frames: [CGRect] = []
+        for number in 1...21 {
+            let disc = app.buttons["StepDisc.\(number)"]
+            if number == 1 || number == 15 {
+                for _ in 0..<4 where !disc.isHittable { app.swipeUp() }
+            }
+            XCTAssertTrue(disc.exists)
+            XCTAssertGreaterThanOrEqual(disc.frame.width, 44, "disc \(number)")
+            XCTAssertGreaterThanOrEqual(disc.frame.height, 44, "disc \(number)")
+            XCTAssertLessThanOrEqual(disc.frame.maxX, width)
+            frames.append(disc.frame)
+        }
+        // Neighbouring targets in a row never overlap.
+        for row in 0..<3 {
+            let discs = frames[(row * 7)..<(row * 7 + 7)].sorted { $0.minX < $1.minX }
+            for (a, b) in zip(discs, discs.dropFirst()) {
+                XCTAssertLessThanOrEqual(a.maxX, b.minX + 0.5)
+            }
+        }
+    }
+
+    @MainActor
+    @discardableResult
     private func openDeepFocus(_ app: XCUIApplication) -> XCUIApplication {
         app.tabBars.buttons.element(boundBy: 1).tap()
         let hero = app.buttons["PathsHero"]

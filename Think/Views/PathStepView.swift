@@ -26,9 +26,10 @@ struct PathStepView: View {
                             .accessibilityAddTraits(.isHeader)
                         Text(
                             "Step \(number) of \(path.steps.count) · \(path.name)",
-                            comment: "Path step page: the step's place in the run and the path's name.")
-                            .font(.think(.secondary))
-                            .foregroundStyle(ThinkColor.secondaryLabel)
+                            comment: "Path step page: the step's place in the run and the path's name."
+                        )
+                        .font(.think(.secondary))
+                        .foregroundStyle(ThinkColor.secondaryLabel)
                     }
                     .listRowBackground(Color.clear)
                     .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
@@ -55,7 +56,9 @@ struct PathStepView: View {
                     waiting(
                         tomorrow
                             ? String(localized: "Opens tomorrow at \(detail.openingTime()).", comment: "Path step page: a step that opens tomorrow. The argument is 06:00 in the locale's time format.")
-                            : String(localized: "Opens today at \(detail.openingTime()).", comment: "Path step page: a step that opens before 06:00 today. The argument is 06:00 in the locale's time format."))
+                            : String(
+                                localized: "Opens today at \(detail.openingTime()).",
+                                comment: "Path step page: a step that opens before 06:00 today. The argument is 06:00 in the locale's time format."))
                 case .opensAfter(let previous):
                     waiting(
                         String(

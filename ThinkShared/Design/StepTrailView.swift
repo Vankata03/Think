@@ -81,7 +81,11 @@ struct StepTrailView: View {
                 .stroke(ThinkColor.track, style: StrokeStyle(lineWidth: 3, lineCap: .round))
                 .flipsForRightToLeftLayoutDirection(true)
         }
-        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
+        .onGeometryChange(for: CGFloat.self) {
+            $0.size.width
+        } action: {
+            width = $0
+        }
         .accessibilityElement(children: .contain)
     }
 

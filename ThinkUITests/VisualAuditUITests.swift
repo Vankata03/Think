@@ -403,6 +403,64 @@ final class VisualAuditUITests: XCTestCase {
         }
     }
 
+    /// Path detail across the acceptance floor (`paths.md` section 11):
+    /// both appearances, the done and finished states, and `de` and `bg` at
+    /// AX3 on "Complete step" and "Opens tomorrow at 06:00", where the
+    /// trail turns into one row per step.
+    @MainActor
+    func testCapturePathDetail() throws {
+        continueAfterFailure = false
+        let runs: [(name: String, appearance: String, language: String, locale: String, ax3: Bool, seed: String?)] = [
+            ("dark en", "dark", "en", "en_GB", false, nil),
+            ("light en", "light", "en", "en_US", false, nil),
+            ("dark en done", "dark", "en", "en_GB", false, "-ui-seed-path-step"),
+            ("light en finished", "light", "en", "en_GB", false, "-ui-seed-path-finished"),
+            ("dark de AX3", "dark", "de", "de_DE", true, nil),
+            ("light bg AX3", "light", "bg", "bg_BG", true, nil),
+            ("dark de AX3 done", "dark", "de", "de_DE", true, "-ui-seed-path-step"),
+            ("light bg AX3 done", "light", "bg", "bg_BG", true, "-ui-seed-path-step"),
+        ]
+        for run in runs {
+            let app = XCUIApplication()
+            app.launchArguments = ["-ui-testing", "-appearance", run.appearance,
+                                   "-AppleLanguages", "(\(run.language))", "-AppleLocale", run.locale]
+            if run.ax3 { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXL"] }
+            if let seed = run.seed { app.launchArguments.append(seed) }
+            app.launch()
+            app.tabBars.buttons.element(boundBy: 1).tap()
+            let finished = run.seed == "-ui-seed-path-finished"
+            let entry = finished ? app.buttons["Path.deep-focus"] : app.buttons["PathsHero"]
+            XCTAssertTrue(entry.waitForExistence(timeout: 5))
+            entry.tap()
+            XCTAssertTrue(app.descendants(matching: .any)["PathDetail.deep-focus"].waitForExistence(timeout: 5))
+            let width = app.windows.firstMatch.frame.width
+            capture(app, "Path detail \(run.name) top")
+
+            let action: XCUIElement =
+                switch run.seed {
+                case "-ui-seed-path-step": app.buttons["PathNextRow"]
+                case "-ui-seed-path-finished": app.buttons["BeginAgain"]
+                default: app.buttons["CompleteStep"]
+                }
+            XCTAssertTrue(action.waitForExistence(timeout: 3))
+            reveal(action, in: app)
+            XCTAssertLessThanOrEqual(action.frame.maxX, width)
+            XCTAssertGreaterThanOrEqual(action.frame.minX, 0)
+            capture(app, "Path detail \(run.name) action")
+
+            let firstStep = run.ax3 ? app.buttons["PathStepRow.1"] : app.buttons["StepDisc.1"]
+            reveal(firstStep, in: app)
+            XCTAssertFalse(app.buttons[run.ax3 ? "StepDisc.1" : "PathStepRow.1"].exists)
+            if !run.ax3 {
+                // Every disc keeps a 44pt target (paths.md section 12).
+                XCTAssertGreaterThanOrEqual(firstStep.frame.width, 44)
+                XCTAssertGreaterThanOrEqual(firstStep.frame.height, 44)
+            }
+            capture(app, "Path detail \(run.name) steps")
+            app.terminate()
+        }
+    }
+
     @MainActor
     private func reveal(_ element: XCUIElement, in app: XCUIApplication) {
         for _ in 0..<6 {
