@@ -152,6 +152,16 @@ struct ThinkApp: App {
             // Today's Deep focus step done, so the Paths hero shows its done form.
             progressStore.completePathStep(pathID: PathLibrary.deepFocus.id, totalSteps: PathLibrary.deepFocus.steps.count)
         }
+        if isUITesting && arguments.contains("-ui-seed-path-finished") {
+            // Deep focus finished on earlier days, so its detail offers Begin again.
+            let calendar = Calendar.current
+            let path = PathLibrary.deepFocus
+            let start = calendar.date(byAdding: .day, value: -30, to: calendar.startOfDay(for: .now))!
+            for day in path.steps.indices {
+                let date = calendar.date(byAdding: DateComponents(day: day, hour: 9), to: start)!
+                progressStore.completePathStep(pathID: path.id, totalSteps: path.steps.count, at: date)
+            }
+        }
         if isUITesting && arguments.contains("-ui-seed-focus") {
             let sessionID = "audit-focus-session"
             progressStore.recordFocusSession(durationMinutes: 25, eventID: sessionID, actualActiveSeconds: 1500)

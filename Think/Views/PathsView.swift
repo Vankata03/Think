@@ -1,19 +1,26 @@
 import SwiftUI
 
+/// A screen on the Paths tab's stack: a path's detail or one of its steps.
+enum PathsRoute: Hashable {
+    case path(String)
+    case step(path: String, number: Int)
+}
+
 /// The Paths tab (design/paths.md section 4): today's step as the hero, then
 /// one row per available path. `PathsList` decides what shows.
 struct PathsView: View {
     @Environment(ProgressStore.self) private var progress
+    @State private var stack: [PathsRoute] = []
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $stack) {
             // The next step opens at 06:00; re-read the list as the clock moves.
             TimelineView(.everyMinute) { context in
                 let list = PathsList(progress: progress, now: context.date)
                 List {
                     if let hero = list.hero {
                         Section {
-                            NavigationLink(value: hero.path.id) {
+                            NavigationLink(value: PathsRoute.path(hero.path.id)) {
                                 PathsHero(hero: hero)
                             }
                             .accessibilityLabel(hero.accessibilityLabel())
@@ -23,7 +30,7 @@ struct PathsView: View {
                     }
                     Section {
                         ForEach(list.rows) { row in
-                            NavigationLink(value: row.path.id) {
+                            NavigationLink(value: PathsRoute.path(row.path.id)) {
                                 PathRow(row: row)
                             }
                             .accessibilityIdentifier("Path.\(row.path.id)")
@@ -40,9 +47,16 @@ struct PathsView: View {
                 }
             }
             .navigationTitle("Paths")
-            .navigationDestination(for: String.self) { id in
-                if let path = PathLibrary.all.first(where: { $0.id == id }) {
-                    PathDetailView(path: path)
+            .navigationDestination(for: PathsRoute.self) { route in
+                switch route {
+                case .path(let id):
+                    if let path = PathLibrary.all.first(where: { $0.id == id }) {
+                        PathDetailView(path: path, stack: $stack)
+                    }
+                case .step(let id, let number):
+                    if let path = PathLibrary.all.first(where: { $0.id == id }) {
+                        PathStepView(path: path, number: number)
+                    }
                 }
             }
         }
