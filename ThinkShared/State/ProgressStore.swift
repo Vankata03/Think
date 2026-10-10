@@ -233,6 +233,9 @@ final class ProgressStore {
 
     /// Same rule as `displayedStreak`, computed straight from stored
     /// defaults so widget timeline providers can read it off the main actor.
+    /// The defaults key whose presence means a day was ever practised.
+    nonisolated static let lastCompletedDayKey = Key.lastCompletedDay
+
     nonisolated static func storedDisplayedStreak(
         in defaults: UserDefaults,
         calendar: Calendar = .current,

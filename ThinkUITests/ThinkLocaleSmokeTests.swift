@@ -54,16 +54,16 @@ final class ThinkLocaleSmokeTests: XCTestCase {
         app.launch()
 
         XCTAssertTrue(
-            app.descendants(matching: .any)["QuestionOfTheDayCard"].waitForExistence(timeout: 5),
-            "Question card did not load for \(language)"
+            app.descendants(matching: .any)["NextActPanel"].waitForExistence(timeout: 5),
+            "Next-act panel did not load for \(language)"
         )
         XCTAssertTrue(
             app.buttons["ShareQuote"].waitForExistence(timeout: 2),
             "Share action did not load for \(language)"
         )
         XCTAssertTrue(
-            app.descendants(matching: .any)["ActivityLog"].waitForExistence(timeout: 2),
-            "Training log did not load for \(language)"
+            app.descendants(matching: .any)["TodayDayArc"].waitForExistence(timeout: 2),
+            "Day arc did not load for \(language)"
         )
 
         app.terminate()

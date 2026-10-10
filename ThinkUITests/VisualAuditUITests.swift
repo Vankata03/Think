@@ -22,10 +22,10 @@ final class VisualAuditUITests: XCTestCase {
             app.launchArguments += ["-AppleLanguages", "(\(language))", "-AppleLocale", "de_DE"]
         }
         app.launch()
-        XCTAssertTrue(app.buttons["OpenJournal"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any)["TodayDayArc"].waitForExistence(timeout: 5))
         capture(app, "01 Today top")
         app.swipeUp()
-        capture(app, "02 Today activities")
+        capture(app, "02 Today acts")
         app.tabBars.buttons.element(boundBy: 1).tap()
         capture(app, "03 Paths")
         app.buttons["Path.deep-focus"].tap()
@@ -52,7 +52,7 @@ final class VisualAuditUITests: XCTestCase {
 
         app.terminate()
         app.launch()
-        app.buttons["OpenJournal"].tap()
+        app.tabBars.buttons["Journal"].tap()
         let answer = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "PRIVATE AUDIT ANSWER")).firstMatch
         reveal(answer, in: app)
         capture(app, "11 Journal")
@@ -248,6 +248,53 @@ final class VisualAuditUITests: XCTestCase {
             XCTAssertTrue(app.buttons["UnlockJournal"].waitForExistence(timeout: 3))
             capture(app, "Journal \(run.name) locked")
             app.terminate()
+        }
+    }
+
+    /// Today across its acceptance floor (`today.md` section 7): both
+    /// appearances, `de` and `bg` arc captions at the default size, and the
+    /// linear arc and wrapping button at AX3. At the default size the arc,
+    /// the line and the next-act panel with its button sit above the fold.
+    @MainActor
+    func testCaptureToday() throws {
+        continueAfterFailure = false
+        let runs: [(name: String, appearance: String, language: String, locale: String, ax3: Bool)] = [
+            ("dark en", "dark", "en", "en_US", false),
+            ("light en", "light", "en", "en_US", false),
+            ("dark de", "dark", "de", "de_DE", false),
+            ("light bg", "light", "bg", "bg_BG", false),
+            ("dark de AX3", "dark", "de", "de_DE", true),
+            ("light bg AX3", "light", "bg", "bg_BG", true),
+        ]
+        for run in runs {
+            for hour in ["10.5", "20.5"] {
+                let app = XCUIApplication()
+                app.launchArguments = ["-ui-testing", "-ui-seed-answer", "-ui-today-hour", hour,
+                                       "-appearance", run.appearance,
+                                       "-AppleLanguages", "(\(run.language))", "-AppleLocale", run.locale]
+                if run.ax3 { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXL"] }
+                app.launch()
+                let button = app.buttons["MarkMoveDone"]
+                XCTAssertTrue(app.descendants(matching: .any)["TodayDayArc"].waitForExistence(timeout: 5))
+                if run.ax3 {
+                    capture(app, "Today \(run.name) \(hour) arc")
+                    for _ in 0..<8 where !button.isHittable { app.swipeUp() }
+                }
+                XCTAssertTrue(button.waitForExistence(timeout: 3))
+                if !run.ax3 {
+                    let fold = app.tabBars.firstMatch.frame.minY
+                    XCTAssertLessThanOrEqual(button.frame.maxY, fold, "Next-act button below the fold, \(run.name) at \(hour)")
+                }
+                capture(app, "Today \(run.name) \(hour) top")
+                if hour == "20.5" {
+                    button.tap()
+                    XCTAssertTrue(app.buttons["BeginRetro"].waitForExistence(timeout: 3))
+                    capture(app, "Today \(run.name) \(hour) retro")
+                    app.swipeUp()
+                    capture(app, "Today \(run.name) \(hour) acts")
+                }
+                app.terminate()
+            }
         }
     }
 
