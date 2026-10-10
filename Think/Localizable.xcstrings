@@ -6259,7 +6259,8 @@
             "value" : "Dia %1$lld de %2$lld"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Day 1 · %@" : {
       "localizations" : {
@@ -6431,8 +6432,8 @@
         },
         "de" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Deep Work"
+            "state" : "needs_review",
+            "value" : "Konzentrierte Arbeit"
           }
         },
         "es" : {
@@ -7138,7 +7139,8 @@
             "value" : "Dica de concentração"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Focus duration" : {
       "localizations" : {
@@ -7178,7 +7180,8 @@
             "value" : "Duração do foco"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Focus minutes" : {
       "extractionState" : "stale",
@@ -9307,7 +9310,8 @@
             "value" : "Predefinições"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Previous month" : {
       "localizations" : {
@@ -9836,7 +9840,8 @@
             "value" : "Quando quiser"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Report a problem" : {
       "localizations" : {
@@ -10370,7 +10375,8 @@
             "value" : "Duração da sessão"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Session in progress" : {
       "localizations" : {
@@ -10410,7 +10416,8 @@
             "value" : "Sessão em andamento"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Sessions" : {
       "localizations" : {
@@ -10995,14 +11002,14 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pasa a la parte práctica"
+            "state" : "needs_review",
+            "value" : "Saltar al trabajo"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Passe directement au travail"
+            "state" : "needs_review",
+            "value" : "Passer au travail"
           }
         },
         "it" : {
@@ -13558,7 +13565,8 @@
             "value" : "Limpar intenção"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Reuse intention: %@" : {
       "localizations" : {
@@ -13638,7 +13646,8 @@
             "value" : "Como foi?"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "After the session" : {
       "localizations" : {
@@ -13678,7 +13687,8 @@
             "value" : "Depois da sessão"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "This removes journal entries, retrospectives, saved lines, streaks, achievements, and focus history from this device. Journal entries and retrospectives are also removed from your iCloud backup and any device signed into it; saved lines, streaks, achievements, and focus history are on this device only. Mindful minutes already saved to Health stay in Health and can be deleted there. This cannot be undone." : {
       "extractionState" : "stale",
@@ -14461,7 +14471,8 @@
             "value" : "Esforço ativo"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Actual duration unknown" : {
       "localizations" : {
@@ -14553,7 +14564,8 @@
             "value" : "A duração real desta sessão não foi registrada."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "All" : {
       "localizations" : {
@@ -15155,7 +15167,8 @@
             "value" : "Mudei de direção"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Choose a practice. Each lesson includes its time and a smaller option." : {
       "extractionState" : "stale",
@@ -17139,7 +17152,8 @@
             "value" : "Energia"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Entry" : {
       "localizations" : {
@@ -17741,7 +17755,8 @@
             "value" : "Alta"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "History covers the last 365 days. All-time totals are retained. Older actual durations are unknown." : {
       "localizations" : {
@@ -17926,7 +17941,8 @@
             "value" : "Em desenvolvimento"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Intention" : {
       "localizations" : {
@@ -17972,7 +17988,8 @@
             "value" : "Intenção"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Intention carried into the next day" : {
       "localizations" : {
@@ -18898,7 +18915,8 @@
             "value" : "Avancei"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Next week" : {
       "localizations" : {
@@ -19266,7 +19284,8 @@
             "value" : "Não registrado"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Note" : {
       "localizations" : {
@@ -20007,7 +20026,8 @@
             "value" : "Resultado"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Partial effort" : {
       "localizations" : {
@@ -20192,7 +20212,8 @@
             "value" : "Duração planejada"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Practice runs" : {
       "localizations" : {
@@ -20377,7 +20398,8 @@
             "value" : "Reflexão privada"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Private writing on your device, with sync through your own iCloud when available." : {
       "localizations" : {
@@ -20841,7 +20863,8 @@
             "value" : "Reflita sobre sua sessão"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Retrospective actions" : {
       "localizations" : {
@@ -21673,7 +21696,8 @@
             "value" : "Status"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Suggestions" : {
       "extractionState" : "stale",
@@ -21812,7 +21836,8 @@
             "value" : "Armazenamento temporário: as alterações podem ser perdidas quando o app fechar."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Temporary storage: writing in this session will be lost when the app closes." : {
       "extractionState" : "stale",
@@ -22646,7 +22671,8 @@
             "value" : "Desbloquear reflexão privada"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Unlock to read" : {
       "extractionState" : "stale",
@@ -23344,7 +23370,8 @@
             "value" : "Seu rascunho é mantido sempre que possível. Tente novamente."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Your earlier runs and achievements stay saved. The new run starts at day one." : {
       "localizations" : {
@@ -23575,7 +23602,8 @@
             "value" : "Seu timer continua. Tente salvar sua reflexão novamente."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Your writing could not be saved. Try again; your draft is still here." : {
       "extractionState" : "stale",
@@ -24130,6 +24158,1196 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "Excluir todos os dados"
+          }
+        }
+      }
+    },
+    "All paths" : {
+      "comment" : "Paths list: section header over one row per available path.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All paths"
+          }
+        },
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Всички пътища"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Alle Pfade"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Todos los caminos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Tous les parcours"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Tutti i percorsi"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Todos os caminhos"
+          }
+        }
+      }
+    },
+    "Today on %@ · Step %lld" : {
+      "comment" : "Paths hero caption: path name and today's step number.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today on %1$@ · Step %2$lld"
+          }
+        },
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Днес в %1$@ · Стъпка %2$lld"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Heute in %1$@ · Schritt %2$lld"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Hoy en %1$@ · Paso %2$lld"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Aujourd’hui dans %1$@ · Étape %2$lld"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Oggi in %1$@ · Passo %2$lld"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Hoje em %1$@ · Etapa %2$lld"
+          }
+        }
+      }
+    },
+    "Step %lld done" : {
+      "comment" : "Paths hero after today's step is done.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Step %lld done"
+          }
+        },
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Стъпка %lld е завършена"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Schritt %lld erledigt"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Paso %lld hecho"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Étape %lld terminée"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Passo %lld completato"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Etapa %lld concluída"
+          }
+        }
+      }
+    },
+    "Opens tomorrow at %@" : {
+      "comment" : "Paths: when the next step opens. The argument is 06:00 in the locale's time format.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens tomorrow at %@"
+          }
+        },
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Отваря се утре в %@"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Öffnet sich morgen um %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Se abre mañana a las %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "S’ouvre demain à %@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Si apre domani alle %@"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Abre amanhã às %@"
+          }
+        }
+      }
+    },
+    "Opens today at %@" : {
+      "comment" : "Paths: when the next step opens, before 06:00 on the day it opens.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens today at %@"
+          }
+        },
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Отваря се днес в %@"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Öffnet sich heute um %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Se abre hoy a las %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "S’ouvre aujourd’hui à %@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Si apre oggi alle %@"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Abre hoje às %@"
+          }
+        }
+      }
+    },
+    "Today on %@, step %lld of %lld" : {
+      "comment" : "Paths hero for VoiceOver: path name, step number and run length.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today on %1$@, step %2$lld of %3$lld"
+          }
+        },
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Днес в %1$@, стъпка %2$lld от %3$lld"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Heute in %1$@, Schritt %2$lld von %3$lld"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Hoy en %1$@, paso %2$lld de %3$lld"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Aujourd’hui dans %1$@, étape %2$lld sur %3$lld"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Oggi in %1$@, passo %2$lld di %3$lld"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Hoje em %1$@, etapa %2$lld de %3$lld"
+          }
+        }
+      }
+    },
+    "%lld minutes" : {
+      "comment" : "Paths hero for VoiceOver: the step's time.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld minute"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld minutes"
+                }
+              }
+            }
+          }
+        },
+        "bg" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "%lld минута"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "%lld минути"
+                }
+              }
+            }
+          }
+        },
+        "de" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "%lld Minute"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "%lld Minuten"
+                }
+              }
+            }
+          }
+        },
+        "es" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "%lld minuto"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "%lld minutos"
+                }
+              }
+            }
+          }
+        },
+        "fr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "%lld minute"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "%lld minutes"
+                }
+              }
+            }
+          }
+        },
+        "it" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "%lld minuto"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "%lld minuti"
+                }
+              }
+            }
+          }
+        },
+        "pt-BR" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "%lld minuto"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "%lld minutos"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Step %lld today" : {
+      "comment" : "Paths list row: a second path with a step open today.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Step %lld today"
+          }
+        },
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Стъпка %lld днес"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Schritt %lld heute"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Paso %lld hoy"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Étape %lld aujourd’hui"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Passo %lld oggi"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Etapa %lld hoje"
+          }
+        }
+      }
+    },
+    "Completed %lld times" : {
+      "comment" : "Paths list row: how many runs of a finished path are done.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Completed %lld time"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Completed %lld times"
+                }
+              }
+            }
+          }
+        },
+        "bg" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "Завършен %lld път"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "Завършен %lld пъти"
+                }
+              }
+            }
+          }
+        },
+        "de" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "%lld-mal abgeschlossen"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "%lld-mal abgeschlossen"
+                }
+              }
+            }
+          }
+        },
+        "es" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "Completado %lld vez"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "Completado %lld veces"
+                }
+              }
+            }
+          }
+        },
+        "fr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "Terminé %lld fois"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "Terminé %lld fois"
+                }
+              }
+            }
+          }
+        },
+        "it" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "Completato %lld volta"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "Completato %lld volte"
+                }
+              }
+            }
+          }
+        },
+        "pt-BR" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "Concluído %lld vez"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "Concluído %lld vezes"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Finish %@ first" : {
+      "comment" : "Paths list row: a locked path names the path before it.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finish %@ first"
+          }
+        },
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Първо завърши „%@“"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Schließe zuerst „%@“ ab"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Termina primero %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Terminez d’abord %@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Completa prima %@"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Conclua primeiro %@"
+          }
+        }
+      }
+    },
+    "%lld more paths are in development." : {
+      "comment" : "Paths list footer: how many paths are not available yet.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "One more path is in development."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld more paths are in development."
+                }
+              }
+            }
+          }
+        },
+        "bg" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "Още %lld път се разработва."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "Още %lld пътя се разработват."
+                }
+              }
+            }
+          }
+        },
+        "de" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "Ein weiterer Pfad ist in Entwicklung."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "%lld weitere Pfade sind in Entwicklung."
+                }
+              }
+            }
+          }
+        },
+        "es" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "Hay %lld camino más en desarrollo."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "Hay %lld caminos más en desarrollo."
+                }
+              }
+            }
+          }
+        },
+        "fr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "%lld autre parcours est en développement."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "%lld autres parcours sont en développement."
+                }
+              }
+            }
+          }
+        },
+        "it" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "Un altro percorso è in sviluppo."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "Altri %lld percorsi sono in sviluppo."
+                }
+              }
+            }
+          }
+        },
+        "pt-BR" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "Mais %lld caminho está em desenvolvimento."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "Mais %lld caminhos estão em desenvolvimento."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "End" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Край"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Beenden"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Terminar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Terminer"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Termina"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Encerrar"
+          }
+        }
+      }
+    },
+    "Resume" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Продължи"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Fortsetzen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Reanudar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Reprendre"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Riprendi"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Retomar"
+          }
+        }
+      }
+    },
+    "End this session?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Да приключи ли сесията?"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Diese Sitzung beenden?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "¿Terminar esta sesión?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Terminer cette séance ?"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Terminare questa sessione?"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Encerrar esta sessão?"
+          }
+        }
+      }
+    },
+    "End session" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Приключи сесията"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sitzung beenden"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Terminar sesión"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Terminer la séance"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Termina sessione"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Encerrar sessão"
+          }
+        }
+      }
+    },
+    "The time you've done so far is kept as partial effort." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Времето дотук се запазва като частично усилие."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Die bisherige Zeit bleibt als Teilaufwand erhalten."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "El tiempo que llevas se guarda como esfuerzo parcial."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Le temps déjà passé est conservé comme effort partiel."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Il tempo svolto finora resta come impegno parziale."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "O tempo feito até agora fica salvo como esforço parcial."
+          }
+        }
+      }
+    },
+    "Your timer continues. The intention was not saved with this session." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Таймерът продължава. Намерението не беше запазено към тази сесия."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Der Timer läuft weiter. Die Absicht wurde nicht mit dieser Sitzung gespeichert."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "El temporizador sigue. La intención no se guardó con esta sesión."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Le minuteur continue. L’intention n’a pas été enregistrée avec cette séance."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Il timer continua. L’intenzione non è stata salvata con questa sessione."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "O timer continua. A intenção não foi salva com esta sessão."
+          }
+        }
+      }
+    },
+    "Session done · %lld min" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Сесията е завършена · %lld мин"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sitzung geschafft · %lld Min."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sesión hecha · %lld min"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Séance terminée · %lld min"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sessione completata · %lld min"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sessão concluída · %lld min"
+          }
+        }
+      }
+    },
+    "Last session · %lld min · %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Последна сесия · %lld мин · %@"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Letzte Sitzung · %lld Min. · %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Última sesión · %lld min · %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Dernière séance · %lld min · %@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Ultima sessione · %lld min · %@"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Última sessão · %lld min · %@"
+          }
+        }
+      }
+    },
+    "Focus, %@ left. %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Фокус, остават %@. %@"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Fokus, noch %@. %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Concentración, quedan %@. %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Concentration, encore %@. %@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Concentrazione, mancano %@. %@"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Foco, faltam %@. %@"
+          }
+        }
+      }
+    },
+    "Focus. Paused, %@ left. %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Фокус. На пауза, остават %@. %@"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Fokus. Pausiert, noch %@. %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Concentración. En pausa, quedan %@. %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Concentration. En pause, encore %@. %@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Concentrazione. In pausa, mancano %@. %@"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Foco. Pausado, faltam %@. %@"
           }
         }
       }

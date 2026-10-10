@@ -148,6 +148,10 @@ struct ThinkApp: App {
             // seeded answer exists without reading it.
             progressStore.recordActivity(.answer, id: seededAnswerID.uuidString)
         }
+        if isUITesting && arguments.contains("-ui-seed-path-step") {
+            // Today's Deep focus step done, so the Paths hero shows its done form.
+            progressStore.completePathStep(pathID: PathLibrary.deepFocus.id, totalSteps: PathLibrary.deepFocus.steps.count)
+        }
         if isUITesting && arguments.contains("-ui-seed-focus") {
             let sessionID = "audit-focus-session"
             progressStore.recordFocusSession(durationMinutes: 25, eventID: sessionID, actualActiveSeconds: 1500)

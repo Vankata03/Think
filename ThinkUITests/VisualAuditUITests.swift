@@ -232,6 +232,69 @@ final class VisualAuditUITests: XCTestCase {
         }
     }
 
+    /// The Focus stage across the acceptance floor (`design/focus.md`
+    /// section 11): both appearances, AX3, and `de` and `bg` on the arc
+    /// captions at the default size and on End, Skip and Skip to work at AX3.
+    /// Asserts the controls stay in the bar above the tab bar and the wheel
+    /// columns stack at AX3; captures idle, running, paused, the break and
+    /// the accessory on Today.
+    @MainActor
+    func testCaptureFocusStage() throws {
+        continueAfterFailure = false
+        let runs: [(name: String, appearance: String, language: String, locale: String, ax3: Bool)] = [
+            ("dark en", "dark", "en", "en_US", false),
+            ("light en", "light", "en", "en_US", false),
+            ("dark de", "dark", "de", "de_DE", false),
+            ("light bg", "light", "bg", "bg_BG", false),
+            ("dark en AX3", "dark", "en", "en_US", true),
+            ("dark de AX3", "dark", "de", "de_DE", true),
+            ("light bg AX3", "light", "bg", "bg_BG", true),
+        ]
+        for run in runs {
+            let app = XCUIApplication()
+            app.launchArguments = ["-ui-testing", "-appearance", run.appearance,
+                                   "-AppleLanguages", "(\(run.language))", "-AppleLocale", run.locale]
+            if run.ax3 { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXL"] }
+            app.launch()
+            app.tabBars.buttons.element(boundBy: 2).tap()
+            XCTAssertTrue(app.descendants(matching: .any)["FocusTimer"].waitForExistence(timeout: 3))
+            let tabBarTop = app.tabBars.firstMatch.frame.minY
+            let width = app.windows.firstMatch.frame.width
+            let primary = app.buttons["FocusPrimary"]
+            XCTAssertTrue(primary.isHittable)
+            XCTAssertLessThanOrEqual(primary.frame.maxY, tabBarTop)
+            capture(app, "Focus \(run.name) idle")
+            if run.ax3 {
+                let work = app.pickerWheels.element(boundBy: 0)
+                let rest = app.pickerWheels.element(boundBy: 1)
+                for _ in 0..<6 where !(rest.exists && rest.isHittable) { app.swipeUp() }
+                XCTAssertGreaterThanOrEqual(rest.frame.minY, work.frame.maxY, "Wheel columns stack at AX3")
+                capture(app, "Focus \(run.name) idle wheel")
+            }
+
+            primary.tap()
+            for id in ["FocusEnd", "FocusPrimary", "FocusSkip"] {
+                let button = app.buttons[id]
+                XCTAssertTrue(button.isHittable, id)
+                XCTAssertLessThanOrEqual(button.frame.maxY, tabBarTop, id)
+                XCTAssertLessThanOrEqual(button.frame.maxX, width, id)
+            }
+            capture(app, "Focus \(run.name) running")
+            primary.tap()
+            capture(app, "Focus \(run.name) paused")
+            primary.tap()
+            app.buttons["FocusSkip"].tap()
+            XCTAssertTrue(app.buttons["FocusSkip"].isHittable)
+            XCTAssertLessThanOrEqual(app.buttons["FocusSkip"].frame.maxX, width)
+            capture(app, "Focus \(run.name) break")
+
+            app.tabBars.buttons.element(boundBy: 0).tap()
+            XCTAssertTrue(app.buttons["FocusAccessory"].waitForExistence(timeout: 3))
+            capture(app, "Focus \(run.name) accessory")
+            app.terminate()
+        }
+    }
+
     /// The Journal list across the acceptance floor (`design/journal.md`
     /// section 13): both appearances, AX3, and `de` and `bg` on the filter
     /// names and headers. Captures the timeline, the filter menu, a filter
@@ -372,6 +435,48 @@ final class VisualAuditUITests: XCTestCase {
                 }
                 app.terminate()
             }
+        }
+    }
+
+    /// The Paths list across the acceptance floor (`paths.md` section 11):
+    /// both appearances, AX3, and `de` and `bg` on the hero caption and the
+    /// locked row, plus the hero's done form. Asserts the hero and the
+    /// locked row stay inside the screen.
+    @MainActor
+    func testCapturePathsList() throws {
+        continueAfterFailure = false
+        let runs: [(name: String, appearance: String, language: String, locale: String, ax3: Bool, seedDone: Bool)] = [
+            ("dark en", "dark", "en", "en_US", false, false),
+            ("light en", "light", "en", "en_US", false, false),
+            ("dark en done", "dark", "en", "en_GB", false, true),
+            ("dark de AX3", "dark", "de", "de_DE", true, false),
+            ("light bg AX3", "light", "bg", "bg_BG", true, false),
+        ]
+        for run in runs {
+            let app = XCUIApplication()
+            app.launchArguments = ["-ui-testing", "-appearance", run.appearance,
+                                   "-AppleLanguages", "(\(run.language))", "-AppleLocale", run.locale]
+            if run.ax3 { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXL"] }
+            if run.seedDone { app.launchArguments += ["-ui-seed-path-step"] }
+            app.launch()
+            app.tabBars.buttons.element(boundBy: 1).tap()
+            let hero = app.buttons["PathsHero"]
+            XCTAssertTrue(hero.waitForExistence(timeout: 5))
+            let width = app.windows.firstMatch.frame.width
+            XCTAssertLessThanOrEqual(hero.frame.maxX, width)
+            if run.language == "en" {
+                XCTAssertTrue(hero.label.hasPrefix(run.seedDone ? "Step 1 done" : "Today on Deep focus, step 1 of 21"))
+                XCTAssertEqual(hero.value as? String, run.seedDone ? "1 of 21 steps done" : "0 of 21 steps done")
+            }
+            capture(app, "Paths \(run.name) top")
+
+            let locked = app.buttons["Path.clear-thinking"]
+            reveal(locked, in: app)
+            XCTAssertLessThanOrEqual(locked.frame.maxX, width)
+            capture(app, "Paths \(run.name) all paths")
+            locked.tap()
+            XCTAssertTrue(app.descendants(matching: .any)["PathDetail.clear-thinking"].waitForExistence(timeout: 3))
+            app.terminate()
         }
     }
 
