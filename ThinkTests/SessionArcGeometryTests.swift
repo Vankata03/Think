@@ -6,6 +6,7 @@
 import CoreGraphics
 import Foundation
 import Testing
+
 @testable import Think
 
 struct SessionArcGeometryTests {
@@ -66,8 +67,9 @@ struct SessionArcGeometryTests {
 
     @Test func aCaptionPushedInwardClimbsAlongTheCurve() {
         let geometry = SessionArcGeometry(width: 300)
-        let free = ArcPosition.point(fraction: 0.95, center: geometry.center,
-                                     radius: geometry.radius + SessionArcGeometry.captionOffset)
+        let free = ArcPosition.point(
+            fraction: 0.95, center: geometry.center,
+            radius: geometry.radius + SessionArcGeometry.captionOffset)
         let point = geometry.endCaptionCentre(workShare: 0.95, captionWidth: 80)
         #expect(point.x < free.x)
         #expect(point.y < free.y)

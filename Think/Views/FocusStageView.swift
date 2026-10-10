@@ -208,7 +208,8 @@ struct FocusStageView: View {
                 } else {
                     now
                 }
-            let breakEnd = timer.phase == .rest && !idle
+            let breakEnd =
+                timer.phase == .rest && !idle
                 ? now.addingTimeInterval(remaining)
                 : workEnd.addingTimeInterval(TimeInterval(breakMinutes * 60))
             SessionArcView(
@@ -229,7 +230,8 @@ struct FocusStageView: View {
     @ViewBuilder
     private var lastSession: some View {
         if let record = timer.lastSessionRecord {
-            let time = Calendar.current.isDateInToday(record.completedAt)
+            let time =
+                Calendar.current.isDateInToday(record.completedAt)
                 ? record.completedAt.formatted(.dateTime.hour().minute())
                 : record.completedAt.formatted(.dateTime.month(.abbreviated).day().hour().minute())
             Text("Last session · \(record.lastSessionMinutes) min · \(time)")
@@ -246,7 +248,8 @@ struct FocusStageView: View {
     /// They stack at accessibility sizes and never leave the bar.
     private var controls: some View {
         let stacked = dynamicTypeSize.isAccessibilitySize
-        let layout = stacked
+        let layout =
+            stacked
             ? AnyLayout(VStackLayout(spacing: ThinkSpacing.s))
             : AnyLayout(HStackLayout(spacing: ThinkSpacing.s))
         return layout {
@@ -345,7 +348,8 @@ private struct FocusDurationWheel: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
-        let layout = dynamicTypeSize.isAccessibilitySize
+        let layout =
+            dynamicTypeSize.isAccessibilitySize
             ? AnyLayout(VStackLayout(spacing: ThinkSpacing.l))
             : AnyLayout(HStackLayout(spacing: 0))
         layout {

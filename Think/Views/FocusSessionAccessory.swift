@@ -74,13 +74,15 @@ struct FocusSessionAccessory: View {
             }
             .buttonStyle(.plain)
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel(FocusSessionLine.accessibilityLabel(
-                phase: timer.phase,
-                intention: intention,
-                journalLocked: journalLock.isLocked,
-                countdown: timer.remainingLabel,
-                isPaused: !timer.isRunning
-            ))
+            .accessibilityLabel(
+                FocusSessionLine.accessibilityLabel(
+                    phase: timer.phase,
+                    intention: intention,
+                    journalLocked: journalLock.isLocked,
+                    countdown: timer.remainingLabel,
+                    isPaused: !timer.isRunning
+                )
+            )
             .accessibilityAddTraits(.isButton)
             .accessibilityIdentifier("FocusAccessory")
 
@@ -106,9 +108,9 @@ struct FocusSessionAccessory: View {
 
     private var intention: String? {
         #if os(iOS)
-        timer.intention
+            timer.intention
         #else
-        nil
+            nil
         #endif
     }
 }

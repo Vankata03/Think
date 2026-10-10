@@ -141,8 +141,9 @@ struct SessionArcView: View {
                 segment(0, workShare - gap, geometry)
                     .stroke(ThinkColor.separator, style: stroke())
                 segment(workShare + gap, 1, geometry)
-                    .stroke(ThinkColor.success.opacity(0.45),
-                            style: stroke(dashed: stage == .idle))
+                    .stroke(
+                        ThinkColor.success.opacity(0.45),
+                        style: stroke(dashed: stage == .idle))
                 if stage != .idle {
                     segment(0, min(sunFraction, workShare - gap), geometry)
                         .stroke(ThinkColor.accent, style: stroke())
@@ -154,28 +155,32 @@ struct SessionArcView: View {
                 Circle()
                     .fill(ThinkColor.background)
                     .overlay(Circle().stroke(ThinkColor.success, lineWidth: 1.5))
-                    .frame(width: SessionArcGeometry.boundaryDotDiameter,
-                           height: SessionArcGeometry.boundaryDotDiameter)
+                    .frame(
+                        width: SessionArcGeometry.boundaryDotDiameter,
+                        height: SessionArcGeometry.boundaryDotDiameter
+                    )
                     .arcPosition(workShare, center: center, radius: radius)
                 sun
                     .arcPosition(sunFraction, center: center, radius: radius)
                     .animation(sunAnimation, value: sunFraction)
                 endOfWorkCaption
-                    .onGeometryChange(for: CGFloat.self, of: { $0.size.width }) { endCaptionWidth = $0 }
+                    .onGeometryChange(for: CGFloat.self, of: { $0.size.width }, action: { endCaptionWidth = $0 })
                     .position(geometry.endCaptionCentre(workShare: workShare, captionWidth: endCaptionWidth))
                 centreText
                     .position(x: center.x, y: center.y - SessionArcGeometry.centreTextRise)
                 if stage == .idle {
-                    endLabel(Text(LocalizedStringResource("now", table: "Design")), color: ThinkColor.secondaryLabel,
-                             x: center.x - radius, y: center.y + SessionArcGeometry.endLabelDrop, rowWidth: proxy.size.width)
+                    endLabel(
+                        Text(LocalizedStringResource("now", table: "Design")), color: ThinkColor.secondaryLabel,
+                        x: center.x - radius, y: center.y + SessionArcGeometry.endLabelDrop, rowWidth: proxy.size.width)
                 }
-                endLabel(Text(breakEnd, format: .dateTime.hour().minute()), color: ThinkColor.success,
-                         x: center.x + radius, y: center.y + SessionArcGeometry.endLabelDrop, rowWidth: proxy.size.width)
+                endLabel(
+                    Text(breakEnd, format: .dateTime.hour().minute()), color: ThinkColor.success,
+                    x: center.x + radius, y: center.y + SessionArcGeometry.endLabelDrop, rowWidth: proxy.size.width)
             }
             .animation(proportionAnimation, value: workShare)
         }
         .frame(height: SessionArcGeometry(width: width).rowHeight)
-        .onGeometryChange(for: CGFloat.self, of: { $0.size.width }) { width = $0 }
+        .onGeometryChange(for: CGFloat.self, of: { $0.size.width }, action: { width = $0 })
     }
 
     private func stroke(dashed: Bool = false) -> StrokeStyle {
@@ -286,8 +291,9 @@ struct SessionArcView: View {
         let end = phaseEnd.formatted(.dateTime.hour().minute())
         switch stage {
         case .idle:
-            return Text(LocalizedStringResource(
-                "\(countdown) of deep work, then \(breakMinutes) min break. Ends at \(end).", table: "Design"))
+            return Text(
+                LocalizedStringResource(
+                    "\(countdown) of deep work, then \(breakMinutes) min break. Ends at \(end).", table: "Design"))
         case .work where isPaused:
             return Text(LocalizedStringResource("\(countdown) left. Deep work, paused.", table: "Design"))
         case .work:

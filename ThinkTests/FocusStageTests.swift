@@ -5,6 +5,7 @@
 
 import Foundation
 import Testing
+
 @testable import Think
 
 /// The rules the Focus stage and its bottom accessory show
@@ -157,14 +158,16 @@ struct FocusStageTests {
     }
 
     @Test func anEndedSessionShowsTheWorkDone() {
-        let record = FocusSessionRecord(id: "a", completedAt: .now, durationMinutes: 25,
-                                        actualActiveSeconds: 7 * 60 + 40, isCompleted: false)
+        let record = FocusSessionRecord(
+            id: "a", completedAt: .now, durationMinutes: 25,
+            actualActiveSeconds: 7 * 60 + 40, isCompleted: false)
         #expect(record.lastSessionMinutes == 7)
     }
 
     @Test func anEndedSessionUnderAMinuteShowsOneMinute() {
-        let record = FocusSessionRecord(id: "a", completedAt: .now, durationMinutes: 25,
-                                        actualActiveSeconds: 20, isCompleted: false)
+        let record = FocusSessionRecord(
+            id: "a", completedAt: .now, durationMinutes: 25,
+            actualActiveSeconds: 20, isCompleted: false)
         #expect(record.lastSessionMinutes == 1)
     }
 
