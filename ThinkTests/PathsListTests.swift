@@ -8,6 +8,7 @@
 
 import Foundation
 import Testing
+
 @testable import Think
 
 @MainActor
@@ -94,10 +95,11 @@ struct PathsListTests {
         let list = PathsList(progress: store, now: time(day: 1, hour: 10), calendar: utcCalendar)
 
         #expect(list.rows.map(\.path.id) == [deepFocus, clearThinking])
-        #expect(list.rows.map(\.state) == [
-            .inRun(done: 1, total: 21, openStepToday: nil),
-            .locked(previous: PathLibrary.deepFocus),
-        ])
+        #expect(
+            list.rows.map(\.state) == [
+                .inRun(done: 1, total: 21, openStepToday: nil),
+                .locked(previous: PathLibrary.deepFocus),
+            ])
         #expect(list.pathsInDevelopment == 2)
     }
 
@@ -108,18 +110,20 @@ struct PathsListTests {
         #expect(store.completePathStep(pathID: clearThinking, totalSteps: 7, at: time(day: 22, hour: 9)))
 
         let twoOpen = PathsList(progress: store, now: time(day: 23, hour: 10), calendar: utcCalendar)
-        #expect(twoOpen.rows.map(\.state) == [
-            .inRun(done: 0, total: 21, openStepToday: 1),
-            .inRun(done: 1, total: 7, openStepToday: nil),
-        ])
+        #expect(
+            twoOpen.rows.map(\.state) == [
+                .inRun(done: 0, total: 21, openStepToday: 1),
+                .inRun(done: 1, total: 7, openStepToday: nil),
+            ])
 
         let finishedStore = makeStore()
         finishDeepFocus(finishedStore)
         let finished = PathsList(progress: finishedStore, now: time(day: 21, hour: 10), calendar: utcCalendar)
-        #expect(finished.rows.map(\.state) == [
-            .finished(times: 1),
-            .inRun(done: 0, total: 7, openStepToday: nil),
-        ])
+        #expect(
+            finished.rows.map(\.state) == [
+                .finished(times: 1),
+                .inRun(done: 0, total: 7, openStepToday: nil),
+            ])
     }
 
     @Test func theHeroReadsAsOneSentenceInBothForms() {
@@ -130,13 +134,15 @@ struct PathsListTests {
         let british = Locale(identifier: "en_GB")
 
         let open = PathsList(progress: store, now: time(day: 4, hour: 8), calendar: utcCalendar)
-        #expect(open.hero?.accessibilityLabel(locale: british)
-            == "Today on Deep focus, step 5 of 21, Single-tab work, 25 minutes")
+        #expect(
+            open.hero?.accessibilityLabel(locale: british)
+                == "Today on Deep focus, step 5 of 21, Single-tab work, 25 minutes")
 
         #expect(store.completePathStep(pathID: deepFocus, totalSteps: 21, at: time(day: 4, hour: 9)))
         let done = PathsList(progress: store, now: time(day: 4, hour: 10), calendar: utcCalendar)
-        #expect(done.hero?.accessibilityLabel(locale: british)
-            == "Step 5 done, Boredom training, Opens tomorrow at 06:00")
+        #expect(
+            done.hero?.accessibilityLabel(locale: british)
+                == "Step 5 done, Boredom training, Opens tomorrow at 06:00")
     }
 
     // MARK: - Helpers

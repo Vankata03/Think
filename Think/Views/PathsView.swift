@@ -32,8 +32,9 @@ struct PathsView: View {
                         Text("All paths")
                     } footer: {
                         if list.pathsInDevelopment > 0 {
-                            Text("\(list.pathsInDevelopment) more paths are in development.",
-                                 comment: "Paths list footer: how many paths are not available yet.")
+                            Text(
+                                "\(list.pathsInDevelopment) more paths are in development.",
+                                comment: "Paths list footer: how many paths are not available yet.")
                         }
                     }
                 }
@@ -62,8 +63,9 @@ private struct PathsHero: View {
             switch hero.form {
             case .open(let number):
                 Label {
-                    Text("Today on \(hero.path.name) · Step \(number)",
-                         comment: "Paths hero caption: path name and today's step number.")
+                    Text(
+                        "Today on \(hero.path.name) · Step \(number)",
+                        comment: "Paths hero caption: path name and today's step number.")
                 } icon: {
                     Image(systemName: ThinkSymbol.pathStepToday)
                 }
@@ -72,6 +74,7 @@ private struct PathsHero: View {
                 if let step = hero.step {
                     Text(step.title)
                         .font(.think(.stepTitle))
+                        .fixedSize(horizontal: false, vertical: true)
                     // Truncates after a few words at accessibility sizes, so it yields.
                     if !dynamicTypeSize.isAccessibilitySize {
                         Text(step.lesson)
@@ -95,6 +98,7 @@ private struct PathsHero: View {
                 if let step = hero.step {
                     Text(step.title)
                         .font(.think(.stepTitle))
+                        .fixedSize(horizontal: false, vertical: true)
                         .foregroundStyle(ThinkColor.secondaryLabel)
                 }
                 Text(hero.opening())

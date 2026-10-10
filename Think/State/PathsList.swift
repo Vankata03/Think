@@ -30,10 +30,11 @@ struct PathsList {
 
         /// The step the hero names: today's, or in the done form the next one.
         var step: PathStep? {
-            let number = switch form {
-            case .open(let step): step
-            case .done(let step, _): step + 1
-            }
+            let number =
+                switch form {
+                case .open(let step): step
+                case .done(let step, _): step + 1
+                }
             return path.steps.indices.contains(number - 1) ? path.steps[number - 1] : nil
         }
 
@@ -56,8 +57,9 @@ struct PathsList {
             let time = formatter.string(from: six)
             return tomorrow
                 ? String(localized: "Opens tomorrow at \(time)", comment: "Paths: when the next step opens.")
-                : String(localized: "Opens today at \(time)",
-                         comment: "Paths: when the next step opens, before 06:00 on the day it opens.")
+                : String(
+                    localized: "Opens today at \(time)",
+                    comment: "Paths: when the next step opens, before 06:00 on the day it opens.")
         }
 
         /// The hero is one VoiceOver element (paths.md section 4.1).
@@ -67,8 +69,9 @@ struct PathsList {
             case .open(let number):
                 let minutes = step?.estimatedMinutes ?? 0
                 return [
-                    String(localized: "Today on \(path.name), step \(number) of \(path.steps.count)",
-                           comment: "Paths hero for VoiceOver: path name, step number and run length."),
+                    String(
+                        localized: "Today on \(path.name), step \(number) of \(path.steps.count)",
+                        comment: "Paths hero for VoiceOver: path name, step number and run length."),
                     title,
                     String(localized: "\(minutes) minutes", comment: "Paths hero for VoiceOver: the step's time."),
                 ].joined(separator: ", ")
@@ -104,12 +107,15 @@ struct PathsList {
     /// Paths that are not available yet; they have no rows, only the footer.
     let pathsInDevelopment: Int
 
-    init(progress: ProgressStore, library: [ThinkingPath] = PathLibrary.all,
-         now: Date = .now, calendar: Calendar = .current) {
+    init(
+        progress: ProgressStore, library: [ThinkingPath] = PathLibrary.all,
+        now: Date = .now, calendar: Calendar = .current
+    ) {
         let available = library.filter(\.isAvailable)
-        let isOpen = Dictionary(uniqueKeysWithValues: available.map { path in
-            (path.id, progress.canCompletePathStep(pathID: path.id, totalSteps: path.steps.count, at: now))
-        })
+        let isOpen = Dictionary(
+            uniqueKeysWithValues: available.map { path in
+                (path.id, progress.canCompletePathStep(pathID: path.id, totalSteps: path.steps.count, at: now))
+            })
         let inRun = Self.ranked(available, by: progress).filter { path in
             progress.isPathUnlocked(path.id) && progress.activeRun(for: path.id)?.isComplete != true
         }
@@ -122,8 +128,9 @@ struct PathsList {
             let done = Self.doneSteps(path, progress)
             let last = progress.activeRun(for: path.id)?.lastCompletionDate ?? progress.lastPathCompletionDay
             let doneToday = last.map { calendar.isDate($0, inSameDayAs: now) } ?? true
-            hero = Hero(path: path, form: .done(step: done, opensTomorrow: doneToday), doneSteps: done,
-                        now: now, calendar: calendar)
+            hero = Hero(
+                path: path, form: .done(step: done, opensTomorrow: doneToday), doneSteps: done,
+                now: now, calendar: calendar)
         } else {
             hero = nil
         }
@@ -150,7 +157,7 @@ struct PathsList {
         let dates = paths.map { progress.lastPractisedDate(for: $0.id) }
         return paths.indices.sorted { a, b in
             switch (dates[a], dates[b]) {
-            case let (x?, y?) where x != y: x > y
+            case (let x?, let y?) where x != y: x > y
             case (_?, nil): true
             case (nil, _?): false
             default: a < b

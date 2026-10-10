@@ -35,8 +35,9 @@ nonisolated struct StepTrailWindowLayout: Equatable {
 
     /// The window's VoiceOver value, also carried by the hero.
     var accessibilityValue: String {
-        String(localized: "\(doneSteps) of \(totalSteps) steps done", table: "Design",
-               comment: "Paths trail window: steps done in the run, for VoiceOver.")
+        String(
+            localized: "\(doneSteps) of \(totalSteps) steps done", table: "Design",
+            comment: "Paths trail window: steps done in the run, for VoiceOver.")
     }
 }
 
@@ -79,23 +80,28 @@ struct StepTrailWindow: View {
                 .padding(.leading, layout.fadesLeading ? 0 : diameter / 2)
                 .padding(.trailing, layout.fadesTrailing ? 0 : diameter / 2)
         }
-        // Room for the today disc's halo.
-        .padding(.vertical, ThinkSpacing.xs)
+        // Room for the today disc's halo, which reaches 5pt past the disc,
+        // so the mask does not clip it.
+        .padding(6)
         .mask {
-            LinearGradient(stops: [
-                .init(color: layout.fadesLeading ? .clear : .black, location: 0),
-                .init(color: .black, location: layout.fadesLeading ? Self.fade : 0),
-                .init(color: .black, location: layout.fadesTrailing ? 1 - Self.fade : 1),
-                .init(color: layout.fadesTrailing ? .clear : .black, location: 1),
-            ], startPoint: .leading, endPoint: .trailing)
+            LinearGradient(
+                stops: [
+                    .init(color: layout.fadesLeading ? .clear : .black, location: 0),
+                    .init(color: .black, location: layout.fadesLeading ? Self.fade : 0),
+                    .init(color: .black, location: layout.fadesTrailing ? 1 - Self.fade : 1),
+                    .init(color: layout.fadesTrailing ? .clear : .black, location: 1),
+                ], startPoint: .leading, endPoint: .trailing)
         }
     }
 
     private var linearForm: some View {
         VStack(alignment: .leading, spacing: ThinkSpacing.s) {
-            Text("\(layout.doneSteps) of \(layout.totalSteps) done", tableName: "Design",
-                 comment: "Paths trail window at accessibility sizes: steps done in the run.")
-                .font(.think(.numeral))
+            Text(
+                "\(layout.doneSteps) of \(layout.totalSteps) done", tableName: "Design",
+                comment: "Paths trail window at accessibility sizes: steps done in the run."
+            )
+            .font(.think(.numeral))
+            .fixedSize(horizontal: false, vertical: true)
             ProgressView(value: Double(layout.doneSteps), total: Double(max(1, layout.totalSteps)))
                 .tint(ThinkColor.accent)
         }
