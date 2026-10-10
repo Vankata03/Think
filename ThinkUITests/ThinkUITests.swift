@@ -41,17 +41,17 @@ final class ThinkUITests: XCTestCase {
         XCTAssertTrue(app.descendants(matching: .any)["JournalView"].waitForExistence(timeout: 2))
 
         app.tabBars.buttons.element(boundBy: 4).tap()
-        XCTAssertTrue(app.descendants(matching: .any)["ProfileProgress"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.descendants(matching: .any)["ProgressStreak"].waitForExistence(timeout: 2))
+        XCTAssertEqual(tabs.element(boundBy: 4).label, "Progress")
     }
 
-    /// Every control that lived in Profile's settings is in the one
-    /// Settings Form behind the gear, in the order of
-    /// `progress-settings.md` section 3, and Profile keeps none of them.
+    /// Every settings control is in the one Settings Form behind the
+    /// gear, in the order of `progress-settings.md` section 3, and
+    /// Progress keeps none of them.
     @MainActor
     func testSettingsGearOpensEveryControlInOrder() throws {
         let app = launchApp()
         app.tabBars.buttons.element(boundBy: 4).tap()
-        XCTAssertFalse(app.descendants(matching: .any)["ProfileSettings"].exists)
         XCTAssertFalse(app.buttons["Export journal"].exists)
 
         openSettings(app)

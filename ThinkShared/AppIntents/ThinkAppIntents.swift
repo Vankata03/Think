@@ -124,7 +124,7 @@ enum ThinkAppTab: Hashable {
     case paths
     case focus
     case journal
-    case profile
+    case progress
 }
 
 @MainActor

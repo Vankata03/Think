@@ -9,7 +9,7 @@ import Testing
 @testable import Think
 
 /// Feedback and About rows keep the mail subjects, version context and
-/// links they had on Profile (`progress-settings.md` section 3).
+/// links they had before the Settings Form (`progress-settings.md` section 3).
 struct SettingsLinksTests {
 
     @Test func feedbackMailGoesToTheSupportAddressWithSubjectAndVersionContext() throws {

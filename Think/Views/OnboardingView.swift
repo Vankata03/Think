@@ -211,7 +211,7 @@ struct OnboardingView: View {
             .animation(ThinkMotion.stateAnimation(reduceMotion: reduceMotion), value: dailyLineEnabled)
             .animation(ThinkMotion.stateAnimation(reduceMotion: reduceMotion), value: retroReminderEnabled)
 
-            Text("You can change this anytime in Profile.")
+            Text("You can change this anytime in Settings.")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
 

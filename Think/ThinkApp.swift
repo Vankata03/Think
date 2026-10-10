@@ -168,6 +168,30 @@ struct ThinkApp: App {
             let receipt = try? repository.saveFocusNote(text: "Original focus note", intention: "Audit intention", sessionID: sessionID)
             try? repository.upsertSessionMetadata(sessionID: sessionID, intention: "Audit intention", closingNoteRecordID: receipt?.recordID, completedAt: .now)
         }
+        if isUITesting && arguments.contains("-ui-seed-progress") {
+            // Every Progress section populated: a 7-day streak and ten
+            // sessions (two medals), a path step, partial effort, and an
+            // intention on the newest completed session.
+            let now = Date.now
+            for day in 0..<7 {
+                let date = Calendar.current.date(byAdding: .day, value: -day, to: now) ?? now
+                progressStore.recordFocusSession(
+                    at: date.addingTimeInterval(-60), durationMinutes: 25, eventID: "audit-progress-day-\(day)",
+                    actualActiveSeconds: 1_500)
+            }
+            for index in 0..<3 {
+                progressStore.recordFocusSession(
+                    at: now.addingTimeInterval(Double(-3_600 * (index + 2))), durationMinutes: 50,
+                    eventID: "audit-progress-extra-\(index)", actualActiveSeconds: nil)
+            }
+            progressStore.recordPartialFocusSession(FocusSessionRecord(
+                id: "audit-progress-partial", completedAt: now.addingTimeInterval(-30), durationMinutes: 25,
+                actualActiveSeconds: 420, isCompleted: false))
+            _ = progressStore.completePathStep(
+                pathID: PathLibrary.deepFocus.id, totalSteps: PathLibrary.deepFocus.steps.count, at: now)
+            try? repository.upsertSessionMetadata(
+                sessionID: "audit-progress-day-0", intention: "Draft the Progress audit", completedAt: now)
+        }
         // Same isolated suite as progress under UI tests, so a favorited
         // line never leaks between runs.
         let favorites = FavoritesStore(defaults: progressDefaults)
@@ -242,7 +266,7 @@ struct ThinkApp: App {
 
     /// Opens the journal store. When every on-disk candidate fails the app
     /// still launches, on a throwaway store — but as
-    /// `.emergencyInMemory`, so the Profile row states outright that the
+    /// `.emergencyInMemory`, so the Settings iCloud row states outright that the
     /// session is not being saved rather than letting the user write into
     /// a store that disappears on quit.
     private static func makeJournalStore(isUITesting: Bool) -> JournalDataStore.Result {
