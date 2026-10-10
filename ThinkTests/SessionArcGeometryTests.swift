@@ -42,29 +42,37 @@ struct SessionArcGeometryTests {
     }
 
     /// focus.md section 12: past about 80% of the curve the end-of-work
-    /// caption crowds the trailing edge, so it moves inside the curve.
-    @Test func theEndOfWorkCaptionMovesInsidePastEightyPercent() {
-        #expect(!SessionArcGeometry.endCaptionInside(workShare: 0.5))
-        #expect(!SessionArcGeometry.endCaptionInside(workShare: 0.8))
-        #expect(SessionArcGeometry.endCaptionInside(workShare: 25.0 / 30))
-    }
-
-    @Test func theEndCaptionInsideTheCurveStaysOnARowOf402Points() {
-        // An iPhone 17 Pro is 402pt wide; the stage column is inset.
+    /// caption crowds the trailing edge. It stays on a 402pt screen
+    /// (iPhone 17 Pro, the stage column inset 16pt either side).
+    @Test func theEndOfWorkCaptionStaysOnARowOf402Points() {
         let geometry = SessionArcGeometry(width: 402 - 2 * 16)
-        let point = geometry.endCaptionCentre(workShare: 25.0 / 30, captionWidth: 64)
-        #expect(point.x + 32 <= geometry.width)
-        #expect(point.x - 32 >= 0)
-        // Inside means nearer the circle's centre than the curve.
-        let boundary = geometry.point(at: 25.0 / 30)
-        #expect(hypot(point.x - geometry.center.x, point.y - geometry.center.y)
-            < hypot(boundary.x - geometry.center.x, boundary.y - geometry.center.y))
+        for share in [25.0 / 30, 0.9, 120.0 / 121] {
+            let point = geometry.endCaptionCentre(workShare: share, captionWidth: 80)
+            #expect(point.x + 40 <= geometry.width)
+            #expect(point.x - 40 >= 0)
+        }
     }
 
-    @Test func theEndCaptionBeforeEightyPercentSitsOutsideTheCurve() {
+    /// Inside the curve it would sit on the countdown (seen in the build's
+    /// screenshots at 25/5), so it stays outside, clear of the stroke.
+    @Test func theEndOfWorkCaptionStaysOutsideTheCurve() {
         let geometry = SessionArcGeometry(width: 370)
-        let point = geometry.endCaptionCentre(workShare: 0.5, captionWidth: 64)
-        #expect(hypot(point.x - geometry.center.x, point.y - geometry.center.y) > geometry.radius)
+        for share in [0.14, 0.5, 25.0 / 30, 0.95] {
+            let point = geometry.endCaptionCentre(workShare: share, captionWidth: 80)
+            let distance = hypot(point.x - geometry.center.x, point.y - geometry.center.y)
+            #expect(distance >= geometry.radius + SessionArcGeometry.captionOffset - 0.001)
+        }
+    }
+
+    @Test func aCaptionPushedInwardClimbsAlongTheCurve() {
+        let geometry = SessionArcGeometry(width: 300)
+        let free = ArcPosition.point(fraction: 0.95, center: geometry.center,
+                                     radius: geometry.radius + SessionArcGeometry.captionOffset)
+        let point = geometry.endCaptionCentre(workShare: 0.95, captionWidth: 80)
+        #expect(point.x < free.x)
+        #expect(point.y < free.y)
+        let distance = hypot(point.x - geometry.center.x, point.y - geometry.center.y)
+        #expect(abs(distance - (geometry.radius + SessionArcGeometry.captionOffset)) < tolerance)
     }
 
     @Test func radiusFollowsTheWidthAndIsCapped() {

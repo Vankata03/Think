@@ -22,18 +22,15 @@ nonisolated struct SessionArcGeometry: Equatable {
     static let haloDiameter: CGFloat = 44
     static let boundaryDotDiameter: CGFloat = 8
     /// Room above the curve for the sun's halo and an outside caption.
-    static let topInset: CGFloat = 34
+    static let topInset: CGFloat = 44
     /// Room below the arc ends for the "now" and end-of-break captions.
-    static let bottomInset: CGFloat = 34
+    static let bottomInset: CGFloat = 46
     /// The arc ends' captions sit this far below the ends.
-    static let endLabelDrop: CGFloat = 20
+    static let endLabelDrop: CGFloat = 32
     /// The end-of-work caption sits this far off the curve.
-    static let captionOffset: CGFloat = 22
+    static let captionOffset: CGFloat = 32
     /// The gap either side of the work/break boundary, in points of curve.
     static let boundaryGap: CGFloat = 6
-    /// Past this share of the curve the end-of-work caption crowds the
-    /// trailing edge (focus.md section 12) and moves inside the curve.
-    static let endCaptionInsideThreshold = 0.8
     /// The centre text's centre sits this far above the circle's centre.
     static let centreTextRise: CGFloat = 46
 
@@ -62,10 +59,6 @@ nonisolated struct SessionArcGeometry: Equatable {
         }
     }
 
-    static func endCaptionInside(workShare: Double) -> Bool {
-        workShare > endCaptionInsideThreshold
-    }
-
     func point(at fraction: Double) -> CGPoint {
         ArcPosition.point(fraction: fraction, center: center, radius: radius)
     }
@@ -77,19 +70,17 @@ nonisolated struct SessionArcGeometry: Equatable {
     }
 
     /// Where the end-of-work caption is centred: outside the curve at the
-    /// boundary, or inside it once the boundary is past the threshold, and
-    /// always within the row.
+    /// boundary. Past about 80% of the curve (focus.md section 12) it would
+    /// run off the trailing edge, so it moves in to stay within the row and
+    /// climbs along the same outer circle, which keeps it clear of the
+    /// stroke. Inside the curve it would sit on the countdown.
     func endCaptionCentre(workShare: Double, captionWidth: CGFloat) -> CGPoint {
-        let inside = Self.endCaptionInside(workShare: workShare)
-        let point = ArcPosition.point(
-            fraction: workShare,
-            center: center,
-            radius: radius + (inside ? -Self.captionOffset : Self.captionOffset)
-        )
-        return CGPoint(
-            x: DayArcGeometry.clampedCentre(point.x, width: captionWidth, within: width),
-            y: point.y
-        )
+        let outer = radius + Self.captionOffset
+        let point = ArcPosition.point(fraction: workShare, center: center, radius: outer)
+        let x = DayArcGeometry.clampedCentre(point.x, width: captionWidth, within: width)
+        guard x != point.x else { return point }
+        let dx = min(abs(x - center.x), outer)
+        return CGPoint(x: x, y: center.y - (outer * outer - dx * dx).squareRoot())
     }
 }
 
