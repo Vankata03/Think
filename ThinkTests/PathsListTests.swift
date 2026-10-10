@@ -122,6 +122,23 @@ struct PathsListTests {
         ])
     }
 
+    @Test func theHeroReadsAsOneSentenceInBothForms() {
+        let store = makeStore()
+        for day in 0..<4 {
+            #expect(store.completePathStep(pathID: deepFocus, totalSteps: 21, at: time(day: day, hour: 9)))
+        }
+        let british = Locale(identifier: "en_GB")
+
+        let open = PathsList(progress: store, now: time(day: 4, hour: 8), calendar: utcCalendar)
+        #expect(open.hero?.accessibilityLabel(locale: british)
+            == "Today on Deep focus, step 5 of 21, Single-tab work, 25 minutes")
+
+        #expect(store.completePathStep(pathID: deepFocus, totalSteps: 21, at: time(day: 4, hour: 9)))
+        let done = PathsList(progress: store, now: time(day: 4, hour: 10), calendar: utcCalendar)
+        #expect(done.hero?.accessibilityLabel(locale: british)
+            == "Step 5 done, Boredom training, Opens tomorrow at 06:00")
+    }
+
     // MARK: - Helpers
 
     private func finishDeepFocus(_ store: ProgressStore) {

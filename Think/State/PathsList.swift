@@ -24,6 +24,62 @@ struct PathsList {
         let form: Form
         /// Steps done in the active run, for the trail window.
         let doneSteps: Int
+        /// The day the hero was built for; the next step opens at 06:00.
+        let now: Date
+        let calendar: Calendar
+
+        /// The step the hero names: today's, or in the done form the next one.
+        var step: PathStep? {
+            let number = switch form {
+            case .open(let step): step
+            case .done(let step, _): step + 1
+            }
+            return path.steps.indices.contains(number - 1) ? path.steps[number - 1] : nil
+        }
+
+        var window: StepTrailWindowLayout {
+            let today: Int? = if case .open(let step) = form { step } else { nil }
+            return StepTrailWindowLayout(totalSteps: path.steps.count, doneSteps: doneSteps, todayStep: today)
+        }
+
+        /// "Opens tomorrow at 06:00" in the locale's time format (paths.md section 7).
+        func opening(locale: Locale = .current) -> String {
+            guard case .done(_, let tomorrow) = form else { return "" }
+            let day = calendar.date(byAdding: .day, value: tomorrow ? 1 : 0, to: calendar.startOfDay(for: now))!
+            let six = calendar.date(bySettingHour: 6, minute: 0, second: 0, of: day)!
+            // The locale's own hour pattern: "06:00" in 24-hour locales, "6:00 AM" in 12-hour ones.
+            let formatter = DateFormatter()
+            formatter.locale = locale
+            formatter.calendar = calendar
+            formatter.timeZone = calendar.timeZone
+            formatter.setLocalizedDateFormatFromTemplate("jmm")
+            let time = formatter.string(from: six)
+            return tomorrow
+                ? String(localized: "Opens tomorrow at \(time)", comment: "Paths: when the next step opens.")
+                : String(localized: "Opens today at \(time)",
+                         comment: "Paths: when the next step opens, before 06:00 on the day it opens.")
+        }
+
+        /// The hero is one VoiceOver element (paths.md section 4.1).
+        func accessibilityLabel(locale: Locale = .current) -> String {
+            let title = step?.title ?? ""
+            switch form {
+            case .open(let number):
+                let minutes = step?.estimatedMinutes ?? 0
+                return [
+                    String(localized: "Today on \(path.name), step \(number) of \(path.steps.count)",
+                           comment: "Paths hero for VoiceOver: path name, step number and run length."),
+                    title,
+                    String(localized: "\(minutes) minutes", comment: "Paths hero for VoiceOver: the step's time."),
+                ].joined(separator: ", ")
+            case .done(let number, _):
+                return [
+                    String(localized: "Step \(number) done", comment: "Paths hero after today's step is done."),
+                    title,
+                    opening(locale: locale),
+                ].joined(separator: ", ")
+            }
+        }
     }
 
     struct Row: Equatable, Identifiable {
@@ -61,12 +117,13 @@ struct PathsList {
         let hero: Hero?
         if let path = inRun.first(where: { isOpen[$0.id] == true }) {
             let done = Self.doneSteps(path, progress)
-            hero = Hero(path: path, form: .open(step: done + 1), doneSteps: done)
+            hero = Hero(path: path, form: .open(step: done + 1), doneSteps: done, now: now, calendar: calendar)
         } else if let path = inRun.first {
             let done = Self.doneSteps(path, progress)
             let last = progress.activeRun(for: path.id)?.lastCompletionDate ?? progress.lastPathCompletionDay
             let doneToday = last.map { calendar.isDate($0, inSameDayAs: now) } ?? true
-            hero = Hero(path: path, form: .done(step: done, opensTomorrow: doneToday), doneSteps: done)
+            hero = Hero(path: path, form: .done(step: done, opensTomorrow: doneToday), doneSteps: done,
+                        now: now, calendar: calendar)
         } else {
             hero = nil
         }
