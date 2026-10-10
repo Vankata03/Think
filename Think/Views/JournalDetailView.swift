@@ -197,16 +197,6 @@ struct JournalEntryDetailView: View {
             if let intention = entry.nextIntention, !intention.isEmpty {
                 Section("Intention for next week") { Text(intention).font(.body) }
             }
-            if let practiceID = entry.practiceID {
-                Section {
-                    NavigationLink {
-                        PracticeDetailView(practiceID: practiceID)
-                    } label: {
-                        Label("View this practice", systemImage: "text.quote")
-                    }
-                    .accessibilityIdentifier("ViewSourcePractice")
-                }
-            }
             if !variants.isEmpty {
                 Section {
                     ForEach(variants) { variant in
@@ -366,16 +356,6 @@ struct JournalRetroDetailView: View {
                 }
                 .textSelection(.enabled)
                 .accessibilityIdentifier("JournalRetroText")
-            }
-            if let practiceID = retro.practiceID {
-                Section {
-                    NavigationLink {
-                        PracticeDetailView(practiceID: practiceID)
-                    } label: {
-                        Label("View this practice", systemImage: "text.quote")
-                    }
-                    .accessibilityIdentifier("ViewSourcePractice")
-                }
             }
             if !variants.isEmpty {
                 Section {
