@@ -5360,8 +5360,8 @@
         },
         "de" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Deep Work"
+            "state" : "needs_review",
+            "value" : "Konzentrierte Arbeit"
           }
         },
         "es" : {
@@ -6067,7 +6067,8 @@
             "value" : "Dica de concentração"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Focus duration" : {
       "localizations" : {
@@ -6107,7 +6108,8 @@
             "value" : "Duração do foco"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Focus minutes" : {
       "extractionState" : "stale",
@@ -8233,7 +8235,8 @@
             "value" : "Predefinições"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Previous month" : {
       "localizations" : {
@@ -8759,7 +8762,8 @@
             "value" : "Quando quiser"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Report a problem" : {
       "localizations" : {
@@ -9292,7 +9296,8 @@
             "value" : "Duração da sessão"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Session in progress" : {
       "localizations" : {
@@ -9332,7 +9337,8 @@
             "value" : "Sessão em andamento"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Sessions" : {
       "localizations" : {
@@ -9916,14 +9922,14 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pasa a la parte práctica"
+            "state" : "needs_review",
+            "value" : "Saltar al trabajo"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Passe directement au travail"
+            "state" : "needs_review",
+            "value" : "Passer au travail"
           }
         },
         "it" : {
@@ -12478,7 +12484,8 @@
             "value" : "Limpar intenção"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Reuse intention: %@" : {
       "localizations" : {
@@ -12558,7 +12565,8 @@
             "value" : "Como foi?"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "After the session" : {
       "localizations" : {
@@ -12598,7 +12606,8 @@
             "value" : "Depois da sessão"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "This removes journal entries, retrospectives, saved lines, streaks, achievements, and focus history from this device. Journal entries and retrospectives are also removed from your iCloud backup and any device signed into it; saved lines, streaks, achievements, and focus history are on this device only. Mindful minutes already saved to Health stay in Health and can be deleted there. This cannot be undone." : {
       "extractionState" : "stale",
@@ -13378,7 +13387,8 @@
             "value" : "Esforço ativo"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Actual duration unknown" : {
       "localizations" : {
@@ -13470,7 +13480,8 @@
             "value" : "A duração real desta sessão não foi registrada."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "All" : {
       "localizations" : {
@@ -14071,7 +14082,8 @@
             "value" : "Mudei de direção"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Choose a practice. Each lesson includes its time and a smaller option." : {
       "extractionState" : "stale",
@@ -16055,7 +16067,8 @@
             "value" : "Energia"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Entry" : {
       "localizations" : {
@@ -16656,7 +16669,8 @@
             "value" : "Alta"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "History covers the last 365 days. All-time totals are retained. Older actual durations are unknown." : {
       "localizations" : {
@@ -16888,7 +16902,8 @@
             "value" : "Intenção"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Intention carried into the next day" : {
       "localizations" : {
@@ -17814,7 +17829,8 @@
             "value" : "Avancei"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Next week" : {
       "localizations" : {
@@ -18182,7 +18198,8 @@
             "value" : "Não registrado"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Note" : {
       "localizations" : {
@@ -18922,7 +18939,8 @@
             "value" : "Resultado"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Partial effort" : {
       "localizations" : {
@@ -19107,7 +19125,8 @@
             "value" : "Duração planejada"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Practice runs" : {
       "localizations" : {
@@ -19292,7 +19311,8 @@
             "value" : "Reflexão privada"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Private writing on your device, with sync through your own iCloud when available." : {
       "localizations" : {
@@ -19756,7 +19776,8 @@
             "value" : "Reflita sobre sua sessão"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Retrospective actions" : {
       "localizations" : {
@@ -20588,7 +20609,8 @@
             "value" : "Status"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Suggestions" : {
       "localizations" : {
@@ -20726,7 +20748,8 @@
             "value" : "Armazenamento temporário: as alterações podem ser perdidas quando o app fechar."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Temporary storage: writing in this session will be lost when the app closes." : {
       "extractionState" : "stale",
@@ -21558,7 +21581,8 @@
             "value" : "Desbloquear reflexão privada"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Unlock to read" : {
       "extractionState" : "stale",
@@ -22256,7 +22280,8 @@
             "value" : "Seu rascunho é mantido sempre que possível. Tente novamente."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Your earlier runs and achievements stay saved. The new run starts at day one." : {
       "localizations" : {
@@ -22486,7 +22511,8 @@
             "value" : "Seu timer continua. Tente salvar sua reflexão novamente."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Your writing could not be saved. Try again; your draft is still here." : {
       "extractionState" : "stale",
@@ -23821,6 +23847,416 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "End" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Край"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Beenden"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Terminar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Terminer"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Termina"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Encerrar"
+          }
+        }
+      }
+    },
+    "Resume" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Продължи"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Fortsetzen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Reanudar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Reprendre"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Riprendi"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Retomar"
+          }
+        }
+      }
+    },
+    "End this session?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Да приключи ли сесията?"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Diese Sitzung beenden?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "¿Terminar esta sesión?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Terminer cette séance ?"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Terminare questa sessione?"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Encerrar esta sessão?"
+          }
+        }
+      }
+    },
+    "End session" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Приключи сесията"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sitzung beenden"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Terminar sesión"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Terminer la séance"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Termina sessione"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Encerrar sessão"
+          }
+        }
+      }
+    },
+    "The time you've done so far is kept as partial effort." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Времето дотук се запазва като частично усилие."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Die bisherige Zeit bleibt als Teilaufwand erhalten."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "El tiempo que llevas se guarda como esfuerzo parcial."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Le temps déjà passé est conservé comme effort partiel."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Il tempo svolto finora resta come impegno parziale."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "O tempo feito até agora fica salvo como esforço parcial."
+          }
+        }
+      }
+    },
+    "Your timer continues. The intention was not saved with this session." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Таймерът продължава. Намерението не беше запазено към тази сесия."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Der Timer läuft weiter. Die Absicht wurde nicht mit dieser Sitzung gespeichert."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "El temporizador sigue. La intención no se guardó con esta sesión."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Le minuteur continue. L’intention n’a pas été enregistrée avec cette séance."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Il timer continua. L’intenzione non è stata salvata con questa sessione."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "O timer continua. A intenção não foi salva com esta sessão."
+          }
+        }
+      }
+    },
+    "Session done · %lld min" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Сесията е завършена · %lld мин"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sitzung geschafft · %lld Min."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sesión hecha · %lld min"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Séance terminée · %lld min"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sessione completata · %lld min"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sessão concluída · %lld min"
+          }
+        }
+      }
+    },
+    "Last session · %lld min · %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Последна сесия · %lld мин · %@"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Letzte Sitzung · %lld Min. · %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Última sesión · %lld min · %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Dernière séance · %lld min · %@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Ultima sessione · %lld min · %@"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Última sessão · %lld min · %@"
+          }
+        }
+      }
+    },
+    "Focus, %@ left. %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Фокус, остават %@. %@"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Fokus, noch %@. %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Concentración, quedan %@. %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Concentration, encore %@. %@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Concentrazione, mancano %@. %@"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Foco, faltam %@. %@"
+          }
+        }
+      }
+    },
+    "Focus. Paused, %@ left. %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Фокус. На пауза, остават %@. %@"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Fokus. Pausiert, noch %@. %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Concentración. En pausa, quedan %@. %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Concentration. En pause, encore %@. %@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Concentrazione. In pausa, mancano %@. %@"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Foco. Pausado, faltam %@. %@"
           }
         }
       }
