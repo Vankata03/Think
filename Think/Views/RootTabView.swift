@@ -3,11 +3,10 @@
 //  Think
 //
 
-import SwiftUI
 import SwiftData
+import SwiftUI
 
-/// The five tabs of design-system section 13.8. The fifth tab keeps Profile
-/// until the Progress build renames and replaces it.
+/// The five tabs of design-system section 13.8.
 struct RootTabView: View {
     @Environment(AppIntentRouter.self) private var appIntentRouter
 
@@ -33,10 +32,10 @@ struct RootTabView: View {
                 }
             }
             .accessibilityIdentifier("Tab.Journal")
-            Tab("Profile", systemImage: ThinkSymbol.progress, value: ThinkAppTab.profile) {
-                ProfileView()
+            Tab("Progress", systemImage: ThinkSymbol.progress, value: ThinkAppTab.progress) {
+                ProgressTabView()
             }
-            .accessibilityIdentifier("Tab.Profile")
+            .accessibilityIdentifier("Tab.Progress")
         }
         .tint(ThinkColor.accentInk)
     }

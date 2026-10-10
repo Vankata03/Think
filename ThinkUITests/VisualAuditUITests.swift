@@ -36,7 +36,7 @@ final class VisualAuditUITests: XCTestCase {
         app.swipeUp()
         capture(app, "06 Focus controls")
         app.tabBars.buttons.element(boundBy: 4).tap()
-        capture(app, "07 Your practice")
+        capture(app, "07 Progress")
         app.navigationBars.buttons["Settings"].tap()
         capture(app, "08 Settings top")
         app.swipeUp()
@@ -108,6 +108,83 @@ final class VisualAuditUITests: XCTestCase {
             XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 3))
             app.typeText((1...14).map { "Line \($0) of a long entry that keeps going" }.joined(separator: "\n"))
             capture(app, "Editor \(run.name) long entry")
+            app.terminate()
+        }
+    }
+
+    /// Progress across the acceptance floor (`progress-settings.md`
+    /// section 6): both appearances, AX3 in `en`, `bg` and `de`, and the
+    /// zero states. At AX3 the medals stack and the week chart becomes
+    /// labelled day rows; every section scrolls above the tab bar.
+    @MainActor
+    func testCaptureProgress() throws {
+        continueAfterFailure = false
+        let runs: [(name: String, appearance: String, language: String, locale: String, ax3: Bool, seeded: Bool)] = [
+            ("dark en", "dark", "en", "en_US", false, true),
+            ("light en", "light", "en", "en_US", false, true),
+            ("dark en empty", "dark", "en", "en_US", false, false),
+            ("dark en AX3", "dark", "en", "en_US", true, true),
+            ("light bg AX3", "light", "bg", "bg_BG", true, true),
+            ("dark de AX3", "dark", "de", "de_DE", true, true),
+        ]
+        for run in runs {
+            let app = XCUIApplication()
+            app.launchArguments = [
+                "-ui-testing", "-appearance", run.appearance,
+                "-AppleLanguages", "(\(run.language))", "-AppleLocale", run.locale,
+            ]
+            if run.seeded { app.launchArguments += ["-ui-seed-progress"] }
+            if run.ax3 { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXL"] }
+            app.launch()
+            app.tabBars.buttons.element(boundBy: 4).tap()
+            XCTAssertTrue(app.buttons["ProgressStreak"].waitForExistence(timeout: 3))
+            capture(app, "Progress \(run.name) top")
+
+            if run.ax3 {
+                // Labelled day rows replace the chart; medals stack.
+                XCTAssertFalse(app.descendants(matching: .any)["PracticeWeekChart"].exists)
+                let first = app.descendants(matching: .any)["EarnedMedal.streak-7"]
+                let second = app.descendants(matching: .any)["EarnedMedal.focus-10"]
+                var swipes = 0
+                while !(second.exists && second.isHittable) && swipes < 20 {
+                    app.swipeUp()
+                    swipes += 1
+                }
+                if first.exists && second.exists {
+                    XCTAssertGreaterThanOrEqual(second.frame.minY, first.frame.maxY, "Medals stack at AX3")
+                }
+            }
+
+            let last = app.buttons[run.seeded ? "SeeAllSessions" : "StartFocusSession"]
+            var swipes = 0
+            while !(last.exists && last.isHittable) && swipes < 30 {
+                app.swipeUp()
+                swipes += 1
+                if swipes % 3 == 0 { capture(app, "Progress \(run.name) scroll \(swipes / 3)") }
+            }
+            app.swipeUp()
+            XCTAssertTrue(last.isHittable)
+            XCTAssertLessThanOrEqual(last.frame.maxY, app.tabBars.firstMatch.frame.minY, "Last row sits above the tab bar")
+            capture(app, "Progress \(run.name) bottom")
+
+            if run.seeded {
+                let all = app.buttons["AllAchievements"]
+                scrollClearOfBars(all, in: app, defaultUp: false)
+                all.tap()
+                XCTAssertTrue(app.descendants(matching: .any)["AchievementsView"].waitForExistence(timeout: 3))
+                capture(app, "Achievements \(run.name) top")
+                app.swipeUp()
+                app.swipeUp()
+                capture(app, "Achievements \(run.name) bottom")
+                app.navigationBars.buttons.element(boundBy: 0).tap()
+
+                scrollClearOfBars(last, in: app, defaultUp: true)
+                last.tap()
+                XCTAssertTrue(app.descendants(matching: .any)["FocusHistoryView"].waitForExistence(timeout: 3))
+                capture(app, "Focus history \(run.name) top")
+                app.swipeUp()
+                capture(app, "Focus history \(run.name) lower")
+            }
             app.terminate()
         }
     }
@@ -305,6 +382,29 @@ final class VisualAuditUITests: XCTestCase {
             app.swipeUp()
         }
         XCTAssertTrue(element.isHittable)
+    }
+
+    /// Short drags until the element sits between the navigation bar and
+    /// the tab bar, so a tap cannot land on either bar. At AX3 a full
+    /// swipe can carry a row from below the tab bar to under the title.
+    @MainActor
+    private func scrollClearOfBars(_ element: XCUIElement, in app: XCUIApplication, defaultUp: Bool) {
+        let tabTop = app.tabBars.firstMatch.frame.minY
+        let navBottom = app.navigationBars.firstMatch.frame.maxY
+        for _ in 0..<40 {
+            let up: Bool
+            if element.exists {
+                let frame = element.frame
+                if frame.minY >= navBottom && frame.maxY <= tabTop && element.isHittable { return }
+                up = frame.maxY > tabTop
+            } else {
+                up = defaultUp
+            }
+            let from = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: up ? 0.6 : 0.4))
+            let to = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: up ? 0.4 : 0.6))
+            from.press(forDuration: 0.05, thenDragTo: to)
+        }
+        XCTFail("\(element.identifier) never cleared the bars")
     }
 
     @MainActor

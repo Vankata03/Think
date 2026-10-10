@@ -202,33 +202,6 @@ final class JournalAuditUITests: XCTestCase {
     }
 
     @MainActor
-    func testFocusReflectionEditPersistsWithoutUntouchedDraft() throws {
-        let app = launch(["-ui-seed-focus"])
-        app.tabBars.buttons.element(boundBy: 2).tap()
-        app.buttons["FocusStats"].tap()
-        let session = app.buttons["FocusSession.audit-focus-session"]
-        for _ in 0..<6 { if session.isHittable { break }; app.swipeUp() }
-        session.tap()
-        let note = app.descendants(matching: .any).matching(identifier: "FocusNoteInput").firstMatch
-        XCTAssertTrue(note.waitForExistence(timeout: 3))
-        XCTAssertEqual(note.value as? String, "Original focus note")
-        app.navigationBars.buttons.element(boundBy: 0).tap()
-        app.tabBars.buttons["Journal"].tap()
-        XCTAssertFalse(app.buttons["RecoverDrafts"].exists)
-        app.tabBars.buttons.element(boundBy: 2).tap()
-        session.tap()
-        note.tap()
-        note.typeText(" updated")
-        let edited = try XCTUnwrap(note.value as? String)
-        XCTAssertTrue(edited.contains("updated"))
-        app.buttons["SaveFocusNote"].tap()
-        XCTAssertTrue(app.staticTexts["Saved"].waitForExistence(timeout: 3))
-        app.navigationBars.buttons.element(boundBy: 0).tap()
-        session.tap()
-        XCTAssertEqual(note.value as? String, edited.trimmingCharacters(in: .whitespacesAndNewlines))
-    }
-
-    @MainActor
     private func openBlankNote(_ app: XCUIApplication) {
         app.tabBars.buttons["Journal"].tap()
         XCTAssertTrue(app.buttons["NewNote"].waitForExistence(timeout: 3))

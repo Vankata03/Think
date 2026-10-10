@@ -74,17 +74,6 @@ struct FocusView: View {
             .navigationTitle("Focus")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(.hidden, for: .navigationBar)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    NavigationLink {
-                        FocusStatsView()
-                    } label: {
-                        Image(systemName: "chart.bar.xaxis")
-                    }
-                    .accessibilityLabel("Focus stats")
-                    .accessibilityIdentifier("FocusStats")
-                }
-            }
             .background(Color(.systemGroupedBackground).ignoresSafeArea())
             // One presentation channel for every sheet: two `.sheet`
             // modifiers on the same view can race, and a work phase can

@@ -10,7 +10,6 @@ import UIKit
 struct AchievementShareSheet: View {
     let achievement: ProgressAchievement
 
-    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
     @Environment(\.haptics) private var haptics
     @Environment(\.openURL) private var openURL
@@ -32,10 +31,6 @@ struct AchievementShareSheet: View {
         }
     }
 
-    private var prominentButtonForeground: Color {
-        .prominentButtonForeground(for: colorScheme)
-    }
-
     var body: some View {
         NavigationStack {
             VStack(spacing: 24) {
@@ -49,10 +44,17 @@ struct AchievementShareSheet: View {
             .navigationTitle("Share card")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") { dismiss() }
+                // Design-system 13.5: "Close" and Share as the one primary.
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close") { dismiss() }
+                        .accessibilityIdentifier("DismissAchievementShare")
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    shareLink
                 }
             }
+            .accessibilityElement(children: .contain)
+            .accessibilityIdentifier("AchievementShareSheet")
         }
         .presentationDetents([.large])
         .task(id: renderKey) {
@@ -131,27 +133,27 @@ struct AchievementShareSheet: View {
         }
     }
 
-    private var actions: some View {
+    private var shareLink: some View {
         let image = Image(uiImage: currentRenderedImage ?? UIImage())
-
-        return HStack(spacing: 12) {
-            ShareLink(
-                item: image,
-                message: Text(achievement.shareMessage),
-                preview: SharePreview(achievement.shareMessage, image: image)
-            ) {
-                Label("Share", systemImage: "square.and.arrow.up")
-                    .frame(maxWidth: .infinity)
-                    .foregroundStyle(prominentButtonForeground)
-            }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-            .tint(Color("AccentColor"))
-            .disabled(currentRenderedImage == nil)
-            .simultaneousGesture(TapGesture().onEnded {
+        return ShareLink(
+            item: image,
+            message: Text(achievement.shareMessage),
+            preview: SharePreview(achievement.shareMessage, image: image)
+        ) {
+            Label("Share", systemImage: ThinkSymbol.share)
+        }
+        .thinkButton(.primary)
+        .disabled(currentRenderedImage == nil)
+        .simultaneousGesture(
+            TapGesture().onEnded {
                 haptics.play(.selection)
-            })
+            }
+        )
+        .accessibilityIdentifier("AchievementShare")
+    }
 
+    private var actions: some View {
+        HStack(spacing: 12) {
             Button {
                 if photoSaveState == .denied {
                     openAppSettings()
@@ -162,10 +164,10 @@ struct AchievementShareSheet: View {
                 Label(photoSaveState.label, systemImage: photoSaveState.systemImage)
                     .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.bordered)
+            .thinkButton(.secondary)
             .controlSize(.large)
-            .tint(Color("AccentColor"))
             .disabled(photoSaveState == .saving || photoSaveState == .saved)
+            .accessibilityIdentifier("SaveAchievementCard")
         }
     }
 
