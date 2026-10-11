@@ -202,9 +202,11 @@ struct TodayView: View {
                 Image(systemName: ThinkSymbol.streak)
                 if count > 0 {
                     Text(count, format: .number)
-                        .font(.think(.numeral))
+                        .monospacedDigit()
                 }
             }
+            // Bar-item size, matching the bookmark beside it.
+            .font(.think(.heading))
             .foregroundStyle(count > 0 ? ThinkColor.accentInk : ThinkColor.secondaryLabel)
         }
         .accessibilityLabel(count > 0 ? String(localized: "\(count) day streak") : streak.streakText)
@@ -214,41 +216,41 @@ struct TodayView: View {
 
     // MARK: - Daily line
 
-    /// The line, then its attribution with save and share. No link anywhere
-    /// on the line: practice detail left the app.
+    /// The line, centred, then its attribution and save and share under
+    /// it. At accessibility sizes everything sits on the leading edge so
+    /// long wrapped lines stay readable. No link anywhere on the line:
+    /// practice detail left the app.
     private var dailyLine: some View {
-        VStack(alignment: .leading, spacing: rowSpacing) {
+        let centred = !dynamicTypeSize.isAccessibilitySize
+        return VStack(alignment: centred ? .center : .leading, spacing: rowSpacing) {
             Text(quote.text)
                 .font(.think(.lineLarge))
                 .foregroundStyle(ThinkColor.label)
+                .multilineTextAlignment(centred ? .center : .leading)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("TodayDailyLine")
-            let layout =
-                dynamicTypeSize.isAccessibilitySize
-                ? AnyLayout(VStackLayout(alignment: .leading, spacing: rowSpacing))
-                : AnyLayout(HStackLayout(alignment: .center, spacing: rowSpacing))
-            layout {
-                if let attribution = quote.attribution {
-                    Text(attribution)
-                        .font(.think(.caption))
-                        .foregroundStyle(ThinkColor.secondaryLabel)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 0) }
-                HStack(spacing: rowSpacing) {
-                    saveButton
-                    Button("Share", systemImage: ThinkSymbol.share) {
-                        haptics.play(.selection)
-                        showingShareCard = true
-                    }
-                    .accessibilityIdentifier("ShareQuote")
-                }
-                .labelStyle(.iconOnly)
-                .buttonStyle(.borderless)
-                .font(.body)
-                .foregroundStyle(ThinkColor.label)
+            if let attribution = quote.attribution {
+                Text(attribution)
+                    .font(.think(.caption))
+                    .foregroundStyle(ThinkColor.secondaryLabel)
+                    .multilineTextAlignment(centred ? .center : .leading)
+                    .fixedSize(horizontal: false, vertical: true)
             }
+            HStack(spacing: rowSpacing) {
+                saveButton
+                Button("Share", systemImage: ThinkSymbol.share) {
+                    haptics.play(.selection)
+                    showingShareCard = true
+                }
+                .frame(minWidth: 44, minHeight: 44)
+                .accessibilityIdentifier("ShareQuote")
+            }
+            .labelStyle(.iconOnly)
+            .buttonStyle(.borderless)
+            .font(.body)
+            .foregroundStyle(ThinkColor.label)
         }
+        .frame(maxWidth: .infinity, alignment: centred ? .center : .leading)
         .padding(.vertical, ThinkSpacing.xs)
     }
 
@@ -618,6 +620,7 @@ private struct TodayRowLabelStyle: LabelStyle {
             }
         } else {
             Label(configuration)
+                .fullWidthRowSeparator()
         }
     }
 }

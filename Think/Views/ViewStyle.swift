@@ -20,3 +20,13 @@ extension Binding where Value == Int {
         }
     }
 }
+
+extension View {
+    /// Starts the row's separator at the row's leading content margin
+    /// instead of at its label text, so every separator in a grouped list
+    /// is inset the same on both sides, whatever icon or centred content
+    /// the row holds.
+    func fullWidthRowSeparator() -> some View {
+        alignmentGuide(.listRowSeparatorLeading) { $0[.leading] }
+    }
+}

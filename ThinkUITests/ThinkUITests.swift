@@ -57,7 +57,8 @@ final class ThinkUITests: XCTestCase {
         openSettings(app)
 
         let rows = [
-            "Appearance.system", "Appearance.light", "Appearance.dark",
+            // The three appearance tiles share one row; Auto stands in for them.
+            "Appearance.system",
             "DailyLineReminder", "EveningRetroReminder",
             "SilenceDistractions", "SessionEndAlerts", "HealthMindfulMinutes",
             "CloudBackup",
