@@ -10,6 +10,13 @@ import UserNotifications
 
 struct RetroReminderTests {
 
+    /// 20:00 is the retro marker on the day arc and the hour the retro act
+    /// opens on Today (`design/onboarding.md` section 4), so the reminder
+    /// defaults to it.
+    @Test func theRetroReminderDefaultsToTwentyHundred() {
+        #expect(RetroReminder.defaultMinutes == 20 * 60)
+    }
+
     @Test func theRetroReminderIsTimeSensitive() {
         let content = RetroReminder.notificationContent()
 
