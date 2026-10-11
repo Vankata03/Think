@@ -28,7 +28,7 @@ enum JournalLockAvailability: Equatable, Sendable {
         }
     }
 
-    /// Subtitle for the Profile row. Names the mechanism the user will
+    /// Subtitle for the Settings lock row. Names the mechanism the user will
     /// actually be shown, so the setting is not a mystery before it is on.
     var settingSubtitle: String {
         switch self {

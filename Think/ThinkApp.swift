@@ -163,11 +163,45 @@ struct ThinkApp: App {
             // Today's Deep focus step done, so the Paths hero shows its done form.
             progressStore.completePathStep(pathID: PathLibrary.deepFocus.id, totalSteps: PathLibrary.deepFocus.steps.count)
         }
+        if isUITesting && arguments.contains("-ui-seed-path-finished") {
+            // Deep focus finished on earlier days, so its detail offers Begin again.
+            let calendar = Calendar.current
+            let path = PathLibrary.deepFocus
+            let start = calendar.date(byAdding: .day, value: -30, to: calendar.startOfDay(for: .now))!
+            for day in path.steps.indices {
+                let date = calendar.date(byAdding: DateComponents(day: day, hour: 9), to: start)!
+                progressStore.completePathStep(pathID: path.id, totalSteps: path.steps.count, at: date)
+            }
+        }
         if isUITesting && arguments.contains("-ui-seed-focus") {
             let sessionID = "audit-focus-session"
             progressStore.recordFocusSession(durationMinutes: 25, eventID: sessionID, actualActiveSeconds: 1500)
             let receipt = try? repository.saveFocusNote(text: "Original focus note", intention: "Audit intention", sessionID: sessionID)
             try? repository.upsertSessionMetadata(sessionID: sessionID, intention: "Audit intention", closingNoteRecordID: receipt?.recordID, completedAt: .now)
+        }
+        if isUITesting && arguments.contains("-ui-seed-progress") {
+            // Every Progress section populated: a 7-day streak and ten
+            // sessions (two medals), a path step, partial effort, and an
+            // intention on the newest completed session.
+            let now = Date.now
+            for day in 0..<7 {
+                let date = Calendar.current.date(byAdding: .day, value: -day, to: now) ?? now
+                progressStore.recordFocusSession(
+                    at: date.addingTimeInterval(-60), durationMinutes: 25, eventID: "audit-progress-day-\(day)",
+                    actualActiveSeconds: 1_500)
+            }
+            for index in 0..<3 {
+                progressStore.recordFocusSession(
+                    at: now.addingTimeInterval(Double(-3_600 * (index + 2))), durationMinutes: 50,
+                    eventID: "audit-progress-extra-\(index)", actualActiveSeconds: nil)
+            }
+            progressStore.recordPartialFocusSession(FocusSessionRecord(
+                id: "audit-progress-partial", completedAt: now.addingTimeInterval(-30), durationMinutes: 25,
+                actualActiveSeconds: 420, isCompleted: false))
+            _ = progressStore.completePathStep(
+                pathID: PathLibrary.deepFocus.id, totalSteps: PathLibrary.deepFocus.steps.count, at: now)
+            try? repository.upsertSessionMetadata(
+                sessionID: "audit-progress-day-0", intention: "Draft the Progress audit", completedAt: now)
         }
         // Same isolated suite as progress under UI tests, so a favorited
         // line never leaks between runs.
@@ -243,7 +277,7 @@ struct ThinkApp: App {
 
     /// Opens the journal store. When every on-disk candidate fails the app
     /// still launches, on a throwaway store — but as
-    /// `.emergencyInMemory`, so the Profile row states outright that the
+    /// `.emergencyInMemory`, so the Settings iCloud row states outright that the
     /// session is not being saved rather than letting the user write into
     /// a store that disappears on quit.
     private static func makeJournalStore(isUITesting: Bool) -> JournalDataStore.Result {

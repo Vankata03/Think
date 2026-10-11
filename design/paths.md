@@ -191,5 +191,5 @@ Section 11 of the design system applies. Specific to Paths:
 
 ## 12. Open for the build
 
-- The disc spacing in the full trail is computed from the row width. Check the 44pt tap targets on the narrowest supported iPhone and at the largest non-accessibility size, and shrink the disc before the gap if they collide.
+- The disc spacing in the full trail is computed from the row width. Check the 44pt tap targets on the narrowest supported iPhone and at the largest non-accessibility size, and shrink the disc before the gap if they collide. Settled in the build (#115): each disc's target is one seventh of the row, the trail row's side insets are narrowed to 8pt so a 375pt screen still gives every target more than 44pt, and the disc shrinks to leave room for its halo inside its column. `PathDetailUITests` checks the targets at xxxLarge.
 - `plans/002-animate-path-day-completion.md` predates this brief; its animation applies to the card-to-done-rows change and the trail disc turning green, under `ThinkMotion` and Reduce Motion.
