@@ -26,116 +26,197 @@ struct MonthGrid {
     }
 }
 
+/// The streak and the days behind it, one month at a time
+/// (`design/progress-settings.md` section 8). Today's streak item and the
+/// Progress streak hero both present it as a sheet.
 struct StreakCalendarSheet: View {
     @Environment(ProgressStore.self) private var progress
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.dismiss) private var dismiss
     @Environment(\.haptics) private var haptics
 
     @State private var displayedMonth = Date.now
     @State private var monthShift = 0
     @State private var showingShare = false
+    /// The sheet's fitted height: content plus the bar and safe area. Six
+    /// grid rows are always reserved, so it does not change between months
+    /// (`STK-1`). It starts tall enough to lay every row out, because a
+    /// lazy list in a short sheet reports an estimate.
+    @State private var fittedHeight: CGFloat = 640
+
+    @ScaledMetric(relativeTo: .subheadline) private var scaledDisc: CGFloat = 32
 
     private let calendar = Calendar.current
-    private let columns = Array(repeating: GridItem(.flexible()), count: 7)
 
     var body: some View {
+        let month = StreakMonth(containing: displayedMonth, completedDays: progress.completedDays, calendar: calendar)
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    streakHeader
-                    calendarCard
-                    shareButton
+            List {
+                Section {
+                    header
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 18)
-                .padding(.bottom, 24)
+                .listRowBackground(Color.clear)
+
+                Section {
+                    pager(month)
+                    Group {
+                        if dynamicTypeSize.isAccessibilitySize {
+                            linearMonth(month)
+                        } else {
+                            gridMonth(month)
+                        }
+                    }
+                    .id(month.grid.monthStart)
+                    .transition(monthTransition)
+                }
+                .listRowBackground(ThinkColor.surface)
+                // One card: no hairline between the pager and the days.
+                .listRowSeparator(.hidden)
+            }
+            .listStyle(.insetGrouped)
+            // Fitted height: the content plus the bar and safe area around
+            // it, which the scroll view reports as content insets (`STK-1`).
+            .onScrollGeometryChange(for: CGFloat.self) { geometry in
+                geometry.contentSize.height + geometry.contentInsets.top + geometry.contentInsets.bottom
+            } action: { _, height in
+                // Before the first layout the content is empty or estimated.
+                if height > 300 { fittedHeight = height }
             }
             .navigationTitle("Streak")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") { dismiss() }
-                }
-            }
-            .background(Color(.systemGroupedBackground).ignoresSafeArea())
+            .toolbar { toolbar }
+            .accessibilityIdentifier("StreakSheet")
         }
-        .presentationDetents([.large])
+        .presentationDetents(detents)
+        .presentationDragIndicator(.visible)
         .sheet(isPresented: $showingShare) {
             StreakShareSheet(month: displayedMonth)
         }
     }
 
-    private var streakHeader: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 12) {
-            Image(systemName: "flame.fill")
-                .font(.title)
-                .foregroundStyle(progress.displayedStreak > 0 ? Color.accentColor : .secondary)
-            VStack(alignment: .leading, spacing: 2) {
-                Text("\(progress.displayedStreak)")
-                    .font(.system(.largeTitle, design: .rounded).weight(.bold))
-                    .monospacedDigit()
-                Text(streakCaption)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-            Spacer()
-        }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(progress.displayedStreak > 0
-                            ? String(localized: "\(progress.displayedStreak) day streak")
-                            : streakCaption)
+    /// Opens at the fitted height, the smaller detent. At accessibility
+    /// sizes only `.large` remains, so it opens there; a fitted height
+    /// beyond the large detent is clamped to it by the system.
+    private var detents: Set<PresentationDetent> {
+        guard !dynamicTypeSize.isAccessibilitySize else { return [.large] }
+        return [.height(fittedHeight.rounded(.up)), .large]
     }
 
-    /// Streak-zero copy follows the "no guilt" principle: a fresh user
-    /// is invited to start, a lapsed one to begin again.
-    private var streakCaption: String {
-        if progress.displayedStreak > 0 { return String(localized: "streak") }
-        return progress.lastCompletedDay == nil
-            ? String(localized: "start today")
-            : String(localized: "begin again")
+    private var hasPractised: Bool {
+        progress.lastCompletedDay != nil
     }
 
-    private var calendarCard: some View {
-        let grid = MonthGrid(containing: displayedMonth, calendar: calendar)
+    // MARK: - Toolbar
 
-        return ZStack {
-            calendarMonthContent(grid)
-                .id(grid.monthStart)
-                .transition(monthTransition)
+    /// "Close" and one plain Share: the sheet has no primary action
+    /// (design system 13.5). Nothing to share before the first practice day.
+    @ToolbarContentBuilder
+    private var toolbar: some ToolbarContent {
+        ToolbarItem(placement: .cancellationAction) {
+            Button("Close") { dismiss() }
+                .accessibilityIdentifier("CloseStreak")
         }
-        .padding(18)
-        .frame(maxWidth: .infinity)
-        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .stroke(.separator.opacity(0.6), lineWidth: 1)
-        }
-    }
-
-    private func calendarMonthContent(_ grid: MonthGrid) -> some View {
-        VStack(spacing: 16) {
-            monthHeader
-            HStack {
-                ForEach(Array(grid.weekdaySymbols.enumerated()), id: \.offset) { _, symbol in
-                    Text(symbol)
-                        .font(.caption2.weight(.semibold))
-                        .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity)
+        if hasPractised {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Share", systemImage: ThinkSymbol.share) {
+                    haptics.play(.selection)
+                    showingShare = true
                 }
-            }
-            LazyVGrid(columns: columns, spacing: 10) {
-                ForEach(0..<grid.leadingBlanks, id: \.self) { _ in
-                    Color.clear.frame(height: 36)
-                }
-                ForEach(grid.days, id: \.self) { day in
-                    dayCell(day)
-                }
+                .labelStyle(.iconOnly)
+                .accessibilityIdentifier("ShareStreak")
             }
         }
     }
 
+    // MARK: - Header
+
+    /// Flame, numeral and unit on one first baseline (`STK-2`), or the
+    /// two-state copy with the flame in `secondaryLabel`. Read as one
+    /// element: "12-day streak", "Begin again." or "Start today.".
+    private var header: some View {
+        let count = progress.displayedStreak
+        let presentation = StreakPresentation(streak: count, completedPracticeCount: 0, hasPractised: hasPractised)
+        return HStack(alignment: .firstTextBaseline, spacing: ThinkSpacing.s) {
+            if count > 0 {
+                Image(systemName: ThinkSymbol.streak)
+                    .font(.think(.numeral))
+                    .foregroundStyle(ThinkColor.accent)
+                Text(streakDays(count))
+            } else {
+                Image(systemName: ThinkSymbol.streak)
+                    .font(.think(.body))
+                    .foregroundStyle(ThinkColor.secondaryLabel)
+                Text(presentation.streakText)
+                    .font(.think(.body))
+                    .foregroundStyle(ThinkColor.label)
+            }
+            Spacer(minLength: 0)
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(presentation.streakText)
+        .accessibilityIdentifier("StreakHeader")
+    }
+
+    /// "12 days" as one pluralised string, the number in the numeral role
+    /// and the unit in body, so every locale keeps its grammar.
+    private func streakDays(_ count: Int) -> AttributedString {
+        var text = AttributedString(localized: "streak.days \(count)")
+        text.font = .think(.body)
+        text.foregroundColor = ThinkColor.label
+        if let range = text.range(of: String(count)) {
+            text[range].font = .think(.numeral)
+        }
+        return text
+    }
+
+    // MARK: - Pager
+
+    /// Chevrons with titles and the month between them. No swipe: it would
+    /// compete with sheet dismissal.
+    private func pager(_ month: StreakMonth) -> some View {
+        HStack(spacing: ThinkSpacing.s) {
+            pagerButton("Previous month", systemImage: "chevron.left", enabled: month.canShowPrevious, shift: -1)
+                .accessibilityIdentifier("StreakPreviousMonth")
+            Text(month.title)
+                .font(.think(.heading))
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityIdentifier("StreakMonthTitle")
+            pagerButton("Next month", systemImage: "chevron.right", enabled: month.canShowNext, shift: 1)
+                .accessibilityIdentifier("StreakNextMonth")
+        }
+    }
+
+    private func pagerButton(_ title: LocalizedStringKey, systemImage: String, enabled: Bool, shift: Int) -> some View {
+        Button {
+            shiftMonth(by: shift)
+        } label: {
+            Label(title, systemImage: systemImage)
+                .labelStyle(.iconOnly)
+                .font(.think(.body).weight(.semibold))
+                .frame(minWidth: 44, minHeight: 44)
+                .contentShape(Rectangle())
+        }
+        // Borderless keeps the two buttons separate inside one row.
+        .buttonStyle(.borderless)
+        .tint(ThinkColor.label)
+        .disabled(!enabled)
+    }
+
+    private func shiftMonth(by value: Int) {
+        guard let shifted = calendar.date(byAdding: .month, value: value, to: displayedMonth) else { return }
+        haptics.play(.selection)
+        monthShift = value
+        withAnimation(reduceMotion ? ThinkMotion.reduced : ThinkMotion.move) {
+            displayedMonth = shifted
+        }
+        let title = StreakMonth(containing: shifted, completedDays: [], calendar: calendar).title
+        AccessibilityNotification.Announcement(title).post()
+    }
+
+    /// Slides in from the direction of travel; crossfades under Reduce Motion.
     private var monthTransition: AnyTransition {
         guard !reduceMotion else { return .opacity }
         let insertion: Edge = monthShift < 0 ? .leading : .trailing
@@ -146,95 +227,122 @@ struct StreakCalendarSheet: View {
         )
     }
 
-    private var monthHeader: some View {
-        HStack {
-            Button {
-                haptics.play(.selection)
-                shiftMonth(by: -1)
-            } label: {
-                Image(systemName: "chevron.left")
-            }
-            .accessibilityLabel("Previous month")
+    // MARK: - Grid
 
-            Spacer()
-            Text(displayedMonth.formatted(.dateTime.month(.wide).year()))
-                .font(.headline)
-            Spacer()
+    private var discSize: CGFloat { min(scaledDisc, 40) }
+    /// Room for today's outer ring: a 2pt gap and a 1.5pt ring each side.
+    private var cellHeight: CGFloat { discSize + 8 }
 
-            Button {
-                haptics.play(.selection)
-                shiftMonth(by: 1)
-            } label: {
-                Image(systemName: "chevron.right")
-            }
-            .disabled(isCurrentMonthDisplayed)
-            .accessibilityLabel("Next month")
-        }
-        .font(.subheadline.weight(.semibold))
-        .foregroundStyle(Color.accentColor)
-    }
-
-    private func dayCell(_ day: Date) -> some View {
-        let completed = progress.hasCompleted(day)
-        let isToday = calendar.isDateInToday(day)
-        let isFuture = day > Date.now && !isToday
-
-        return Text("\(calendar.component(.day, from: day))")
-            .font(.subheadline.weight(completed ? .bold : .regular))
-            .monospacedDigit()
-            .foregroundStyle(dayForeground(completed: completed, isFuture: isFuture))
-            .frame(maxWidth: .infinity)
-            .frame(height: 36)
-            .background {
-                if completed {
-                    Circle().fill(Color.accentColor.opacity(0.18))
+    private func gridMonth(_ month: StreakMonth) -> some View {
+        VStack(spacing: ThinkSpacing.s) {
+            HStack(spacing: 0) {
+                ForEach(Array(month.grid.weekdaySymbols.enumerated()), id: \.offset) { _, symbol in
+                    Text(symbol)
+                        .font(.think(.graphicCaption))
+                        .foregroundStyle(ThinkColor.secondaryLabel)
+                        .frame(maxWidth: .infinity)
                 }
             }
-            .overlay {
-                if isToday {
-                    Circle().stroke(Color.accentColor, lineWidth: 1.5)
+            .accessibilityHidden(true)
+            VStack(spacing: ThinkSpacing.xs) {
+                ForEach(month.weeks.indices, id: \.self) { row in
+                    HStack(spacing: 0) {
+                        ForEach(month.weeks[row].indices, id: \.self) { column in
+                            dayCell(month.weeks[row][column])
+                                .frame(maxWidth: .infinity)
+                                .frame(height: cellHeight)
+                        }
+                    }
                 }
             }
-            .accessibilityLabel(accessibilityLabel(for: day, completed: completed))
+        }
+        .padding(.vertical, ThinkSpacing.xs)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("StreakGrid")
     }
 
-    private func dayForeground(completed: Bool, isFuture: Bool) -> Color {
-        if completed { return .accentColor }
-        if isFuture { return Color(.tertiaryLabel) }
-        return .secondary
-    }
-
-    private func accessibilityLabel(for day: Date, completed: Bool) -> Text {
-        let date = day.formatted(.dateTime.month(.wide).day())
-        return completed
-            ? Text(String(localized: "\(date), completed"))
-            : Text(verbatim: date)
-    }
-
-    private var isCurrentMonthDisplayed: Bool {
-        calendar.isDate(displayedMonth, equalTo: .now, toGranularity: .month)
-    }
-
-    private func shiftMonth(by value: Int) {
-        if let shifted = calendar.date(byAdding: .month, value: value, to: displayedMonth) {
-            monthShift = value
-            withAnimation(reduceMotion ? ThinkMotion.reduced : ThinkMotion.move) {
-                displayedMonth = shifted
+    /// The marker table of section 8.2.
+    @ViewBuilder
+    private func dayCell(_ day: StreakMonth.Day?) -> some View {
+        if let day {
+            let disc = Text(day.number, format: .number)
+                .font(.think(.secondary).weight(day.isPractised ? .semibold : .regular))
+                .monospacedDigit()
+                .foregroundStyle(dayForeground(day))
+                .frame(width: discSize, height: discSize)
+                .background {
+                    if day.isPractised {
+                        Circle().fill(ThinkColor.accent)
+                    }
+                }
+                .overlay {
+                    if day.isToday {
+                        // Outside a practised disc, past a 2pt gap in the
+                        // section colour; on the disc's edge otherwise.
+                        Circle()
+                            .strokeBorder(ThinkColor.accent, lineWidth: 1.5)
+                            .padding(day.isPractised ? -3.5 : 0)
+                    }
+                }
+            // Future days stay out of the accessibility tree.
+            if day.isFuture {
+                disc.accessibilityHidden(true)
+            } else {
+                disc.accessibilityLabel(day.accessibilityLabel)
             }
+        } else {
+            Color.clear
+                .accessibilityHidden(true)
         }
     }
 
-    private var shareButton: some View {
-        Button {
-            haptics.play(.selection)
-            showingShare = true
-        } label: {
-            Label("Share your streak", systemImage: "square.and.arrow.up")
-                .frame(maxWidth: .infinity)
+    private func dayForeground(_ day: StreakMonth.Day) -> Color {
+        if day.isPractised { return ThinkColor.accentOnFill }
+        if day.isToday { return ThinkColor.label }
+        if day.isFuture { return ThinkColor.tertiaryLabel }
+        return ThinkColor.secondaryLabel
+    }
+
+    // MARK: - Linear form
+
+    /// At accessibility sizes the grid yields to "n of m days" over a bar;
+    /// the practised dates stay available as custom content (section 8.3).
+    private func linearMonth(_ month: StreakMonth) -> some View {
+        VStack(alignment: .leading, spacing: ThinkSpacing.s) {
+            Text(linearCount(month))
+            ProgressView(value: Double(month.practisedCount), total: Double(max(month.countedDays, 1)))
+                .tint(ThinkColor.accent)
         }
-        .buttonStyle(.bordered)
-        .controlSize(.large)
-        .tint(Color("AccentColor"))
+        .padding(.vertical, ThinkSpacing.xs)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(month.linearAccessibilityLabel)
+        .modifier(PractisedDaysContent(text: month.practisedDaysText))
+        .accessibilityIdentifier("StreakLinear")
+    }
+
+    private func linearCount(_ month: StreakMonth) -> AttributedString {
+        let practised = month.practisedCount
+        let counted = month.countedDays
+        var text = AttributedString(localized: "streak.linear", defaultValue: "\(practised) of \(counted) days")
+        text.font = .think(.body)
+        text.foregroundColor = ThinkColor.label
+        if let range = text.range(of: String(practised)) {
+            text[range].font = .think(.numeral)
+        }
+        return text
+    }
+}
+
+/// "Practised days" custom content, only when the month has any.
+private struct PractisedDaysContent: ViewModifier {
+    let text: String?
+
+    func body(content: Content) -> some View {
+        if let text {
+            content.accessibilityCustomContent(Text("Practised days"), Text(verbatim: text))
+        } else {
+            content
+        }
     }
 }
 

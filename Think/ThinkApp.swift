@@ -224,6 +224,17 @@ struct ThinkApp: App {
             try? repository.upsertSessionMetadata(
                 sessionID: "audit-progress-day-0", intention: "Draft the Progress audit", completedAt: now)
         }
+        if isUITesting, let index = arguments.firstIndex(of: "-ui-seed-streak"), index + 1 < arguments.count {
+            // The streak sheet's states (`progress-settings.md` 8.7): a
+            // month and a half of practice with gaps, ending today
+            // ("today"), yesterday ("yesterday") or three days ago ("lapsed").
+            let end = ["today": 0, "yesterday": -1, "lapsed": -3][arguments[index + 1]] ?? 0
+            let gaps: Set<Int> = [-20, -14, -13, -26]
+            for offset in (end - 40)...end where !gaps.contains(offset - end) {
+                let date = Calendar.current.date(byAdding: .day, value: offset, to: .now) ?? .now
+                progressStore.recordFocusSession(at: date, durationMinutes: 25, eventID: "audit-streak-\(offset)")
+            }
+        }
         // Same isolated suite as progress under UI tests, so a favorited
         // line never leaks between runs.
         let favorites = FavoritesStore(defaults: progressDefaults)
