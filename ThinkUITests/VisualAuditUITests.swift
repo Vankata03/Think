@@ -438,6 +438,67 @@ final class VisualAuditUITests: XCTestCase {
         }
     }
 
+    /// The streak sheet across `progress-settings.md` section 8.7: the six
+    /// states in both appearances (alive with and without today, lapsed,
+    /// never practised, a past month, the first practice month), then AX3
+    /// in `en`, `bg` and `de`, where the sheet opens at `.large` and the
+    /// grid yields to the linear form. Ends on the share sheet's chrome.
+    @MainActor
+    func testCaptureStreakSheet() throws {
+        continueAfterFailure = false
+        let runs: [(name: String, appearance: String, language: String, locale: String, ax3: Bool, seed: String?)] = [
+            ("dark en today", "dark", "en", "en_US", false, "today"),
+            ("light en today", "light", "en", "en_US", false, "today"),
+            ("dark en yesterday", "dark", "en", "en_US", false, "yesterday"),
+            ("light en yesterday", "light", "en", "en_US", false, "yesterday"),
+            ("dark en lapsed", "dark", "en", "en_US", false, "lapsed"),
+            ("light en lapsed", "light", "en", "en_US", false, "lapsed"),
+            ("dark en never", "dark", "en", "en_US", false, nil),
+            ("light en never", "light", "en", "en_US", false, nil),
+            ("dark en AX3", "dark", "en", "en_US", true, "today"),
+            ("light bg AX3", "light", "bg", "bg_BG", true, "today"),
+            ("dark de AX3", "dark", "de", "de_DE", true, "lapsed"),
+            ("light de AX3 never", "light", "de", "de_DE", true, nil),
+        ]
+        for run in runs {
+            let app = XCUIApplication()
+            app.launchArguments = ["-ui-testing", "-appearance", run.appearance,
+                                   "-AppleLanguages", "(\(run.language))", "-AppleLocale", run.locale]
+            if let seed = run.seed { app.launchArguments += ["-ui-seed-streak", seed] }
+            if run.ax3 { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXL"] }
+            app.launch()
+            let streak = app.buttons["TodayStreak"]
+            XCTAssertTrue(streak.waitForExistence(timeout: 5))
+            streak.tap()
+            let header = app.descendants(matching: .any)["StreakHeader"]
+            XCTAssertTrue(header.waitForExistence(timeout: 3))
+            sleep(1)
+            capture(app, "Streak \(run.name) open")
+            if run.ax3 {
+                XCTAssertTrue(app.descendants(matching: .any)["StreakLinear"].exists)
+                // Opens at .large: the bar sits near the top of the screen.
+                XCTAssertLessThan(app.buttons["CloseStreak"].frame.minY, app.frame.height * 0.2)
+                app.swipeUp()
+                capture(app, "Streak \(run.name) scrolled")
+            }
+            let previous = app.buttons["StreakPreviousMonth"]
+            var pages = 0
+            while run.seed == "today" && previous.isEnabled && pages < 3 {
+                previous.tap()
+                pages += 1
+                sleep(1)
+                capture(app, "Streak \(run.name) back \(pages)\(previous.isEnabled ? "" : " first month")")
+            }
+            if run.seed == "today" && !run.ax3 && run.appearance == "dark" {
+                app.buttons["ShareStreak"].tap()
+                XCTAssertTrue(app.descendants(matching: .any)["StreakShareSheet"].waitForExistence(timeout: 3))
+                sleep(1)
+                capture(app, "Streak share \(run.name)")
+            }
+            app.terminate()
+        }
+    }
+
     /// The Paths list across the acceptance floor (`paths.md` section 11):
     /// both appearances, AX3, and `de` and `bg` on the hero caption and the
     /// locked row, plus the hero's done form. Asserts the hero and the
