@@ -538,6 +538,43 @@ final class VisualAuditUITests: XCTestCase {
         }
     }
 
+    /// Onboarding across the acceptance floor (`design/onboarding.md`
+    /// section 10): both appearances, AX3, `bg` and `de`. Captures each
+    /// step; the primary and the step count stay reachable.
+    @MainActor
+    func testCaptureOnboarding() throws {
+        continueAfterFailure = false
+        let runs: [(name: String, appearance: String, language: String, locale: String, ax3: Bool)] = [
+            ("dark en", "dark", "en", "en_US", false),
+            ("light en", "light", "en", "en_US", false),
+            ("dark en AX3", "dark", "en", "en_US", true),
+            ("light bg", "light", "bg", "bg_BG", false),
+            ("dark de AX3", "dark", "de", "de_DE", true),
+        ]
+        for run in runs {
+            let app = XCUIApplication()
+            app.launchArguments = ["-ui-testing", "-ui-onboarding", "-ui-notifications-denied",
+                                   "-ui-health-available", "-appearance", run.appearance,
+                                   "-AppleLanguages", "(\(run.language))", "-AppleLocale", run.locale]
+            if run.ax3 { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXL"] }
+            app.launch()
+            let primary = app.buttons["OnboardingPrimary"]
+            XCTAssertTrue(primary.waitForExistence(timeout: 3))
+            for step in ["promise", "reminders", "make it yours"] {
+                XCTAssertTrue(primary.isHittable, "\(run.name) \(step): primary reachable")
+                capture(app, "Onboarding \(run.name) \(step)")
+                if step == "make it yours" {
+                    app.swipeUp()
+                    capture(app, "Onboarding \(run.name) \(step) bottom")
+                } else {
+                    primary.tap()
+                    Thread.sleep(forTimeInterval: 0.6)
+                }
+            }
+            app.terminate()
+        }
+    }
+
     @MainActor
     private func reveal(_ element: XCUIElement, in app: XCUIApplication) {
         for _ in 0..<6 {

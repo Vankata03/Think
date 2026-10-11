@@ -10,6 +10,7 @@ import SwiftData
 import Foundation
 import AppIntents
 import WidgetKit
+import UserNotifications
 
 nonisolated enum SevenDayReviewPromptPolicy {
     static let storageKey = "hasRequestedReviewAfterSevenDayStreak"
@@ -39,9 +40,13 @@ struct ThinkApp: App {
     @State private var dataReset: AppDataResetCoordinator
     @State private var practicePreferences: PracticePreferencesStore
     @State private var privacyShield = AppPrivacyShield()
+    @State private var notificationAccess: NotificationAccess
+    @State private var uiTestNotificationPrompt: UITestNotificationPrompt?
     @AppStorage(Appearance.storageKey) private var appearance = Appearance.defaultChoice
     @AppStorage(Onboarding.completedKey) private var completedOnboarding = false
     private let isUITesting: Bool
+    /// UI tests skip onboarding unless they ask for it with `-ui-onboarding`.
+    private let showsOnboardingInUITests: Bool
     private let journalContainer: ModelContainer
 
     init() {
@@ -58,6 +63,14 @@ struct ThinkApp: App {
         }
         Appearance.seedDefault(in: .standard)
         let arguments = ProcessInfo.processInfo.arguments
+        showsOnboardingInUITests = isUITesting && arguments.contains("-ui-onboarding")
+        if isUITesting {
+            let prompt = UITestNotificationPrompt(denied: arguments.contains("-ui-notifications-denied"))
+            _uiTestNotificationPrompt = State(initialValue: prompt)
+            _notificationAccess = State(initialValue: NotificationAccess(authorizer: prompt, scheduleReminders: {}))
+        } else {
+            _notificationAccess = State(initialValue: NotificationAccess())
+        }
         if isUITesting && arguments.contains("-ui-journal-locked") {
             UserDefaults.standard.set(true, forKey: JournalLock.enabledKey)
         }
@@ -205,9 +218,14 @@ struct ThinkApp: App {
         )
         let ledgerDefaults = isUITesting ? progressDefaults : appGroupDefaults
         let ledger = FocusEventLedger(defaults: ledgerDefaults)
-        let mindfulHealthClient: any MindfulHealthClient = isUITesting
-            ? UnavailableMindfulHealthClient()
-            : HealthKitMindfulHealthClient()
+        let mindfulHealthClient: any MindfulHealthClient
+        if isUITesting {
+            mindfulHealthClient = arguments.contains("-ui-health-available")
+                ? UITestMindfulHealthClient()
+                : UnavailableMindfulHealthClient()
+        } else {
+            mindfulHealthClient = HealthKitMindfulHealthClient()
+        }
         let mindfulMinutes = MindfulMinutesStore(
             defaults: UserDefaults.standard,
             client: mindfulHealthClient
@@ -309,7 +327,7 @@ struct ThinkApp: App {
     var body: some Scene {
         WindowGroup {
             Group {
-                if isUITesting || completedOnboarding {
+                if completedOnboarding || (isUITesting && !showsOnboardingInUITests) {
                     RootTabView()
                 } else {
                     OnboardingView()
@@ -328,7 +346,9 @@ struct ThinkApp: App {
             .environment(journalDrafts)
             .environment(dataReset)
             .environment(practicePreferences)
+            .environment(notificationAccess)
             .environment(\.haptics, .live)
+            .modifier(UITestNotificationPromptAlert(prompt: uiTestNotificationPrompt))
             .task {
                 try? journalRepository.ensureRecordIdentities()
                 cloudBackup.startObservingMirroringEvents()
@@ -388,3 +408,61 @@ private final class UITestJournalAuthenticator: JournalAuthenticator {
 }
 
 private enum UITestJournalFailure: Error { case save }
+
+/// Stands in for the system notification prompt in UI tests, which cannot
+/// reset the real answer between tests. Asks only while undetermined, as
+/// the system does.
+@Observable
+@MainActor
+private final class UITestNotificationPrompt: NotificationAuthorizing {
+    private var current: UNAuthorizationStatus
+    private(set) var isAsking = false
+    @ObservationIgnored private var answer: CheckedContinuation<Bool, Never>?
+
+    init(denied: Bool) { current = denied ? .denied : .notDetermined }
+
+    func status() async -> UNAuthorizationStatus { current }
+
+    func requestAuthorization() async -> Bool {
+        guard current == .notDetermined else { return current == .authorized }
+        let granted = await withCheckedContinuation { continuation in
+            answer = continuation
+            isAsking = true
+        }
+        current = granted ? .authorized : .denied
+        return granted
+    }
+
+    func respond(_ granted: Bool) {
+        isAsking = false
+        answer?.resume(returning: granted)
+        answer = nil
+    }
+}
+
+private struct UITestNotificationPromptAlert: ViewModifier {
+    let prompt: UITestNotificationPrompt?
+
+    func body(content: Content) -> some View {
+        if let prompt {
+            content.alert(
+                Text(verbatim: "UITestNotificationPrompt"),
+                isPresented: Binding(get: { prompt.isAsking }, set: { _ in })
+            ) {
+                Button { prompt.respond(true) } label: { Text(verbatim: "Allow") }
+                Button(role: .cancel) { prompt.respond(false) } label: { Text(verbatim: "Don't Allow") }
+            }
+        } else {
+            content
+        }
+    }
+}
+
+/// A Health client that can be enabled, so UI tests see the onboarding row.
+@MainActor
+private final class UITestMindfulHealthClient: MindfulHealthClient {
+    private(set) var authorization = MindfulMinutesAuthorization.notDetermined
+
+    func requestAuthorization() async throws { authorization = .authorized }
+    func saveMindfulSession(identifier: String, startDate: Date, endDate: Date) async throws { }
+}
