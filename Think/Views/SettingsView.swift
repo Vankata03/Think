@@ -437,7 +437,9 @@ private struct SettingsLabel: View {
 /// A reminder as an alarm: its symbol and title over the time it fires,
 /// with the switch beside them. The time is always on show, dimmed while
 /// the reminder is off; tapping it opens a wheel, and choosing a time
-/// turns the reminder on, as editing an alarm does in Clock.
+/// turns the reminder on, as editing an alarm does in Clock. At
+/// accessibility sizes the switch moves under the time, as in
+/// `SettingsToggleStyle`, so neither competes with it for width.
 private struct ReminderRow: View {
     let title: LocalizedStringKey
     let systemImage: String
@@ -447,6 +449,7 @@ private struct ReminderRow: View {
     let timeIdentifier: String
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var editingTime = false
 
     init(
@@ -462,7 +465,12 @@ private struct ReminderRow: View {
     }
 
     var body: some View {
-        HStack(spacing: ThinkSpacing.m) {
+        let stacked = dynamicTypeSize.isAccessibilitySize
+        let layout =
+            stacked
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: ThinkSpacing.s))
+            : AnyLayout(HStackLayout(spacing: ThinkSpacing.m))
+        layout {
             VStack(alignment: .leading, spacing: ThinkSpacing.xs) {
                 Label {
                     Text(title)
@@ -494,7 +502,7 @@ private struct ReminderRow: View {
                         .presentationCompactAdaptation(.popover)
                 }
             }
-            Spacer(minLength: 0)
+            if !stacked { Spacer(minLength: 0) }
             Toggle(isOn: $isOn) { Text(title) }
                 .labelsHidden()
                 .toggleStyle(.switch)
