@@ -380,7 +380,8 @@ struct JournalDetailView: View {
                 if let tags = content.tags {
                     HStack(alignment: .firstTextBaseline, spacing: tightGap) {
                         if let mood = content.mood { Image(systemName: mood.systemImage).accessibilityHidden(true) }
-                        Text(tags)
+                        // Wraps at accessibility sizes instead of truncating.
+                        Text(tags).fixedSize(horizontal: false, vertical: true)
                     }
                 }
             }
