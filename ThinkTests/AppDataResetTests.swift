@@ -37,7 +37,7 @@ import Testing
         preferences.setFeedback(.tried, for: "practice.001")
         let reset = AppDataResetCoordinator(journal: journal, drafts: drafts, sync: sync,
             mindfulMinutes: MindfulMinutesStore(defaults: defaults, client: UnavailableHealth()),
-            favorites: FavoritesStore(defaults: defaults), lock: JournalLock(defaults: defaults),
+            savedLines: SavedLinesStore(defaults: defaults), lock: JournalLock(defaults: defaults),
             preferences: preferences, defaults: defaults)
         timer.start()
         fail = true

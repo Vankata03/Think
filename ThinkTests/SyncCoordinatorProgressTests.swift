@@ -93,8 +93,33 @@ struct SyncCoordinatorProgressTests {
         let publishedUndo = try latestSnapshot(receivedBy: watchTransport)
         #expect(publishedUndo.pathCompletedDays == 0)
         #expect(publishedUndo.lastPathCompletionDay == nil)
-        #expect(publishedUndo.completedDays.isEmpty)
+        #expect(publishedUndo.practiceDays.isEmpty)
         #expect(publishedUndo.practiceActivities?.isEmpty == true)
+    }
+
+    @Test func watchReceivesThePathRunsItNeedsForTheSixOClockRule() throws {
+        let calendar = Calendar.current
+        let lateEvening = try #require(calendar.date(bySettingHour: 23, minute: 30, second: 0, of: .now))
+        let six = try #require(
+            calendar.date(bySettingHour: 6, minute: 0, second: 0, of: calendar.date(byAdding: .day, value: 1, to: lateEvening)!))
+        let deepFocus = PathLibrary.deepFocus
+        let phoneProgress = ProgressStore(defaults: makeDefaults())
+        let watchProgress = ProgressStore(defaults: makeDefaults())
+        let (phoneTransport, watchTransport) = MockSyncTransport.paired()
+        let phone = makeCoordinator(
+            role: .phone, timer: makeTimer("11111111-1111-1111-1111-111111111111", now: .now),
+            progress: phoneProgress, transport: phoneTransport)
+        let watch = makeCoordinator(
+            role: .watch, timer: makeTimer("22222222-2222-2222-2222-222222222222", now: .now),
+            progress: watchProgress, transport: watchTransport)
+        phone.activate()
+        watch.activate()
+
+        #expect(phoneProgress.completePathStep(pathID: deepFocus.id, totalSteps: deepFocus.steps.count, at: lateEvening))
+
+        #expect(watchProgress.activeRun(for: deepFocus.id) == phoneProgress.activeRun(for: deepFocus.id))
+        #expect(!watchProgress.canCompletePathStep(pathID: deepFocus.id, totalSteps: deepFocus.steps.count, at: six.addingTimeInterval(-60)))
+        #expect(watchProgress.canCompletePathStep(pathID: deepFocus.id, totalSteps: deepFocus.steps.count, at: six))
     }
 
     @Test func watchLocalProgressMutationsReloadComplication() {
@@ -262,7 +287,7 @@ struct SyncCoordinatorProgressTests {
         let snapshot = ProgressSnapshot(
             streak: 0,
             lastCompletedDay: nil,
-            completedDays: [],
+            practiceDays: [],
             pathCompletedDays: 0,
             lastPathCompletionDay: nil,
             totalFocusSessions: 0,

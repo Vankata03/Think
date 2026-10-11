@@ -1,5 +1,5 @@
 //
-//  FavoritesStoreTests.swift
+//  SavedLinesStoreTests.swift
 //  ThinkTests
 //
 
@@ -8,25 +8,30 @@ import Testing
 @testable import Think
 
 @MainActor
-struct FavoritesStoreTests {
+struct SavedLinesStoreTests {
 
-    @Test func togglingAddsThenRemoves() {
-        let store = FavoritesStore(defaults: makeDefaults())
-        let quote = ContentLibrary.quotes[0]
-
-        #expect(!store.isFavorite(quote))
-        #expect(store.toggle(quote))
-        #expect(store.isFavorite(quote))
-        #expect(store.favorites.map(\.id) == [quote.id])
-
-        #expect(store.toggle(quote) == false)
-        #expect(!store.isFavorite(quote))
-        #expect(store.favorites.isEmpty)
+    /// Renamed in Swift only: lines saved by earlier builds live under this key.
+    @Test func savedLinesKeepTheirStorageKey() {
+        #expect(SavedLinesStore.storageKey == "favorites.quotes")
     }
 
-    @Test func favoritesAreNewestFirst() {
+    @Test func togglingAddsThenRemoves() {
+        let store = SavedLinesStore(defaults: makeDefaults())
+        let quote = ContentLibrary.quotes[0]
+
+        #expect(!store.isSaved(quote))
+        #expect(store.toggle(quote))
+        #expect(store.isSaved(quote))
+        #expect(store.lines.map(\.id) == [quote.id])
+
+        #expect(store.toggle(quote) == false)
+        #expect(!store.isSaved(quote))
+        #expect(store.lines.isEmpty)
+    }
+
+    @Test func savedLinesAreNewestFirst() {
         var now = Date(timeIntervalSince1970: 1_700_000_000)
-        let store = FavoritesStore(defaults: makeDefaults(), now: { now })
+        let store = SavedLinesStore(defaults: makeDefaults(), now: { now })
 
         store.toggle(ContentLibrary.quotes[0])
         now = now.addingTimeInterval(60)
@@ -34,7 +39,7 @@ struct FavoritesStoreTests {
         now = now.addingTimeInterval(60)
         store.toggle(ContentLibrary.quotes[2])
 
-        #expect(store.favorites.map(\.id) == [
+        #expect(store.lines.map(\.id) == [
             ContentLibrary.quotes[2].id,
             ContentLibrary.quotes[1].id,
             ContentLibrary.quotes[0].id,
@@ -43,36 +48,36 @@ struct FavoritesStoreTests {
 
     @Test func savedLinesSurviveAStoreRebuild() {
         let defaults = makeDefaults()
-        let first = FavoritesStore(defaults: defaults)
+        let first = SavedLinesStore(defaults: defaults)
         first.toggle(ContentLibrary.quotes[3])
 
-        let second = FavoritesStore(defaults: defaults)
+        let second = SavedLinesStore(defaults: defaults)
 
-        #expect(second.isFavorite(ContentLibrary.quotes[3]))
-        #expect(second.favorites.count == 1)
+        #expect(second.isSaved(ContentLibrary.quotes[3]))
+        #expect(second.lines.count == 1)
     }
 
     @Test func anIDThatNoLongerExistsIsDroppedFromTheList() throws {
         let defaults = makeDefaults()
         let records = [
-            FavoriteRecord(quoteID: ContentLibrary.quotes[0].id, savedAt: Date(timeIntervalSince1970: 2)),
+            SavedLineRecord(quoteID: ContentLibrary.quotes[0].id, savedAt: Date(timeIntervalSince1970: 2)),
             // A line removed from the library in a later release.
-            FavoriteRecord(quoteID: "practice.999", savedAt: Date(timeIntervalSince1970: 1)),
+            SavedLineRecord(quoteID: "practice.999", savedAt: Date(timeIntervalSince1970: 1)),
         ]
-        defaults.set(try JSONEncoder().encode(records), forKey: FavoritesStore.storageKey)
+        defaults.set(try JSONEncoder().encode(records), forKey: SavedLinesStore.storageKey)
 
-        let store = FavoritesStore(defaults: defaults)
+        let store = SavedLinesStore(defaults: defaults)
 
-        #expect(store.favorites.map(\.id) == [ContentLibrary.quotes[0].id])
+        #expect(store.lines.map(\.id) == [ContentLibrary.quotes[0].id])
     }
 
     @Test func aDamagedPayloadReadsBackAsEmpty() {
         let defaults = makeDefaults()
-        defaults.set(Data("not json".utf8), forKey: FavoritesStore.storageKey)
+        defaults.set(Data("not json".utf8), forKey: SavedLinesStore.storageKey)
 
-        let store = FavoritesStore(defaults: defaults)
+        let store = SavedLinesStore(defaults: defaults)
 
-        #expect(store.favorites.isEmpty)
+        #expect(store.lines.isEmpty)
         #expect(store.records.isEmpty)
     }
 
@@ -80,23 +85,23 @@ struct FavoritesStoreTests {
         let defaults = makeDefaults()
         let quote = ContentLibrary.quotes[0]
         let records = [
-            FavoriteRecord(quoteID: quote.id, savedAt: Date(timeIntervalSince1970: 1)),
-            FavoriteRecord(quoteID: quote.id, savedAt: Date(timeIntervalSince1970: 2)),
-            FavoriteRecord(quoteID: "", savedAt: Date(timeIntervalSince1970: 3)),
+            SavedLineRecord(quoteID: quote.id, savedAt: Date(timeIntervalSince1970: 1)),
+            SavedLineRecord(quoteID: quote.id, savedAt: Date(timeIntervalSince1970: 2)),
+            SavedLineRecord(quoteID: "", savedAt: Date(timeIntervalSince1970: 3)),
         ]
-        defaults.set(try JSONEncoder().encode(records), forKey: FavoritesStore.storageKey)
+        defaults.set(try JSONEncoder().encode(records), forKey: SavedLinesStore.storageKey)
 
-        let store = FavoritesStore(defaults: defaults)
+        let store = SavedLinesStore(defaults: defaults)
 
         #expect(store.records.count == 1)
-        #expect(store.favorites.map(\.id) == [quote.id])
+        #expect(store.lines.map(\.id) == [quote.id])
     }
 
     /// Storing the catalog key rather than the rendered text is what keeps
     /// a saved line localized: the same record resolves to whatever the
     /// current language renders for that key.
     @Test func recordsStoreTheCatalogKeyNotTheRenderedText() {
-        let store = FavoritesStore(defaults: makeDefaults())
+        let store = SavedLinesStore(defaults: makeDefaults())
         let quote = ContentLibrary.quotes[0]
 
         store.toggle(quote)
@@ -109,15 +114,15 @@ struct FavoritesStoreTests {
 
     @Test func removeAllClearsBothMemoryAndStorage() {
         let defaults = makeDefaults()
-        let store = FavoritesStore(defaults: defaults)
+        let store = SavedLinesStore(defaults: defaults)
         store.toggle(ContentLibrary.quotes[0])
         store.toggle(ContentLibrary.quotes[1])
 
         store.removeAll()
 
-        #expect(store.favorites.isEmpty)
-        #expect(defaults.data(forKey: FavoritesStore.storageKey) == nil)
-        #expect(FavoritesStore(defaults: defaults).favorites.isEmpty)
+        #expect(store.lines.isEmpty)
+        #expect(defaults.data(forKey: SavedLinesStore.storageKey) == nil)
+        #expect(SavedLinesStore(defaults: defaults).lines.isEmpty)
     }
 
     private func makeDefaults() -> UserDefaults {

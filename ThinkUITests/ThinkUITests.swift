@@ -15,24 +15,13 @@ final class ThinkUITests: XCTestCase {
     func testLaunchShowsTodayCoreLoop() throws {
         let app = launchApp()
 
-        XCTAssertTrue(app.descendants(matching: .any)["QuestionOfTheDayCard"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.buttons["ShareQuote"].waitForExistence(timeout: 2))
-        XCTAssertTrue(app.descendants(matching: .any)["ActivityLog"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.descendants(matching: .any)["TodayDayArc"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any)["NextActPanel"].exists)
+        XCTAssertTrue(app.buttons["ShareQuote"].exists)
+        XCTAssertTrue(app.buttons["OpenSavedLines"].exists)
+        XCTAssertTrue(app.buttons["TodayStreak"].exists)
+        XCTAssertFalse(app.buttons["OpenJournal"].exists)
         XCTAssertTrue(app.tabBars.buttons.element(boundBy: 0).isSelected)
-    }
-
-    @MainActor
-    func testHomeKeepsMoveVisibleAndReversible() throws {
-        let app = launchApp()
-        let move = app.buttons["TodaysMoveToggle"]
-        XCTAssertTrue(move.waitForExistence(timeout: 5))
-        for _ in 0..<3 where !move.isHittable { app.swipeUp() }
-        move.tap()
-        XCTAssertEqual(move.label, "Today's move done. Undo")
-        move.tap()
-        XCTAssertEqual(move.label, "Mark today's move done")
-        XCTAssertTrue(app.buttons["WriteDailyAnswer"].exists)
-        XCTAssertFalse(app.segmentedControls["DailyPracticePicker"].exists)
     }
 
     @MainActor
@@ -52,39 +41,125 @@ final class ThinkUITests: XCTestCase {
         XCTAssertTrue(app.descendants(matching: .any)["JournalView"].waitForExistence(timeout: 2))
 
         app.tabBars.buttons.element(boundBy: 4).tap()
-        XCTAssertTrue(app.descendants(matching: .any)["ProfileProgress"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.descendants(matching: .any)["ProgressStreak"].waitForExistence(timeout: 2))
+        XCTAssertEqual(tabs.element(boundBy: 4).label, "Progress")
+    }
+
+    /// Every settings control is in the one Settings Form behind the
+    /// gear, in the order of `progress-settings.md` section 3, and
+    /// Progress keeps none of them.
+    @MainActor
+    func testSettingsGearOpensEveryControlInOrder() throws {
+        let app = launchApp()
+        app.tabBars.buttons.element(boundBy: 4).tap()
+        XCTAssertFalse(app.buttons["Export journal"].exists)
+
+        openSettings(app)
+
+        let rows = [
+            "Appearance.system", "Appearance.light", "Appearance.dark",
+            "DailyLineReminder", "EveningRetroReminder",
+            "SilenceDistractions", "SessionEndAlerts", "HealthMindfulMinutes",
+            "CloudBackup",
+            "LockJournal", "ShowIntentionOnLockScreen",
+            "Export journal", "Delete all data",
+            "ShareIdea", "ReportProblem", "RateThink",
+            "HelpAndSupport", "PrivacyPolicy", "AppVersion",
+        ]
+        var previous: XCUIElement?
+        for identifier in rows {
+            let row = app.descendants(matching: .any).matching(identifier: identifier).firstMatch
+            reveal(row, in: app)
+            // Rows come down the Form in the brief's order.
+            if let previous, previous.exists {
+                XCTAssertLessThan(previous.frame.minY, row.frame.minY, identifier)
+            }
+            previous = row
+        }
     }
 
     @MainActor
-    func testProfileExposesPrivacyActions() throws {
+    func testSettingsKeepsDeleteConfirmationAndExportAuthentication() throws {
         let app = launchApp()
-
         app.tabBars.buttons.element(boundBy: 4).tap()
-        app.descendants(matching: .any)["ProfileSettings"].tap()
+        openSettings(app)
 
-        XCTAssertTrue(app.buttons["Export journal"].waitForExistence(timeout: 2))
-        XCTAssertTrue(app.buttons["Delete all data"].waitForExistence(timeout: 2))
-
-        app.buttons["Delete all data"].tap()
+        let delete = app.buttons["Delete all data"]
+        reveal(delete, in: app)
+        delete.tap()
         XCTAssertTrue(app.alerts["Delete all data?"].waitForExistence(timeout: 2))
         app.alerts.buttons["Cancel"].tap()
+
+        // UI tests have no device authentication, so export stops at the
+        // authentication step: no share sheet and no error alert.
+        let export = app.buttons["Export journal"]
+        reveal(export, in: app)
+        export.tap()
+        XCTAssertFalse(app.alerts["Export failed"].waitForExistence(timeout: 1))
+        XCTAssertTrue(app.navigationBars["Settings"].exists)
     }
 
     @MainActor
-    func testProfileShowsCloudBackupStatus() throws {
+    func testSettingsShowsCloudBackupStatusApartFromItsExplanation() throws {
         let app = launchApp()
-
         app.tabBars.buttons.element(boundBy: 4).tap()
-        app.descendants(matching: .any)["ProfileSettings"].tap()
+        openSettings(app)
 
         let row = app.descendants(matching: .any)["CloudBackup"]
-        XCTAssertTrue(row.waitForExistence(timeout: 2))
+        reveal(row, in: app)
         // UI tests run on a throwaway in-memory store, so the row must
-        // report the explicit off state and say entries stay on device.
+        // report the explicit off state.
         XCTAssertTrue(row.label.contains("iCloud sync"))
         XCTAssertTrue(row.label.contains("Off"))
-        XCTAssertTrue(row.label.contains("when available"))
         XCTAssertFalse(row.label.contains("On —"))
+        // The explanation is footer text, not part of the status (SET-8).
+        XCTAssertFalse(row.label.contains("when available"))
+        let footer = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "when available")).firstMatch
+        XCTAssertTrue(footer.exists)
+    }
+
+    @MainActor
+    func testSessionEndAlertsSwitchesOff() throws {
+        let app = launchApp()
+        app.tabBars.buttons.element(boundBy: 4).tap()
+        openSettings(app)
+
+        let alerts = app.switches["SessionEndAlerts"]
+        reveal(alerts, in: app)
+        XCTAssertEqual(alerts.value as? String, "1")
+        alerts.switches.firstMatch.tap()
+        XCTAssertEqual(alerts.value as? String, "0")
+    }
+
+    @MainActor
+    func testSilenceDistractionsGuideMovedFromFocusToSettings() throws {
+        let app = launchApp()
+        app.tabBars.buttons.element(boundBy: 2).tap()
+        XCTAssertTrue(app.descendants(matching: .any)["FocusTimer"].waitForExistence(timeout: 3))
+        XCTAssertFalse(app.buttons["Tip: silence distractions"].exists)
+
+        app.tabBars.buttons.element(boundBy: 4).tap()
+        openSettings(app)
+        let row = app.buttons["SilenceDistractions"]
+        reveal(row, in: app)
+        row.tap()
+        XCTAssertTrue(app.navigationBars["Silence distractions"].waitForExistence(timeout: 2))
+    }
+
+    @MainActor
+    private func openSettings(_ app: XCUIApplication) {
+        let gear = app.navigationBars.buttons["Settings"]
+        XCTAssertTrue(gear.waitForExistence(timeout: 3))
+        gear.tap()
+        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 3))
+    }
+
+    @MainActor
+    private func reveal(_ element: XCUIElement, in app: XCUIApplication) {
+        for _ in 0..<12 where !(element.exists && element.isHittable) {
+            app.swipeUp()
+        }
+        XCTAssertTrue(element.isHittable, element.identifier)
     }
 
     @MainActor
@@ -137,10 +212,10 @@ final class ThinkUITests: XCTestCase {
         field.typeText(note)
         app.buttons["SaveNewNote"].tap()
 
-        XCTAssertTrue(app.staticTexts[note].waitForExistence(timeout: 3))
-        app.staticTexts[note].tap()
-        XCTAssertTrue(app.buttons["EntryActions"].waitForExistence(timeout: 3))
-        app.buttons["EntryActions"].tap()
+        let row = journalRow(app, containing: note)
+        XCTAssertTrue(row.waitForExistence(timeout: 3))
+        row.tap()
+        XCTAssertTrue(app.buttons["EditEntry"].waitForExistence(timeout: 3))
         app.buttons["EditEntry"].tap()
         XCTAssertTrue(chip.waitForExistence(timeout: 3))
         XCTAssertEqual(chip.value as? String, "Health")
@@ -166,21 +241,9 @@ final class ThinkUITests: XCTestCase {
         XCTAssertTrue(app.descendants(matching: .any)["CardStyle.clay"].waitForExistence(timeout: 2))
         XCTAssertTrue(app.descendants(matching: .any)["CardStyle.forest"].waitForExistence(timeout: 2))
         XCTAssertTrue(app.buttons["SaveShareCard"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["ShareCardShare"].exists)
+        XCTAssertEqual(app.buttons["DismissShareCard"].label, "Close")
         app.buttons["DismissShareCard"].tap()
-    }
-
-    @MainActor
-    func testFocusPresetChangesTimerDuration() throws {
-        let app = launchApp()
-
-        app.tabBars.buttons.element(boundBy: 2).tap()
-        XCTAssertTrue(app.descendants(matching: .any)["FocusTimer"].waitForExistence(timeout: 5))
-
-        app.buttons["FocusDurationSummary"].tap()
-        XCTAssertTrue(app.descendants(matching: .any)["FocusDurationSheet"].waitForExistence(timeout: 2))
-        app.buttons["FocusPreset.50"].tap()
-
-        XCTAssertTrue(app.descendants(matching: .any)["FocusTimer.50"].waitForExistence(timeout: 2))
     }
 
     @MainActor
@@ -214,7 +277,14 @@ final class ThinkUITests: XCTestCase {
         noteField.typeText(note)
         app.buttons["SaveNewNote"].tap()
 
-        XCTAssertTrue(app.staticTexts[note].waitForExistence(timeout: 3))
+        XCTAssertTrue(journalRow(app, containing: note).waitForExistence(timeout: 3))
+    }
+
+    /// A Journal row is one accessibility element whose label holds the
+    /// kind, the first sentence and the rest (`design/journal.md` section 4).
+    @MainActor
+    private func journalRow(_ app: XCUIApplication, containing text: String) -> XCUIElement {
+        app.buttons.matching(NSPredicate(format: "label CONTAINS %@", text)).firstMatch
     }
 
     @MainActor
@@ -233,8 +303,10 @@ final class ThinkUITests: XCTestCase {
         field.typeText(answer)
         app.buttons["SaveJournalEntry"].tap()
 
-        XCTAssertTrue(app.descendants(matching: .any)["DailyQuestionAnswered"].waitForExistence(timeout: 3))
-        app.buttons["ReadDailyAnswer"].tap()
+        let answered = app.buttons["Act.question.done"]
+        XCTAssertTrue(answered.waitForExistence(timeout: 3))
+        XCTAssertFalse(app.staticTexts[answer].exists)
+        answered.tap()
         XCTAssertTrue(app.staticTexts[answer].waitForExistence(timeout: 2))
     }
 
@@ -245,34 +317,6 @@ final class ThinkUITests: XCTestCase {
             app.launchArguments = englishLaunchArguments
             app.launch()
         }
-    }
-
-    @MainActor
-    func testSavingTodaysLineFillsAndEmptiesTheFavoritesList() throws {
-        let app = launchApp()
-
-        let favoriteButton = app.buttons["FavoriteQuote"]
-        XCTAssertTrue(favoriteButton.waitForExistence(timeout: 5))
-        favoriteButton.tap()
-
-        app.tabBars.buttons.element(boundBy: 4).tap()
-        app.descendants(matching: .any)["Favorites"].tap()
-
-        let list = app.descendants(matching: .any)["FavoritesView"]
-        XCTAssertTrue(list.waitForExistence(timeout: 3))
-        XCTAssertFalse(app.staticTexts["FavoritesEmpty"].exists)
-        XCTAssertEqual(list.cells.count, 1)
-
-        app.navigationBars.buttons.element(boundBy: 0).tap()
-        app.tabBars.buttons.element(boundBy: 0).tap()
-
-        XCTAssertTrue(favoriteButton.waitForExistence(timeout: 3))
-        favoriteButton.tap()
-
-        app.tabBars.buttons.element(boundBy: 4).tap()
-        app.descendants(matching: .any)["Favorites"].tap()
-
-        XCTAssertTrue(app.staticTexts["FavoritesEmpty"].waitForExistence(timeout: 3))
     }
 
     private func launchApp() -> XCUIApplication {

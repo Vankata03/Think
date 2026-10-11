@@ -9,51 +9,47 @@ struct JournalExportSheet: View {
     let fileURL: URL
 
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.colorScheme) private var colorScheme
-
-    private var prominentButtonForeground: Color {
-        .prominentButtonForeground(for: colorScheme)
-    }
 
     var body: some View {
         NavigationStack {
-            VStack(alignment: .leading, spacing: 18) {
-                Image(systemName: "lock.doc")
-                    .font(.system(size: 42, weight: .semibold))
-                    .foregroundStyle(Color.accentColor)
+            VStack(alignment: .leading, spacing: ThinkSpacing.l) {
+                Image(systemName: ThinkSymbol.exportReady)
+                    .font(.think(.title))
+                    .foregroundStyle(ThinkColor.secondaryLabel)
                     .accessibilityHidden(true)
 
                 Text("Your journal export is ready.")
-                    .font(.title2.bold())
+                    .font(.think(.heading))
 
                 Text("Think created a readable text file containing your journal entries and evening retrospectives. Share or save it somewhere private.")
-                    .font(.body)
-                    .foregroundStyle(.secondary)
+                    .font(.think(.body))
+                    .foregroundStyle(ThinkColor.secondaryLabel)
                     .fixedSize(horizontal: false, vertical: true)
 
-                ShareLink(item: fileURL, preview: SharePreview("Think journal")) {
-                    Label("Share export", systemImage: "square.and.arrow.up")
-                        .foregroundStyle(prominentButtonForeground)
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-                .tint(Color("AccentColor"))
-
                 Text(fileURL.lastPathComponent)
-                    .font(.footnote.monospaced())
-                    .foregroundStyle(.secondary)
+                    .font(.think(.caption).monospaced())
+                    .foregroundStyle(ThinkColor.secondaryLabel)
                     .frame(maxWidth: .infinity, alignment: .center)
 
                 Spacer()
             }
-            .padding(24)
-            .background(Color(.systemGroupedBackground).ignoresSafeArea())
+            .padding(ThinkSpacing.xl)
+            .background(ThinkColor.background.ignoresSafeArea())
             .navigationTitle("Export journal")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                // Design-system 13.5: "Close" on a read-only sheet, Share as
+                // the one primary in the trailing slot.
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Done") { dismiss() }
+                    Button("Close") { dismiss() }
+                        .accessibilityIdentifier("DismissJournalExport")
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    ShareLink(item: fileURL, preview: SharePreview("Think journal")) {
+                        Label("Share", systemImage: ThinkSymbol.share)
+                    }
+                    .thinkButton(.primary)
+                    .accessibilityIdentifier("ShareJournalExport")
                 }
             }
         }

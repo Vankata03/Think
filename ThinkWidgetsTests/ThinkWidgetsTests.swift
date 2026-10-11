@@ -130,8 +130,25 @@ struct StreakWidgetTests {
         #expect(entries.dropFirst().allSatisfy { $0.presentation.completedPracticeCount == 0 })
     }
 
+    @Test func zeroStreakInvitesANewcomerToStartAndALapsedPersonToBeginAgain() {
+        #expect(StreakPresentation(streak: 0, completedPracticeCount: 0, hasPractised: false).streakText == "Start today.")
+        #expect(StreakPresentation(streak: 0, completedPracticeCount: 0, hasPractised: true).streakText == "Begin again.")
+    }
+
+    @Test func storedPresentationTellsANewcomerFromALapsedStreak() throws {
+        let calendar = utcCalendar()
+        let now = try date(year: 2026, month: 7, day: 13, hour: 12, calendar: calendar)
+
+        let fresh = StreakPresentation.stored(in: makeDefaults(), calendar: calendar, now: now)
+        #expect(fresh.streakText == "Start today.")
+
+        let lapsed = makeDefaults()
+        lapsed.set(4, forKey: "streak")
+        lapsed.set(try date(year: 2026, month: 7, day: 6, hour: 9, calendar: calendar), forKey: "lastCompletedDay")
+        #expect(StreakPresentation.stored(in: lapsed, calendar: calendar, now: now).streakText == "Begin again.")
+    }
+
     @Test func presentationCopyCoversFreshActiveAndCompleteStates() {
-        #expect(StreakPresentation(streak: 0, completedPracticeCount: 0).streakText == "Begin today")
         #expect(StreakPresentation(streak: 1, completedPracticeCount: 1).streakText == "1-day streak")
         #expect(StreakPresentation(streak: 7, completedPracticeCount: 2).streakText == "7-day streak")
         #expect(StreakPresentation(streak: 7, completedPracticeCount: 0).todayText == "Begin today's practice")
@@ -192,7 +209,7 @@ struct PomodoroLiveActivityPresentationTests {
         )
 
         #expect(PomodoroLiveActivityPresentation.title(for: state) == "Deep work")
-        #expect(PomodoroLiveActivityPresentation.symbol(for: state) == "brain.head.profile")
+        #expect(PomodoroLiveActivityPresentation.symbol(for: state) == "timer")
     }
 
     @Test func restPhaseUsesBreakPresentation() {

@@ -9,28 +9,24 @@ import UIKit
 
 struct ShareCardSheet: View {
     let quote: Quote
-    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
     @Environment(\.haptics) private var haptics
     @Environment(\.openURL) private var openURL
     @Environment(\.scenePhase) private var scenePhase
-    @Environment(FavoritesStore.self) private var favorites
+    @Environment(SavedLinesStore.self) private var savedLines
 
     @State private var style: CardStyle = .paper
     @State private var photoSaveState = PhotoSaveState.idle
 
     private let previewScale = 0.24
-    private var prominentButtonForeground: Color {
-        .prominentButtonForeground(for: colorScheme)
-    }
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 24) {
+            VStack(spacing: ThinkSpacing.xl) {
                 cardPreview
                 stylePicker
                 actions
-                favoriteButton
+                saveButton
                 Spacer()
             }
             .padding()
@@ -38,9 +34,13 @@ struct ShareCardSheet: View {
             .navigationTitle("Share card")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") { dismiss() }
+                // Design-system 13.5: "Close" and Share as the one primary.
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close") { dismiss() }
                         .accessibilityIdentifier("DismissShareCard")
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    shareLink
                 }
             }
             .accessibilityElement(children: .contain)
@@ -72,7 +72,7 @@ struct ShareCardSheet: View {
     }
 
     private var stylePicker: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: ThinkSpacing.m) {
             ForEach(CardStyle.all) { candidate in
                 Button {
                     if candidate != style {
@@ -95,7 +95,7 @@ struct ShareCardSheet: View {
                             }
                         Text(candidate.name)
                             .font(.caption2)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(ThinkColor.secondaryLabel)
                     }
                 }
                 .buttonStyle(.plain)
@@ -104,26 +104,25 @@ struct ShareCardSheet: View {
         }
     }
 
-    private var actions: some View {
+    private var shareLink: some View {
         let image = renderedImage()
-
-        return HStack(spacing: 12) {
-            ShareLink(
-                item: image,
-                preview: SharePreview(quote.text, image: image)
-            ) {
-                Label("Share", systemImage: "square.and.arrow.up")
-                    .frame(maxWidth: .infinity)
-                    .foregroundStyle(prominentButtonForeground)
-            }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-            .tint(Color("AccentColor"))
-            .foregroundStyle(prominentButtonForeground)
-            .simultaneousGesture(TapGesture().onEnded {
+        return ShareLink(
+            item: image,
+            preview: SharePreview(quote.text, image: image)
+        ) {
+            Label("Share", systemImage: ThinkSymbol.share)
+        }
+        .thinkButton(.primary)
+        .simultaneousGesture(
+            TapGesture().onEnded {
                 haptics.play(.selection)
-            })
+            }
+        )
+        .accessibilityIdentifier("ShareCardShare")
+    }
 
+    private var actions: some View {
+        HStack(spacing: ThinkSpacing.m) {
             Button {
                 if photoSaveState == .denied {
                     openAppSettings()
@@ -134,9 +133,8 @@ struct ShareCardSheet: View {
                 Label(photoSaveState.label, systemImage: photoSaveState.systemImage)
                     .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.bordered)
+            .thinkButton(.secondary)
             .controlSize(.large)
-            .tint(Color("AccentColor"))
             .disabled(photoSaveState == .saving || photoSaveState == .saved)
             .accessibilityIdentifier("SaveShareCard")
         }
@@ -144,24 +142,22 @@ struct ShareCardSheet: View {
 
     /// A line is often worth keeping exactly when it is worth sharing, so
     /// the affordance sits where that thought happens.
-    private var favoriteButton: some View {
-        let isFavorite = favorites.isFavorite(quote)
+    private var saveButton: some View {
+        let isSaved = savedLines.isSaved(quote)
 
         return Button {
             haptics.play(.selection)
-            favorites.toggle(quote)
+            savedLines.toggle(quote)
         } label: {
             Label(
-                isFavorite
+                isSaved
                     ? String(localized: "Saved to your lines")
                     : String(localized: "Save this line"),
-                systemImage: isFavorite ? "heart.fill" : "heart"
+                systemImage: isSaved ? "\(ThinkSymbol.savedLine).fill" : ThinkSymbol.savedLine
             )
             .font(.subheadline.weight(.medium))
         }
-        .buttonStyle(.plain)
-        .tint(Color("AccentColor"))
-        .foregroundStyle(Color.accentColor)
+        .thinkButton(.tertiary)
         .accessibilityIdentifier("FavoriteFromShareCard")
     }
 
@@ -209,5 +205,5 @@ struct ShareCardSheet: View {
 
 #Preview {
     ShareCardSheet(quote: ContentLibrary.dailyQuote())
-        .environment(FavoritesStore(defaults: .standard))
+        .environment(SavedLinesStore(defaults: .standard))
 }

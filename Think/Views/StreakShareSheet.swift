@@ -11,7 +11,6 @@ struct StreakShareSheet: View {
     let month: Date
     var milestone: StreakMilestone? = nil
     @Environment(ProgressStore.self) private var progress
-    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
     @Environment(\.haptics) private var haptics
     @Environment(\.openURL) private var openURL
@@ -26,13 +25,10 @@ struct StreakShareSheet: View {
     @State private var renderedImage: (key: String, image: UIImage)?
 
     private let previewScale = 0.24
-    private var prominentButtonForeground: Color {
-        .prominentButtonForeground(for: colorScheme)
-    }
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 24) {
+            VStack(spacing: ThinkSpacing.xl) {
                 cardPreview
                 if milestone == nil {
                     kindPicker
@@ -46,10 +42,17 @@ struct StreakShareSheet: View {
             .navigationTitle(navigationTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") { dismiss() }
+                // Design-system 13.5: "Close" and Share as the one primary.
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close") { dismiss() }
+                        .accessibilityIdentifier("DismissStreakShare")
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    shareLink
                 }
             }
+            .accessibilityElement(children: .contain)
+            .accessibilityIdentifier("StreakShareSheet")
         }
         .presentationDetents([.large])
         .task(id: renderKey) {
@@ -71,7 +74,7 @@ struct StreakShareSheet: View {
     /// Everything the card draws from: card kind, theme, month, and the
     /// progress values baked into the image.
     private var renderKey: String {
-        "\(kind.id)|\(style.id)|\(month.timeIntervalSinceReferenceDate)|\(cardStreak)|\(progress.completedDays.hashValue)"
+        "\(kind.id)|\(style.id)|\(month.timeIntervalSinceReferenceDate)|\(cardStreak)|\(progress.practiceDays.hashValue)"
     }
 
     private var currentRenderedImage: UIImage? {
@@ -84,7 +87,7 @@ struct StreakShareSheet: View {
             kind: kind,
             streak: cardStreak,
             month: month,
-            completedDays: progress.completedDays,
+            practiceDays: progress.practiceDays,
             style: style
         )
     }
@@ -136,7 +139,7 @@ struct StreakShareSheet: View {
     }
 
     private var stylePicker: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: ThinkSpacing.m) {
             ForEach(CardStyle.all) { candidate in
                 Button {
                     if candidate != style {
@@ -159,7 +162,7 @@ struct StreakShareSheet: View {
                             }
                         Text(candidate.name)
                             .font(.caption2)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(ThinkColor.secondaryLabel)
                     }
                 }
                 .buttonStyle(.plain)
@@ -167,27 +170,27 @@ struct StreakShareSheet: View {
         }
     }
 
-    private var actions: some View {
+    private var shareLink: some View {
         let image = Image(uiImage: currentRenderedImage ?? UIImage())
-
-        return HStack(spacing: 12) {
-            ShareLink(
-                item: image,
-                message: Text(shareMessage),
-                preview: SharePreview(shareMessage, image: image)
-            ) {
-                Label("Share", systemImage: "square.and.arrow.up")
-                    .frame(maxWidth: .infinity)
-                    .foregroundStyle(prominentButtonForeground)
-            }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-            .tint(Color("AccentColor"))
-            .disabled(currentRenderedImage == nil)
-            .simultaneousGesture(TapGesture().onEnded {
+        return ShareLink(
+            item: image,
+            message: Text(shareMessage),
+            preview: SharePreview(shareMessage, image: image)
+        ) {
+            Label("Share", systemImage: ThinkSymbol.share)
+        }
+        .thinkButton(.primary)
+        .disabled(currentRenderedImage == nil)
+        .simultaneousGesture(
+            TapGesture().onEnded {
                 haptics.play(.selection)
-            })
+            }
+        )
+        .accessibilityIdentifier("StreakShare")
+    }
 
+    private var actions: some View {
+        HStack(spacing: ThinkSpacing.m) {
             Button {
                 if photoSaveState == .denied {
                     openAppSettings()
@@ -198,9 +201,8 @@ struct StreakShareSheet: View {
                 Label(photoSaveState.label, systemImage: photoSaveState.systemImage)
                     .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.bordered)
+            .thinkButton(.secondary)
             .controlSize(.large)
-            .tint(Color("AccentColor"))
             .disabled(photoSaveState == .saving || photoSaveState == .saved)
         }
     }

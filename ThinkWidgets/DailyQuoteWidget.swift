@@ -45,9 +45,6 @@ struct DailyQuoteWidgetView: View {
     let entry: QuoteEntry
     private let familyOverride: WidgetFamily?
 
-    private let ink = Color(red: 0.07, green: 0.07, blue: 0.08)
-    private let brandYellow = Color(red: 1.0, green: 0.83, blue: 0.20)
-
     init(entry: QuoteEntry, familyOverride: WidgetFamily? = nil) {
         self.entry = entry
         self.familyOverride = familyOverride
@@ -61,7 +58,7 @@ struct DailyQuoteWidgetView: View {
         content
             .containerBackground(for: .widget) {
                 if family == .systemSmall || family == .systemMedium {
-                    ink
+                    ThinkColor.surface
                 }
             }
     }
@@ -79,20 +76,21 @@ struct DailyQuoteWidgetView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
 
         default:
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: ThinkSpacing.s) {
                 Rectangle()
-                    .fill(brandYellow)
+                    .fill(ThinkColor.accent)
                     .frame(width: 28, height: 3)
+                    .widgetAccentable()
                 Text(entry.quote.text)
                     .font(family == .systemSmall ? .footnote : .callout)
                     .fontDesign(.serif)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(ThinkColor.label)
                     .minimumScaleFactor(0.7)
                 Spacer(minLength: 0)
                 if let attribution = entry.quote.attribution {
                     Text(attribution)
                         .font(.caption2)
-                        .foregroundStyle(brandYellow)
+                        .foregroundStyle(ThinkColor.accentInk)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -118,6 +116,18 @@ struct DailyQuoteWidget: Widget {
 }
 
 #Preview("Rectangular", as: .accessoryRectangular) {
+    DailyQuoteWidget()
+} timeline: {
+    QuoteEntry(date: .now, quote: ContentLibrary.dailyQuote())
+}
+
+#Preview("Medium", as: .systemMedium) {
+    DailyQuoteWidget()
+} timeline: {
+    QuoteEntry(date: .now, quote: ContentLibrary.dailyQuote())
+}
+
+#Preview("Inline", as: .accessoryInline) {
     DailyQuoteWidget()
 } timeline: {
     QuoteEntry(date: .now, quote: ContentLibrary.dailyQuote())

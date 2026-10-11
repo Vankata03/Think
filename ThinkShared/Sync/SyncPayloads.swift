@@ -177,7 +177,7 @@ nonisolated struct FocusSessionEvent: Codable, Equatable, Sendable {
 nonisolated struct ProgressSnapshot: Codable, Equatable, Sendable {
     let streak: Int
     let lastCompletedDay: Date?
-    let completedDays: [Date]
+    let practiceDays: [Date]
     let pathCompletedDays: Int
     let lastPathCompletionDay: Date?
     let totalFocusSessions: Int
@@ -189,11 +189,14 @@ nonisolated struct ProgressSnapshot: Codable, Equatable, Sendable {
     let publishedAt: Date
     var resetBoundary: SyncResetBoundary? = nil
     var practiceActivities: [PracticeActivity]? = nil
+    /// Path runs, so the Watch applies the same 06:00 opening rule as the phone.
+    /// Absent from older phones; the Watch then falls back to the legacy Deep focus fields.
+    var pathRuns: [PathRunProgress]? = nil
 
     init(
         streak: Int,
         lastCompletedDay: Date?,
-        completedDays: [Date],
+        practiceDays: [Date],
         pathCompletedDays: Int,
         lastPathCompletionDay: Date?,
         totalFocusSessions: Int,
@@ -204,11 +207,12 @@ nonisolated struct ProgressSnapshot: Codable, Equatable, Sendable {
         appliedEventIDs: [String],
         publishedAt: Date,
         resetBoundary: SyncResetBoundary? = nil,
-        practiceActivities: [PracticeActivity]? = nil
+        practiceActivities: [PracticeActivity]? = nil,
+        pathRuns: [PathRunProgress]? = nil
     ) {
         self.streak = streak
         self.lastCompletedDay = lastCompletedDay
-        self.completedDays = completedDays
+        self.practiceDays = practiceDays
         self.pathCompletedDays = pathCompletedDays
         self.lastPathCompletionDay = lastPathCompletionDay
         self.totalFocusSessions = totalFocusSessions
@@ -220,12 +224,13 @@ nonisolated struct ProgressSnapshot: Codable, Equatable, Sendable {
         self.publishedAt = publishedAt
         self.resetBoundary = resetBoundary
         self.practiceActivities = practiceActivities
+        self.pathRuns = pathRuns
     }
 
     private enum CodingKeys: String, CodingKey {
         case streak
         case lastCompletedDay
-        case completedDays
+        case practiceDays = "completedDays"
         case pathCompletedDays
         case lastPathCompletionDay
         case totalFocusSessions
@@ -235,7 +240,7 @@ nonisolated struct ProgressSnapshot: Codable, Equatable, Sendable {
         case lastQuestionAnswerDay
         case appliedEventIDs
         case publishedAt
-        case resetBoundary, practiceActivities
+        case resetBoundary, practiceActivities, pathRuns
     }
 }
 

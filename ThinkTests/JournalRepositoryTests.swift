@@ -63,7 +63,7 @@ import Testing
         try repository.ensureRecordIdentities()
         let selection = try #require(try repository.answer(for: day))
         #expect(selection.all.count == 2)
-        #expect(selection.hasConflicts)
+        #expect(selection.hasOtherVersions)
         #expect(selection.all.allSatisfy { $0.recordID != nil && $0.civilDay == nil })
         let before = selection.primary.recordID
         try repository.ensureRecordIdentities()
@@ -141,6 +141,58 @@ import Testing
         // Metadata-only recovery: no note text, fields still land.
         try repository.upsertSessionMetadata(sessionID: "s3", intention: "Only intention", outcome: .done, energy: nil, closingNoteRecordID: nil)
         #expect(try repository.sessionMetadata(sessionID: "s3")?.outcome == FocusOutcome.done.rawValue)
+    }
+
+    /// Two devices wrote the same day offline (`design/journal.md` section
+    /// 6): the latest edit is the day's record, and editing the older
+    /// version makes it the primary.
+    @Test func editingAnOlderVersionMakesItTheDaysRecord() throws {
+        let container = try container()
+        let repository = JournalRepository(modelContext: container.mainContext)
+        let date = Date(timeIntervalSince1970: 1_790_000_000)
+        let day = CivilDay(date: date)
+        let phone = try repository.saveAnswer(text: "From phone", prompt: "Question", day: day, date: date)
+        let iPad = try repository.saveAnswer(text: "From iPad", prompt: "Question", day: day, date: date.addingTimeInterval(60))
+        let phoneRetro = try repository.saveRetro(wentWell: "Retro from phone", improve: "", tomorrow: "", day: day, date: date)
+        let iPadRetro = try repository.saveRetro(wentWell: "Retro from iPad", improve: "", tomorrow: "", day: day,
+                                                 date: date.addingTimeInterval(60))
+        #expect(try repository.answer(for: day)?.primary.recordID == iPad.recordID)
+        #expect(try repository.retro(for: day)?.primary.recordID == iPadRetro.recordID)
+
+        try repository.updateEntry(id: phone.recordID, text: "From phone, edited", mood: nil)
+        try repository.updateRetro(id: phoneRetro.recordID, wentWell: "Retro from phone, edited", improve: "", tomorrow: "", mood: nil)
+
+        let answer = try #require(try repository.answer(for: day))
+        #expect(answer.primary.recordID == phone.recordID)
+        #expect(answer.otherVersions.map(\.recordID) == [iPad.recordID])
+        let retro = try #require(try repository.retro(for: day))
+        #expect(retro.primary.recordID == phoneRetro.recordID)
+        #expect(retro.otherVersions.map(\.recordID) == [iPadRetro.recordID])
+    }
+
+    /// The read detail's "Another version from this day": the records that
+    /// share a record's day (answers, retros) or week (weekly reviews),
+    /// newest edit first. Notes and focus notes have no versions.
+    @Test func aRecordsSelectionHoldsTheOtherRecordsOfItsDayOrWeek() throws {
+        let container = try container()
+        let repository = JournalRepository(modelContext: container.mainContext)
+        let date = Date(timeIntervalSince1970: 1_790_000_000)
+        let day = CivilDay(date: date)
+        let phone = try repository.saveAnswer(text: "From phone", prompt: "Question", day: day, date: date)
+        let iPad = try repository.saveAnswer(text: "From iPad", prompt: "Question", day: day, date: date.addingTimeInterval(60))
+        _ = try repository.saveAnswer(text: "Next day", prompt: "Question", day: day.next, date: day.next.start)
+        let note = try repository.saveNote(text: "Same day note", date: date)
+        let retro = try repository.saveRetro(wentWell: "Only retro", improve: "", tomorrow: "", day: day, date: date)
+        let weekStart = CivilDay(year: 2026, month: 9, day: 14).start
+        let reviewA = try repository.saveWeeklyReview(text: "Week A", nextIntention: nil, weekStart: weekStart)
+        let reviewB = try repository.saveWeeklyReview(text: "Week B", nextIntention: nil, weekStart: weekStart)
+        try repository.updateWeeklyReview(id: reviewA.recordID, text: "Week A, edited", nextIntention: nil)
+
+        #expect(try repository.selection(containingEntry: phone.recordID)?.all.map(\.recordID) == [iPad.recordID, phone.recordID])
+        #expect(try repository.selection(containingEntry: reviewB.recordID)?.all.map(\.recordID) == [reviewA.recordID, reviewB.recordID])
+        #expect(try repository.selection(containingRetro: retro.recordID)?.all.map(\.recordID) == [retro.recordID])
+        #expect(try repository.selection(containingEntry: note.recordID) == nil)
+        #expect(try repository.selection(containingEntry: UUID()) == nil)
     }
 
     @Test func weeklyReviewEditsIntentionAndStaysOutOfWeeklySummary() throws {

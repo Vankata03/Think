@@ -11,13 +11,22 @@ final class JournalRepository {
     enum MoodFilter: Equatable { case all, untagged, tagged(Mood) }
     struct Page { var offset = 0; var limit = 50 }
     struct JournalPage<Record> { let records: [Record]; let totalCount: Int; var hasMore: Bool; let nextOffset: Int }
+    /// Kind, mood, theme and date run as a SwiftData predicate; search
+    /// runs over the fetched rows (see `entries(matching:page:)`).
     struct EntryQuery {
         var search = ""
         var kind: String?
         var mood: MoodFilter = .all
+        /// Matches the primary or the secondary theme.
+        var theme: Theme?
         var dateRange: DateInterval?
+        /// Records left out, such as the versions the unfiltered list hides.
+        var excluding: Set<UUID> = []
     }
-    struct RetroQuery { var search = ""; var mood: MoodFilter = .all; var dateRange: DateInterval? }
+    struct RetroQuery {
+        var search = ""; var mood: MoodFilter = .all; var theme: Theme?; var dateRange: DateInterval?
+        var excluding: Set<UUID> = []
+    }
     struct EntrySnapshot: Identifiable {
         let recordID: UUID?
         var id: PersistentIdentifier { persistentModelID }
@@ -45,6 +54,8 @@ final class JournalRepository {
             periodKey = value.periodKey; nextIntention = value.nextIntention
         }
         var themes: ThemeSelection { ThemeSelection(stored: theme, secondary: secondaryTheme) }
+        /// When the record was last written: what picks the day's record.
+        var latestEdit: Date { updatedAt ?? date }
     }
     struct RetroSnapshot: Identifiable {
         let recordID: UUID?
@@ -72,6 +83,8 @@ final class JournalRepository {
             tomorrowIntention = value.tomorrowIntention; updatedAt = value.updatedAt
         }
         var themes: ThemeSelection { ThemeSelection(stored: theme, secondary: secondaryTheme) }
+        /// When the record was last written: what picks the day's record.
+        var latestEdit: Date { updatedAt ?? date }
     }
     struct SessionSnapshot {
         let sessionID: String
@@ -189,12 +202,15 @@ final class JournalRepository {
             value.text = text; value.nextIntention = nextIntention; value.updatedAt = .now; return value
         }, result: receipt)
     }
-    func weeklyReview(weekStart: Date) throws -> DailySelection<EntrySnapshot>? {
-        let period = JournalIdentity.weekKey(for: weekStart); let kind = JournalEntry.kindWeeklyReview
+    func weeklyReview(weekStart: Date, timeZone: TimeZone = .current) throws -> DailySelection<EntrySnapshot>? {
+        try weeklyReview(periodKey: JournalIdentity.weekKey(for: weekStart, timeZone: timeZone))
+    }
+    private func weeklyReview(periodKey period: String) throws -> DailySelection<EntrySnapshot>? {
+        let kind = JournalEntry.kindWeeklyReview
         let reader = context()
         let descriptor = FetchDescriptor<JournalEntry>(predicate: #Predicate { $0.kind == kind && $0.periodKey == period })
         let records = try withExtendedLifetime(reader) { try reader.fetch(descriptor).map(EntrySnapshot.init) }
-        return JournalIdentity.select(records, date: { $0.date }, recordID: { $0.recordID }, tiebreak: { $0.text })
+        return Self.selectWeeklyReview(records)
     }
     @discardableResult
     func saveFocusNote(text: String, intention: String, sessionID: String, completedAt: Date = .now,
@@ -329,7 +345,7 @@ final class JournalRepository {
         })
         let reader = context()
         let records = try withExtendedLifetime(reader) { try reader.fetch(descriptor).map(EntrySnapshot.init) }
-        return JournalIdentity.select(records, date: { $0.date }, recordID: { $0.recordID }, tiebreak: { $0.prompt + $0.text })
+        return Self.selectAnswer(records)
     }
     func retro(for day: CivilDay) throws -> DailySelection<RetroSnapshot>? {
         let key = day.key; let start = day.start; let end = day.next.start
@@ -338,51 +354,117 @@ final class JournalRepository {
         })
         let reader = context()
         let records = try withExtendedLifetime(reader) { try reader.fetch(descriptor).map(RetroSnapshot.init) }
-        return JournalIdentity.select(records, date: { $0.date }, recordID: { $0.recordID }, tiebreak: { $0.wentWell + $0.improve + $0.tomorrow })
+        return Self.selectRetro(records)
+    }
+    /// Every record that shares this entry's day (an answer) or week (a
+    /// weekly review), the entry included, newest edit first: what "Another
+    /// version from this day" offers (`design/journal.md` sections 5 and
+    /// 6). Nil for a missing entry and for notes and focus notes, which are
+    /// not one per day.
+    func selection(containingEntry id: UUID) throws -> DailySelection<EntrySnapshot>? {
+        guard let entry = try entry(id: id) else { return nil }
+        switch entry.kind {
+        case JournalEntry.kindQuestion: return try answer(for: entry.day)
+        case JournalEntry.kindWeeklyReview: return try entry.periodKey.flatMap(weeklyReview(periodKey:))
+        default: return nil
+        }
+    }
+    /// Every retro of this retro's day, itself included, newest edit first.
+    func selection(containingRetro id: UUID) throws -> DailySelection<RetroSnapshot>? {
+        guard let value = try retro(id: id) else { return nil }
+        return try retro(for: value.day)
+    }
+    private static func selectAnswer(_ records: [EntrySnapshot]) -> DailySelection<EntrySnapshot>? {
+        JournalIdentity.select(records, latestEdit: \.latestEdit, recordID: { $0.recordID }, tiebreak: { $0.prompt + $0.text })
+    }
+    private static func selectWeeklyReview(_ records: [EntrySnapshot]) -> DailySelection<EntrySnapshot>? {
+        JournalIdentity.select(records, latestEdit: \.latestEdit, recordID: { $0.recordID }, tiebreak: { $0.text })
+    }
+    private static func selectRetro(_ records: [RetroSnapshot]) -> DailySelection<RetroSnapshot>? {
+        JournalIdentity.select(records, latestEdit: \.latestEdit, recordID: { $0.recordID }, tiebreak: { $0.wentWell + $0.improve + $0.tomorrow })
     }
 
-    /// Fetch in bounded chunks; post-filtering gives consistent localized search
-    /// across SQLite/in-memory stores. Only the requested page remains retained.
-    func entries(matching query: EntryQuery = EntryQuery(), page: Page = Page()) throws -> JournalPage<EntrySnapshot> {
-        let reader = context()
-        if query.search.isEmpty && query.kind == nil && query.mood == .all && query.dateRange == nil {
-            let start = max(0, page.offset)
-            let count = try reader.fetchCount(FetchDescriptor<JournalEntry>())
-            var descriptor = FetchDescriptor<JournalEntry>(sortBy: [SortDescriptor(\JournalEntry.date, order: .reverse), SortDescriptor(\JournalEntry.prompt), SortDescriptor(\JournalEntry.text)])
-            descriptor.fetchOffset = start
-            descriptor.fetchLimit = min(200, max(1, page.limit))
-            let records = try withExtendedLifetime(reader) { try reader.fetch(descriptor).map(EntrySnapshot.init) }
-            return JournalPage(records: records, totalCount: count, hasMore: start + records.count < count, nextOffset: start + records.count)
+    /// Every answer, retro and weekly review that is not the primary of its
+    /// day or week: the other versions of `design/journal.md` section 6,
+    /// which the unfiltered Journal list leaves out. Grouped the way
+    /// `answer(for:)`, `retro(for:)` and `weeklyReview(weekStart:)` group.
+    /// Fetches the grouping columns only, never the writing: the list runs
+    /// this on every revision bump. A text tiebreak never changes which IDs
+    /// are other versions, so none is needed.
+    func versionRecordIDs() throws -> Set<UUID> {
+        struct Key { let recordID: UUID?; let latestEdit: Date }
+        func otherVersionIDs(_ groups: [String: [Key]]) -> [UUID] {
+            groups.values.compactMap {
+                JournalIdentity.select($0, latestEdit: \.latestEdit, recordID: { $0.recordID })
+            }
+            .flatMap(\.otherVersions).compactMap(\.recordID)
         }
-        return try scan(page: page, fetch: { offset in
-            var descriptor = FetchDescriptor<JournalEntry>(sortBy: [SortDescriptor(\JournalEntry.date, order: .reverse), SortDescriptor(\JournalEntry.prompt), SortDescriptor(\JournalEntry.text)])
-            descriptor.fetchOffset = offset; descriptor.fetchLimit = 200
-            return try reader.fetch(descriptor).map(EntrySnapshot.init)
-        }, matches: { entry in
-            (query.kind == nil || query.kind == entry.kind) && Self.matches(entry.mood, query.mood)
-            && Self.includes(entry.date, query.dateRange)
-            && Self.matchesSearch(query.search, fields: [entry.prompt, entry.text, entry.nextIntention ?? ""])
-        })
+        func dayKey(_ stored: String?, _ zone: String?, _ date: Date) -> String {
+            (CivilDay(storedKey: stored, timeZoneIdentifier: zone) ?? CivilDay(date: date)).key
+        }
+        let reader = context()
+        return try withExtendedLifetime(reader) {
+            let question = JournalEntry.kindQuestion; let weekly = JournalEntry.kindWeeklyReview
+            var entryColumns = FetchDescriptor<JournalEntry>(predicate: #Predicate { $0.kind == question || $0.kind == weekly })
+            entryColumns.propertiesToFetch = [\.kind, \.recordID, \.civilDay, \.timeZoneIdentifier, \.date, \.periodKey, \.updatedAt]
+            var answers: [String: [Key]] = [:]
+            var reviews: [String: [Key]] = [:]
+            for entry in try reader.fetch(entryColumns) {
+                let key = Key(recordID: entry.recordID, latestEdit: entry.updatedAt ?? entry.date)
+                if entry.kind == question {
+                    answers[dayKey(entry.civilDay, entry.timeZoneIdentifier, entry.date), default: []].append(key)
+                } else if let period = entry.periodKey {
+                    reviews[period, default: []].append(key)
+                }
+            }
+            var retroColumns = FetchDescriptor<DailyRetro>()
+            retroColumns.propertiesToFetch = [\.recordID, \.civilDay, \.timeZoneIdentifier, \.date, \.updatedAt]
+            var retros: [String: [Key]] = [:]
+            for retro in try reader.fetch(retroColumns) {
+                retros[dayKey(retro.civilDay, retro.timeZoneIdentifier, retro.date), default: []]
+                    .append(Key(recordID: retro.recordID, latestEdit: retro.updatedAt ?? retro.date))
+            }
+            return Set(otherVersionIDs(answers) + otherVersionIDs(reviews) + otherVersionIDs(retros))
+        }
+    }
+
+    /// Filters and exclusions run in the store; search runs over the
+    /// filtered rows in bounded chunks, because post-filtering gives
+    /// consistent localized matching across SQLite and in-memory stores.
+    /// Only the requested page remains retained.
+    func entries(matching query: EntryQuery = EntryQuery(), page: Page = Page()) throws -> JournalPage<EntrySnapshot> {
+        let predicate = Self.predicate(query)
+        let sort = [SortDescriptor(\JournalEntry.date, order: .reverse), SortDescriptor(\JournalEntry.prompt), SortDescriptor(\JournalEntry.text)]
+        return try fetchPage(page, search: query.search, predicate: predicate, sort: sort, snapshot: EntrySnapshot.init,
+                             searchFields: { [$0.prompt, $0.text, $0.nextIntention ?? ""] })
     }
     func retros(matching query: RetroQuery = RetroQuery(), page: Page = Page()) throws -> JournalPage<RetroSnapshot> {
+        let predicate = Self.predicate(query)
+        let sort = [SortDescriptor(\DailyRetro.date, order: .reverse), SortDescriptor(\DailyRetro.wentWell), SortDescriptor(\DailyRetro.improve)]
+        return try fetchPage(page, search: query.search, predicate: predicate, sort: sort, snapshot: RetroSnapshot.init,
+                             searchFields: { [$0.wentWell, $0.improve, $0.tomorrow, $0.promptSnapshot ?? "", $0.tomorrowIntention ?? ""] })
+    }
+    private func fetchPage<Model: PersistentModel, Snapshot>(
+        _ page: Page, search: String, predicate: Predicate<Model>, sort: [SortDescriptor<Model>],
+        snapshot: (Model) -> Snapshot, searchFields: (Snapshot) -> [String]
+    ) throws -> JournalPage<Snapshot> {
         let reader = context()
-        if query.search.isEmpty && query.mood == .all && query.dateRange == nil {
-            let start = max(0, page.offset)
-            let count = try reader.fetchCount(FetchDescriptor<DailyRetro>())
-            var descriptor = FetchDescriptor<DailyRetro>(sortBy: [SortDescriptor(\DailyRetro.date, order: .reverse), SortDescriptor(\DailyRetro.wentWell), SortDescriptor(\DailyRetro.improve)])
-            descriptor.fetchOffset = start
-            descriptor.fetchLimit = min(200, max(1, page.limit))
-            let records = try withExtendedLifetime(reader) { try reader.fetch(descriptor).map(RetroSnapshot.init) }
-            return JournalPage(records: records, totalCount: count, hasMore: start + records.count < count, nextOffset: start + records.count)
+        return try withExtendedLifetime(reader) {
+            if search.isEmpty {
+                let start = max(0, page.offset)
+                let count = try reader.fetchCount(FetchDescriptor(predicate: predicate))
+                var descriptor = FetchDescriptor(predicate: predicate, sortBy: sort)
+                descriptor.fetchOffset = start
+                descriptor.fetchLimit = min(200, max(1, page.limit))
+                let records = try reader.fetch(descriptor).map(snapshot)
+                return JournalPage(records: records, totalCount: count, hasMore: start + records.count < count, nextOffset: start + records.count)
+            }
+            return try scan(page: page, fetch: { offset in
+                var descriptor = FetchDescriptor(predicate: predicate, sortBy: sort)
+                descriptor.fetchOffset = offset; descriptor.fetchLimit = 200
+                return try reader.fetch(descriptor).map(snapshot)
+            }, matches: { Self.matchesSearch(search, fields: searchFields($0)) })
         }
-        return try scan(page: page, fetch: { offset in
-            var descriptor = FetchDescriptor<DailyRetro>(sortBy: [SortDescriptor(\DailyRetro.date, order: .reverse), SortDescriptor(\DailyRetro.wentWell), SortDescriptor(\DailyRetro.improve)])
-            descriptor.fetchOffset = offset; descriptor.fetchLimit = 200
-            return try reader.fetch(descriptor).map(RetroSnapshot.init)
-        }, matches: { value in
-            Self.matches(value.mood, query.mood) && Self.includes(value.date, query.dateRange)
-            && Self.matchesSearch(query.search, fields: [value.wentWell, value.improve, value.tomorrow, value.promptSnapshot ?? "", value.tomorrowIntention ?? ""])
-        })
     }
     private func scan<T>(page: Page, fetch: (Int) throws -> [T], matches: (T) -> Bool) throws -> JournalPage<T> {
         var records: [T] = []; var count = 0; var offset = 0
@@ -398,14 +480,75 @@ final class JournalRepository {
         }
         return JournalPage(records: records, totalCount: count, hasMore: start + records.count < count, nextOffset: start + records.count)
     }
-    private static func matches(_ raw: String?, _ filter: MoodFilter) -> Bool {
-        switch filter { case .all: true; case .untagged: Mood(stored: raw) == nil; case .tagged(let mood): raw == mood.rawValue }
-    }
-    private static func includes(_ date: Date, _ range: DateInterval?) -> Bool {
-        guard let range else { return true }; return date >= range.start && date < range.end
-    }
     private static func matchesSearch(_ search: String, fields: [String]) -> Bool {
         search.isEmpty || fields.contains { $0.localizedStandardContains(search) }
+    }
+
+    // Each filter is its own small predicate, combined with `evaluate`, so
+    // the type checker copes. A filter that is off reads as `true`. The two
+    // models need their own copies: `#Predicate` takes no key-path
+    // parameters, and captures only plain values.
+    private static func predicate(_ query: EntryQuery) -> Predicate<JournalEntry> {
+        let anyKind = query.kind == nil; let kind = query.kind ?? ""
+        let byKind = #Predicate<JournalEntry> { anyKind || $0.kind == kind }
+        let (anyMood, untagged, mood) = moodTerms(query.mood)
+        let byMood = #Predicate<JournalEntry> { anyMood || untagged || $0.mood == mood }
+        // SwiftData translates neither `??` nor `!` inside `contains`, so an
+        // unknown value is "none of the five".
+        let (low, flat, steady, good, sharp) = (Mood.low.rawValue, Mood.flat.rawValue, Mood.steady.rawValue, Mood.good.rawValue, Mood.sharp.rawValue)
+        let byNoMood = #Predicate<JournalEntry> {
+            !untagged || $0.mood == nil || ($0.mood != low && $0.mood != flat && $0.mood != steady && $0.mood != good && $0.mood != sharp)
+        }
+        let anyTheme = query.theme == nil; let theme: String? = query.theme?.rawValue
+        let byTheme = #Predicate<JournalEntry> { anyTheme || $0.theme == theme || $0.secondaryTheme == theme }
+        let anyDate = query.dateRange == nil
+        let start = query.dateRange?.start ?? .distantPast; let end = query.dateRange?.end ?? .distantFuture
+        let byDate = #Predicate<JournalEntry> { anyDate || ($0.date >= start && $0.date < end) }
+        let excluded = Array(query.excluding)
+        let byVersion = #Predicate<JournalEntry> { entry in entry.recordID.flatMap { !excluded.contains($0) } ?? true }
+        return #Predicate<JournalEntry> {
+            byKind.evaluate($0) && byMood.evaluate($0) && byNoMood.evaluate($0) && byTheme.evaluate($0) && byDate.evaluate($0) && byVersion.evaluate($0)
+        }
+    }
+    private static func predicate(_ query: RetroQuery) -> Predicate<DailyRetro> {
+        let (anyMood, untagged, mood) = moodTerms(query.mood)
+        let byMood = #Predicate<DailyRetro> { anyMood || untagged || $0.mood == mood }
+        // SwiftData translates neither `??` nor `!` inside `contains`, so an
+        // unknown value is "none of the five".
+        let (low, flat, steady, good, sharp) = (Mood.low.rawValue, Mood.flat.rawValue, Mood.steady.rawValue, Mood.good.rawValue, Mood.sharp.rawValue)
+        let byNoMood = #Predicate<DailyRetro> {
+            !untagged || $0.mood == nil || ($0.mood != low && $0.mood != flat && $0.mood != steady && $0.mood != good && $0.mood != sharp)
+        }
+        let anyTheme = query.theme == nil; let theme: String? = query.theme?.rawValue
+        let byTheme = #Predicate<DailyRetro> { anyTheme || $0.theme == theme || $0.secondaryTheme == theme }
+        let anyDate = query.dateRange == nil
+        let start = query.dateRange?.start ?? .distantPast; let end = query.dateRange?.end ?? .distantFuture
+        let byDate = #Predicate<DailyRetro> { anyDate || ($0.date >= start && $0.date < end) }
+        let excluded = Array(query.excluding)
+        let byVersion = #Predicate<DailyRetro> { retro in retro.recordID.flatMap { !excluded.contains($0) } ?? true }
+        return #Predicate<DailyRetro> {
+            byMood.evaluate($0) && byNoMood.evaluate($0) && byTheme.evaluate($0) && byDate.evaluate($0) && byVersion.evaluate($0)
+        }
+    }
+    /// "No mood" also matches a raw value this version does not know,
+    /// which `Mood(stored:)` reads back as untagged.
+    private static func moodTerms(_ filter: MoodFilter) -> (any: Bool, untagged: Bool, raw: String?) {
+        switch filter {
+        case .all: (true, false, nil)
+        case .untagged: (false, true, nil)
+        case .tagged(let mood): (false, false, mood.rawValue)
+        }
+    }
+    /// Whether anything is written at all, or, with `kind`, any entry of
+    /// that kind.
+    func hasRecords(kind: String? = nil) throws -> Bool {
+        let reader = context()
+        if let kind {
+            var descriptor = FetchDescriptor<JournalEntry>(predicate: #Predicate { $0.kind == kind })
+            descriptor.fetchLimit = 1
+            return try reader.fetchCount(descriptor) > 0
+        }
+        return try reader.fetchCount(FetchDescriptor<JournalEntry>()) + reader.fetchCount(FetchDescriptor<DailyRetro>()) > 0
     }
     func exportSnapshot() throws -> JournalExport {
         let reader = context()

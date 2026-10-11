@@ -10,6 +10,7 @@ import SwiftData
 import Foundation
 import AppIntents
 import WidgetKit
+import UserNotifications
 
 nonisolated enum SevenDayReviewPromptPolicy {
     static let storageKey = "hasRequestedReviewAfterSevenDayStreak"
@@ -33,15 +34,19 @@ struct ThinkApp: App {
     @State private var mindfulMinutes: MindfulMinutesStore
     @State private var cloudBackup: CloudBackupState
     @State private var journalLock: JournalLock
-    @State private var favorites: FavoritesStore
+    @State private var savedLines: SavedLinesStore
     @State private var journalRepository: JournalRepository
     @State private var journalDrafts: JournalDraftStore
     @State private var dataReset: AppDataResetCoordinator
     @State private var practicePreferences: PracticePreferencesStore
     @State private var privacyShield = AppPrivacyShield()
+    @State private var notificationAccess: NotificationAccess
+    @State private var uiTestNotificationPrompt: UITestNotificationPrompt?
     @AppStorage(Appearance.storageKey) private var appearance = Appearance.defaultChoice
     @AppStorage(Onboarding.completedKey) private var completedOnboarding = false
     private let isUITesting: Bool
+    /// UI tests skip onboarding unless they ask for it with `-ui-onboarding`.
+    private let showsOnboardingInUITests: Bool
     private let journalContainer: ModelContainer
 
     init() {
@@ -58,12 +63,22 @@ struct ThinkApp: App {
         }
         Appearance.seedDefault(in: .standard)
         let arguments = ProcessInfo.processInfo.arguments
+        showsOnboardingInUITests = isUITesting && arguments.contains("-ui-onboarding")
+        if isUITesting {
+            let prompt = UITestNotificationPrompt(denied: arguments.contains("-ui-notifications-denied"))
+            _uiTestNotificationPrompt = State(initialValue: prompt)
+            _notificationAccess = State(initialValue: NotificationAccess(authorizer: prompt, scheduleReminders: {}))
+        } else {
+            _notificationAccess = State(initialValue: NotificationAccess())
+        }
         if isUITesting && arguments.contains("-ui-journal-locked") {
             UserDefaults.standard.set(true, forKey: JournalLock.enabledKey)
         }
         let authenticator: any JournalAuthenticator
         if isUITesting {
-            if arguments.contains("-ui-auth-success") || arguments.contains("-ui-auth-failure") {
+            if arguments.contains("-ui-auth-fail-once") {
+                authenticator = UITestJournalAuthenticator(succeeds: true, failuresFirst: 1)
+            } else if arguments.contains("-ui-auth-success") || arguments.contains("-ui-auth-failure") {
                 authenticator = UITestJournalAuthenticator(succeeds: arguments.contains("-ui-auth-success"))
             } else {
                 authenticator = UnavailableJournalAuthenticator()
@@ -90,15 +105,65 @@ struct ThinkApp: App {
             })
         _journalDrafts = State(initialValue: drafts)
         _journalRepository = State(initialValue: repository)
+        var seededAnswerID: UUID?
         if isUITesting && arguments.contains("-ui-seed-journal") {
-            _ = try? repository.saveAnswer(text: "PRIVATE AUDIT ANSWER", practiceID: ContentLibrary.dailyPractice().id, prompt: "PRIVATE AUDIT PROMPT")
+            seededAnswerID = try? repository.saveAnswer(text: "PRIVATE AUDIT ANSWER", practiceID: ContentLibrary.dailyPractice().id, prompt: "PRIVATE AUDIT PROMPT").recordID
             _ = try? repository.saveRetro(wentWell: "PRIVATE AUDIT RETRO", improve: "PRIVATE AUDIT IMPROVE", tomorrow: "PRIVATE AUDIT TOMORROW")
+        }
+        if isUITesting && arguments.contains("-ui-seed-answer") {
+            // Today's answer alone, so Today opens on the move.
+            _ = try? repository.saveAnswer(text: "PRIVATE AUDIT ANSWER", practiceID: ContentLibrary.dailyPractice().id, prompt: "PRIVATE AUDIT PROMPT")
         }
         if isUITesting && arguments.contains("-ui-seed-journal-scroll") {
             // Enough entries to require scrolling even on the largest CI phone.
             for index in 0..<12 {
                 _ = try? repository.saveNote(text: "SCROLL AUDIT NOTE \(index)")
             }
+        }
+        if isUITesting && arguments.contains("-ui-seed-journal-versions") {
+            // Three devices answered today offline (`design/journal.md`
+            // section 6): the latest, VERSION C, is the day's record.
+            let today = CivilDay.today()
+            for (index, name) in ["A", "B", "C"].enumerated() {
+                _ = try? repository.saveAnswer(text: "VERSION \(name) of today's answer.", practiceID: ContentLibrary.dailyPractice().id,
+                                               prompt: "PRIVATE AUDIT PROMPT", mood: name == "C" ? .good : nil,
+                                               themes: name == "C" ? ThemeSelection(primary: .work, secondary: .people) : nil,
+                                               day: today, date: today.start.addingTimeInterval(TimeInterval(60 * (index + 1))))
+            }
+        }
+        if isUITesting && arguments.contains("-ui-seed-journal-list") {
+            // Every row shape of the Journal list (`design/journal.md`
+            // section 4): each kind, moods, themes, a second version of
+            // today's answer and an unsaved draft.
+            let now = Date.now
+            let today = CivilDay.today()
+            _ = try? repository.saveAnswer(text: "Probably nothing different, which is the honest answer.",
+                                           practiceID: ContentLibrary.dailyPractice().id, prompt: "PRIVATE AUDIT PROMPT",
+                                           mood: .flat, date: today.start.addingTimeInterval(60))
+            _ = try? repository.saveNote(text: "Lunch with Maya. She said the thing about owning the calendar again.",
+                                         mood: .steady, themes: ThemeSelection(primary: .people), date: now.addingTimeInterval(-60))
+            let yesterday = today.previous
+            _ = try? repository.saveRetro(wentWell: "Shipped the draft before dinner.", improve: "Started late; the morning went to email.",
+                                          tomorrow: "Block 9 to 11 before opening anything.", mood: .good,
+                                          themes: ThemeSelection(primary: .work, secondary: .making), day: yesterday,
+                                          date: yesterday.start.addingTimeInterval(21 * 3_600))
+            let twoDaysAgo = today.adding(days: -2)
+            _ = try? repository.saveFocusNote(text: "Got the opening scene down; the middle still drags.", intention: "Write chapter 3",
+                                              sessionID: "audit-list-session", completedAt: twoDaysAgo.start.addingTimeInterval(14 * 3_600),
+                                              themes: ThemeSelection(primary: .making))
+            _ = try? repository.saveWeeklyReview(text: "Five of seven days. Plan the practice before the trip.",
+                                                 nextIntention: "Pack the practice.", weekStart: today.adding(days: -6).start)
+            var draft = JournalDraft(kind: .note)
+            draft.text = "Half a thought about the weekend"
+            try? drafts.save(draft)
+        }
+        if isUITesting && arguments.contains("-ui-seed-weekly-review") {
+            // This week's reflection and a tagged note, for the weekly
+            // review's Saved row and its lock checks.
+            let week = WeeklyReviewWeek()
+            _ = try? repository.saveWeeklyReview(text: "PRIVATE WEEKLY REFLECTION", nextIntention: "PRIVATE NEXT WEEK",
+                                                 weekStart: week.start.start, timeZone: week.start.timeZone)
+            _ = try? repository.saveNote(text: "PRIVATE WEEK NOTE", mood: .good)
         }
         let progressDefaults: UserDefaults
         if isUITesting, let bundleIdentifier = Bundle.main.bundleIdentifier {
@@ -110,16 +175,70 @@ struct ThinkApp: App {
             progressDefaults = appGroupDefaults
         }
         let progressStore = ProgressStore(defaults: progressDefaults)
+        if isUITesting && arguments.contains("-ui-seed-ledger"), let seededAnswerID {
+            // What the editor records on save, so a locked Today knows the
+            // seeded answer exists without reading it.
+            progressStore.recordActivity(.answer, id: seededAnswerID.uuidString)
+        }
+        if isUITesting && arguments.contains("-ui-seed-path-step") {
+            // Today's Deep focus step done, so the Paths hero shows its done form.
+            progressStore.completePathStep(pathID: PathLibrary.deepFocus.id, totalSteps: PathLibrary.deepFocus.steps.count)
+        }
+        if isUITesting && arguments.contains("-ui-seed-path-finished") {
+            // Deep focus finished on earlier days, so its detail offers Begin again.
+            let calendar = Calendar.current
+            let path = PathLibrary.deepFocus
+            let start = calendar.date(byAdding: .day, value: -30, to: calendar.startOfDay(for: .now))!
+            for day in path.steps.indices {
+                let date = calendar.date(byAdding: DateComponents(day: day, hour: 9), to: start)!
+                progressStore.completePathStep(pathID: path.id, totalSteps: path.steps.count, at: date)
+            }
+        }
         if isUITesting && arguments.contains("-ui-seed-focus") {
             let sessionID = "audit-focus-session"
             progressStore.recordFocusSession(durationMinutes: 25, eventID: sessionID, actualActiveSeconds: 1500)
             let receipt = try? repository.saveFocusNote(text: "Original focus note", intention: "Audit intention", sessionID: sessionID)
             try? repository.upsertSessionMetadata(sessionID: sessionID, intention: "Audit intention", closingNoteRecordID: receipt?.recordID, completedAt: .now)
         }
-        // Same isolated suite as progress under UI tests, so a favorited
+        if isUITesting && arguments.contains("-ui-seed-progress") {
+            // Every Progress section populated: a 7-day streak and ten
+            // sessions (two medals), a path step, partial effort, and an
+            // intention on the newest completed session.
+            let now = Date.now
+            for day in 0..<7 {
+                let date = Calendar.current.date(byAdding: .day, value: -day, to: now) ?? now
+                progressStore.recordFocusSession(
+                    at: date.addingTimeInterval(-60), durationMinutes: 25, eventID: "audit-progress-day-\(day)",
+                    actualActiveSeconds: 1_500)
+            }
+            for index in 0..<3 {
+                progressStore.recordFocusSession(
+                    at: now.addingTimeInterval(Double(-3_600 * (index + 2))), durationMinutes: 50,
+                    eventID: "audit-progress-extra-\(index)", actualActiveSeconds: nil)
+            }
+            progressStore.recordPartialFocusSession(FocusSessionRecord(
+                id: "audit-progress-partial", completedAt: now.addingTimeInterval(-30), durationMinutes: 25,
+                actualActiveSeconds: 420, isCompleted: false))
+            _ = progressStore.completePathStep(
+                pathID: PathLibrary.deepFocus.id, totalSteps: PathLibrary.deepFocus.steps.count, at: now)
+            try? repository.upsertSessionMetadata(
+                sessionID: "audit-progress-day-0", intention: "Draft the Progress audit", completedAt: now)
+        }
+        if isUITesting, let index = arguments.firstIndex(of: "-ui-seed-streak"), index + 1 < arguments.count {
+            // The streak sheet's states (`progress-settings.md` 8.7): a
+            // month and a half of practice with gaps, ending today
+            // ("today"), yesterday ("yesterday") or three days ago ("lapsed").
+            let end = ["today": 0, "yesterday": -1, "lapsed": -3][arguments[index + 1]] ?? 0
+            let gaps: Set<Int> = [-20, -14, -13, -26]
+            for offset in (end - 40)...end where !gaps.contains(offset - end) {
+                let date = Calendar.current.date(byAdding: .day, value: offset, to: .now) ?? .now
+                progressStore.recordFocusSession(at: date, durationMinutes: 25, eventID: "audit-streak-\(offset)")
+            }
+        }
+        // Same isolated suite as progress under UI tests, so a saved
         // line never leaks between runs.
-        let favorites = FavoritesStore(defaults: progressDefaults)
-        _favorites = State(initialValue: favorites)
+        let savedLines = SavedLinesStore(defaults: progressDefaults)
+        _savedLines = State(initialValue: savedLines)
         let practicePreferences = PracticePreferencesStore(defaults: progressDefaults)
         _practicePreferences = State(initialValue: practicePreferences)
         let timer = PomodoroTimer(
@@ -129,9 +248,14 @@ struct ThinkApp: App {
         )
         let ledgerDefaults = isUITesting ? progressDefaults : appGroupDefaults
         let ledger = FocusEventLedger(defaults: ledgerDefaults)
-        let mindfulHealthClient: any MindfulHealthClient = isUITesting
-            ? UnavailableMindfulHealthClient()
-            : HealthKitMindfulHealthClient()
+        let mindfulHealthClient: any MindfulHealthClient
+        if isUITesting {
+            mindfulHealthClient = arguments.contains("-ui-health-available")
+                ? UITestMindfulHealthClient()
+                : UnavailableMindfulHealthClient()
+        } else {
+            mindfulHealthClient = HealthKitMindfulHealthClient()
+        }
         let mindfulMinutes = MindfulMinutesStore(
             defaults: UserDefaults.standard,
             client: mindfulHealthClient
@@ -176,7 +300,7 @@ struct ThinkApp: App {
         _mindfulMinutes = State(initialValue: mindfulMinutes)
         _dataReset = State(initialValue: AppDataResetCoordinator(
             journal: repository, drafts: drafts, sync: coordinator,
-            mindfulMinutes: mindfulMinutes, favorites: favorites, lock: journalLock,
+            mindfulMinutes: mindfulMinutes, savedLines: savedLines, lock: journalLock,
             preferences: practicePreferences
         ))
         let appIntentRouter = AppIntentRouter.shared
@@ -190,7 +314,7 @@ struct ThinkApp: App {
 
     /// Opens the journal store. When every on-disk candidate fails the app
     /// still launches, on a throwaway store — but as
-    /// `.emergencyInMemory`, so the Profile row states outright that the
+    /// `.emergencyInMemory`, so the Settings iCloud row states outright that the
     /// session is not being saved rather than letting the user write into
     /// a store that disappears on quit.
     private static func makeJournalStore(isUITesting: Bool) -> JournalDataStore.Result {
@@ -233,7 +357,7 @@ struct ThinkApp: App {
     var body: some Scene {
         WindowGroup {
             Group {
-                if isUITesting || completedOnboarding {
+                if completedOnboarding || (isUITesting && !showsOnboardingInUITests) {
                     RootTabView()
                 } else {
                     OnboardingView()
@@ -247,12 +371,14 @@ struct ThinkApp: App {
             .environment(mindfulMinutes)
             .environment(cloudBackup)
             .environment(journalLock)
-            .environment(favorites)
+            .environment(savedLines)
             .environment(journalRepository)
             .environment(journalDrafts)
             .environment(dataReset)
             .environment(practicePreferences)
+            .environment(notificationAccess)
             .environment(\.haptics, .live)
+            .modifier(UITestNotificationPromptAlert(prompt: uiTestNotificationPrompt))
             .task {
                 try? journalRepository.ensureRecordIdentities()
                 cloudBackup.startObservingMirroringEvents()
@@ -275,6 +401,10 @@ struct ThinkApp: App {
             // Owned by the app, not by JournalView: the lock has to keep
             // its grace period while the journal is off screen.
             journalLock.scenePhaseChanged(to: phase)
+            // UI tests cannot wait out the relock grace period.
+            if isUITesting && phase == .background && ProcessInfo.processInfo.arguments.contains("-ui-relock-on-background") {
+                journalLock.lock()
+            }
             privacyShield.scenePhaseChanged(to: phase)
             if phase == .active {
                 timer.resync()
@@ -298,8 +428,71 @@ struct ThinkApp: App {
 private final class UITestJournalAuthenticator: JournalAuthenticator {
     let availability = JournalLockAvailability.passcodeOnly
     let succeeds: Bool
-    init(succeeds: Bool) { self.succeeds = succeeds }
-    func authenticate(reason: String) async -> Bool { succeeds }
+    /// Attempts that fail before `succeeds` applies, to exercise retry.
+    private var failuresFirst: Int
+    init(succeeds: Bool, failuresFirst: Int = 0) { self.succeeds = succeeds; self.failuresFirst = failuresFirst }
+    func authenticate(reason: String) async -> Bool {
+        guard failuresFirst == 0 else { failuresFirst -= 1; return false }
+        return succeeds
+    }
 }
 
 private enum UITestJournalFailure: Error { case save }
+
+/// Stands in for the system notification prompt in UI tests, which cannot
+/// reset the real answer between tests. Asks only while undetermined, as
+/// the system does.
+@Observable
+@MainActor
+private final class UITestNotificationPrompt: NotificationAuthorizing {
+    private var current: UNAuthorizationStatus
+    private(set) var isAsking = false
+    @ObservationIgnored private var answer: CheckedContinuation<Bool, Never>?
+
+    init(denied: Bool) { current = denied ? .denied : .notDetermined }
+
+    func status() async -> UNAuthorizationStatus { current }
+
+    func requestAuthorization() async -> Bool {
+        guard current == .notDetermined else { return current == .authorized }
+        let granted = await withCheckedContinuation { continuation in
+            answer = continuation
+            isAsking = true
+        }
+        current = granted ? .authorized : .denied
+        return granted
+    }
+
+    func respond(_ granted: Bool) {
+        isAsking = false
+        answer?.resume(returning: granted)
+        answer = nil
+    }
+}
+
+private struct UITestNotificationPromptAlert: ViewModifier {
+    let prompt: UITestNotificationPrompt?
+
+    func body(content: Content) -> some View {
+        if let prompt {
+            content.alert(
+                Text(verbatim: "UITestNotificationPrompt"),
+                isPresented: Binding(get: { prompt.isAsking }, set: { _ in })
+            ) {
+                Button { prompt.respond(true) } label: { Text(verbatim: "Allow") }
+                Button(role: .cancel) { prompt.respond(false) } label: { Text(verbatim: "Don't Allow") }
+            }
+        } else {
+            content
+        }
+    }
+}
+
+/// A Health client that can be enabled, so UI tests see the onboarding row.
+@MainActor
+private final class UITestMindfulHealthClient: MindfulHealthClient {
+    private(set) var authorization = MindfulMinutesAuthorization.notDetermined
+
+    func requestAuthorization() async throws { authorization = .authorized }
+    func saveMindfulSession(identifier: String, startDate: Date, endDate: Date) async throws { }
+}

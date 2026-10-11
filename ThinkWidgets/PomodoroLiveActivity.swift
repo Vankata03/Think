@@ -7,22 +7,13 @@ import ActivityKit
 import SwiftUI
 import WidgetKit
 
-private enum LiveActivityStyle {
-    static let work = Color(red: 1.0, green: 0.894, blue: 0.361)
-    static let rest = Color.green
-
-    static func accent(for state: PomodoroActivityAttributes.ContentState) -> Color {
-        state.phase == .work ? work : rest
-    }
-}
-
 nonisolated enum PomodoroLiveActivityPresentation {
     static func title(for state: PomodoroActivityAttributes.ContentState) -> String {
         state.phase == .work ? String(localized: "Deep work") : String(localized: "Break")
     }
 
-    static func symbol(for state: PomodoroActivityAttributes.ContentState) -> String {
-        state.phase == .work ? "brain.head.profile" : "cup.and.saucer"
+    @MainActor static func symbol(for state: PomodoroActivityAttributes.ContentState) -> String {
+        state.phase == .work ? ThinkSymbol.focus : ThinkSymbol.breakPhase
     }
 }
 
@@ -38,23 +29,24 @@ struct PomodoroLiveActivity: Widget {
                         systemImage: PomodoroLiveActivityPresentation.symbol(for: presentationState(for: context))
                     )
                         .font(.headline)
-                        .padding(.leading, 8)
+                        .padding(.leading, ThinkSpacing.s)
                 }
                 DynamicIslandExpandedRegion(.trailing) {
                     timerText(for: presentationState(for: context))
                         .font(.title2.weight(.medium))
+                        .fontDesign(.rounded)
                         .monospacedDigit()
                         .multilineTextAlignment(.trailing)
-                        .padding(.trailing, 8)
+                        .padding(.trailing, ThinkSpacing.s)
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    VStack(spacing: 6) {
+                    VStack(spacing: ThinkSpacing.s) {
                         intentionText(for: presentationState(for: context))
                         progressBar(for: presentationState(for: context))
                     }
-                    .padding(.horizontal, 22)
-                    .padding(.top, 8)
-                    .padding(.bottom, 6)
+                    .padding(.horizontal, ThinkSpacing.xl)
+                    .padding(.top, ThinkSpacing.s)
+                    .padding(.bottom, ThinkSpacing.s)
                 }
             } compactLeading: {
                 Image(systemName: PomodoroLiveActivityPresentation.symbol(for: presentationState(for: context)))
@@ -63,7 +55,7 @@ struct PomodoroLiveActivity: Widget {
                     .monospacedDigit()
                     .frame(maxWidth: 48)
             } minimal: {
-                Image(systemName: "timer")
+                Image(systemName: ThinkSymbol.focus)
             }
         }
     }
@@ -75,7 +67,7 @@ struct PomodoroLiveActivity: Widget {
     }
 
     private func lockScreenView(for state: PomodoroActivityAttributes.ContentState) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: ThinkSpacing.m) {
             HStack {
                 Label(
                     PomodoroLiveActivityPresentation.title(for: state),
@@ -85,6 +77,7 @@ struct PomodoroLiveActivity: Widget {
                 Spacer()
                 timerText(for: state)
                     .font(.title.weight(.medium))
+                    .fontDesign(.rounded)
                     .monospacedDigit()
             }
 
@@ -118,7 +111,7 @@ struct PomodoroLiveActivity: Widget {
     private func progressBar(for state: PomodoroActivityAttributes.ContentState) -> some View {
         SystemTimedPomodoroProgressBar(
             state: state,
-            accent: LiveActivityStyle.accent(for: state)
+            accent: state.phase == .work ? ThinkColor.accent : ThinkColor.success
         )
         .accessibilityLabel("Pomodoro progress")
         .accessibilityValue(String(localized: "\(Int((state.progress() * 100).rounded())) percent"))
@@ -136,7 +129,7 @@ private struct SystemTimedPomodoroProgressBar: View {
                 .tint(accent)
                 .labelsHidden()
                 .scaleEffect(y: 1.7)
-                .padding(.horizontal, 4)
+                .padding(.horizontal, ThinkSpacing.xs)
 
             HStack {
                 Circle()
@@ -150,4 +143,41 @@ private struct SystemTimedPomodoroProgressBar: View {
         }
         .frame(height: 12)
     }
+}
+
+private enum PreviewState {
+    static var work: PomodoroActivityAttributes.ContentState {
+        .init(
+            phase: .work,
+            startDate: .now,
+            endDate: .now.addingTimeInterval(25 * 60),
+            intention: "Write the first section"
+        )
+    }
+
+    static var rest: PomodoroActivityAttributes.ContentState {
+        .init(phase: .rest, startDate: .now, endDate: .now.addingTimeInterval(5 * 60))
+    }
+}
+
+#Preview(
+    "Lock screen",
+    as: .content,
+    using: PomodoroActivityAttributes()
+) {
+    PomodoroLiveActivity()
+} contentStates: {
+    PreviewState.work
+    PreviewState.rest
+}
+
+#Preview(
+    "Island expanded",
+    as: .dynamicIsland(.expanded),
+    using: PomodoroActivityAttributes()
+) {
+    PomodoroLiveActivity()
+} contentStates: {
+    PreviewState.work
+    PreviewState.rest
 }

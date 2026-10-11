@@ -10,6 +10,21 @@ import Testing
 @MainActor
 struct ProgressSyncTests {
 
+    /// The Swift name follows the glossary (Practice day); the wire key stays
+    /// as phones and watches already wrote it.
+    @Test func practiceDaysKeepTheirWireKey() throws {
+        let snapshot = ProgressSnapshot(
+            streak: 1, lastCompletedDay: nil, practiceDays: [Date(timeIntervalSince1970: 0)],
+            pathCompletedDays: 0, lastPathCompletionDay: nil, totalFocusSessions: 0,
+            focusSessionDay: nil, focusSessionDayCount: 0, lastOpenDay: nil,
+            appliedEventIDs: [], publishedAt: .now)
+
+        let json = try JSONSerialization.jsonObject(with: JSONEncoder().encode(snapshot)) as? [String: Any]
+
+        #expect(json?["completedDays"] != nil)
+        #expect(json?["practiceDays"] == nil)
+    }
+
     @Test func delayedFocusSessionUsesCompletionDayNotReceiveDay() {
         let calendar = Calendar(identifier: .gregorian)
         let store = ProgressStore(defaults: makeDefaults(), calendar: calendar)
@@ -53,8 +68,8 @@ struct ProgressSyncTests {
             publishedAt: Date(timeIntervalSince1970: 7_000)
         )
 
-        #expect(snapshot.completedDays == snapshot.completedDays.sorted())
-        #expect(snapshot.completedDays.count == 3)
+        #expect(snapshot.practiceDays == snapshot.practiceDays.sorted())
+        #expect(snapshot.practiceDays.count == 3)
         #expect(snapshot.appliedEventIDs == ["first", "second"])
         #expect(snapshot.totalFocusSessions == 3)
         #expect(snapshot.pathCompletedDays == 1)
@@ -74,7 +89,7 @@ struct ProgressSyncTests {
         let empty = ProgressSnapshot(
             streak: 0,
             lastCompletedDay: nil,
-            completedDays: [],
+            practiceDays: [],
             pathCompletedDays: 0,
             lastPathCompletionDay: nil,
             totalFocusSessions: 0,
@@ -89,7 +104,7 @@ struct ProgressSyncTests {
         #expect(store.lastCompletedDay == nil)
         #expect(store.lastPathCompletionDay == nil)
         #expect(store.totalFocusSessions == 0)
-        #expect(store.completedDays.isEmpty)
+        #expect(store.practiceDays.isEmpty)
         #expect(store.focusHistory.isEmpty)
         #expect(!store.openedToday)
         #expect(!store.answeredDailyQuestionToday)
@@ -133,6 +148,28 @@ struct ProgressSyncTests {
         store.reset()
 
         #expect(mutations.count == 7)
+    }
+
+    @Test func watchOpensTheNextStepAtSixAfterAPhoneCompletionAt2330() throws {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = try #require(TimeZone(identifier: "Europe/Sofia"))
+        let lateEvening = try #require(calendar.date(from: DateComponents(year: 2026, month: 3, day: 10, hour: 23, minute: 30)))
+        let nextDay = try #require(calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: lateEvening)))
+        let deepFocus = PathLibrary.deepFocus
+        let phone = ProgressStore(defaults: makeDefaults(), calendar: calendar, now: { lateEvening })
+        #expect(phone.completePathStep(pathID: deepFocus.id, totalSteps: deepFocus.steps.count, at: lateEvening))
+        var watchNow = lateEvening
+        let watch = ProgressStore(defaults: makeDefaults(), calendar: calendar, now: { watchNow })
+
+        watch.apply(try SyncCodec.decode(ProgressSnapshot.self, from: SyncCodec.encode(phone.snapshot(publishedAt: lateEvening))))
+
+        #expect(!watch.canCompletePathStepToday)
+        watchNow = nextDay.addingTimeInterval(5 * 3600 + 59 * 60)
+        #expect(!watch.canCompletePathStepToday)
+        #expect(watch.canCompletePathStepToday == phone.canCompletePathStep(pathID: deepFocus.id, totalSteps: deepFocus.steps.count, at: watchNow))
+        watchNow = nextDay.addingTimeInterval(6 * 3600)
+        #expect(watch.canCompletePathStepToday)
+        #expect(watch.activeRun(for: deepFocus.id)?.completedSteps == 1)
     }
 
     private func makeDefaults() -> UserDefaults {

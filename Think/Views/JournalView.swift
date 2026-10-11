@@ -5,207 +5,85 @@
 
 import SwiftUI
 
-/// Journal history. Reads go through bounded repository pages, never a live
-/// query, and nothing private is fetched while the lock is engaged. The
-/// blank New note path stays available while locked because capturing a
+/// The Journal tab's list (`design/journal.md` sections 2, 3, 7 and 9):
+/// one section per civil day, search under the title and a filter menu in
+/// the toolbar. Reads go through bounded repository pages, never a live
+/// query, and nothing private is fetched or drawn while the lock is
+/// engaged. New note stays available while locked because capturing a
 /// fresh thought grants no read access.
 struct JournalView: View {
-    private enum Section: String, CaseIterable, Identifiable {
-        case all, notes, questions, focus, retros
-
-        var id: String { rawValue }
-
-        var label: String {
-            switch self {
-            case .all: String(localized: "All")
-            case .notes: String(localized: "Notes")
-            case .questions: String(localized: "Questions")
-            case .focus: String(localized: "Focus")
-            case .retros: String(localized: "Retros")
-            }
-        }
-
-        var entryKind: String? {
-            switch self {
-            case .all, .retros: nil
-            case .notes: JournalEntry.kindNote
-            case .questions: JournalEntry.kindQuestion
-            case .focus: JournalEntry.kindFocus
-            }
-        }
-
-        var includesEntries: Bool { self != .retros }
-        var includesRetros: Bool { self == .all || self == .retros }
-
-        var emptyMessage: String {
-            switch self {
-            case .all:
-                String(localized: "Nothing written yet. Tap + to start a note.")
-            case .notes:
-                String(localized: "Write anything on your mind. Tap + to start.")
-            case .questions:
-                String(localized: "Your answers to the daily question will appear here.")
-            case .focus:
-                String(localized: "Start a focus session with an intention and your closing notes will appear here.")
-            case .retros:
-                String(localized: "Close each day with two honest minutes. Your evening retrospectives will appear here.")
-            }
-        }
-    }
-
-    private enum MoodSelection: Hashable, CaseIterable {
-        case all, untagged
-        case tagged(Mood)
-
-        static var allCases: [MoodSelection] { [.all, .untagged] + Mood.allCases.map { .tagged($0) } }
-
-        var label: String {
-            switch self {
-            case .all: String(localized: "Any mood")
-            case .untagged: String(localized: "No mood")
-            case .tagged(let mood): mood.label
-            }
-        }
-
-        var filter: JournalRepository.MoodFilter {
-            switch self {
-            case .all: .all
-            case .untagged: .untagged
-            case .tagged(let mood): .tagged(mood)
-            }
-        }
-    }
-
-    private enum DateSelection: String, CaseIterable, Identifiable {
-        case any, today, week, month
-
-        var id: String { rawValue }
-
-        var label: String {
-            switch self {
-            case .any: String(localized: "Any time")
-            case .today: String(localized: "Today")
-            case .week: String(localized: "Last 7 days")
-            case .month: String(localized: "Last 30 days")
-            }
-        }
-
-        func interval(now: Date = .now) -> DateInterval? {
-            let today = CivilDay.today(now: now)
-            switch self {
-            case .any: return nil
-            case .today: return today.interval
-            case .week: return DateInterval(start: today.adding(days: -6).start, end: today.next.start)
-            case .month: return DateInterval(start: today.adding(days: -29).start, end: today.next.start)
-            }
-        }
-    }
-
-    /// One row of the merged timeline. Retros and entries are separate
-    /// tables, so the All view interleaves two bounded pages by date.
-    private enum Row: Identifiable {
-        case entry(JournalRepository.EntrySnapshot)
-        case retro(JournalRepository.RetroSnapshot)
-
-        var id: String {
-            switch self {
-            case .entry(let value): "entry-\(value.recordID?.uuidString ?? String(describing: value.persistentModelID))"
-            case .retro(let value): "retro-\(value.recordID?.uuidString ?? String(describing: value.persistentModelID))"
-            }
-        }
-        var date: Date {
-            switch self {
-            case .entry(let value): value.date
-            case .retro(let value): value.date
-            }
-        }
-    }
-
     private struct QueryKey: Hashable {
-        var section: Section
+        var filter: JournalFilter
         var search: String
-        var mood: MoodSelection
-        var date: DateSelection
         var revision: Int
         var locked: Bool
     }
 
     private static let pageSize = 50
+    private static let loadError = String(localized: "Could not load your journal.")
 
     @Environment(JournalRepository.self) private var repository
     @Environment(JournalDraftStore.self) private var drafts
     @Environment(JournalLock.self) private var lock
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @ThinkSpacing.Scaled(ThinkSpacing.xs) private var tightGap
+    @ThinkSpacing.Scaled(ThinkSpacing.s) private var gap
 
-    @State private var section = Section.all
+    @State private var filter = JournalFilter()
     @State private var search = ""
-    @State private var mood = MoodSelection.all
-    @State private var dateSelection = DateSelection.any
-    @State private var entries: [JournalRepository.EntrySnapshot] = []
-    @State private var retros: [JournalRepository.RetroSnapshot] = []
-    @State private var entryTotal = 0
-    @State private var retroTotal = 0
-    @State private var entriesHaveMore = false
-    @State private var retrosHaveMore = false
-    @State private var entryOffset = 0
-    @State private var retroOffset = 0
+    @State private var timeline = JournalTimeline(entries: nil, retros: nil)
+    /// Other versions of a day (`design/journal.md` section 6), read once
+    /// per repository revision.
+    @State private var versions: (revision: Int, ids: Set<UUID>)?
+    @State private var loaded = false
+    @State private var journalEmpty = false
+    @State private var hasFocusNotes = false
+    @State private var loadFailed = false
+    /// A failed Load more or delete. Shown as a row; what did load stays.
+    @State private var actionError: String?
     @State private var recoverableCount = 0
     /// Draft files on disk that could not be decoded. They stay untouched;
     /// the count is shown so a healthy draft is never hidden by a broken one.
     @State private var unreadableDraftCount = 0
-    @State private var loadError: String?
     @State private var composingNote: JournalDraft?
+    @State private var pendingDelete: JournalTimeline.Record?
     @State private var authenticating = false
 
     private var queryKey: QueryKey {
-        QueryKey(section: section, search: search, mood: mood, date: dateSelection,
-                 revision: repository.revision, locked: lock.isLocked)
+        QueryKey(filter: filter, search: search, revision: repository.revision, locked: lock.isLocked)
     }
 
-    private var rows: [Row] {
-        (entries.map(Row.entry) + retros.map(Row.retro)).sorted { $0.date > $1.date }
+    private var isSearching: Bool { !search.isEmpty }
+    private var hasStatusRows: Bool { repository.storageWarning != nil || actionError != nil || showsDrafts }
+    private var showsDrafts: Bool {
+        (recoverableCount > 0 || unreadableDraftCount > 0) && !filter.isActive && !isSearching
     }
-
-    private var hasMore: Bool {
-        (section.includesEntries && entriesHaveMore) || (section.includesRetros && retrosHaveMore)
-    }
-
-    private var totalCount: Int {
-        (section.includesEntries ? entryTotal : 0) + (section.includesRetros ? retroTotal : 0)
-    }
-
-    private var isFiltering: Bool { !search.isEmpty || mood != .all || dateSelection != .any }
 
     var body: some View {
         Group {
             if lock.isLocked {
                 JournalGate()
             } else {
-                entryList
+                list
             }
         }
         .navigationTitle("Journal")
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("JournalView")
         .toolbar {
-            // No + under Focus: a focus note is written when a session
-            // ends, never composed from here. Blank capture stays available
-            // while locked; only reading is gated.
-            if section != .focus {
-                ToolbarItem(placement: .topBarTrailing) {
-                    // Retros begin on Today; here + is always a new note.
-                    Button {
-                        composingNote = JournalDraft(kind: .note)
-                    } label: {
-                        Image(systemName: "plus")
-                    }
-                    .accessibilityLabel(String(localized: "New note"))
-                    .accessibilityIdentifier("NewNote")
-                }
+            if JournalFilter.showsMenu(locked: lock.isLocked, loaded: loaded, journalEmpty: journalEmpty, loadFailed: loadFailed) {
+                ToolbarItem(placement: .topBarTrailing) { filterMenu }
             }
         }
+        .safeAreaBar(edge: .bottom, alignment: .trailing) { newNoteButton }
         .sheet(item: $composingNote) { draft in
             JournalEditor(draft: draft)
+        }
+        .confirmationDialog(deleteTitle, isPresented: deleteIsPresented, titleVisibility: .visible, presenting: pendingDelete) { record in
+            Button("Delete entry", role: .destructive) { delete(record) }
+                .accessibilityIdentifier("ConfirmDeleteEntry")
+        } message: { _ in
+            Text("It is removed from this device and your iCloud.")
         }
         .task {
             // Ask straight away: the gate's Unlock button is the retry
@@ -215,179 +93,267 @@ struct JournalView: View {
         .task(id: queryKey) {
             guard !lock.isLocked else { clear(); return }
             // Debounce typing so each keystroke does not scan history.
-            if !search.isEmpty {
+            if isSearching {
                 try? await Task.sleep(for: .milliseconds(250))
                 if Task.isCancelled { return }
             }
             reload()
         }
+        .onChange(of: lock.isLocked) { _, locked in
+            if locked { search = "" }
+        }
         .onChange(of: drafts.revision) { _, _ in refreshRecoverableCount() }
     }
 
-    private var entryList: some View {
+    // MARK: List
+
+    private var list: some View {
         List {
-            SwiftUI.Section {
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        Text("Entries")
-                        Spacer(minLength: 12)
-                        sectionPicker.labelsHidden()
-                    }
-                    filterBar
-                }
-                .accessibilityElement(children: .contain)
-                .accessibilityIdentifier("JournalFilters")
-                .listRowInsets(EdgeInsets(top: 16, leading: 20, bottom: 16, trailing: 20))
-                .listRowBackground(Color.clear)
-                .listRowSeparator(.hidden)
+            if filter.isActive && !journalEmpty {
+                Section { activeFilters }
             }
-            if recoverableCount > 0 || unreadableDraftCount > 0 {
-                SwiftUI.Section {
-                    NavigationLink {
-                        JournalRecoveryView()
-                    } label: {
-                        Label {
-                            Text("Unsaved drafts (\(recoverableCount))")
-                        } icon: {
-                            Image(systemName: "doc.badge.clock")
-                        }
-                    }
-                    .accessibilityIdentifier("RecoverDrafts")
-                } footer: {
-                    if unreadableDraftCount > 0 {
-                        Text("\(unreadableDraftCount) draft file(s) could not be read. They were left untouched.")
-                            .accessibilityIdentifier("UnreadableDraftsWarning")
-                    }
+            statusRows
+            if filter.isActive && !isSearching && loaded && timeline.isEmpty && !journalEmpty && !loadFailed {
+                Section { filterNoMatch }
+            }
+            // Below the status rows rather than over them.
+            if loaded && journalEmpty && hasStatusRows {
+                Section { emptyState.listRowBackground(Color.clear) }
+            }
+            ForEach(timeline.days) { day in
+                Section {
+                    ForEach(day.records) { record in row(record) }
+                } header: {
+                    Text(JournalTimeline.title(for: day.day))
                 }
             }
-
-            if repository.storageWarning != nil || loadError != nil || rows.isEmpty {
-                SwiftUI.Section {
-                    if repository.storageWarning != nil { JournalStorageWarning() }
-                    if let loadError {
-                        Text(loadError).foregroundStyle(.red).accessibilityIdentifier("JournalLoadError")
-                    }
-                    if rows.isEmpty && loadError == nil {
-                        Text(isFiltering ? String(localized: "No entries match these filters.") : section.emptyMessage)
-                            .foregroundStyle(.secondary)
-                            .accessibilityIdentifier("JournalEmpty")
-                    }
+            if timeline.hasMore {
+                Section {
+                    Button("Load more") { loadMore() }
+                        .thinkButton(.tertiary)
+                        .accessibilityIdentifier("JournalLoadMore")
                 }
-            }
-
-            ForEach(rows) { row in
-                SwiftUI.Section {
-                    rowView(row)
-                        .listRowInsets(EdgeInsets(top: 16, leading: 20, bottom: 16, trailing: 20))
-                        .listRowSeparator(.hidden)
-                }
-            }
-            if hasMore {
-                SwiftUI.Section {
-                    Button { loadMore() } label: {
-                        Label("Load more", systemImage: "arrow.down.circle")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .accessibilityIdentifier("JournalLoadMore")
-                }
-            }
-            if totalCount > 0 {
-                Text("\(rows.count) of \(totalCount) shown")
-                    .font(.caption).foregroundStyle(.secondary)
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
             }
         }
         .listStyle(.insetGrouped)
-        .listSectionSpacing(12)
-        .searchable(text: $search, prompt: Text("Search prompts and text"))
-        .refreshable { reload() }
         .accessibilityIdentifier("JournalList")
+        .overlay { stateView }
+        .searchable(text: $search, placement: .navigationBarDrawer(displayMode: .always), prompt: Text("Search"))
+        .refreshable { reload() }
     }
 
+    /// The filter names joined by " · ", and Clear.
+    private var activeFilters: some View {
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: tightGap))
+            : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: gap))
+        return layout {
+            Text(filter.summary)
+                .foregroundStyle(ThinkColor.secondaryLabel)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Button("Clear") { filter.clear() }
+                .thinkButton(.tertiary)
+                .accessibilityIdentifier("JournalClearFilters")
+        }
+        .font(.think(.secondary))
+        .listRowBackground(Color.clear)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("JournalActiveFilters")
+    }
+
+    /// Only the rows that apply, above the timeline and never instead of
+    /// it. The storage warning shows whatever the filter, because it
+    /// changes whether new writing is kept.
     @ViewBuilder
-    private var sectionPicker: some View {
-        let picker = Picker("Entries", selection: $section) {
-            ForEach(Section.allCases) { section in
-                Text(section.label).tag(section)
+    private var statusRows: some View {
+        if hasStatusRows {
+            Section {
+                JournalStorageWarning()
+                if let actionError {
+                    Label(actionError, systemImage: ThinkSymbol.unavailable)
+                        .font(.think(.secondary))
+                        .accessibilityIdentifier("JournalActionError")
+                }
+                if showsDrafts {
+                    NavigationLink {
+                        JournalRecoveryView()
+                    } label: {
+                        // At accessibility sizes the icon would break the
+                        // title mid-word (`design/journal.md` section 13).
+                        if dynamicTypeSize.isAccessibilitySize {
+                            Text("Unsaved drafts (\(recoverableCount))")
+                        } else {
+                            // Row symbols stay monochrome (design-system section 2.2).
+                            Label {
+                                Text("Unsaved drafts (\(recoverableCount))")
+                            } icon: {
+                                Image(systemName: ThinkSymbol.drafts).foregroundStyle(ThinkColor.secondaryLabel)
+                            }
+                        }
+                    }
+                    .accessibilityIdentifier("RecoverDrafts")
+                }
+            } footer: {
+                if showsDrafts && unreadableDraftCount > 0 {
+                    Text("\(unreadableDraftCount) draft file(s) could not be read. They were left untouched.")
+                        .accessibilityIdentifier("UnreadableDraftsWarning")
+                }
             }
         }
-        .accessibilityIdentifier("JournalSectionPicker")
-        // Five localized labels do not fit reliably in a segmented control.
-        picker.pickerStyle(.menu)
     }
 
-    /// Two compact menus; a layout that wraps rather than truncates at
-    /// large text sizes.
-    private var filterBar: some View {
-        ViewThatFits(in: .horizontal) {
-            HStack(spacing: 8) { filterMenus }
-            VStack(alignment: .leading, spacing: 8) { filterMenus }
+    private var filterNoMatch: some View {
+        VStack(alignment: .leading, spacing: gap) {
+            Text("No entries match.")
+                .foregroundStyle(ThinkColor.secondaryLabel)
+            Button("Clear filters") { filter.clear() }
+                .thinkButton(.tertiary)
+        }
+        .font(.think(.body))
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("JournalFilterNoMatch")
+    }
+
+    /// Whole-screen states (design-system section 8). The whole-journal
+    /// Empty state shows whatever filter is on.
+    @ViewBuilder
+    private var stateView: some View {
+        if loaded && journalEmpty {
+            if !hasStatusRows { emptyState }
+        } else if loadFailed {
+            ContentUnavailableView {
+                Label("Could not load your journal.", systemImage: ThinkSymbol.unavailable)
+            } actions: {
+                Button("Try again") { reload() }
+                    .thinkButton(.secondary)
+            }
+            .accessibilityIdentifier("JournalLoadError")
+        } else if loaded && isSearching && timeline.isEmpty {
+            ContentUnavailableView.search(text: search)
         }
     }
 
+    private var emptyState: some View {
+        ContentUnavailableView {
+            Label("Nothing written yet.", systemImage: ThinkSymbol.journal)
+        } actions: {
+            Button("Write a note") { composeNote() }
+                .thinkButton(.secondary)
+        }
+        .accessibilityIdentifier("JournalEmpty")
+    }
+
     @ViewBuilder
-    private var filterMenus: some View {
+    private func row(_ record: JournalTimeline.Record) -> some View {
+        let isOtherVersion = record.recordID.map { versions?.ids.contains($0) ?? false } ?? false
+        let content = switch record {
+        case .entry(let entry): JournalRowContent(entry, isOtherVersion: isOtherVersion)
+        case .retro(let retro): JournalRowContent(retro, isOtherVersion: isOtherVersion)
+        }
+        if let id = record.recordID {
+            NavigationLink {
+                switch record {
+                case .entry: JournalDetailView(record: .entry(id), onNotice: { actionError = $0 })
+                case .retro: JournalDetailView(record: .retro(id), onNotice: { actionError = $0 })
+                }
+            } label: {
+                JournalRow(content: content)
+            }
+            // Tinted red without the destructive role, so the row stays
+            // until the deletion is confirmed.
+            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                Button("Delete", systemImage: ThinkSymbol.delete) { pendingDelete = record }
+                    .tint(ThinkColor.destructive)
+            }
+            .accessibilityIdentifier("JournalRow.\(id.uuidString)")
+        } else {
+            JournalRow(content: content)
+        }
+    }
+
+    // MARK: Chrome
+
+    private var filterMenu: some View {
         Menu {
-            Picker("Mood", selection: $mood) {
-                ForEach(MoodSelection.allCases, id: \.self) { option in
-                    Text(option.label).tag(option)
+            Picker("Kind", selection: $filter.kind) {
+                ForEach(JournalFilter.Kind.allCases.filter { $0 != .focusNotes || hasFocusNotes || filter.kind == .focusNotes }, id: \.self) { kind in
+                    if let symbol = kind.symbol {
+                        Label(kind.label, systemImage: symbol).tag(kind)
+                    } else {
+                        Text(kind.label).tag(kind)
+                    }
                 }
             }
-        } label: {
-            Label(mood.label, systemImage: mood == .all ? "face.smiling" : "face.smiling.inverse")
-                .font(.footnote.weight(.medium))
-        }
-        .buttonStyle(.bordered)
-        .accessibilityIdentifier("JournalMoodFilter")
-
-        Menu {
-            Picker("Date", selection: $dateSelection) {
-                ForEach(DateSelection.allCases) { option in
-                    Text(option.label).tag(option)
+            .pickerStyle(.inline)
+            Picker("Mood", selection: $filter.mood) {
+                ForEach(JournalFilter.MoodChoice.allCases, id: \.self) { choice in
+                    if case .mood(let mood) = choice {
+                        Label(mood.label, systemImage: mood.systemImage).tag(choice)
+                    } else {
+                        Text(choice.label).tag(choice)
+                    }
                 }
             }
-        } label: {
-            Label(dateSelection.label, systemImage: "calendar")
-                .font(.footnote.weight(.medium))
-        }
-        .buttonStyle(.bordered)
-        .accessibilityIdentifier("JournalDateFilter")
-
-        if isFiltering {
-            Button("Clear") {
-                search = ""; mood = .all; dateSelection = .any
+            .pickerStyle(.menu)
+            Picker("Theme", selection: $filter.theme) {
+                Text("Any theme").tag(Theme?.none)
+                ForEach(Theme.allCases) { theme in
+                    Text(theme.label).tag(Theme?.some(theme))
+                }
             }
-            .font(.footnote.weight(.medium))
-            .buttonStyle(.bordered)
-            .accessibilityIdentifier("JournalClearFilters")
+            .pickerStyle(.menu)
+            Picker("Date", selection: $filter.date) {
+                ForEach(JournalFilter.DateRange.allCases, id: \.self) { range in
+                    Text(range.label).tag(range)
+                }
+            }
+            .pickerStyle(.menu)
+        } label: {
+            Label("Filter", systemImage: filter.isActive ? ThinkSymbol.filterActive : ThinkSymbol.filter)
         }
+        // Bar items stay monochrome (design-system section 2.2); the filled
+        // symbol and the active filters line carry the state.
+        .tint(ThinkColor.label)
+        .accessibilityIdentifier("JournalFilterMenu")
     }
 
-    @ViewBuilder
-    private func rowView(_ row: Row) -> some View {
-        switch row {
-        case .entry(let entry):
-            if let id = entry.recordID {
-                NavigationLink {
-                    JournalEntryDetailView(recordID: id)
-                } label: {
-                    JournalEntryRow(entry: entry)
-                }
-            } else {
-                JournalEntryRow(entry: entry)
-            }
-        case .retro(let retro):
-            if let id = retro.recordID {
-                NavigationLink {
-                    JournalRetroDetailView(recordID: id)
-                } label: {
-                    JournalRetroRow(retro: retro)
-                }
-            } else {
-                JournalRetroRow(retro: retro)
-            }
+    private var newNoteButton: some View {
+        Button("New note", systemImage: ThinkSymbol.add) { composeNote() }
+            .labelStyle(.iconOnly)
+            .font(.title2)
+            .buttonBorderShape(.circle)
+            .controlSize(.large)
+            .thinkButton(.primary)
+            .padding(.trailing, ThinkSpacing.l)
+            .padding(.bottom, ThinkSpacing.s)
+            .accessibilityIdentifier("NewNote")
+    }
+
+    // MARK: Delete
+
+    private var deleteTitle: Text {
+        if case .retro = pendingDelete { Text("Delete this retro?") } else { Text("Delete this entry?") }
+    }
+
+    private var deleteIsPresented: Binding<Bool> {
+        Binding(get: { pendingDelete != nil }, set: { if !$0 { pendingDelete = nil } })
+    }
+
+    /// Removes the record, then any unsaved edit of it, with the detail's
+    /// failure messages.
+    private func delete(_ record: JournalTimeline.Record) {
+        guard let id = record.recordID else { return }
+        let target: JournalRecordID = switch record {
+        case .entry: .entry(id)
+        case .retro: .retro(id)
         }
+        actionError = JournalDeletion.delete(target, repository: repository, drafts: drafts).notice
+    }
+
+    // MARK: Loading
+
+    private func composeNote() {
+        composingNote = JournalDraft(kind: .note)
     }
 
     private func unlock() async {
@@ -398,47 +364,54 @@ struct JournalView: View {
     }
 
     private func clear() {
-        entries = []; retros = []
-        entryTotal = 0; retroTotal = 0
-        entriesHaveMore = false; retrosHaveMore = false
-        entryOffset = 0; retroOffset = 0
+        timeline = JournalTimeline(entries: nil, retros: nil)
+        versions = nil
+        loaded = false
+        journalEmpty = false
+        hasFocusNotes = false
+        loadFailed = false
+        actionError = nil
         recoverableCount = 0
         unreadableDraftCount = 0
     }
 
     private func reload() {
-        clear()
-        loadError = nil
-        loadPage(reset: true)
+        guard !lock.isLocked else { return }
+        do {
+            journalEmpty = try !repository.hasRecords()
+            // The Empty state hides the filter menu, so a filter left on
+            // would hide the next note behind a menu nobody can see.
+            if journalEmpty && filter.isActive { filter.clear() }
+            hasFocusNotes = try repository.hasRecords(kind: JournalEntry.kindFocus)
+            if versions?.revision != repository.revision {
+                versions = (repository.revision, try repository.versionRecordIDs())
+            }
+            let queries = filter.queries(search: search, versions: versions?.ids ?? [])
+            var next = JournalTimeline(entries: queries.entries, retros: queries.retros, pageSize: Self.pageSize)
+            try next.loadMore(from: repository)
+            timeline = next
+            loadFailed = false
+            if actionError == Self.loadError { actionError = nil }
+        } catch {
+            // What already loaded stays; the failure becomes a row above it
+            // (design-system section 8, Unavailable).
+            if timeline.isEmpty {
+                loadFailed = true
+            } else {
+                actionError = Self.loadError
+            }
+        }
+        loaded = true
         refreshRecoverableCount()
     }
 
     private func loadMore() {
-        loadPage(reset: false)
-    }
-
-    private func loadPage(reset: Bool) {
         guard !lock.isLocked else { return }
-        let range = dateSelection.interval()
         do {
-            if section.includesEntries && (reset || entriesHaveMore) {
-                let query = JournalRepository.EntryQuery(search: search, kind: section.entryKind, mood: mood.filter, dateRange: range)
-                let page = try repository.entries(matching: query, page: .init(offset: entryOffset, limit: Self.pageSize))
-                entries += page.records
-                entryTotal = page.totalCount
-                entriesHaveMore = page.hasMore
-                entryOffset = page.nextOffset
-            }
-            if section.includesRetros && (reset || retrosHaveMore) {
-                let query = JournalRepository.RetroQuery(search: search, mood: mood.filter, dateRange: range)
-                let page = try repository.retros(matching: query, page: .init(offset: retroOffset, limit: Self.pageSize))
-                retros += page.records
-                retroTotal = page.totalCount
-                retrosHaveMore = page.hasMore
-                retroOffset = page.nextOffset
-            }
+            try timeline.loadMore(from: repository)
+            actionError = nil
         } catch {
-            loadError = String(localized: "Could not load your journal. Pull to try again.")
+            actionError = Self.loadError
         }
     }
 

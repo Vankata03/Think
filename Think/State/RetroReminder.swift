@@ -12,7 +12,7 @@ import UserNotifications
 enum RetroReminder {
     static let enabledKey = "retroReminderEnabled"
     static let minutesKey = "retroReminderMinutes"
-    static let defaultMinutes = 21 * 60
+    static let defaultMinutes = 20 * 60
 
     private static let identifier = "daily-retro"
 
