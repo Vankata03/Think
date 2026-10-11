@@ -10,6 +10,13 @@ import SwiftUI
 /// a bottom safe-area bar so they never scroll away (design/focus.md
 /// section 2). The one screen that is a stage rather than a `List`.
 struct FocusStageView: View {
+    /// Control geometry, not spacing: the primary button's minimum width
+    /// and the duration wheels' height.
+    fileprivate enum Metric {
+        static let primaryMinWidth: CGFloat = 96
+        static let wheelHeight: CGFloat = 120
+    }
+
     @Environment(PomodoroTimer.self) private var timer
     @Environment(JournalLock.self) private var journalLock
     @Environment(JournalRepository.self) private var repository
@@ -268,8 +275,8 @@ struct FocusStageView: View {
                 .accessibilityIdentifier("FocusEnd")
             }
             Button(action: primaryAction) {
-                Label(primaryTitle, systemImage: timer.isRunning ? "pause.fill" : "play.fill")
-                    .frame(minWidth: 96)
+                Label(primaryTitle, systemImage: timer.isRunning ? ThinkSymbol.pause : ThinkSymbol.play)
+                    .frame(minWidth: Metric.primaryMinWidth)
                     .frame(maxWidth: stacked ? .infinity : nil)
             }
             .thinkButton(.primary)
@@ -405,7 +412,7 @@ private struct FocusDurationWheel: View {
                 Text(title)
             }
             .pickerStyle(.wheel)
-            .frame(height: 120)
+            .frame(height: FocusStageView.Metric.wheelHeight)
             .clipped()
             .accessibilityIdentifier(identifier)
         }

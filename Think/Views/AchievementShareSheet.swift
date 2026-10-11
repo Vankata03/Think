@@ -33,7 +33,7 @@ struct AchievementShareSheet: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 24) {
+            VStack(spacing: ThinkSpacing.xl) {
                 cardPreview
                 stylePicker
                 actions
@@ -102,7 +102,7 @@ struct AchievementShareSheet: View {
     }
 
     private var stylePicker: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: ThinkSpacing.m) {
             ForEach(CardStyle.all) { candidate in
                 Button {
                     if candidate != style {
@@ -125,7 +125,7 @@ struct AchievementShareSheet: View {
                             }
                         Text(candidate.name)
                             .font(.caption2)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(ThinkColor.secondaryLabel)
                     }
                 }
                 .buttonStyle(.plain)
@@ -153,7 +153,7 @@ struct AchievementShareSheet: View {
     }
 
     private var actions: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: ThinkSpacing.m) {
             Button {
                 if photoSaveState == .denied {
                     openAppSettings()

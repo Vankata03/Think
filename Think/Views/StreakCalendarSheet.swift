@@ -51,7 +51,7 @@ struct StreakCalendarSheet: View {
     private var displayedMonth: Date { pager.displayedMonth }
 
     var body: some View {
-        let month = StreakMonth(containing: displayedMonth, completedDays: progress.completedDays, calendar: calendar)
+        let month = StreakMonth(containing: displayedMonth, practiceDays: progress.practiceDays, calendar: calendar)
         NavigationStack {
             List {
                 Section {
@@ -205,7 +205,7 @@ struct StreakCalendarSheet: View {
         Task { @MainActor in
             withAnimation(animation) { pager.commit() }
         }
-        let title = StreakMonth(containing: shifted, completedDays: [], calendar: calendar).title
+        let title = StreakMonth(containing: shifted, practiceDays: [], calendar: calendar).title
         AccessibilityNotification.Announcement(title).post()
     }
 
@@ -222,9 +222,19 @@ struct StreakCalendarSheet: View {
 
     // MARK: - Grid
 
+    /// Today's ring on a practised day (section 8.2): a 2pt gap in the
+    /// section colour, then a 1.5pt ring. Geometry, not spacing.
+    private enum Ring {
+        static let gap: CGFloat = 2
+        static let width: CGFloat = 1.5
+        /// How far the ring's outer edge sits beyond the disc.
+        static let outset = gap + width
+        /// Room each side of the disc for the ring, rounded up.
+        static let margin: CGFloat = 4
+    }
+
     private var discSize: CGFloat { min(scaledDisc, 40) }
-    /// Room for today's outer ring: a 2pt gap and a 1.5pt ring each side.
-    private var cellHeight: CGFloat { discSize + 8 }
+    private var cellHeight: CGFloat { discSize + 2 * Ring.margin }
 
     private func gridMonth(_ month: StreakMonth) -> some View {
         VStack(spacing: ThinkSpacing.s) {
@@ -273,8 +283,8 @@ struct StreakCalendarSheet: View {
                         // Outside a practised disc, past a 2pt gap in the
                         // section colour; on the disc's edge otherwise.
                         Circle()
-                            .strokeBorder(ThinkColor.accent, lineWidth: 1.5)
-                            .padding(day.isPractised ? -3.5 : 0)
+                            .strokeBorder(ThinkColor.accent, lineWidth: Ring.width)
+                            .padding(day.isPractised ? -Ring.outset : 0)
                     }
                 }
             // Future days stay out of the accessibility tree.

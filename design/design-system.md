@@ -158,6 +158,9 @@ One SF Symbol per concept. Outline variant in toolbars, lists and content; the t
 | Add | `add` | `plus` | New note. |
 | Delete | `delete` | `trash` | Row swipe and destructive rows. |
 | Done state | `done` | `checkmark.circle.fill` | Tinted `success`. |
+| Undo | `undo` | `arrow.uturn.backward` | Trailing-swipe Undo on the Today move row and a completed path step. |
+| Pause and play | `pause` / `play` | `pause.fill` / `play.fill` | The Focus primary and the session accessory toggle: `pause` while running, `play` to start or resume. |
+| Export ready | `exportReady` | `lock.doc` | The journal export sheet. |
 
 Tab bar:
 

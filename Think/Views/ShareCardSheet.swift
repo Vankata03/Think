@@ -13,7 +13,7 @@ struct ShareCardSheet: View {
     @Environment(\.haptics) private var haptics
     @Environment(\.openURL) private var openURL
     @Environment(\.scenePhase) private var scenePhase
-    @Environment(FavoritesStore.self) private var favorites
+    @Environment(SavedLinesStore.self) private var savedLines
 
     @State private var style: CardStyle = .paper
     @State private var photoSaveState = PhotoSaveState.idle
@@ -22,11 +22,11 @@ struct ShareCardSheet: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 24) {
+            VStack(spacing: ThinkSpacing.xl) {
                 cardPreview
                 stylePicker
                 actions
-                favoriteButton
+                saveButton
                 Spacer()
             }
             .padding()
@@ -72,7 +72,7 @@ struct ShareCardSheet: View {
     }
 
     private var stylePicker: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: ThinkSpacing.m) {
             ForEach(CardStyle.all) { candidate in
                 Button {
                     if candidate != style {
@@ -95,7 +95,7 @@ struct ShareCardSheet: View {
                             }
                         Text(candidate.name)
                             .font(.caption2)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(ThinkColor.secondaryLabel)
                     }
                 }
                 .buttonStyle(.plain)
@@ -122,7 +122,7 @@ struct ShareCardSheet: View {
     }
 
     private var actions: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: ThinkSpacing.m) {
             Button {
                 if photoSaveState == .denied {
                     openAppSettings()
@@ -142,18 +142,18 @@ struct ShareCardSheet: View {
 
     /// A line is often worth keeping exactly when it is worth sharing, so
     /// the affordance sits where that thought happens.
-    private var favoriteButton: some View {
-        let isFavorite = favorites.isFavorite(quote)
+    private var saveButton: some View {
+        let isSaved = savedLines.isSaved(quote)
 
         return Button {
             haptics.play(.selection)
-            favorites.toggle(quote)
+            savedLines.toggle(quote)
         } label: {
             Label(
-                isFavorite
+                isSaved
                     ? String(localized: "Saved to your lines")
                     : String(localized: "Save this line"),
-                systemImage: isFavorite ? "\(ThinkSymbol.savedLine).fill" : ThinkSymbol.savedLine
+                systemImage: isSaved ? "\(ThinkSymbol.savedLine).fill" : ThinkSymbol.savedLine
             )
             .font(.subheadline.weight(.medium))
         }
@@ -205,5 +205,5 @@ struct ShareCardSheet: View {
 
 #Preview {
     ShareCardSheet(quote: ContentLibrary.dailyQuote())
-        .environment(FavoritesStore(defaults: .standard))
+        .environment(SavedLinesStore(defaults: .standard))
 }

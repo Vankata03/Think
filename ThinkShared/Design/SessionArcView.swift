@@ -114,8 +114,8 @@ struct SessionArcView: View {
         SessionArcGeometry.sunFraction(stage: stage, phaseProgress: phaseProgress, workShare: workShare)
     }
 
-    private var sunAnimation: Animation? { reduceMotion ? nil : .easeInOut(duration: 0.8) }
-    private var proportionAnimation: Animation? { reduceMotion ? nil : .easeInOut(duration: 0.3) }
+    private var sunAnimation: Animation? { ThinkMotion.glide(reduceMotion: reduceMotion) }
+    private var proportionAnimation: Animation? { ThinkMotion.proportion(reduceMotion: reduceMotion) }
 
     var body: some View {
         Group {
@@ -171,11 +171,11 @@ struct SessionArcView: View {
                 if stage == .idle {
                     endLabel(
                         Text(LocalizedStringResource("now", table: "Design")), color: ThinkColor.secondaryLabel,
-                        x: center.x - radius, y: center.y + SessionArcGeometry.endLabelDrop, rowWidth: proxy.size.width)
+                        x: center.x - radius, y: center.y + SessionArcGeometry.endLabelDrop)
                 }
                 endLabel(
                     Text(breakEnd, format: .dateTime.hour().minute()), color: ThinkColor.success,
-                    x: center.x + radius, y: center.y + SessionArcGeometry.endLabelDrop, rowWidth: proxy.size.width)
+                    x: center.x + radius, y: center.y + SessionArcGeometry.endLabelDrop)
             }
             .animation(proportionAnimation, value: workShare)
         }
@@ -221,7 +221,7 @@ struct SessionArcView: View {
         .fixedSize()
     }
 
-    private func endLabel(_ text: Text, color: Color, x: CGFloat, y: CGFloat, rowWidth: CGFloat) -> some View {
+    private func endLabel(_ text: Text, color: Color, x: CGFloat, y: CGFloat) -> some View {
         text
             .font(.think(.graphicCaption))
             .foregroundStyle(color)

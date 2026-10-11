@@ -209,7 +209,7 @@ private struct StreakIntentSnippetView: View {
                 .monospacedDigit()
             Text("Current streak", tableName: "AppIntents")
                 .font(.headline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(ThinkColor.secondaryLabel)
         }
         .padding()
     }

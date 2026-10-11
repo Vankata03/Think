@@ -56,7 +56,7 @@ private struct PathDetailList: View {
     private var path: ThinkingPath { detail.path }
     /// Reduce Motion cuts from the card to the done rows (paths.md section 11).
     private var stateAnimation: Animation? {
-        reduceMotion ? nil : ThinkMotion.stateAnimation(reduceMotion: false)
+        reduceMotion ? nil : ThinkMotion.enter
     }
 
     var body: some View {
@@ -162,7 +162,7 @@ private struct PathDetailList: View {
         .accessibilityIdentifier("PathDoneRow")
         .swipeActions(edge: .trailing) {
             if canUndo {
-                Button("Undo", systemImage: "arrow.uturn.backward") {
+                Button("Undo", systemImage: ThinkSymbol.undo) {
                     haptics.play(.selection)
                     withAnimation(stateAnimation) {
                         _ = progress.undoPathStep(pathID: path.id)

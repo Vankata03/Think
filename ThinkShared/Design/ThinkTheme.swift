@@ -203,6 +203,10 @@ enum ThinkSymbol {
     static let add = "plus"
     static let delete = "trash"
     static let done = "checkmark.circle.fill"
+    static let undo = "arrow.uturn.backward"
+    static let pause = "pause.fill"
+    static let play = "play.fill"
+    static let exportReady = "lock.doc"
 }
 
 // MARK: - Buttons (design-system section 6)

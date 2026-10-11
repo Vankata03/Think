@@ -35,6 +35,12 @@ struct LegacyStyleScannerTests {
         (".padding(.bottom, 80)", .tabBarBottomInset),
         (".contentMargins(.bottom, 90, for: .scrollContent)", .tabBarBottomInset),
         (".safeAreaPadding(.bottom, 100)", .tabBarBottomInset),
+        (".foregroundStyle(.red)", .rawSemanticColor),
+        (".foregroundStyle(.secondary)", .rawSemanticColor),
+        (".foregroundStyle( .tertiary )", .rawSemanticColor),
+        ("Label(\"Discard\", systemImage: \"trash\")", .literalSymbol),
+        ("Image(systemName: \"lock.doc\")", .literalSymbol),
+        ("Label(title, systemImage: \"square.and.arrow.up\")", .literalSymbol),
     ])
     func eachBannedPatternIsCaught(source: String, rule: LegacyStyleRule) {
         #expect(rules(in: source) == [rule])
@@ -57,6 +63,8 @@ struct LegacyStyleScannerTests {
             Text("x").padding(.bottom, ThinkSpacing.s)
             Text("x").padding(.bottom, 4)
             Text("x").padding(.bottom, 16)
+            Text("x").foregroundStyle(ThinkColor.secondaryLabel)
+            Label("x", systemImage: ThinkSymbol.delete)
             Text("x").font(.system(.largeTitle, design: .rounded, weight: .bold))
             """
         #expect(rules(in: source).isEmpty)

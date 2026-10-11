@@ -171,7 +171,7 @@ private struct PathRow: View {
     private var progress: Text? {
         guard case .inRun(let done, let total, _) = row.state else { return nil }
         return Text("\(done)/\(total)")
-            .font(.system(.subheadline, design: .rounded, weight: .semibold).monospacedDigit())
+            .font(.think(.secondary).weight(.semibold).monospacedDigit())
             .foregroundStyle(ThinkColor.secondaryLabel)
     }
 }

@@ -61,7 +61,7 @@ struct FocusSessionAccessory: View {
                         .font(.subheadline)
                         .foregroundStyle(timer.phase == .rest ? ThinkColor.success : ThinkColor.accentInk)
                     Text(timer.remainingLabel)
-                        .font(.system(.subheadline, design: .rounded, weight: .semibold))
+                        .font(.think(.secondary).weight(.semibold))
                         .monospacedDigit()
                         .foregroundStyle(ThinkColor.label)
                     Text(FocusSessionLine.text(phase: timer.phase, intention: intention, journalLocked: journalLock.isLocked))
@@ -88,7 +88,7 @@ struct FocusSessionAccessory: View {
 
             Button(
                 timer.isRunning ? String(localized: "Pause") : String(localized: "Resume"),
-                systemImage: timer.isRunning ? "pause.fill" : "play.fill"
+                systemImage: timer.isRunning ? ThinkSymbol.pause : ThinkSymbol.play
             ) {
                 if timer.isRunning {
                     haptics.play(.pause)

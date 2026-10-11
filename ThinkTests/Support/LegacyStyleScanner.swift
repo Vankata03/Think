@@ -37,6 +37,12 @@ enum LegacyStyleRule: CaseIterable {
     case minimumScaleFactor
     /// A literal bottom inset standing in for the tab bar.
     case tabBarBottomInset
+    /// A raw semantic colour (`.red`, `.secondary`, ...) where a `ThinkColor`
+    /// token exists (design-system section 2.1).
+    case rawSemanticColor
+    /// A symbol that has a `ThinkSymbol` member, written as a literal
+    /// (design-system section 7).
+    case literalSymbol
 
     fileprivate var pattern: String {
         switch self {
@@ -56,6 +62,10 @@ enum LegacyStyleRule: CaseIterable {
             #"minimumScaleFactor"#
         case .tabBarBottomInset:
             #"\.(padding|contentMargins|safeAreaPadding)\(\s*\.bottom\s*,\s*([4-9]\d|\d{3,})\b"#
+        case .rawSemanticColor:
+            #"\.foregroundStyle\(\s*\.(red|orange|yellow|green|blue|gray|primary|secondary|tertiary|quaternary)\s*\)"#
+        case .literalSymbol:
+            #""(square\.and\.arrow\.up|lock\.doc|arrow\.uturn\.backward|pause\.fill|play\.fill|trash|pencil|lock|lock\.open)""#
         }
     }
 
@@ -65,6 +75,8 @@ enum LegacyStyleRule: CaseIterable {
         switch self {
         case .fixedSystemFontSize:
             return shareCards.contains(file) || file == "ThinkTheme.swift"
+        case .literalSymbol:
+            return file == "ThinkTheme.swift"
         case .minimumScaleFactor, .tabBarBottomInset:
             return shareCards.contains(file)
         default:

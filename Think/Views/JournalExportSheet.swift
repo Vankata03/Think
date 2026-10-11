@@ -12,9 +12,9 @@ struct JournalExportSheet: View {
 
     var body: some View {
         NavigationStack {
-            VStack(alignment: .leading, spacing: 18) {
-                Image(systemName: "lock.doc")
-                    .font(.largeTitle)
+            VStack(alignment: .leading, spacing: ThinkSpacing.l) {
+                Image(systemName: ThinkSymbol.exportReady)
+                    .font(.think(.title))
                     .foregroundStyle(ThinkColor.secondaryLabel)
                     .accessibilityHidden(true)
 
@@ -26,13 +26,6 @@ struct JournalExportSheet: View {
                     .foregroundStyle(ThinkColor.secondaryLabel)
                     .fixedSize(horizontal: false, vertical: true)
 
-                ShareLink(item: fileURL, preview: SharePreview("Think journal")) {
-                    Label("Share export", systemImage: "square.and.arrow.up")
-                        .frame(maxWidth: .infinity)
-                }
-                .thinkButton(.primary)
-                .controlSize(.large)
-
                 Text(fileURL.lastPathComponent)
                     .font(.think(.caption).monospaced())
                     .foregroundStyle(ThinkColor.secondaryLabel)
@@ -40,13 +33,23 @@ struct JournalExportSheet: View {
 
                 Spacer()
             }
-            .padding(24)
+            .padding(ThinkSpacing.xl)
             .background(ThinkColor.background.ignoresSafeArea())
             .navigationTitle("Export journal")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                // Design-system 13.5: "Close" on a read-only sheet, Share as
+                // the one primary in the trailing slot.
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Done") { dismiss() }
+                    Button("Close") { dismiss() }
+                        .accessibilityIdentifier("DismissJournalExport")
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    ShareLink(item: fileURL, preview: SharePreview("Think journal")) {
+                        Label("Share", systemImage: ThinkSymbol.share)
+                    }
+                    .thinkButton(.primary)
+                    .accessibilityIdentifier("ShareJournalExport")
                 }
             }
         }

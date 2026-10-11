@@ -20,9 +20,7 @@ extension JournalDraft {
         case JournalEntry.kindWeeklyReview: kind = .weeklyReview
         default: kind = .note
         }
-        let day =
-            CivilDay(storedKey: entry.civilDay, timeZoneIdentifier: entry.timeZoneIdentifier)
-            ?? CivilDay(date: entry.date)
+        let day = entry.day
         var draft = JournalDraft(
             kind: kind,
             context: Context(
@@ -43,9 +41,7 @@ extension JournalDraft {
 
     static func editing(_ retro: JournalRepository.RetroSnapshot) -> JournalDraft? {
         guard let recordID = retro.recordID else { return nil }
-        let day =
-            CivilDay(storedKey: retro.civilDay, timeZoneIdentifier: retro.timeZoneIdentifier)
-            ?? CivilDay(date: retro.date)
+        let day = retro.day
         var draft = JournalDraft(
             kind: .retro,
             context: Context(
@@ -555,17 +551,27 @@ struct JournalRecoveryView: View {
             } else {
                 List {
                     if let error {
-                        Section { Text(error).foregroundStyle(.red).accessibilityIdentifier("JournalRecoveryError") }
+                        Section {
+                            Text(error)
+                                .font(.think(.secondary))
+                                .foregroundStyle(ThinkColor.destructive)
+                                .accessibilityIdentifier("JournalRecoveryError")
+                        }
                     }
                     if unreadableCount > 0 {
                         Section {
-                            Text("\(unreadableCount) draft file(s) could not be read. They were left untouched on this device.")
-                                .foregroundStyle(.orange)
-                                .accessibilityIdentifier("JournalRecoveryUnreadable")
+                            Label {
+                                Text("\(unreadableCount) draft file(s) could not be read. They were left untouched on this device.")
+                            } icon: {
+                                Image(systemName: ThinkSymbol.unavailable)
+                            }
+                            .font(.think(.secondary))
+                            .foregroundStyle(ThinkColor.secondaryLabel)
+                            .accessibilityIdentifier("JournalRecoveryUnreadable")
                         }
                     }
                     if recoverable.isEmpty {
-                        Text("No unsaved drafts.").foregroundStyle(.secondary)
+                        Text("No unsaved drafts.").foregroundStyle(ThinkColor.secondaryLabel)
                             .accessibilityIdentifier("JournalRecoveryEmpty")
                     } else {
                         Section {
@@ -581,19 +587,19 @@ struct JournalRecoveryView: View {
                                     Button(role: .destructive) {
                                         discarding = draft
                                     } label: {
-                                        Label("Discard", systemImage: "trash")
+                                        Label("Discard", systemImage: ThinkSymbol.delete)
                                     }
                                 }
                                 .contextMenu {
                                     Button {
                                         opening = draft
                                     } label: {
-                                        Label("Open", systemImage: "pencil")
+                                        Label("Open", systemImage: ThinkSymbol.edit)
                                     }
                                     Button(role: .destructive) {
                                         discarding = draft
                                     } label: {
-                                        Label("Discard", systemImage: "trash")
+                                        Label("Discard", systemImage: ThinkSymbol.delete)
                                     }
                                 }
                             }
@@ -628,20 +634,20 @@ struct JournalRecoveryView: View {
     }
 
     private func recoveryRow(_ draft: JournalDraft) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 6) {
+        VStack(alignment: .leading, spacing: ThinkSpacing.xs) {
+            HStack(spacing: ThinkSpacing.xs) {
                 Text(draft.kindLabel)
                 Text(draft.context.civilDay.key)
                 if draft.context.editingRecordID != nil { Text("editing") }
             }
-            .font(.caption)
-            .foregroundStyle(.secondary)
+            .font(.think(.caption))
+            .foregroundStyle(ThinkColor.secondaryLabel)
             if let prompt = draft.context.promptSnapshot, !prompt.isEmpty {
-                Text(prompt).font(.subheadline.weight(.medium)).lineLimit(2)
+                Text(prompt).font(.think(.secondary).weight(.medium)).lineLimit(2)
             }
-            Text(draft.recoveryPreview).font(.body).foregroundStyle(.primary).lineLimit(2)
+            Text(draft.recoveryPreview).font(.think(.body)).foregroundStyle(ThinkColor.label).lineLimit(2)
             Text("Last edited \(draft.updatedAt.formatted(date: .abbreviated, time: .shortened))")
-                .font(.caption2).foregroundStyle(.tertiary)
+                .font(.think(.caption)).foregroundStyle(ThinkColor.tertiaryLabel)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(Rectangle())

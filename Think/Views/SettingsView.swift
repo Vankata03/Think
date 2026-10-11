@@ -131,10 +131,10 @@ struct SettingsView: View {
             if notificationAuthorization == .denied {
                 VStack(alignment: .leading, spacing: ThinkSpacing.xs) {
                     Text("Notifications are off")
-                        .font(.headline)
+                        .font(.think(.heading))
                     Text("The reminder switches can stay on, but Think cannot schedule reminders until notifications are allowed in Settings.")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
+                        .font(.think(.caption))
+                        .foregroundStyle(ThinkColor.secondaryLabel)
                 }
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("NotificationPermissionDenied")
@@ -191,11 +191,11 @@ struct SettingsView: View {
             .accessibilityIdentifier("CloudBackup")
             if cloudBackup.isSyncing {
                 Text("Syncing…")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(ThinkColor.secondaryLabel)
             }
             if let exportedAt = cloudBackup.lastSuccessfulExportDate {
                 Text("Last successful upload: \(exportedAt.formatted(date: .abbreviated, time: .shortened))")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(ThinkColor.secondaryLabel)
             }
         } header: {
             Text("iCloud")

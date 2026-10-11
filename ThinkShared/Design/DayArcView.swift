@@ -138,7 +138,7 @@ struct DayArcView: View {
 
     /// The sun and the elapsed stroke glide to a new hour; Reduce Motion cuts.
     private var hourAnimation: Animation? {
-        reduceMotion ? nil : .easeInOut(duration: 0.8)
+        ThinkMotion.glide(reduceMotion: reduceMotion)
     }
 
     var body: some View {

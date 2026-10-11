@@ -41,8 +41,8 @@ struct AchievementUnlockModifier: ViewModifier {
                         dismissCurrentAchievement()
                     }
                     .id(achievement.id)
-                    .padding(.horizontal, 20)
-                    .padding(.top, 12)
+                    .padding(.horizontal, ThinkSpacing.l)
+                    .padding(.top, ThinkSpacing.m)
                     .transition(ThinkMotion.stateTransition(reduceMotion: reduceMotion))
                     .zIndex(1)
                 }
@@ -184,7 +184,7 @@ private struct AchievementUnlockCard: View {
     let dismiss: () -> Void
 
     var body: some View {
-        HStack(spacing: 14) {
+        HStack(spacing: ThinkSpacing.m) {
             Image(systemName: achievement.icon)
                 .font(.title2.weight(.semibold))
                 .foregroundStyle(ThinkColor.accentInk)
@@ -192,14 +192,14 @@ private struct AchievementUnlockCard: View {
                 .background(ThinkColor.fill, in: Circle())
                 .accessibilityHidden(true)
 
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: ThinkSpacing.xs) {
                 Text("Achievement unlocked")
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(ThinkColor.secondaryLabel)
                     .textCase(.uppercase)
                 Text(achievement.localizedLabel)
                     .font(.headline)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(ThinkColor.label)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityElement(children: .ignore)
@@ -215,7 +215,7 @@ private struct AchievementUnlockCard: View {
             .buttonStyle(.plain)
             .accessibilityLabel("Done")
         }
-        .padding(14)
+        .padding(ThinkSpacing.m)
         .frame(maxWidth: 440)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
         .overlay {

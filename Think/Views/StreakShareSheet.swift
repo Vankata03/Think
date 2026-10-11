@@ -28,7 +28,7 @@ struct StreakShareSheet: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 24) {
+            VStack(spacing: ThinkSpacing.xl) {
                 cardPreview
                 if milestone == nil {
                     kindPicker
@@ -74,7 +74,7 @@ struct StreakShareSheet: View {
     /// Everything the card draws from: card kind, theme, month, and the
     /// progress values baked into the image.
     private var renderKey: String {
-        "\(kind.id)|\(style.id)|\(month.timeIntervalSinceReferenceDate)|\(cardStreak)|\(progress.completedDays.hashValue)"
+        "\(kind.id)|\(style.id)|\(month.timeIntervalSinceReferenceDate)|\(cardStreak)|\(progress.practiceDays.hashValue)"
     }
 
     private var currentRenderedImage: UIImage? {
@@ -87,7 +87,7 @@ struct StreakShareSheet: View {
             kind: kind,
             streak: cardStreak,
             month: month,
-            completedDays: progress.completedDays,
+            practiceDays: progress.practiceDays,
             style: style
         )
     }
@@ -139,7 +139,7 @@ struct StreakShareSheet: View {
     }
 
     private var stylePicker: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: ThinkSpacing.m) {
             ForEach(CardStyle.all) { candidate in
                 Button {
                     if candidate != style {
@@ -162,7 +162,7 @@ struct StreakShareSheet: View {
                             }
                         Text(candidate.name)
                             .font(.caption2)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(ThinkColor.secondaryLabel)
                     }
                 }
                 .buttonStyle(.plain)
@@ -190,7 +190,7 @@ struct StreakShareSheet: View {
     }
 
     private var actions: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: ThinkSpacing.m) {
             Button {
                 if photoSaveState == .denied {
                     openAppSettings()

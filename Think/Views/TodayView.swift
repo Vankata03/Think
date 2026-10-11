@@ -14,7 +14,7 @@ import SwiftUI
 /// ever shown on the Journal's read detail, behind `JournalLock`.
 struct TodayView: View {
     @Environment(ProgressStore.self) private var progress
-    @Environment(FavoritesStore.self) private var favorites
+    @Environment(SavedLinesStore.self) private var savedLines
     @Environment(JournalRepository.self) private var repository
     @Environment(JournalDraftStore.self) private var drafts
     @Environment(JournalLock.self) private var lock
@@ -255,14 +255,14 @@ struct TodayView: View {
     /// Keeping a line is a quiet act: the fill change and the selection
     /// haptic are the whole feedback.
     private var saveButton: some View {
-        let isSaved = favorites.isFavorite(quote)
+        let isSaved = savedLines.isSaved(quote)
         return Button(
             isSaved ? String(localized: "Remove from saved lines") : String(localized: "Save this line"),
             systemImage: isSaved ? "\(ThinkSymbol.savedLine).fill" : ThinkSymbol.savedLine
         ) {
             haptics.play(.selection)
             withAnimation(stateAnimation) {
-                _ = favorites.toggle(quote)
+                _ = savedLines.toggle(quote)
             }
         }
         .contentTransition(.symbolEffect(.replace))
@@ -348,7 +348,7 @@ struct TodayView: View {
             doneLabel(act)
                 .accessibilityIdentifier("Act.move.done")
                 .swipeActions(edge: .trailing) {
-                    Button("Undo", systemImage: "arrow.uturn.backward") {
+                    Button("Undo", systemImage: ThinkSymbol.undo) {
                         haptics.play(.selection)
                         withAnimation(stateAnimation) {
                             progress.setMoveCompleted(false, practiceID: practice.id, at: TodayClock.now())
@@ -596,7 +596,7 @@ enum TodayClock {
     )
     return TodayView()
         .environment(ProgressStore())
-        .environment(FavoritesStore(defaults: .standard))
+        .environment(SavedLinesStore(defaults: .standard))
         .environment(JournalLock(authenticator: UnavailableJournalAuthenticator()))
         .environment(JournalRepository(modelContext: ModelContext(container), storage: .emergencyInMemory))
         .environment(JournalDraftStore(directory: FileManager.default.temporaryDirectory.appendingPathComponent("TodayPreviewDrafts", isDirectory: true)))
