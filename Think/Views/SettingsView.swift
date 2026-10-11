@@ -59,6 +59,7 @@ struct SettingsView: View {
             // can change in the Settings app while Think is in the background.
             if phase == .active { refreshStatus() }
         }
+        .onChange(of: appearance) { haptics.play(.selection) }
         .onChange(of: dailyLineEnabled) {
             haptics.play(.selection)
             refreshNotificationPreferences()
@@ -96,37 +97,20 @@ struct SettingsView: View {
 
     private var appearanceSection: some View {
         Section("Appearance") {
-            Picker("Appearance", selection: $appearance) {
-                ForEach(Appearance.allCases) { option in
-                    Text(option.label)
-                        .tag(option)
-                        .accessibilityIdentifier("Appearance.\(option.rawValue)")
-                }
-            }
-            .pickerStyle(.inline)
-            .labelsHidden()
+            AppearanceTiles(selection: $appearance)
         }
     }
 
     private var remindersSection: some View {
         Section("Reminders") {
-            Toggle(isOn: $dailyLineEnabled) {
-                SettingsLabel("Daily line", systemImage: ThinkSymbol.dailyLine)
-            }
-            .accessibilityIdentifier("DailyLineReminder")
-            if dailyLineEnabled {
-                DatePicker("Time", selection: $dailyLineMinutes.timeOfDay, displayedComponents: .hourAndMinute)
-                    .accessibilityIdentifier("DailyLineTime")
-            }
-
-            Toggle(isOn: $retroReminderEnabled) {
-                SettingsLabel("Evening retro", systemImage: ThinkSymbol.retro)
-            }
-            .accessibilityIdentifier("EveningRetroReminder")
-            if retroReminderEnabled {
-                DatePicker("Time", selection: $retroReminderMinutes.timeOfDay, displayedComponents: .hourAndMinute)
-                    .accessibilityIdentifier("EveningRetroTime")
-            }
+            ReminderRow(
+                "Daily line", systemImage: ThinkSymbol.dailyLine,
+                isOn: $dailyLineEnabled, minutes: $dailyLineMinutes,
+                identifier: "DailyLineReminder", timeIdentifier: "DailyLineTime")
+            ReminderRow(
+                "Evening retro", systemImage: ThinkSymbol.retro,
+                isOn: $retroReminderEnabled, minutes: $retroReminderMinutes,
+                identifier: "EveningRetroReminder", timeIdentifier: "EveningRetroTime")
 
             if notificationAuthorization == .denied {
                 VStack(alignment: .leading, spacing: ThinkSpacing.xs) {
@@ -245,6 +229,7 @@ struct SettingsView: View {
             } label: {
                 Label("Delete all data", systemImage: ThinkSymbol.delete)
                     .foregroundStyle(ThinkColor.destructive)
+                    .fullWidthRowSeparator()
             }
             .accessibilityIdentifier("Delete all data")
         }
@@ -445,6 +430,89 @@ private struct SettingsLabel: View {
             Image(systemName: systemImage)
         }
         .foregroundStyle(ThinkColor.label)
+        .fullWidthRowSeparator()
+    }
+}
+
+/// A reminder as an alarm: its symbol and title over the time it fires,
+/// with the switch beside them. The time is always on show, dimmed while
+/// the reminder is off; tapping it opens a wheel, and choosing a time
+/// turns the reminder on, as editing an alarm does in Clock.
+private struct ReminderRow: View {
+    let title: LocalizedStringKey
+    let systemImage: String
+    @Binding var isOn: Bool
+    @Binding var minutes: Int
+    let identifier: String
+    let timeIdentifier: String
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var editingTime = false
+
+    init(
+        _ title: LocalizedStringKey, systemImage: String, isOn: Binding<Bool>, minutes: Binding<Int>,
+        identifier: String, timeIdentifier: String
+    ) {
+        self.title = title
+        self.systemImage = systemImage
+        _isOn = isOn
+        _minutes = minutes
+        self.identifier = identifier
+        self.timeIdentifier = timeIdentifier
+    }
+
+    var body: some View {
+        HStack(spacing: ThinkSpacing.m) {
+            VStack(alignment: .leading, spacing: ThinkSpacing.xs) {
+                Label {
+                    Text(title)
+                        .foregroundStyle(ThinkColor.label)
+                } icon: {
+                    Image(systemName: systemImage)
+                        .foregroundStyle(isOn ? ThinkColor.accentInk : ThinkColor.secondaryLabel)
+                        .symbolEffect(.bounce, options: .nonRepeating, value: isOn)
+                }
+                .font(.think(.secondary))
+
+                Button {
+                    editingTime = true
+                } label: {
+                    Text($minutes.timeOfDay.wrappedValue, format: .dateTime.hour().minute())
+                        .font(.think(.numeral))
+                        .foregroundStyle(isOn ? ThinkColor.label : ThinkColor.tertiaryLabel)
+                        .contentTransition(.numericText())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text("Time"))
+                .accessibilityValue(Text($minutes.timeOfDay.wrappedValue, format: .dateTime.hour().minute()))
+                .accessibilityIdentifier(timeIdentifier)
+                .popover(isPresented: $editingTime) {
+                    DatePicker("Time", selection: chosenTime, displayedComponents: .hourAndMinute)
+                        .datePickerStyle(.wheel)
+                        .labelsHidden()
+                        .padding(ThinkSpacing.m)
+                        .presentationCompactAdaptation(.popover)
+                }
+            }
+            Spacer(minLength: 0)
+            Toggle(isOn: $isOn) { Text(title) }
+                .labelsHidden()
+                .toggleStyle(.switch)
+                .accessibilityIdentifier(identifier)
+        }
+        .padding(.vertical, ThinkSpacing.xs)
+        .animation(ThinkMotion.stateAnimation(reduceMotion: reduceMotion), value: isOn)
+        .fullWidthRowSeparator()
+    }
+
+    /// Writing a time switches the reminder on.
+    private var chosenTime: Binding<Date> {
+        Binding {
+            $minutes.timeOfDay.wrappedValue
+        } set: { date in
+            $minutes.timeOfDay.wrappedValue = date
+            if !isOn { isOn = true }
+        }
     }
 }
 

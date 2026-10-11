@@ -43,6 +43,7 @@ struct FocusSessionRow: View {
             }
         }
         .padding(.vertical, ThinkSpacing.xs)
+        .fullWidthRowSeparator()
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("FocusSession.\(record.id)")
     }

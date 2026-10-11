@@ -120,6 +120,7 @@ struct ProgressTabView: View {
                         Image(systemName: ThinkSymbol.weeklyReview)
                             .foregroundStyle(ThinkColor.label)
                     }
+                    .fullWidthRowSeparator()
                 }
             }
             .accessibilityIdentifier("OpenWeeklyReview")
@@ -177,6 +178,7 @@ struct ProgressTabView: View {
                     .foregroundStyle(ThinkColor.secondaryLabel)
             } else {
                 EarnedMedalStrip(achievements: overview.highlightedAchievements)
+                    .fullWidthRowSeparator()
             }
             NavigationLink("All achievements") {
                 AchievementsView()
