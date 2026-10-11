@@ -36,8 +36,7 @@ struct StreakCalendarSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.haptics) private var haptics
 
-    @State private var displayedMonth = Date.now
-    @State private var monthShift = 0
+    @State private var pager = StreakMonthPager(displayedMonth: .now)
     @State private var showingShare = false
     /// The sheet's fitted height: content plus the bar and safe area. Six
     /// grid rows are always reserved, so it does not change between months
@@ -48,6 +47,8 @@ struct StreakCalendarSheet: View {
     @ScaledMetric(relativeTo: .subheadline) private var scaledDisc: CGFloat = 32
 
     private let calendar = Calendar.current
+
+    private var displayedMonth: Date { pager.displayedMonth }
 
     var body: some View {
         let month = StreakMonth(containing: displayedMonth, completedDays: progress.completedDays, calendar: calendar)
@@ -142,7 +143,7 @@ struct StreakCalendarSheet: View {
                 Image(systemName: ThinkSymbol.streak)
                     .font(.think(.numeral))
                     .foregroundStyle(ThinkColor.accent)
-                Text(streakDays(count))
+                Text(NumeralText.streakDays(count, body: .think(.body), bodyColor: ThinkColor.label))
             } else {
                 Image(systemName: ThinkSymbol.streak)
                     .font(.think(.body))
@@ -156,18 +157,6 @@ struct StreakCalendarSheet: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(presentation.streakText)
         .accessibilityIdentifier("StreakHeader")
-    }
-
-    /// "12 days" as one pluralised string, the number in the numeral role
-    /// and the unit in body, so every locale keeps its grammar.
-    private func streakDays(_ count: Int) -> AttributedString {
-        var text = AttributedString(localized: "streak.days \(count)")
-        text.font = .think(.body)
-        text.foregroundColor = ThinkColor.label
-        if let range = text.range(of: String(count)) {
-            text[range].font = .think(.numeral)
-        }
-        return text
     }
 
     // MARK: - Pager
@@ -205,12 +194,16 @@ struct StreakCalendarSheet: View {
         .disabled(!enabled)
     }
 
+    /// Two steps (`StreakMonthPager`): the direction is set and rendered
+    /// first, so the outgoing month, which keeps the transition it last
+    /// rendered with, slides away the right way; the month changes on the
+    /// next turn of the main loop, animated.
     private func shiftMonth(by value: Int) {
-        guard let shifted = calendar.date(byAdding: .month, value: value, to: displayedMonth) else { return }
+        guard let shifted = pager.begin(shift: value, calendar: calendar) else { return }
         haptics.play(.selection)
-        monthShift = value
-        withAnimation(reduceMotion ? ThinkMotion.reduced : ThinkMotion.move) {
-            displayedMonth = shifted
+        let animation = reduceMotion ? ThinkMotion.reduced : ThinkMotion.move
+        Task { @MainActor in
+            withAnimation(animation) { pager.commit() }
         }
         let title = StreakMonth(containing: shifted, completedDays: [], calendar: calendar).title
         AccessibilityNotification.Announcement(title).post()
@@ -219,8 +212,8 @@ struct StreakCalendarSheet: View {
     /// Slides in from the direction of travel; crossfades under Reduce Motion.
     private var monthTransition: AnyTransition {
         guard !reduceMotion else { return .opacity }
-        let insertion: Edge = monthShift < 0 ? .leading : .trailing
-        let removal: Edge = monthShift < 0 ? .trailing : .leading
+        let insertion: Edge = pager.direction < 0 ? .leading : .trailing
+        let removal: Edge = pager.direction < 0 ? .trailing : .leading
         return .asymmetric(
             insertion: .move(edge: insertion).combined(with: .opacity),
             removal: .move(edge: removal).combined(with: .opacity)
@@ -323,13 +316,10 @@ struct StreakCalendarSheet: View {
     private func linearCount(_ month: StreakMonth) -> AttributedString {
         let practised = month.practisedCount
         let counted = month.countedDays
-        var text = AttributedString(localized: "streak.linear", defaultValue: "\(practised) of \(counted) days")
-        text.font = .think(.body)
-        text.foregroundColor = ThinkColor.label
-        if let range = text.range(of: String(practised)) {
-            text[range].font = .think(.numeral)
-        }
-        return text
+        return NumeralText.emphasising(
+            practised,
+            in: AttributedString(localized: "streak.linear", defaultValue: "\(practised) of \(counted) days"),
+            body: .think(.body), bodyColor: ThinkColor.label)
     }
 }
 

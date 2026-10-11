@@ -80,7 +80,10 @@ struct ProgressTabView: View {
                         .foregroundStyle(count > 0 ? ThinkColor.accent : ThinkColor.secondaryLabel)
                     VStack(alignment: .leading, spacing: ThinkSpacing.xs) {
                         if count > 0 {
-                            Text(streakDays(count))
+                            Text(
+                                NumeralText.streakDays(
+                                    count, body: .think(.secondary), bodyColor: ThinkColor.secondaryLabel,
+                                    numeralColor: ThinkColor.label))
                         } else {
                             Text(presentation.streakText)
                                 .font(.think(.heading))
@@ -99,19 +102,6 @@ struct ProgressTabView: View {
             .accessibilityHint(Text("Shows your streak calendar"))
             .accessibilityIdentifier("ProgressStreak")
         }
-    }
-
-    /// "12 days" with the number in the numeral role and the word beside
-    /// it, one pluralised string so every locale keeps its grammar.
-    private func streakDays(_ count: Int) -> AttributedString {
-        var text = AttributedString(localized: "streak.days \(count)")
-        text.font = .think(.secondary)
-        text.foregroundColor = ThinkColor.secondaryLabel
-        if let range = text.range(of: String(count)) {
-            text[range].font = .think(.numeral)
-            text[range].foregroundColor = ThinkColor.label
-        }
-        return text
     }
 
     // MARK: - Weekly review
