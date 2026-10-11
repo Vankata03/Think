@@ -331,7 +331,7 @@ final class VisualAuditUITests: XCTestCase {
             // At AX3 a row's centre can sit under the tab bar; tap its top.
             let firstRow = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'JournalRow.'")).firstMatch
             firstRow.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.1)).tap()
-            XCTAssertTrue(app.descendants(matching: .any)["JournalEntryDetail"].waitForExistence(timeout: 3))
+            XCTAssertTrue(app.descendants(matching: .any)["JournalDetail"].waitForExistence(timeout: 3))
             capture(app, "Journal \(run.name) detail")
             app.swipeUp()
             capture(app, "Journal \(run.name) detail scrolled")
@@ -534,6 +534,74 @@ final class VisualAuditUITests: XCTestCase {
                 XCTAssertGreaterThanOrEqual(firstStep.frame.height, 44)
             }
             capture(app, "Path detail \(run.name) steps")
+            app.terminate()
+        }
+    }
+
+    /// The read detail across the acceptance floor (`journal.md` sections
+    /// 5 and 13): both appearances, AX3 in `de` and `bg`, with "Another
+    /// version from this day", the delete dialog and the versions list.
+    /// In `en` every kind is opened for its prompt rule.
+    @MainActor
+    func testCaptureJournalDetail() throws {
+        continueAfterFailure = false
+        let runs: [(name: String, appearance: String, language: String, locale: String, ax3: Bool)] = [
+            ("dark en", "dark", "en", "en_GB", false),
+            ("light en", "light", "en", "en_GB", false),
+            ("dark de AX3", "dark", "de", "de_DE", true),
+            ("light bg AX3", "light", "bg", "bg_BG", true),
+        ]
+        for run in runs {
+            let app = XCUIApplication()
+            app.launchArguments = ["-ui-testing", "-appearance", run.appearance,
+                                   "-AppleLanguages", "(\(run.language))", "-AppleLocale", run.locale,
+                                   "-ui-seed-journal-list", "-ui-seed-journal-versions"]
+            if run.ax3 { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXL"] }
+            app.launch()
+            app.tabBars.buttons.element(boundBy: 3).tap()
+            let primary = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "VERSION C")).firstMatch
+            XCTAssertTrue(primary.waitForExistence(timeout: 3))
+            // At AX3 a row's centre can sit under the tab bar; tap its top.
+            primary.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.1)).tap()
+            XCTAssertTrue(app.descendants(matching: .any)["JournalDetail"].waitForExistence(timeout: 3))
+            // The writing is its own element, so VoiceOver reaches it.
+            XCTAssertTrue(app.staticTexts["JournalDetailText.0"].exists)
+            capture(app, "Detail \(run.name)")
+
+            let width = app.windows.firstMatch.frame.width
+            let another = app.buttons["AnotherVersion"]
+            reveal(another, in: app)
+            XCTAssertLessThanOrEqual(another.frame.maxX, width)
+            let delete = app.buttons["DeleteEntry"]
+            reveal(delete, in: app)
+            capture(app, "Detail \(run.name) scrolled")
+            delete.tap()
+            XCTAssertTrue(app.buttons["ConfirmDeleteEntry"].firstMatch.waitForExistence(timeout: 3))
+            capture(app, "Detail \(run.name) delete dialog")
+            // Outside the dialog dismisses it without deleting. The dialog
+            // points at the Delete row; at AX3 it fills everything under
+            // the bar, so the bar is the clear spot.
+            let dialogFrame = app.buttons["ConfirmDeleteEntry"].firstMatch.frame
+            let height = app.windows.firstMatch.frame.height
+            let clear = dialogFrame.midY > height / 2 ? 0.07 : 0.8
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: clear)).tap()
+            XCTAssertTrue(app.buttons["ConfirmDeleteEntry"].firstMatch.waitForNonExistence(timeout: 3))
+
+            another.tap()
+            XCTAssertTrue(app.descendants(matching: .any)["JournalVersions"].waitForExistence(timeout: 3))
+            capture(app, "Detail \(run.name) versions")
+
+            if run.language == "en" {
+                for (kind, text) in [("note", "Lunch with Maya"), ("retro", "Shipped the draft"),
+                                     ("focus note", "Got the opening scene"), ("weekly review", "Week of")] {
+                    app.tabBars.buttons.element(boundBy: 3).tap()
+                    let row = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", text)).firstMatch
+                    for _ in 0..<4 where !row.isHittable { app.swipeUp() }
+                    row.tap()
+                    XCTAssertTrue(app.descendants(matching: .any)["JournalDetail"].waitForExistence(timeout: 3))
+                    capture(app, "Detail \(run.name) \(kind)")
+                }
+            }
             app.terminate()
         }
     }
