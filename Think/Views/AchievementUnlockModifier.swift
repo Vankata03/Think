@@ -187,9 +187,9 @@ private struct AchievementUnlockCard: View {
         HStack(spacing: 14) {
             Image(systemName: achievement.icon)
                 .font(.title2.weight(.semibold))
-                .foregroundStyle(Color.accentColor)
+                .foregroundStyle(ThinkColor.accentInk)
                 .frame(width: 42, height: 42)
-                .background(Color.accentColor.opacity(0.14), in: Circle())
+                .background(ThinkColor.fill, in: Circle())
                 .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 3) {

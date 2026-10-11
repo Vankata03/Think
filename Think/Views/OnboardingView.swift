@@ -448,7 +448,7 @@ private struct AppearanceThumbnail: View {
         let track = dark ? Color(white: 0.33) : Color(white: 0.78)
         let bar = dark ? Color(white: 0.23) : Color(white: 0.78)
         let card = dark ? Color(white: 0.11) : Color.white
-        let accent = dark ? Color(red: 1, green: 0.831, blue: 0.2) : Color(red: 0.949, green: 0.769, blue: 0.11)
+        let accent = dark ? Color(red: 1, green: 0.831, blue: 0.2) : Color(red: 0.949, green: 0.769, blue: 0.11)  // style-exempt: the thumbnail draws both schemes at once
         return VStack(spacing: 5) {
             ZStack(alignment: .topLeading) {
                 Circle().trim(from: 0.5, to: 1).stroke(track, lineWidth: 2).frame(width: 34, height: 34)

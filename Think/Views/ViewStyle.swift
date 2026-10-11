@@ -19,19 +19,6 @@ enum ThinkMotion {
     }
 }
 
-extension Color {
-    /// Both shipped gold accents need dark label ink. White on the light
-    /// accent is only 2.99:1; black is 7.02:1.
-    static func prominentButtonForeground(for colorScheme: ColorScheme) -> Color {
-        .black
-    }
-
-    /// Text/link accent is darker than decorative gold in light appearance.
-    static func accessibleAccent(for colorScheme: ColorScheme) -> Color {
-        colorScheme == .dark ? Color("AccentColor") : Color(red: 0.43, green: 0.36, blue: 0.02)
-    }
-}
-
 extension Binding where Value == Int {
     /// Bridges minutes-since-midnight storage to a `DatePicker` date.
     var timeOfDay: Binding<Date> {

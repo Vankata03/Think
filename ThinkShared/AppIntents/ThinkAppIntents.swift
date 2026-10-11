@@ -203,7 +203,7 @@ private struct StreakIntentSnippetView: View {
         VStack(spacing: 8) {
             Image(systemName: "flame.fill")
                 .font(.title2)
-                .foregroundStyle(Color(red: 1, green: 0.83, blue: 0.20))
+                .foregroundStyle(ThinkColor.accent)
             Text(streak, format: .number)
                 .font(.system(.largeTitle, design: .rounded, weight: .bold))
                 .monospacedDigit()
