@@ -1,6 +1,7 @@
 #!/bin/bash
-# Build and test Think the same way CI does. CI calls this script, so a local
-# green run means the same commands pass on the runner.
+# Build and test Think with the same xcodebuild commands as the build-test job
+# in .github/workflows/ci.yml. CI runs those commands inline rather than calling
+# this script, so keep the two in step when either changes.
 #
 # Usage: ci_scripts/test.sh [--build-only] [--skip-ui] [--only <Target[/Class[/method]]>]...
 #

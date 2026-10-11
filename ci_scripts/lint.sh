@@ -20,10 +20,19 @@ case "$mode" in
     *) list=(git diff --name-only --diff-filter=ACMR "$mode" -- '*.swift') ;;
 esac
 
+# A failed listing (say, a missing base ref) must fail the lint, not pass it
+# as an empty file list.
+if ! listing="$("${list[@]}")"; then
+    echo "lint.sh: could not list Swift files (${list[*]})" >&2
+    exit 2
+fi
+
 files=()
 while IFS= read -r f; do
-    [ -f "$f" ] && files+=("$f")
-done < <("${list[@]}")
+    [ -z "$f" ] && continue
+    # Staged files are read from the index, so they need not exist on disk.
+    if [ "$mode" = "--staged" ] || [ -f "$f" ]; then files+=("$f"); fi
+done <<<"$listing"
 
 if [ ${#files[@]} -eq 0 ]; then
     echo "lint.sh: no Swift files to lint"
@@ -32,7 +41,20 @@ fi
 
 echo "lint.sh: swift-format lint on ${#files[@]} file(s)"
 report="$(mktemp -t think-lint)"
-if xcrun swift-format lint --strict --parallel "${files[@]}" >"$report" 2>&1; then
+status=0
+if [ "$mode" = "--staged" ]; then
+    # Lint the staged snapshot, not the working tree, so unstaged edits
+    # neither fail nor rescue the commit.
+    for f in "${files[@]}"; do
+        git show ":$f" \
+            | xcrun swift-format lint --strict --configuration .swift-format --assume-filename "$f" - \
+                >>"$report" 2>&1 \
+            || status=1
+    done
+else
+    xcrun swift-format lint --strict --parallel "${files[@]}" >"$report" 2>&1 || status=1
+fi
+if [ "$status" -eq 0 ]; then
     rm -f "$report"
     exit 0
 fi

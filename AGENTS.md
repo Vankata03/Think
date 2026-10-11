@@ -1,7 +1,7 @@
 ## Checks
 
-- Build and test: `ci_scripts/test.sh` (the same script CI runs). `--skip-ui` drops XCUITests, `--only ThinkTests/<Class>` narrows, `--build-only` compiles. Full logs land in `DerivedData/BuildLogs/`.
-- Lint: `ci_scripts/lint.sh` checks Swift files changed against `origin/develop` with swift-format (`.swift-format`); CI runs it on every PR. Fix a file with `xcrun swift-format format -i <file>`. The pre-commit hook runs it on staged files once `git config core.hooksPath .githooks` is set.
+- Build and test: `ci_scripts/test.sh` (the same `xcodebuild` build-for-testing and test-without-building commands as `.github/workflows/ci.yml`; CI does not call the script itself). `--skip-ui` drops XCUITests, `--only ThinkTests/<Class>` narrows, `--build-only` compiles. Full logs land in `DerivedData/BuildLogs/`.
+- Lint: `ci_scripts/lint.sh` checks Swift files changed against `origin/develop` with swift-format (`.swift-format`); CI does not run it yet, so run it before pushing. Fix a file with `xcrun swift-format format -i <file>`. The pre-commit hook runs it on staged files once `git config core.hooksPath .githooks` is set.
 
 ## Large files
 
