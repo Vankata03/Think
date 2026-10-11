@@ -1,0 +1,3 @@
+#!/bin/bash
+# Enable once per clone: git config core.hooksPath .githooks
+exec "$(git rev-parse --show-toplevel)/ci_scripts/lint.sh" --staged
