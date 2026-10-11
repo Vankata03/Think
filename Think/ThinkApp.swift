@@ -144,6 +144,14 @@ struct ThinkApp: App {
             draft.text = "Half a thought about the weekend"
             try? drafts.save(draft)
         }
+        if isUITesting && arguments.contains("-ui-seed-weekly-review") {
+            // This week's reflection and a tagged note, for the weekly
+            // review's Saved row and its lock checks.
+            let week = WeeklyReviewWeek()
+            _ = try? repository.saveWeeklyReview(text: "PRIVATE WEEKLY REFLECTION", nextIntention: "PRIVATE NEXT WEEK",
+                                                 weekStart: week.start.start, timeZone: week.start.timeZone)
+            _ = try? repository.saveNote(text: "PRIVATE WEEK NOTE", mood: .good)
+        }
         let progressDefaults: UserDefaults
         if isUITesting, let bundleIdentifier = Bundle.main.bundleIdentifier {
             let suiteName = "\(bundleIdentifier).ui-tests"

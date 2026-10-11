@@ -232,6 +232,55 @@ final class VisualAuditUITests: XCTestCase {
         }
     }
 
+    /// The weekly review across the acceptance floor (`progress-settings.md`
+    /// section 9.5): both appearances, AX3 in `en`, `bg` and `de`, with
+    /// "Write reflection", "Your reflection" and the longest count label
+    /// ("Partial effort, not completed") on screen, then the Saved row.
+    @MainActor
+    func testCaptureWeeklyReview() throws {
+        continueAfterFailure = false
+        let runs: [(name: String, appearance: String, language: String, locale: String, ax3: Bool)] = [
+            ("dark en", "dark", "en", "en_US", false),
+            ("light en", "light", "en", "en_US", false),
+            ("dark en AX3", "dark", "en", "en_US", true),
+            ("light bg AX3", "light", "bg", "bg_BG", true),
+            ("dark de AX3", "dark", "de", "de_DE", true),
+        ]
+        for run in runs {
+            for saved in [false, true] {
+                let app = XCUIApplication()
+                app.launchArguments = ["-ui-testing", "-ui-seed-progress", "-appearance", run.appearance,
+                                       "-AppleLanguages", "(\(run.language))", "-AppleLocale", run.locale]
+                if saved { app.launchArguments += ["-ui-seed-weekly-review"] }
+                if run.ax3 { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXL"] }
+                app.launch()
+                app.tabBars.buttons.element(boundBy: 4).tap()
+                let open = app.buttons["OpenWeeklyReview"]
+                reveal(open, in: app)
+                open.tap()
+                let view = app.descendants(matching: .any).matching(identifier: "WeeklyReviewView").firstMatch
+                XCTAssertTrue(view.waitForExistence(timeout: 3))
+                let thisWeek = app.descendants(matching: .any).matching(identifier: "WeeklyReviewThisWeek").firstMatch
+                XCTAssertTrue(thisWeek.waitForExistence(timeout: 3))
+                capture(app, "Weekly review \(run.name) \(saved ? "saved" : "unwritten") top")
+                thisWeek.buttons.firstMatch.tap()
+
+                let row = app.buttons[saved ? "WeeklyReviewSaved" : "WriteReflection"]
+                var swipes = 0
+                while !(row.exists && row.isHittable && row.frame.maxY <= app.tabBars.firstMatch.frame.minY) && swipes < 12 {
+                    app.swipeUp()
+                    swipes += 1
+                    if swipes % 3 == 0 { capture(app, "Weekly review \(run.name) \(saved ? "saved" : "unwritten") scroll \(swipes / 3)") }
+                }
+                XCTAssertTrue(row.isHittable)
+                XCTAssertLessThanOrEqual(row.frame.maxY, app.tabBars.firstMatch.frame.minY, "The reflection row sits above the tab bar")
+                XCTAssertFalse(app.buttons["SaveWeeklyReview"].exists)
+                capture(app, "Weekly review \(run.name) \(saved ? "saved" : "unwritten") reflection")
+                app.terminate()
+            }
+        }
+    }
+
     /// The Focus stage across the acceptance floor (`design/focus.md`
     /// section 11): both appearances, AX3, and `de` and `bg` on the arc
     /// captions at the default size and on End, Skip and Skip to work at AX3.

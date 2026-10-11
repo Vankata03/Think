@@ -240,4 +240,61 @@ import Testing
         let locked = JournalEditorOpening.answer(day: day, practiceID: "practice.004", prompt: "Q", locked: true, drafts: store)
         #expect(locked.draft.id != draft.id && locked.draft.context.promptSnapshot == "Q")
     }
+
+    // MARK: Weekly review ("Write reflection", `progress-settings.md` section 9)
+
+    private let week = CivilDay(year: 2026, month: 9, day: 21, timeZoneIdentifier: "Europe/Sofia")
+
+    @Test func aFirstWeeklyReviewStartsBlankOnTheWeek() {
+        let opened = JournalEditorOpening.weeklyReview(week: week, locked: false, drafts: drafts())
+        #expect(opened.draft.kind == .weeklyReview && opened.draft.context.editingRecordID == nil)
+        #expect(opened.draft.context.civilDay == week && opened.draft.context.periodKey == "2026-W39")
+        #expect(!opened.draft.containsPrivateContent && opened.notice == nil)
+    }
+
+    @Test func thisWeeksDraftReopensAndAnotherWeeksDoesNot() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let lastWeek = CivilDay(year: 2026, month: 9, day: 14, timeZoneIdentifier: "Europe/Sofia")
+        var old = JournalDraft(kind: .weeklyReview, context: .init(civilDay: lastWeek, periodKey: "2026-W38"))
+        old.text = "Last week's half reflection"
+        try JournalDraftStore(directory: directory).save(old)
+
+        let fresh = JournalEditorOpening.weeklyReview(week: week, locked: false, drafts: JournalDraftStore(directory: directory))
+        #expect(fresh.draft.id != old.id && fresh.draft.text.isEmpty && fresh.draft.context.periodKey == "2026-W39")
+
+        var current = JournalDraft(kind: .weeklyReview, context: .init(civilDay: week, periodKey: "2026-W39"))
+        current.text = "Five of seven days"
+        current.tomorrowIntention = "Plan the trip"
+        try JournalDraftStore(directory: directory).save(current)
+        let resumed = JournalEditorOpening.weeklyReview(week: week, locked: false, drafts: JournalDraftStore(directory: directory))
+        #expect(resumed.draft.id == current.id && resumed.draft.text == "Five of seven days")
+        #expect(resumed.draft.tomorrowIntention == "Plan the trip")
+    }
+
+    @Test func aLockedJournalOpensABlankWeeklyReviewWithoutReadingDrafts() throws {
+        let store = drafts()
+        var pending = JournalDraft(kind: .weeklyReview, context: .init(civilDay: week, periodKey: "2026-W39"))
+        pending.text = "Private reflection"
+        try store.save(pending)
+
+        let opened = JournalEditorOpening.weeklyReview(week: week, locked: true, drafts: store)
+        #expect(opened.draft.id != pending.id && !opened.draft.containsPrivateContent)
+    }
+
+    @Test func aWeeklyReviewSavedFromTheEditorIsThisWeeksReview() throws {
+        let repository = try repository()
+        var draft = JournalEditorOpening.weeklyReview(week: week, locked: false, drafts: drafts()).draft
+        draft.text = "Five of seven days."
+        draft.tomorrowIntention = "Pack the practice."
+        let receipt = try #require(try repository.save(draft))
+
+        let review = try #require(try repository.weeklyReview(weekStart: week.start, timeZone: week.timeZone)?.primary)
+        #expect(review.recordID == receipt.recordID && review.recordID == draft.id)
+        #expect(review.text == "Five of seven days." && review.nextIntention == "Pack the practice.")
+        #expect(review.periodKey == "2026-W39")
+        // The editor's prompt names the week the way the saved row does.
+        #expect(draft.editorPrompt == JournalRowContent(review).title)
+        #expect(draft.editorPrompt?.contains("21") == true)
+    }
 }

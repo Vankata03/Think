@@ -202,8 +202,8 @@ final class JournalRepository {
             value.text = text; value.nextIntention = nextIntention; value.updatedAt = .now; return value
         }, result: receipt)
     }
-    func weeklyReview(weekStart: Date) throws -> DailySelection<EntrySnapshot>? {
-        try weeklyReview(periodKey: JournalIdentity.weekKey(for: weekStart))
+    func weeklyReview(weekStart: Date, timeZone: TimeZone = .current) throws -> DailySelection<EntrySnapshot>? {
+        try weeklyReview(periodKey: JournalIdentity.weekKey(for: weekStart, timeZone: timeZone))
     }
     private func weeklyReview(periodKey period: String) throws -> DailySelection<EntrySnapshot>? {
         let kind = JournalEntry.kindWeeklyReview
