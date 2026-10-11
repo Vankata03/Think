@@ -81,7 +81,7 @@ struct JournalEditor: View {
                             .accessibilityIdentifier("JournalSaveError")
                     }
                     Text(dayLine).font(.think(.caption)).foregroundStyle(ThinkColor.secondaryLabel)
-                    if let prompt {
+                    if let prompt = draft.editorPrompt {
                         Text(prompt).font(.think(.question))
                             .foregroundStyle(draft.kind == .focus ? ThinkColor.secondaryLabel : ThinkColor.label)
                     }
@@ -119,18 +119,6 @@ struct JournalEditor: View {
         return "\(day) · \(draft.createdAt.formatted(timeStyle))"
     }
 
-    /// The question for an answer; the session intention for a focus note,
-    /// which cannot be edited. Notes and retros have none.
-    private var prompt: String? {
-        let value: String?
-        switch draft.kind {
-        case .answer: value = draft.context.promptSnapshot
-        case .focus: value = draft.fields["intention"] ?? draft.context.promptSnapshot
-        case .note, .retro, .weeklyReview: value = nil
-        }
-        return value.flatMap { $0.isEmpty ? nil : $0 }
-    }
-
     @ViewBuilder
     private var writingArea: some View {
         if draft.kind == .retro {
@@ -151,6 +139,7 @@ struct JournalEditor: View {
                     .font(.think(.body))
                     .focused($focus, equals: .intention)
                     .id(Field.intention)
+                    .accessibilityIdentifier("NextWeekInput")
             }
         }
     }
@@ -190,7 +179,7 @@ struct JournalEditor: View {
     private func cleanUpCommitted() -> Bool {
         guard committed && !finished else { return true }
         do { try drafts.delete(id: draft.id); finished = true; return true } catch {
-            self.error = String(localized: "Entry saved. Could not remove its draft. Tap Save to retry cleanup.")
+            self.error = cleanupFailure
             return false
         }
     }
@@ -215,10 +204,20 @@ struct JournalEditor: View {
             haptics.play(.success)
             dismiss()
         } catch {
-            self.error = committed
-                ? String(localized: "Entry saved. Could not remove its draft. Tap Save to retry cleanup.")
-                : String(localized: "Could not save. Your writing is still here. Try again.")
+            self.error = committed ? cleanupFailure : saveFailure
         }
+    }
+
+    /// The weekly review keeps the messages it had on its own screen.
+    private var saveFailure: String {
+        draft.kind == .weeklyReview
+            ? String(localized: "Could not save your weekly review. Your writing is still here. Try again.")
+            : String(localized: "Could not save. Your writing is still here. Try again.")
+    }
+    private var cleanupFailure: String {
+        draft.kind == .weeklyReview
+            ? String(localized: "Review saved. Could not remove its draft. Tap Save to retry cleanup.")
+            : String(localized: "Entry saved. Could not remove its draft. Tap Save to retry cleanup.")
     }
 }
 
@@ -227,6 +226,26 @@ extension JournalEditor {
     /// answers are stored in `JournalDraft.fields` under the raw value.
     enum Field: String, Hashable {
         case text, wentWell, improve, tomorrow, intention
+    }
+}
+
+extension JournalDraft {
+    /// The editor's prompt: the question for an answer; the session
+    /// intention for a focus note, which cannot be edited; "Week of
+    /// *d Month*" for a weekly review, in the zone of its week. Notes and
+    /// retros have none.
+    var editorPrompt: String? {
+        let value: String?
+        switch kind {
+        case .answer: value = context.promptSnapshot
+        case .focus: value = fields["intention"] ?? context.promptSnapshot
+        case .weeklyReview:
+            var style = Date.FormatStyle.dateTime.day().month(.wide)
+            style.timeZone = context.civilDay.timeZone
+            value = String(localized: "Week of \(context.civilDay.start.formatted(style))")
+        case .note, .retro: value = nil
+        }
+        return value.flatMap { $0.isEmpty ? nil : $0 }
     }
 }
 

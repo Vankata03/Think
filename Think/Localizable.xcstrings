@@ -87,6 +87,52 @@
         }
       }
     },
+    "Another version from this day" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Друга версия от този ден"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Andere Version von diesem Tag"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Another version from this day"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Otra versión de este día"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Une autre version de ce jour"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Un'altra versione di questo giorno"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Outra versão deste dia"
+          }
+        }
+      }
+    },
     "Begin retro" : {
       "localizations" : {
         "bg" : {
@@ -480,6 +526,52 @@
         }
       }
     },
+    "Could not load this entry." : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Този запис не можа да бъде зареден."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Dieser Eintrag konnte nicht geladen werden."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not load this entry."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "No se pudo cargar esta entrada."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Impossible de charger cette entrée."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Non è stato possibile caricare questa voce."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Não foi possível carregar esta entrada."
+          }
+        }
+      }
+    },
     "Could not load your journal." : {
       "localizations" : {
         "bg" : {
@@ -522,6 +614,52 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "Não foi possível carregar seu diário."
+          }
+        }
+      }
+    },
+    "Could not load your weekly review." : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Седмичният ви преглед не можа да бъде зареден."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Dein Wochenrückblick konnte nicht geladen werden."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not load your weekly review."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "No se pudo cargar tu revisión semanal."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Impossible de charger votre bilan hebdomadaire."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Non è stato possibile caricare la tua revisione settimanale."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Não foi possível carregar sua revisão semanal."
           }
         }
       }
@@ -692,6 +830,52 @@
         }
       }
     },
+    "Edited %@" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Редактирано %@"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Bearbeitet %@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edited %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Editado %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Modifié %@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Modificato %@"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Editado %@"
+          }
+        }
+      }
+    },
     "Entries stay on this device. Think has no server and no account." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -729,6 +913,52 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Suas anotações ficam neste aparelho. O Think não tem servidor nem conta."
+          }
+        }
+      }
+    },
+    "Entry not found." : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Записът не е намерен."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Eintrag nicht gefunden."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entry not found."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "No se encontró la entrada."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Entrée introuvable."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Voce non trovata."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Entrada não encontrada."
           }
         }
       }
@@ -1033,6 +1263,144 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "Sessões de concentração nesta semana"
+          }
+        }
+      }
+    },
+    "Versions" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Версии"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Versionen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Versions"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Versiones"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Versions"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Versioni"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Versões"
+          }
+        }
+      }
+    },
+    "Write reflection" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Напиши размишление"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Reflexion schreiben"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Write reflection"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Escribir reflexión"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Écrire une réflexion"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Scrivi una riflessione"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Escrever reflexão"
+          }
+        }
+      }
+    },
+    "Written %@" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Написано в %@"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Geschrieben um %@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Written %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Escrito a las %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Écrit à %@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Scritto alle %@"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Escrito às %@"
           }
         }
       }
@@ -15008,6 +15376,7 @@
       }
     },
     "Both versions are kept. Open one to edit or delete it explicitly." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -15931,6 +16300,7 @@
       }
     },
     "Could not load your weekly review. Try again." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -16531,6 +16901,7 @@
       }
     },
     "Delete retrospective" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -16623,6 +16994,7 @@
       }
     },
     "Delete this retrospective?" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -16901,6 +17273,7 @@
       }
     },
     "Drafts stay on this device until you save or discard them." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -17179,6 +17552,7 @@
       "extractionState" : "stale"
     },
     "Entry" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -17225,6 +17599,7 @@
       }
     },
     "Entry actions" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -17317,6 +17692,7 @@
       }
     },
     "Entry not found" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -17828,6 +18204,7 @@
       }
     },
     "How was this week?" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -18015,6 +18392,7 @@
       "extractionState" : "stale"
     },
     "Intention carried into the next day" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -18061,6 +18439,7 @@
       }
     },
     "Intention for next week" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -19034,6 +19413,7 @@
       }
     },
     "Next week's intention" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -19496,6 +19876,7 @@
       }
     },
     "One intention for next week…" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -19588,6 +19969,7 @@
       }
     },
     "One reflection on the week…" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -19915,6 +20297,7 @@
       }
     },
     "Other answers for this day" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -20474,6 +20857,7 @@
       "extractionState" : "stale"
     },
     "Prompt" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -20566,6 +20950,7 @@
       }
     },
     "Question that day" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -20893,6 +21278,7 @@
       "extractionState" : "stale"
     },
     "Retrospective actions" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -20985,6 +21371,7 @@
       }
     },
     "Retrospective not found" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -21170,6 +21557,7 @@
       "extractionState" : "stale"
     },
     "Save weekly review" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -22054,6 +22442,7 @@
       }
     },
     "This removes the entry from this device. Other versions of the same day are kept." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -22100,6 +22489,7 @@
       }
     },
     "This removes the retrospective from this device. Other versions of the same day are kept." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -22238,6 +22628,7 @@
       }
     },
     "This week's reflection" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

@@ -209,7 +209,7 @@ struct PomodoroLiveActivityPresentationTests {
         )
 
         #expect(PomodoroLiveActivityPresentation.title(for: state) == "Deep work")
-        #expect(PomodoroLiveActivityPresentation.symbol(for: state) == "brain.head.profile")
+        #expect(PomodoroLiveActivityPresentation.symbol(for: state) == "timer")
     }
 
     @Test func restPhaseUsesBreakPresentation() {

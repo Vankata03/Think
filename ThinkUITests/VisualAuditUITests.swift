@@ -232,6 +232,55 @@ final class VisualAuditUITests: XCTestCase {
         }
     }
 
+    /// The weekly review across the acceptance floor (`progress-settings.md`
+    /// section 9.5): both appearances, AX3 in `en`, `bg` and `de`, with
+    /// "Write reflection", "Your reflection" and the longest count label
+    /// ("Partial effort, not completed") on screen, then the Saved row.
+    @MainActor
+    func testCaptureWeeklyReview() throws {
+        continueAfterFailure = false
+        let runs: [(name: String, appearance: String, language: String, locale: String, ax3: Bool)] = [
+            ("dark en", "dark", "en", "en_US", false),
+            ("light en", "light", "en", "en_US", false),
+            ("dark en AX3", "dark", "en", "en_US", true),
+            ("light bg AX3", "light", "bg", "bg_BG", true),
+            ("dark de AX3", "dark", "de", "de_DE", true),
+        ]
+        for run in runs {
+            for saved in [false, true] {
+                let app = XCUIApplication()
+                app.launchArguments = ["-ui-testing", "-ui-seed-progress", "-appearance", run.appearance,
+                                       "-AppleLanguages", "(\(run.language))", "-AppleLocale", run.locale]
+                if saved { app.launchArguments += ["-ui-seed-weekly-review"] }
+                if run.ax3 { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXL"] }
+                app.launch()
+                app.tabBars.buttons.element(boundBy: 4).tap()
+                let open = app.buttons["OpenWeeklyReview"]
+                reveal(open, in: app)
+                open.tap()
+                let view = app.descendants(matching: .any).matching(identifier: "WeeklyReviewView").firstMatch
+                XCTAssertTrue(view.waitForExistence(timeout: 3))
+                let thisWeek = app.descendants(matching: .any).matching(identifier: "WeeklyReviewThisWeek").firstMatch
+                XCTAssertTrue(thisWeek.waitForExistence(timeout: 3))
+                capture(app, "Weekly review \(run.name) \(saved ? "saved" : "unwritten") top")
+                thisWeek.buttons.firstMatch.tap()
+
+                let row = app.buttons[saved ? "WeeklyReviewSaved" : "WriteReflection"]
+                var swipes = 0
+                while !(row.exists && row.isHittable && row.frame.maxY <= app.tabBars.firstMatch.frame.minY) && swipes < 12 {
+                    app.swipeUp()
+                    swipes += 1
+                    if swipes % 3 == 0 { capture(app, "Weekly review \(run.name) \(saved ? "saved" : "unwritten") scroll \(swipes / 3)") }
+                }
+                XCTAssertTrue(row.isHittable)
+                XCTAssertLessThanOrEqual(row.frame.maxY, app.tabBars.firstMatch.frame.minY, "The reflection row sits above the tab bar")
+                XCTAssertFalse(app.buttons["SaveWeeklyReview"].exists)
+                capture(app, "Weekly review \(run.name) \(saved ? "saved" : "unwritten") reflection")
+                app.terminate()
+            }
+        }
+    }
+
     /// The Focus stage across the acceptance floor (`design/focus.md`
     /// section 11): both appearances, AX3, and `de` and `bg` on the arc
     /// captions at the default size and on End, Skip and Skip to work at AX3.
@@ -331,7 +380,7 @@ final class VisualAuditUITests: XCTestCase {
             // At AX3 a row's centre can sit under the tab bar; tap its top.
             let firstRow = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'JournalRow.'")).firstMatch
             firstRow.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.1)).tap()
-            XCTAssertTrue(app.descendants(matching: .any)["JournalEntryDetail"].waitForExistence(timeout: 3))
+            XCTAssertTrue(app.descendants(matching: .any)["JournalDetail"].waitForExistence(timeout: 3))
             capture(app, "Journal \(run.name) detail")
             app.swipeUp()
             capture(app, "Journal \(run.name) detail scrolled")
@@ -534,6 +583,74 @@ final class VisualAuditUITests: XCTestCase {
                 XCTAssertGreaterThanOrEqual(firstStep.frame.height, 44)
             }
             capture(app, "Path detail \(run.name) steps")
+            app.terminate()
+        }
+    }
+
+    /// The read detail across the acceptance floor (`journal.md` sections
+    /// 5 and 13): both appearances, AX3 in `de` and `bg`, with "Another
+    /// version from this day", the delete dialog and the versions list.
+    /// In `en` every kind is opened for its prompt rule.
+    @MainActor
+    func testCaptureJournalDetail() throws {
+        continueAfterFailure = false
+        let runs: [(name: String, appearance: String, language: String, locale: String, ax3: Bool)] = [
+            ("dark en", "dark", "en", "en_GB", false),
+            ("light en", "light", "en", "en_GB", false),
+            ("dark de AX3", "dark", "de", "de_DE", true),
+            ("light bg AX3", "light", "bg", "bg_BG", true),
+        ]
+        for run in runs {
+            let app = XCUIApplication()
+            app.launchArguments = ["-ui-testing", "-appearance", run.appearance,
+                                   "-AppleLanguages", "(\(run.language))", "-AppleLocale", run.locale,
+                                   "-ui-seed-journal-list", "-ui-seed-journal-versions"]
+            if run.ax3 { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXL"] }
+            app.launch()
+            app.tabBars.buttons.element(boundBy: 3).tap()
+            let primary = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "VERSION C")).firstMatch
+            XCTAssertTrue(primary.waitForExistence(timeout: 3))
+            // At AX3 a row's centre can sit under the tab bar; tap its top.
+            primary.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.1)).tap()
+            XCTAssertTrue(app.descendants(matching: .any)["JournalDetail"].waitForExistence(timeout: 3))
+            // The writing is its own element, so VoiceOver reaches it.
+            XCTAssertTrue(app.staticTexts["JournalDetailText.0"].exists)
+            capture(app, "Detail \(run.name)")
+
+            let width = app.windows.firstMatch.frame.width
+            let another = app.buttons["AnotherVersion"]
+            reveal(another, in: app)
+            XCTAssertLessThanOrEqual(another.frame.maxX, width)
+            let delete = app.buttons["DeleteEntry"]
+            reveal(delete, in: app)
+            capture(app, "Detail \(run.name) scrolled")
+            delete.tap()
+            XCTAssertTrue(app.buttons["ConfirmDeleteEntry"].firstMatch.waitForExistence(timeout: 3))
+            capture(app, "Detail \(run.name) delete dialog")
+            // Outside the dialog dismisses it without deleting. The dialog
+            // points at the Delete row; at AX3 it fills everything under
+            // the bar, so the bar is the clear spot.
+            let dialogFrame = app.buttons["ConfirmDeleteEntry"].firstMatch.frame
+            let height = app.windows.firstMatch.frame.height
+            let clear = dialogFrame.midY > height / 2 ? 0.07 : 0.8
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: clear)).tap()
+            XCTAssertTrue(app.buttons["ConfirmDeleteEntry"].firstMatch.waitForNonExistence(timeout: 3))
+
+            another.tap()
+            XCTAssertTrue(app.descendants(matching: .any)["JournalVersions"].waitForExistence(timeout: 3))
+            capture(app, "Detail \(run.name) versions")
+
+            if run.language == "en" {
+                for (kind, text) in [("note", "Lunch with Maya"), ("retro", "Shipped the draft"),
+                                     ("focus note", "Got the opening scene"), ("weekly review", "Week of")] {
+                    app.tabBars.buttons.element(boundBy: 3).tap()
+                    let row = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", text)).firstMatch
+                    for _ in 0..<4 where !row.isHittable { app.swipeUp() }
+                    row.tap()
+                    XCTAssertTrue(app.descendants(matching: .any)["JournalDetail"].waitForExistence(timeout: 3))
+                    capture(app, "Detail \(run.name) \(kind)")
+                }
+            }
             app.terminate()
         }
     }

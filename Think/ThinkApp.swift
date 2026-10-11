@@ -120,6 +120,17 @@ struct ThinkApp: App {
                 _ = try? repository.saveNote(text: "SCROLL AUDIT NOTE \(index)")
             }
         }
+        if isUITesting && arguments.contains("-ui-seed-journal-versions") {
+            // Three devices answered today offline (`design/journal.md`
+            // section 6): the latest, VERSION C, is the day's record.
+            let today = CivilDay.today()
+            for (index, name) in ["A", "B", "C"].enumerated() {
+                _ = try? repository.saveAnswer(text: "VERSION \(name) of today's answer.", practiceID: ContentLibrary.dailyPractice().id,
+                                               prompt: "PRIVATE AUDIT PROMPT", mood: name == "C" ? .good : nil,
+                                               themes: name == "C" ? ThemeSelection(primary: .work, secondary: .people) : nil,
+                                               day: today, date: today.start.addingTimeInterval(TimeInterval(60 * (index + 1))))
+            }
+        }
         if isUITesting && arguments.contains("-ui-seed-journal-list") {
             // Every row shape of the Journal list (`design/journal.md`
             // section 4): each kind, moods, themes, a second version of
@@ -145,6 +156,14 @@ struct ThinkApp: App {
             var draft = JournalDraft(kind: .note)
             draft.text = "Half a thought about the weekend"
             try? drafts.save(draft)
+        }
+        if isUITesting && arguments.contains("-ui-seed-weekly-review") {
+            // This week's reflection and a tagged note, for the weekly
+            // review's Saved row and its lock checks.
+            let week = WeeklyReviewWeek()
+            _ = try? repository.saveWeeklyReview(text: "PRIVATE WEEKLY REFLECTION", nextIntention: "PRIVATE NEXT WEEK",
+                                                 weekStart: week.start.start, timeZone: week.start.timeZone)
+            _ = try? repository.saveNote(text: "PRIVATE WEEK NOTE", mood: .good)
         }
         let progressDefaults: UserDefaults
         if isUITesting, let bundleIdentifier = Bundle.main.bundleIdentifier {

@@ -54,6 +54,8 @@ final class JournalRepository {
             periodKey = value.periodKey; nextIntention = value.nextIntention
         }
         var themes: ThemeSelection { ThemeSelection(stored: theme, secondary: secondaryTheme) }
+        /// When the record was last written: what picks the day's record.
+        var latestEdit: Date { updatedAt ?? date }
     }
     struct RetroSnapshot: Identifiable {
         let recordID: UUID?
@@ -81,6 +83,8 @@ final class JournalRepository {
             tomorrowIntention = value.tomorrowIntention; updatedAt = value.updatedAt
         }
         var themes: ThemeSelection { ThemeSelection(stored: theme, secondary: secondaryTheme) }
+        /// When the record was last written: what picks the day's record.
+        var latestEdit: Date { updatedAt ?? date }
     }
     struct SessionSnapshot {
         let sessionID: String
@@ -198,8 +202,11 @@ final class JournalRepository {
             value.text = text; value.nextIntention = nextIntention; value.updatedAt = .now; return value
         }, result: receipt)
     }
-    func weeklyReview(weekStart: Date) throws -> DailySelection<EntrySnapshot>? {
-        let period = JournalIdentity.weekKey(for: weekStart); let kind = JournalEntry.kindWeeklyReview
+    func weeklyReview(weekStart: Date, timeZone: TimeZone = .current) throws -> DailySelection<EntrySnapshot>? {
+        try weeklyReview(periodKey: JournalIdentity.weekKey(for: weekStart, timeZone: timeZone))
+    }
+    private func weeklyReview(periodKey period: String) throws -> DailySelection<EntrySnapshot>? {
+        let kind = JournalEntry.kindWeeklyReview
         let reader = context()
         let descriptor = FetchDescriptor<JournalEntry>(predicate: #Predicate { $0.kind == kind && $0.periodKey == period })
         let records = try withExtendedLifetime(reader) { try reader.fetch(descriptor).map(EntrySnapshot.init) }
@@ -349,14 +356,32 @@ final class JournalRepository {
         let records = try withExtendedLifetime(reader) { try reader.fetch(descriptor).map(RetroSnapshot.init) }
         return Self.selectRetro(records)
     }
+    /// Every record that shares this entry's day (an answer) or week (a
+    /// weekly review), the entry included, newest edit first: what "Another
+    /// version from this day" offers (`design/journal.md` sections 5 and
+    /// 6). Nil for a missing entry and for notes and focus notes, which are
+    /// not one per day.
+    func selection(containingEntry id: UUID) throws -> DailySelection<EntrySnapshot>? {
+        guard let entry = try entry(id: id) else { return nil }
+        switch entry.kind {
+        case JournalEntry.kindQuestion: return try answer(for: entry.day)
+        case JournalEntry.kindWeeklyReview: return try entry.periodKey.flatMap(weeklyReview(periodKey:))
+        default: return nil
+        }
+    }
+    /// Every retro of this retro's day, itself included, newest edit first.
+    func selection(containingRetro id: UUID) throws -> DailySelection<RetroSnapshot>? {
+        guard let value = try retro(id: id) else { return nil }
+        return try retro(for: value.day)
+    }
     private static func selectAnswer(_ records: [EntrySnapshot]) -> DailySelection<EntrySnapshot>? {
-        JournalIdentity.select(records, date: { $0.date }, recordID: { $0.recordID }, tiebreak: { $0.prompt + $0.text })
+        JournalIdentity.select(records, latestEdit: \.latestEdit, recordID: { $0.recordID }, tiebreak: { $0.prompt + $0.text })
     }
     private static func selectWeeklyReview(_ records: [EntrySnapshot]) -> DailySelection<EntrySnapshot>? {
-        JournalIdentity.select(records, date: { $0.date }, recordID: { $0.recordID }, tiebreak: { $0.text })
+        JournalIdentity.select(records, latestEdit: \.latestEdit, recordID: { $0.recordID }, tiebreak: { $0.text })
     }
     private static func selectRetro(_ records: [RetroSnapshot]) -> DailySelection<RetroSnapshot>? {
-        JournalIdentity.select(records, date: { $0.date }, recordID: { $0.recordID }, tiebreak: { $0.wentWell + $0.improve + $0.tomorrow })
+        JournalIdentity.select(records, latestEdit: \.latestEdit, recordID: { $0.recordID }, tiebreak: { $0.wentWell + $0.improve + $0.tomorrow })
     }
 
     /// Every answer, retro and weekly review that is not the primary of its
