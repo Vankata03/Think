@@ -78,4 +78,37 @@ struct TodayRitualTests {
         #expect(!TodayRitual(answered: true, moveDone: true, retroWritten: false, hour: 15).isComplete)
         #expect(TodayRitual(answered: true, moveDone: true, retroWritten: true, hour: 15).isComplete)
     }
+
+    /// The progress ledger credits an answer or retro even after its record
+    /// is deleted. That done row has nowhere to go, so it stops being a door
+    /// (today.md section 4: only a written record is pushed).
+    @Test func aCreditedActWithoutItsRecordIsNotADoor() {
+        let ritual = TodayRitual(
+            answered: true, moveDone: false, retroWritten: true, hour: 21,
+            answerOpenable: false, retroOpenable: false)
+
+        #expect(ritual.isDone(.question))
+        #expect(ritual.isDone(.retro))
+        #expect(!ritual.opensRecord(.question))
+        #expect(!ritual.opensRecord(.retro))
+    }
+
+    @Test func aDoneAnswerOrRetroWithItsRecordOpensIt() {
+        let ritual = TodayRitual(answered: true, moveDone: true, retroWritten: true, hour: 21)
+
+        #expect(ritual.opensRecord(.question))
+        #expect(ritual.opensRecord(.retro))
+    }
+
+    /// The move writes no record and its done row is a fact, not a door.
+    @Test func theMoveNeverOpensARecord() {
+        #expect(!TodayRitual(answered: true, moveDone: true, retroWritten: true, hour: 21).opensRecord(.move))
+    }
+
+    @Test func anActNotYetDoneOpensNothing() {
+        let ritual = TodayRitual(answered: false, moveDone: false, retroWritten: false, hour: 21)
+
+        #expect(!ritual.opensRecord(.question))
+        #expect(!ritual.opensRecord(.retro))
+    }
 }

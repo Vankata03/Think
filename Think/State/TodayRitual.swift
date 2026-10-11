@@ -25,12 +25,29 @@ nonisolated struct TodayRitual: Equatable {
     var retroWritten: Bool
     /// The hour of the day, 0 to 24, with minutes as the fraction.
     var hour: Double
+    /// Whether a written answer or retro can be opened. The progress ledger
+    /// credits an act even after its record is deleted; that done row has
+    /// nowhere to go. Callers pass false only when they know the record is
+    /// gone, so a locked journal (record unknown) stays openable.
+    var answerOpenable = true
+    var retroOpenable = true
 
     func isDone(_ act: Act) -> Bool {
         switch act {
         case .question: answered
         case .move: moveDone
         case .retro: retroWritten
+        }
+    }
+
+    /// Whether the act's done row pushes the Journal's read detail. The
+    /// move writes no record; its done row is static (today.md section 4).
+    func opensRecord(_ act: Act) -> Bool {
+        guard isDone(act) else { return false }
+        switch act {
+        case .question: return answerOpenable
+        case .move: return false
+        case .retro: return retroOpenable
         }
     }
 

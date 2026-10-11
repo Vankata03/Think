@@ -35,6 +35,8 @@ struct TodayView: View {
     @State private var journalError: String?
     @State private var draftError: String?
     @State private var retroError: String?
+    /// A delete from the read detail that left an unsaved edit behind.
+    @State private var deletionNotice: String?
 
     /// The answer or retro draft handed to the editor sheet. Its context is
     /// frozen when the sheet opens; a day change underneath does not
@@ -60,7 +62,10 @@ struct TodayView: View {
             answered: todaysAnswer != nil || activities.contains(.answer),
             moveDone: progress.isMoveCompleted(practiceID: practice.id, at: now),
             retroWritten: todaysRetro != nil || activities.contains(.retro),
-            hour: DayArcGeometry.hour(of: now)
+            hour: DayArcGeometry.hour(of: now),
+            // Locked, the records are unread rather than gone.
+            answerOpenable: todaysAnswer != nil || lock.isLocked,
+            retroOpenable: todaysRetro != nil || lock.isLocked
         )
     }
 
@@ -93,6 +98,11 @@ struct TodayView: View {
                     if let retroError {
                         errorRow(retroError, identifier: "TodayRetroError") { openRetroEditor() }
                     }
+                    if let deletionNotice {
+                        Label(deletionNotice, systemImage: ThinkSymbol.unavailable)
+                            .font(.think(.secondary))
+                            .accessibilityIdentifier("TodayDeletionNotice")
+                    }
                     switch ritual.panel {
                     case .act(let act): nextActPanel(act)
                     case .complete: completeRow
@@ -101,7 +111,7 @@ struct TodayView: View {
 
                 Section {
                     ForEach(ritual.otherActs, id: \.self) { act in
-                        actRow(act, done: ritual.isDone(act))
+                        actRow(act, done: ritual.isDone(act), opensRecord: ritual.opensRecord(act))
                     }
                 }
             }
@@ -115,7 +125,7 @@ struct TodayView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbar { toolbar }
             .navigationDestination(item: $openRecord) { record in
-                JournalDetailView(record: record)
+                JournalDetailView(record: record, onNotice: { deletionNotice = $0 })
             }
             .onAppear {
                 refreshClock(TodayClock.now())
@@ -320,9 +330,11 @@ struct TodayView: View {
 
     /// Done answer and retro rows push the read detail; the move's done row
     /// is a fact, not a door, with a trailing-swipe Undo for a mistaken tap.
-    /// Row text never shows journal content.
+    /// An answer or retro whose record was deleted stays done (the ledger
+    /// keeps its credit) but is a fact too. Row text never shows journal
+    /// content.
     @ViewBuilder
-    private func actRow(_ act: TodayRitual.Act, done: Bool) -> some View {
+    private func actRow(_ act: TodayRitual.Act, done: Bool, opensRecord: Bool) -> some View {
         if !done {
             Label {
                 Text(laterText(act))
@@ -344,6 +356,9 @@ struct TodayView: View {
                     }
                     .accessibilityIdentifier("UndoMove")
                 }
+        } else if !opensRecord {
+            doneLabel(act)
+                .accessibilityIdentifier("Act.\(identifier(act)).done")
         } else {
             Button {
                 open(act)
