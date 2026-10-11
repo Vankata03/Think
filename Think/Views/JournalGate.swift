@@ -4,6 +4,9 @@ import SwiftUI
 /// journal screen while the lock is engaged (`design/journal.md` section
 /// 7). Face ID is asked for when a screen appears; Unlock is the retry.
 struct JournalGate: View {
+    /// As a section row inside a list (the weekly review's reflection): no
+    /// full-screen frame or background of its own.
+    var isRow = false
     @Environment(JournalLock.self) private var lock
     @State private var authenticating = false
 
@@ -20,8 +23,8 @@ struct JournalGate: View {
             .disabled(authenticating || !lock.canAuthenticate)
             .accessibilityIdentifier("UnlockJournal")
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(ThinkColor.background)
+        .frame(maxWidth: .infinity, maxHeight: isRow ? nil : .infinity)
+        .background(isRow ? Color.clear : ThinkColor.background)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("JournalLocked")
     }

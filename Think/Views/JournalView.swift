@@ -253,8 +253,8 @@ struct JournalView: View {
         if let id = record.recordID {
             NavigationLink {
                 switch record {
-                case .entry: JournalEntryDetailView(recordID: id)
-                case .retro: JournalRetroDetailView(recordID: id)
+                case .entry: JournalDetailView(record: .entry(id))
+                case .retro: JournalDetailView(record: .retro(id))
                 }
             } label: {
                 JournalRow(content: content)

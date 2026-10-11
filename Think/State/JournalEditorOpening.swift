@@ -5,7 +5,8 @@
 
 import Foundation
 
-/// Resolves the draft Today hands the editor for the day's answer or retro.
+/// Resolves the draft Today hands the editor for the day's answer or retro,
+/// and the one the weekly review hands it for the week's reflection.
 /// The context is captured once, when the sheet opens. Locked: a blank
 /// draft, with no lookup of saved text or unsaved drafts. Unlocked: the
 /// unsaved draft is resumed, and a written retro opens for Edit. Unreadable
@@ -46,6 +47,19 @@ enum JournalEditorOpening {
             if let editing = JournalDraft.editing(written) { return Opened(draft: editing, notice: notice) }
         }
         let pending = listing?.drafts.first { $0.context.editingRecordID == nil && $0.context.civilDay.key == day.key }
+        return Opened(draft: pending ?? blank, notice: notice)
+    }
+
+    /// "Write reflection" on the weekly review: a new review of the week,
+    /// or the unsaved draft of that same week, matched by its `periodKey`.
+    /// A draft of another week stays in Journal's unsaved drafts. `week` is
+    /// the civil day the week starts on, in the zone it is reviewed in.
+    static func weeklyReview(week: CivilDay, locked: Bool, drafts: JournalDraftStore) -> Opened {
+        let periodKey = JournalIdentity.weekKey(for: week.start, timeZone: week.timeZone)
+        let blank = JournalDraft(kind: .weeklyReview, context: .init(civilDay: week, periodKey: periodKey))
+        guard !locked else { return Opened(draft: blank, notice: nil) }
+        let (listing, notice) = read(drafts, kind: .weeklyReview)
+        let pending = listing?.drafts.first { $0.context.editingRecordID == nil && $0.context.periodKey == periodKey }
         return Opened(draft: pending ?? blank, notice: notice)
     }
 

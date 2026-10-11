@@ -3,6 +3,7 @@
 //  Think
 //
 
+import Observation
 import UserNotifications
 
 enum NotificationPermission {
@@ -62,4 +63,27 @@ enum SessionEndAlerts {
         _ = await permission.requestAuthorization()
         return await permission.status()
     }
+}
+
+/// Where views reach notification permission and reminder scheduling, so UI
+/// tests can stand in a scripted prompt for the system alert. Views read it
+/// as optional and fall back to `system`.
+@Observable
+@MainActor
+final class NotificationAccess {
+    @ObservationIgnored let authorizer: any NotificationAuthorizing
+    @ObservationIgnored let scheduleReminders: () -> Void
+
+    init(
+        authorizer: any NotificationAuthorizing = SystemNotificationAuthorization(),
+        scheduleReminders: @escaping () -> Void = {
+            DailyQuoteNotifier.refreshSchedule()
+            RetroReminder.refreshSchedule()
+        }
+    ) {
+        self.authorizer = authorizer
+        self.scheduleReminders = scheduleReminders
+    }
+
+    static let system = NotificationAccess()
 }

@@ -189,6 +189,9 @@ nonisolated struct ProgressSnapshot: Codable, Equatable, Sendable {
     let publishedAt: Date
     var resetBoundary: SyncResetBoundary? = nil
     var practiceActivities: [PracticeActivity]? = nil
+    /// Path runs, so the Watch applies the same 06:00 opening rule as the phone.
+    /// Absent from older phones; the Watch then falls back to the legacy Deep focus fields.
+    var pathRuns: [PathRunProgress]? = nil
 
     init(
         streak: Int,
@@ -204,7 +207,8 @@ nonisolated struct ProgressSnapshot: Codable, Equatable, Sendable {
         appliedEventIDs: [String],
         publishedAt: Date,
         resetBoundary: SyncResetBoundary? = nil,
-        practiceActivities: [PracticeActivity]? = nil
+        practiceActivities: [PracticeActivity]? = nil,
+        pathRuns: [PathRunProgress]? = nil
     ) {
         self.streak = streak
         self.lastCompletedDay = lastCompletedDay
@@ -220,6 +224,7 @@ nonisolated struct ProgressSnapshot: Codable, Equatable, Sendable {
         self.publishedAt = publishedAt
         self.resetBoundary = resetBoundary
         self.practiceActivities = practiceActivities
+        self.pathRuns = pathRuns
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -235,7 +240,7 @@ nonisolated struct ProgressSnapshot: Codable, Equatable, Sendable {
         case lastQuestionAnswerDay
         case appliedEventIDs
         case publishedAt
-        case resetBoundary, practiceActivities
+        case resetBoundary, practiceActivities, pathRuns
     }
 }
 

@@ -87,7 +87,8 @@ final class JournalAuditUITests: XCTestCase {
         let row = journalRow(app, containing: "PRIVATE AUDIT ANSWER")
         XCTAssertTrue(row.waitForExistence(timeout: 3))
         row.tap()
-        XCTAssertTrue(app.buttons["EntryActions"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["EditEntry"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["DeleteEntry"].exists)
     }
 
     /// A kind filter narrows the list and shows the active filters line;

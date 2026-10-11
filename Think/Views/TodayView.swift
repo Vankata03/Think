@@ -41,18 +41,13 @@ struct TodayView: View {
     /// rewrite it.
     @State private var editorDraft: JournalDraft?
     @State private var editorNotice: String?
-    @State private var openRecord: OpenRecord?
+    /// A written answer or retro pushed onto the Journal's read detail.
+    @State private var openRecord: JournalRecordID?
     @State private var showingShareCard = false
     @State private var showingStreakCalendar = false
 
     @ThinkSpacing.Scaled(ThinkSpacing.s) private var rowSpacing
     @ThinkSpacing.Scaled(ThinkSpacing.m) private var panelSpacing
-
-    /// A written answer or retro pushed onto the Journal's read detail.
-    private enum OpenRecord: Hashable {
-        case answer(UUID)
-        case retro(UUID)
-    }
 
     private var quote: Quote { practice.quote }
 
@@ -120,10 +115,7 @@ struct TodayView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbar { toolbar }
             .navigationDestination(item: $openRecord) { record in
-                switch record {
-                case .answer(let id): JournalEntryDetailView(recordID: id)
-                case .retro(let id): JournalRetroDetailView(recordID: id)
-                }
+                JournalDetailView(record: record)
             }
             .onAppear {
                 refreshClock(TodayClock.now())
@@ -495,7 +487,7 @@ struct TodayView: View {
             reloadJournal()
             switch act {
             case .question:
-                if let id = todaysAnswer?.primary.recordID { openRecord = .answer(id) }
+                if let id = todaysAnswer?.primary.recordID { openRecord = .entry(id) }
             case .retro:
                 if let id = todaysRetro?.primary.recordID { openRecord = .retro(id) }
             case .move:

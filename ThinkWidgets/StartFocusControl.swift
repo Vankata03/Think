@@ -14,7 +14,7 @@ struct StartFocusControl: ControlWidget {
                 Label {
                     Text("Start focus", tableName: "AppIntents")
                 } icon: {
-                    Image(systemName: "timer")
+                    Image(systemName: ThinkSymbol.focus)
                 }
             }
         }

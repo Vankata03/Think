@@ -116,7 +116,7 @@ nonisolated struct CivilDay: Hashable, Codable, Sendable, Comparable, CustomStri
 }
 
 /// The records that claim one logical day: the one to show or edit, plus
-/// every other original kept as a conflict variant.
+/// every other original kept as a version, newest edit first.
 ///
 /// Two devices writing today's answer offline produce two rows once they
 /// sync. Neither is deleted or merged; the selection is deterministic so
@@ -130,21 +130,23 @@ nonisolated struct DailySelection<Record> {
 }
 
 nonisolated enum JournalIdentity {
-    /// Picks the primary record deterministically: earliest `date` first,
-    /// then the smallest record UUID string, then the smallest tiebreak
-    /// (used for rows that predate record IDs). Device-independent, so the
-    /// same set of rows selects the same primary everywhere.
+    /// Picks the day's record deterministically: the latest edit first
+    /// (`latestEdit` is `updatedAt ?? date`), then the smallest record UUID
+    /// string, then the smallest tiebreak (used for rows that predate
+    /// record IDs). Device-independent, so the same set of rows selects the
+    /// same primary everywhere, and editing an older version promotes it
+    /// (`design/journal.md` section 6).
     static func select<Record>(
         _ records: [Record],
-        date: (Record) -> Date,
+        latestEdit: (Record) -> Date,
         recordID: (Record) -> UUID?,
         tiebreak: (Record) -> String = { _ in "" }
     ) -> DailySelection<Record>? {
         guard !records.isEmpty else { return nil }
         let ordered = records.sorted { lhs, rhs in
-            let lhsDate = date(lhs)
-            let rhsDate = date(rhs)
-            if lhsDate != rhsDate { return lhsDate < rhsDate }
+            let lhsEdit = latestEdit(lhs)
+            let rhsEdit = latestEdit(rhs)
+            if lhsEdit != rhsEdit { return lhsEdit > rhsEdit }
             let lhsID = recordID(lhs)?.uuidString ?? ""
             let rhsID = recordID(rhs)?.uuidString ?? ""
             if lhsID != rhsID { return lhsID < rhsID }

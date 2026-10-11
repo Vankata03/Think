@@ -10,6 +10,7 @@ import SwiftData
 import Foundation
 import AppIntents
 import WidgetKit
+import UserNotifications
 
 nonisolated enum SevenDayReviewPromptPolicy {
     static let storageKey = "hasRequestedReviewAfterSevenDayStreak"
@@ -39,9 +40,13 @@ struct ThinkApp: App {
     @State private var dataReset: AppDataResetCoordinator
     @State private var practicePreferences: PracticePreferencesStore
     @State private var privacyShield = AppPrivacyShield()
+    @State private var notificationAccess: NotificationAccess
+    @State private var uiTestNotificationPrompt: UITestNotificationPrompt?
     @AppStorage(Appearance.storageKey) private var appearance = Appearance.defaultChoice
     @AppStorage(Onboarding.completedKey) private var completedOnboarding = false
     private let isUITesting: Bool
+    /// UI tests skip onboarding unless they ask for it with `-ui-onboarding`.
+    private let showsOnboardingInUITests: Bool
     private let journalContainer: ModelContainer
 
     init() {
@@ -58,6 +63,14 @@ struct ThinkApp: App {
         }
         Appearance.seedDefault(in: .standard)
         let arguments = ProcessInfo.processInfo.arguments
+        showsOnboardingInUITests = isUITesting && arguments.contains("-ui-onboarding")
+        if isUITesting {
+            let prompt = UITestNotificationPrompt(denied: arguments.contains("-ui-notifications-denied"))
+            _uiTestNotificationPrompt = State(initialValue: prompt)
+            _notificationAccess = State(initialValue: NotificationAccess(authorizer: prompt, scheduleReminders: {}))
+        } else {
+            _notificationAccess = State(initialValue: NotificationAccess())
+        }
         if isUITesting && arguments.contains("-ui-journal-locked") {
             UserDefaults.standard.set(true, forKey: JournalLock.enabledKey)
         }
@@ -107,6 +120,17 @@ struct ThinkApp: App {
                 _ = try? repository.saveNote(text: "SCROLL AUDIT NOTE \(index)")
             }
         }
+        if isUITesting && arguments.contains("-ui-seed-journal-versions") {
+            // Three devices answered today offline (`design/journal.md`
+            // section 6): the latest, VERSION C, is the day's record.
+            let today = CivilDay.today()
+            for (index, name) in ["A", "B", "C"].enumerated() {
+                _ = try? repository.saveAnswer(text: "VERSION \(name) of today's answer.", practiceID: ContentLibrary.dailyPractice().id,
+                                               prompt: "PRIVATE AUDIT PROMPT", mood: name == "C" ? .good : nil,
+                                               themes: name == "C" ? ThemeSelection(primary: .work, secondary: .people) : nil,
+                                               day: today, date: today.start.addingTimeInterval(TimeInterval(60 * (index + 1))))
+            }
+        }
         if isUITesting && arguments.contains("-ui-seed-journal-list") {
             // Every row shape of the Journal list (`design/journal.md`
             // section 4): each kind, moods, themes, a second version of
@@ -133,6 +157,14 @@ struct ThinkApp: App {
             draft.text = "Half a thought about the weekend"
             try? drafts.save(draft)
         }
+        if isUITesting && arguments.contains("-ui-seed-weekly-review") {
+            // This week's reflection and a tagged note, for the weekly
+            // review's Saved row and its lock checks.
+            let week = WeeklyReviewWeek()
+            _ = try? repository.saveWeeklyReview(text: "PRIVATE WEEKLY REFLECTION", nextIntention: "PRIVATE NEXT WEEK",
+                                                 weekStart: week.start.start, timeZone: week.start.timeZone)
+            _ = try? repository.saveNote(text: "PRIVATE WEEK NOTE", mood: .good)
+        }
         let progressDefaults: UserDefaults
         if isUITesting, let bundleIdentifier = Bundle.main.bundleIdentifier {
             let suiteName = "\(bundleIdentifier).ui-tests"
@@ -151,6 +183,16 @@ struct ThinkApp: App {
         if isUITesting && arguments.contains("-ui-seed-path-step") {
             // Today's Deep focus step done, so the Paths hero shows its done form.
             progressStore.completePathStep(pathID: PathLibrary.deepFocus.id, totalSteps: PathLibrary.deepFocus.steps.count)
+        }
+        if isUITesting && arguments.contains("-ui-seed-path-finished") {
+            // Deep focus finished on earlier days, so its detail offers Begin again.
+            let calendar = Calendar.current
+            let path = PathLibrary.deepFocus
+            let start = calendar.date(byAdding: .day, value: -30, to: calendar.startOfDay(for: .now))!
+            for day in path.steps.indices {
+                let date = calendar.date(byAdding: DateComponents(day: day, hour: 9), to: start)!
+                progressStore.completePathStep(pathID: path.id, totalSteps: path.steps.count, at: date)
+            }
         }
         if isUITesting && arguments.contains("-ui-seed-focus") {
             let sessionID = "audit-focus-session"
@@ -206,9 +248,14 @@ struct ThinkApp: App {
         )
         let ledgerDefaults = isUITesting ? progressDefaults : appGroupDefaults
         let ledger = FocusEventLedger(defaults: ledgerDefaults)
-        let mindfulHealthClient: any MindfulHealthClient = isUITesting
-            ? UnavailableMindfulHealthClient()
-            : HealthKitMindfulHealthClient()
+        let mindfulHealthClient: any MindfulHealthClient
+        if isUITesting {
+            mindfulHealthClient = arguments.contains("-ui-health-available")
+                ? UITestMindfulHealthClient()
+                : UnavailableMindfulHealthClient()
+        } else {
+            mindfulHealthClient = HealthKitMindfulHealthClient()
+        }
         let mindfulMinutes = MindfulMinutesStore(
             defaults: UserDefaults.standard,
             client: mindfulHealthClient
@@ -310,7 +357,7 @@ struct ThinkApp: App {
     var body: some Scene {
         WindowGroup {
             Group {
-                if isUITesting || completedOnboarding {
+                if completedOnboarding || (isUITesting && !showsOnboardingInUITests) {
                     RootTabView()
                 } else {
                     OnboardingView()
@@ -329,7 +376,9 @@ struct ThinkApp: App {
             .environment(journalDrafts)
             .environment(dataReset)
             .environment(practicePreferences)
+            .environment(notificationAccess)
             .environment(\.haptics, .live)
+            .modifier(UITestNotificationPromptAlert(prompt: uiTestNotificationPrompt))
             .task {
                 try? journalRepository.ensureRecordIdentities()
                 cloudBackup.startObservingMirroringEvents()
@@ -389,3 +438,61 @@ private final class UITestJournalAuthenticator: JournalAuthenticator {
 }
 
 private enum UITestJournalFailure: Error { case save }
+
+/// Stands in for the system notification prompt in UI tests, which cannot
+/// reset the real answer between tests. Asks only while undetermined, as
+/// the system does.
+@Observable
+@MainActor
+private final class UITestNotificationPrompt: NotificationAuthorizing {
+    private var current: UNAuthorizationStatus
+    private(set) var isAsking = false
+    @ObservationIgnored private var answer: CheckedContinuation<Bool, Never>?
+
+    init(denied: Bool) { current = denied ? .denied : .notDetermined }
+
+    func status() async -> UNAuthorizationStatus { current }
+
+    func requestAuthorization() async -> Bool {
+        guard current == .notDetermined else { return current == .authorized }
+        let granted = await withCheckedContinuation { continuation in
+            answer = continuation
+            isAsking = true
+        }
+        current = granted ? .authorized : .denied
+        return granted
+    }
+
+    func respond(_ granted: Bool) {
+        isAsking = false
+        answer?.resume(returning: granted)
+        answer = nil
+    }
+}
+
+private struct UITestNotificationPromptAlert: ViewModifier {
+    let prompt: UITestNotificationPrompt?
+
+    func body(content: Content) -> some View {
+        if let prompt {
+            content.alert(
+                Text(verbatim: "UITestNotificationPrompt"),
+                isPresented: Binding(get: { prompt.isAsking }, set: { _ in })
+            ) {
+                Button { prompt.respond(true) } label: { Text(verbatim: "Allow") }
+                Button(role: .cancel) { prompt.respond(false) } label: { Text(verbatim: "Don't Allow") }
+            }
+        } else {
+            content
+        }
+    }
+}
+
+/// A Health client that can be enabled, so UI tests see the onboarding row.
+@MainActor
+private final class UITestMindfulHealthClient: MindfulHealthClient {
+    private(set) var authorization = MindfulMinutesAuthorization.notDetermined
+
+    func requestAuthorization() async throws { authorization = .authorized }
+    func saveMindfulSession(identifier: String, startDate: Date, endDate: Date) async throws { }
+}

@@ -22,6 +22,7 @@ struct SettingsView: View {
     @Environment(JournalRepository.self) private var journalRepository
     @Environment(AppDataResetCoordinator.self) private var dataReset
     @Environment(PomodoroTimer.self) private var timer
+    @Environment(NotificationAccess.self) private var notificationAccess: NotificationAccess?
     @Environment(\.haptics) private var haptics
     @Environment(\.openURL) private var openURL
     @Environment(\.scenePhase) private var scenePhase
@@ -301,6 +302,8 @@ struct SettingsView: View {
         }
     }
 
+    private var notifications: NotificationAccess { notificationAccess ?? .system }
+
     // MARK: - Bindings
 
     private var journalLockEnabled: Binding<Bool> {
@@ -334,7 +337,8 @@ struct SettingsView: View {
             set: { enabled in
                 haptics.play(.selection)
                 Task { @MainActor in
-                    notificationAuthorization = await SessionEndAlerts.setEnabled(enabled, timer: timer)
+                    notificationAuthorization = await SessionEndAlerts.setEnabled(
+                        enabled, timer: timer, permission: notifications.authorizer)
                 }
             }
         )
@@ -395,7 +399,7 @@ struct SettingsView: View {
 
     private func refreshNotificationAuthorization() {
         Task { @MainActor in
-            notificationAuthorization = await NotificationPermission.status()
+            notificationAuthorization = await notifications.authorizer.status()
         }
     }
 
@@ -413,7 +417,7 @@ struct SettingsView: View {
             } else {
                 RetroReminder.cancelSchedule()
             }
-            notificationAuthorization = await NotificationPermission.status()
+            notificationAuthorization = await notifications.authorizer.status()
         }
     }
 
@@ -446,8 +450,9 @@ private struct SettingsLabel: View {
 
 /// The system switch, except at accessibility sizes, where a label that
 /// wraps would leave the switch floating between its lines: the switch
-/// then sits under the label (`progress-settings.md` section 3).
-private struct SettingsToggleStyle: ToggleStyle {
+/// then sits under the label (`progress-settings.md` section 3). Onboarding
+/// uses it too (`onboarding.md` section 4).
+struct SettingsToggleStyle: ToggleStyle {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     func makeBody(configuration: Configuration) -> some View {

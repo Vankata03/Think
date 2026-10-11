@@ -20,7 +20,8 @@ extension JournalDraft {
         case JournalEntry.kindWeeklyReview: kind = .weeklyReview
         default: kind = .note
         }
-        let day = CivilDay(storedKey: entry.civilDay, timeZoneIdentifier: entry.timeZoneIdentifier)
+        let day =
+            CivilDay(storedKey: entry.civilDay, timeZoneIdentifier: entry.timeZoneIdentifier)
             ?? CivilDay(date: entry.date)
         var draft = JournalDraft(
             kind: kind,
@@ -42,7 +43,8 @@ extension JournalDraft {
 
     static func editing(_ retro: JournalRepository.RetroSnapshot) -> JournalDraft? {
         guard let recordID = retro.recordID else { return nil }
-        let day = CivilDay(storedKey: retro.civilDay, timeZoneIdentifier: retro.timeZoneIdentifier)
+        let day =
+            CivilDay(storedKey: retro.civilDay, timeZoneIdentifier: retro.timeZoneIdentifier)
             ?? CivilDay(date: retro.date)
         var draft = JournalDraft(
             kind: .retro,
@@ -73,21 +75,14 @@ extension JournalDraft {
     /// First non-empty line of whatever the draft holds, for recovery rows.
     var recoveryPreview: String {
         let candidates = [text, fields["wentWell"] ?? "", fields["improve"] ?? "", fields["tomorrow"] ?? "", tomorrowIntention ?? ""]
-        let line = candidates.first { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }?
+        let line =
+            candidates.first { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }?
             .split(whereSeparator: \.isNewline).first.map(String.init) ?? ""
         return line.isEmpty ? String(localized: "No text yet") : line
     }
 }
 
 extension JournalRepository.EntrySnapshot {
-    var kindLabel: String {
-        switch kind {
-        case JournalEntry.kindQuestion: String(localized: "Question of the day")
-        case JournalEntry.kindFocus: String(localized: "Focus note")
-        case JournalEntry.kindWeeklyReview: String(localized: "Weekly review")
-        default: String(localized: "Note")
-        }
-    }
     var day: CivilDay { CivilDay(storedKey: civilDay, timeZoneIdentifier: timeZoneIdentifier) ?? CivilDay(date: date) }
 }
 
@@ -102,61 +97,213 @@ func existingEditingDraft(for recordID: UUID, in drafts: JournalDraftStore) thro
     try drafts.drafts().first { $0.context.editingRecordID == recordID }
 }
 
-// MARK: - Entry detail
+// MARK: - Read detail
 
-/// Authenticated reader for one stored entry. Nothing private renders
-/// while the lock is engaged; the gate is the only content then.
-struct JournalEntryDetailView: View {
-    let recordID: UUID
+/// A record the read detail opens. Entries and retros live in separate
+/// tables, so the ID alone does not say where to look.
+enum JournalRecordID: Hashable {
+    case entry(UUID)
+    case retro(UUID)
+
+    var uuid: UUID {
+        switch self {
+        case .entry(let id), .retro(let id): id
+        }
+    }
+}
+
+/// What the read detail says (`design/journal.md` section 5): the civil
+/// day, the prompt, the writing, when it was written and edited, and its
+/// mood and themes.
+struct JournalDetailContent: Equatable {
+    struct Prompt: Equatable {
+        enum Style: Equatable {
+            /// The question of the day, or the week a review is about.
+            case question
+            /// A focus note's session intention: read-only, so it reads
+            /// in `secondaryLabel`.
+            case intention
+        }
+        let text: String
+        let style: Style
+    }
+
+    /// One block of writing, under its prompt when it has one (a retro's
+    /// three prompts, "Intention for tomorrow", "Next week").
+    struct Field: Equatable {
+        let heading: String?
+        let text: String
+    }
+
+    let kind: JournalRowContent.Kind
+    /// The civil day in full. Nil for a weekly review, whose prompt
+    /// already names its week.
+    let day: String?
+    let prompt: Prompt?
+    let fields: [Field]
+    /// "Written *time*", plus " · Edited *time*" after a later edit.
+    let written: String?
+    let mood: Mood?
+    /// Mood, primary theme and secondary theme joined by " · ".
+    let tags: String?
+
+    var title: String { kind.name }
+
+    var deleteTitle: String {
+        kind == .retro ? String(localized: "Delete this retro?") : String(localized: "Delete this entry?")
+    }
+
+    init(_ entry: JournalRepository.EntrySnapshot) {
+        kind = JournalRowContent.Kind(stored: entry.kind)
+        let day = entry.day
+        switch kind {
+        case .weeklyReview:
+            self.day = nil
+            prompt = Prompt(text: JournalRowContent(entry).title, style: .question)
+            fields = Self.fields([(nil, entry.text), (String(localized: "Next week"), entry.nextIntention ?? "")])
+            written = Self.written(nil, updatedAt: entry.updatedAt, day: day)
+        default:
+            self.day = JournalTimeline.fullDate(day)
+            // A note saved from a practice keeps its prompt too.
+            prompt = entry.prompt.isEmpty ? nil : Prompt(text: entry.prompt, style: kind == .focusNote ? .intention : .question)
+            fields = Self.fields([(nil, entry.text)])
+            written = Self.written(entry.date, updatedAt: entry.updatedAt, day: day)
+        }
+        mood = Mood(stored: entry.mood)
+        tags = Self.tags(mood, entry.themes)
+    }
+
+    init(_ retro: JournalRepository.RetroSnapshot) {
+        kind = .retro
+        let day = retro.day
+        self.day = JournalTimeline.fullDate(day)
+        prompt = nil
+        fields = Self.fields([
+            (String(localized: "What went well?"), retro.wentWell),
+            (String(localized: "What can improve?"), retro.improve),
+            (String(localized: "Ideas & tomorrow"), retro.tomorrow),
+            (String(localized: "Intention for tomorrow"), retro.tomorrowIntention ?? ""),
+        ])
+        written = Self.written(retro.date, updatedAt: retro.updatedAt, day: day)
+        mood = Mood(stored: retro.mood)
+        tags = Self.tags(mood, retro.themes)
+    }
+
+    /// The non-empty blocks, in order.
+    private static func fields(_ blocks: [(String?, String)]) -> [Field] {
+        blocks
+            .filter { !$0.1.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+            .map { Field(heading: $0.0, text: $0.1) }
+    }
+
+    /// Times read in the zone the day was captured in. An edit on a later
+    /// day carries its date, so "Edited" never passes for the same day.
+    private static func written(_ date: Date?, updatedAt: Date?, day: CivilDay) -> String? {
+        var parts: [String] = []
+        if let date {
+            parts.append(String(localized: "Written \(format(date, zone: day.timeZone, withDate: false))"))
+        }
+        if let updatedAt, updatedAt != date {
+            parts.append(String(localized: "Edited \(format(updatedAt, zone: day.timeZone, withDate: !day.contains(updatedAt)))"))
+        }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
+    }
+
+    private static func format(_ date: Date, zone: TimeZone, withDate: Bool) -> String {
+        var style = Date.FormatStyle(date: withDate ? .abbreviated : .omitted, time: .shortened)
+        style.timeZone = zone
+        return date.formatted(style)
+    }
+
+    private static func tags(_ mood: Mood?, _ themes: ThemeSelection) -> String? {
+        let parts = [mood?.label, themes.primary?.label, themes.secondary?.label].compactMap { $0 }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
+    }
+}
+
+/// Another record of the same day or week, as a row in the versions list.
+struct JournalVersion: Identifiable {
+    let record: JournalRecordID
+    let row: JournalRowContent
+    var id: UUID { record.uuid }
+}
+
+extension JournalRepository {
+    /// The other versions of a record's day or week, newest edit first
+    /// (`design/journal.md` section 6). Empty for a record that has none.
+    func otherVersions(of record: JournalRecordID) throws -> [JournalVersion] {
+        switch record {
+        case .entry(let id):
+            return try (selection(containingEntry: id)?.all ?? []).compactMap { entry in
+                guard let other = entry.recordID, other != id else { return nil }
+                return JournalVersion(record: .entry(other), row: JournalRowContent(entry))
+            }
+        case .retro(let id):
+            return try (selection(containingRetro: id)?.all ?? []).compactMap { retro in
+                guard let other = retro.recordID, other != id else { return nil }
+                return JournalVersion(record: .retro(other), row: JournalRowContent(retro))
+            }
+        }
+    }
+}
+
+/// The one read-only view of a journal record (`design/journal.md`
+/// section 5), pushed from a Journal row, from Today's done answer and
+/// retro rows and from the weekly review's saved reflection. Nothing
+/// private renders while the lock is engaged: a detail that locks
+/// underneath shows the Locked state (section 7).
+struct JournalDetailView: View {
+    let record: JournalRecordID
+
+    private struct Loaded {
+        let content: JournalDetailContent
+        /// The editor's draft for this record; nil only for a row that
+        /// predates record identities.
+        let draft: JournalDraft?
+        let versions: [JournalVersion]
+    }
+
     @Environment(JournalRepository.self) private var repository
     @Environment(JournalDraftStore.self) private var drafts
     @Environment(JournalLock.self) private var lock
     @Environment(\.dismiss) private var dismiss
-    @State private var entry: JournalRepository.EntrySnapshot?
-    @State private var variants: [JournalRepository.EntrySnapshot] = []
+    @ThinkSpacing.Scaled(ThinkSpacing.s) private var gap
+    @ThinkSpacing.Scaled(ThinkSpacing.xs) private var tightGap
+    @State private var loaded: Loaded?
+    @State private var missing = false
+    @State private var loadFailed = false
+    /// Set once the record is gone, so the revision bump does not flash
+    /// "Entry not found." while the view pops.
+    @State private var deleted = false
     @State private var editing: JournalDraft?
     @State private var confirmingDelete = false
     @State private var error: String?
-    @State private var missing = false
 
     var body: some View {
         Group {
             if lock.isLocked {
                 JournalGate()
-            } else if let entry {
-                content(entry)
+            } else if let loaded {
+                content(loaded)
             } else if missing {
-                ContentUnavailableView("Entry not found", systemImage: "doc.questionmark")
+                unavailable("Entry not found.", action: "Close") { dismiss() }
+                    .accessibilityIdentifier("JournalDetailMissing")
+            } else if loadFailed {
+                unavailable("Could not load this entry.", action: "Try again") { load() }
             } else {
                 ProgressView()
             }
         }
-        .navigationTitle(entry?.kindLabel ?? String(localized: "Entry"))
+        .navigationTitle(loaded?.content.title ?? "")
         .navigationBarTitleDisplayMode(.inline)
-        .background(Color(.systemGroupedBackground))
-        .accessibilityIdentifier("JournalEntryDetail")
+        .accessibilityIdentifier("JournalDetail")
         .toolbar {
-            if !lock.isLocked, entry != nil {
+            if !lock.isLocked, loaded != nil {
                 ToolbarItem(placement: .primaryAction) {
-                    Menu {
-                        Button { edit() } label: { Label("Edit", systemImage: "pencil") }
-                            .accessibilityIdentifier("EditEntry")
-                        Button(role: .destructive) { confirmingDelete = true } label: { Label("Delete", systemImage: "trash") }
-                            .accessibilityIdentifier("DeleteEntry")
-                    } label: {
-                        Image(systemName: "ellipsis.circle")
-                    }
-                    .accessibilityLabel("Entry actions")
-                    .accessibilityIdentifier("EntryActions")
+                    Button("Edit") { edit() }
+                        .accessibilityIdentifier("EditEntry")
                 }
             }
-        }
-        .confirmationDialog("Delete this entry?", isPresented: $confirmingDelete, titleVisibility: .visible) {
-            Button("Delete entry", role: .destructive) { delete() }
-                .accessibilityIdentifier("ConfirmDeleteEntry")
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("This removes the entry from this device. Other versions of the same day are kept.")
         }
         .sheet(item: $editing) { draft in JournalEditor(draft: draft) }
         .task { load() }
@@ -164,78 +311,151 @@ struct JournalEntryDetailView: View {
         .onChange(of: lock.isLocked) { _, locked in if !locked { load() } }
     }
 
-    private func content(_ entry: JournalRepository.EntrySnapshot) -> some View {
+    private func content(_ loaded: Loaded) -> some View {
         List {
-            Section {
-                JournalStorageWarning()
-                if let error {
-                    Text(error).foregroundStyle(.red).accessibilityIdentifier("JournalDetailError")
+            if repository.storageWarning != nil || error != nil {
+                Section {
+                    JournalStorageWarning()
+                    if let error {
+                        Text(error).foregroundStyle(ThinkColor.destructive).accessibilityIdentifier("JournalDetailError")
+                    }
                 }
-                // One caption line, no key (`JRN-6`, `design/journal.md` section 5).
-                Text(JournalTimeline.fullDate(entry.day))
+            }
+            Section {
+                recordRow(loaded.content)
+                    .listRowBackground(Color.clear)
+            }
+            if !loaded.versions.isEmpty {
+                Section { versionsLink(loaded.versions) }
+            }
+            Section {
+                Button("Delete entry", role: .destructive) { confirmingDelete = true }
+                    .accessibilityIdentifier("DeleteEntry")
+                    // On the row, so the dialog points at what asked for it.
+                    .confirmationDialog(loaded.content.deleteTitle, isPresented: $confirmingDelete, titleVisibility: .visible) {
+                        Button("Delete entry", role: .destructive) { delete() }
+                            .accessibilityIdentifier("ConfirmDeleteEntry")
+                    } message: {
+                        Text("It is removed from this device and your iCloud.")
+                    }
+            }
+        }
+        .listStyle(.insetGrouped)
+    }
+
+    /// The one clear content row. Each text stays its own element so
+    /// VoiceOver reaches and selects the writing.
+    private func recordRow(_ content: JournalDetailContent) -> some View {
+        VStack(alignment: .leading, spacing: gap) {
+            if let day = content.day {
+                Text(day)
                     .font(.think(.caption))
                     .foregroundStyle(ThinkColor.secondaryLabel)
-                if let mood = Mood(stored: entry.mood) {
-                    LabeledContent("Mood") { Label(mood.label, systemImage: mood.systemImage) }
-                }
-                if let updated = entry.updatedAt {
-                    LabeledContent("Edited", value: updated.formatted(date: .abbreviated, time: .shortened))
-                }
             }
-            if !entry.prompt.isEmpty {
-                Section("Prompt") {
-                    Text(entry.prompt).font(.body).foregroundStyle(.primary)
-                }
+            if let prompt = content.prompt {
+                Text(prompt.text)
+                    .font(.think(.question))
+                    .foregroundStyle(prompt.style == .intention ? ThinkColor.secondaryLabel : ThinkColor.label)
+                    .accessibilityIdentifier("JournalDetailPrompt")
             }
-            Section {
-                Text(entry.text)
-                    .font(.body)
-                    .foregroundStyle(.primary)
-                    .textSelection(.enabled)
-                    .accessibilityIdentifier("JournalEntryText")
-            }
-            if let intention = entry.nextIntention, !intention.isEmpty {
-                Section("Intention for next week") { Text(intention).font(.body) }
-            }
-            if !variants.isEmpty {
-                Section {
-                    ForEach(variants) { variant in
-                        if let id = variant.recordID {
-                            NavigationLink { JournalEntryDetailView(recordID: id) } label: { JournalRow(content: JournalRowContent(variant)) }
-                        } else {
-                            JournalRow(content: JournalRowContent(variant))
-                        }
+            ForEach(Array(content.fields.enumerated()), id: \.offset) { index, field in
+                VStack(alignment: .leading, spacing: tightGap) {
+                    if let heading = field.heading {
+                        Text(heading)
+                            .font(.think(.secondary))
+                            .fontWeight(.semibold)
+                            .foregroundStyle(ThinkColor.secondaryLabel)
                     }
-                } header: {
-                    Text("Other answers for this day")
-                } footer: {
-                    Text("Both versions are kept. Open one to edit or delete it explicitly.")
+                    Text(field.text)
+                        .font(.think(.body))
+                        .foregroundStyle(ThinkColor.label)
+                        .textSelection(.enabled)
+                        .accessibilityIdentifier("JournalDetailText.\(index)")
                 }
             }
+            VStack(alignment: .leading, spacing: tightGap) {
+                if let written = content.written {
+                    Text(written)
+                }
+                if let tags = content.tags {
+                    HStack(alignment: .firstTextBaseline, spacing: tightGap) {
+                        if let mood = content.mood { Image(systemName: mood.systemImage).accessibilityHidden(true) }
+                        // Wraps at accessibility sizes instead of truncating.
+                        Text(tags).fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+            }
+            .font(.think(.caption))
+            .foregroundStyle(ThinkColor.secondaryLabel)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    /// One version pushes its detail; more than one push a list of them.
+    private func versionsLink(_ versions: [JournalVersion]) -> some View {
+        NavigationLink {
+            if versions.count == 1 {
+                JournalDetailView(record: versions[0].record)
+            } else {
+                JournalVersionsView(record: record)
+            }
+        } label: {
+            Text("Another version from this day")
+        }
+        .accessibilityIdentifier("AnotherVersion")
+    }
+
+    private func unavailable(_ title: LocalizedStringKey, action: LocalizedStringKey, perform: @escaping () -> Void) -> some View {
+        ContentUnavailableView {
+            Label(title, systemImage: ThinkSymbol.unavailable)
+        } actions: {
+            Button(action, action: perform).thinkButton(.secondary)
         }
     }
 
     private func load() {
-        guard !lock.isLocked else { return }
+        guard !lock.isLocked, !deleted else { return }
         do {
-            guard let value = try repository.entry(id: recordID) else { entry = nil; missing = true; return }
-            entry = value
-            missing = false
-            if value.kind == JournalEntry.kindQuestion, let selection = try repository.answer(for: value.day) {
-                variants = selection.all.filter { $0.recordID != recordID }
-            } else {
-                variants = []
+            switch record {
+            case .entry(let id):
+                guard let entry = try repository.entry(id: id) else {
+                    loaded = nil
+                    missing = true
+                    return
+                }
+                loaded = Loaded(
+                    content: JournalDetailContent(entry), draft: JournalDraft.editing(entry),
+                    versions: try repository.otherVersions(of: record))
+            case .retro(let id):
+                guard let retro = try repository.retro(id: id) else {
+                    loaded = nil
+                    missing = true
+                    return
+                }
+                loaded = Loaded(
+                    content: JournalDetailContent(retro), draft: JournalDraft.editing(retro),
+                    versions: try repository.otherVersions(of: record))
             }
+            missing = false
+            loadFailed = false
         } catch {
-            self.error = String(localized: "Could not load this entry. Try again.")
+            // What already loaded stays; the failure becomes a row above it.
+            if loaded == nil {
+                loadFailed = true
+            } else {
+                self.error = String(localized: "Could not load this entry. Try again.")
+            }
         }
     }
 
     private func edit() {
-        guard let entry else { return }
+        guard let loaded else { return }
         do {
-            if let draft = try existingEditingDraft(for: recordID, in: drafts) { editing = draft; return }
-            guard let draft = JournalDraft.editing(entry) else {
+            if let draft = try existingEditingDraft(for: record.uuid, in: drafts) {
+                editing = draft
+                return
+            }
+            guard let draft = loaded.draft else {
                 error = String(localized: "This entry has no identity yet and cannot be edited.")
                 return
             }
@@ -245,15 +465,21 @@ struct JournalEntryDetailView: View {
         }
     }
 
+    /// Asks first (the dialog), then removes the record and any unsaved
+    /// edit of it, and pops.
     private func delete() {
         do {
-            try repository.deleteEntry(id: recordID)
+            switch record {
+            case .entry(let id): try repository.deleteEntry(id: id)
+            case .retro(let id): try repository.deleteRetro(id: id)
+            }
         } catch {
             self.error = String(localized: "Could not delete this entry. It is still here. Try again.")
             return
         }
+        deleted = true
         do {
-            if let draft = try existingEditingDraft(for: recordID, in: drafts) {
+            if let draft = try existingEditingDraft(for: record.uuid, in: drafts) {
                 try drafts.delete(id: draft.id)
             }
         } catch {
@@ -264,185 +490,15 @@ struct JournalEntryDetailView: View {
     }
 }
 
-// MARK: - Retro detail
+/// The other versions of a day, newest edit first, when there is more
+/// than one (`design/journal.md` section 5). Each pushes its read detail.
+struct JournalVersionsView: View {
+    let record: JournalRecordID
 
-struct JournalRetroDetailView: View {
-    let recordID: UUID
     @Environment(JournalRepository.self) private var repository
-    @Environment(JournalDraftStore.self) private var drafts
     @Environment(JournalLock.self) private var lock
-    @Environment(\.dismiss) private var dismiss
-    @ThinkSpacing.Scaled(ThinkSpacing.m) private var fieldGap
-    @ThinkSpacing.Scaled(ThinkSpacing.xs) private var promptGap
-    @State private var retro: JournalRepository.RetroSnapshot?
-    @State private var variants: [JournalRepository.RetroSnapshot] = []
-    @State private var editing: JournalDraft?
-    @State private var confirmingDelete = false
-    @State private var error: String?
-    @State private var missing = false
-
-    var body: some View {
-        Group {
-            if lock.isLocked {
-                JournalGate()
-            } else if let retro {
-                content(retro)
-            } else if missing {
-                ContentUnavailableView("Retrospective not found", systemImage: "doc.questionmark")
-            } else {
-                ProgressView()
-            }
-        }
-        .navigationTitle("Retrospective")
-        .navigationBarTitleDisplayMode(.inline)
-        .background(Color(.systemGroupedBackground))
-        .accessibilityIdentifier("JournalRetroDetail")
-        .toolbar {
-            if !lock.isLocked, retro != nil {
-                ToolbarItem(placement: .primaryAction) {
-                    Menu {
-                        Button { edit() } label: { Label("Edit", systemImage: "pencil") }
-                            .accessibilityIdentifier("EditRetro")
-                        Button(role: .destructive) { confirmingDelete = true } label: { Label("Delete", systemImage: "trash") }
-                            .accessibilityIdentifier("DeleteRetro")
-                    } label: {
-                        Image(systemName: "ellipsis.circle")
-                    }
-                    .accessibilityLabel("Retrospective actions")
-                    .accessibilityIdentifier("RetroActions")
-                }
-            }
-        }
-        .confirmationDialog("Delete this retrospective?", isPresented: $confirmingDelete, titleVisibility: .visible) {
-            Button("Delete retrospective", role: .destructive) { delete() }
-                .accessibilityIdentifier("ConfirmDeleteRetro")
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("This removes the retrospective from this device. Other versions of the same day are kept.")
-        }
-        .sheet(item: $editing) { draft in JournalEditor(draft: draft) }
-        .task { load() }
-        .onChange(of: repository.revision) { _, _ in load() }
-        .onChange(of: lock.isLocked) { _, locked in if !locked { load() } }
-    }
-
-    private func content(_ retro: JournalRepository.RetroSnapshot) -> some View {
-        List {
-            Section {
-                JournalStorageWarning()
-                if let error {
-                    Text(error).foregroundStyle(.red).accessibilityIdentifier("JournalDetailError")
-                }
-                // One caption line, no key (`JRN-6`, `design/journal.md` section 5).
-                Text(JournalTimeline.fullDate(retro.day))
-                    .font(.think(.caption))
-                    .foregroundStyle(ThinkColor.secondaryLabel)
-                if let mood = Mood(stored: retro.mood) {
-                    LabeledContent("Mood") { Label(mood.label, systemImage: mood.systemImage) }
-                }
-                if let updated = retro.updatedAt {
-                    LabeledContent("Edited", value: updated.formatted(date: .abbreviated, time: .shortened))
-                }
-            }
-            if let prompt = retro.promptSnapshot, !prompt.isEmpty {
-                Section("Question that day") { Text(prompt).font(.body) }
-            }
-            Section {
-                VStack(alignment: .leading, spacing: fieldGap) {
-                    retroField("What went well?", retro.wentWell)
-                    retroField("What can improve?", retro.improve)
-                    retroField("Ideas & tomorrow", retro.tomorrow)
-                    retroField("Intention carried into the next day", retro.tomorrowIntention ?? "")
-                }
-                .textSelection(.enabled)
-                .accessibilityIdentifier("JournalRetroText")
-            }
-            if !variants.isEmpty {
-                Section {
-                    ForEach(variants) { variant in
-                        if let id = variant.recordID {
-                            NavigationLink { JournalRetroDetailView(recordID: id) } label: { JournalRow(content: JournalRowContent(variant)) }
-                        } else {
-                            JournalRow(content: JournalRowContent(variant))
-                        }
-                    }
-                } header: {
-                    Text("Other retrospectives for this day")
-                } footer: {
-                    Text("Both versions are kept. Open one to edit or delete it explicitly.")
-                }
-            }
-        }
-    }
-
-    /// A retro prompt over its answer (`design/journal.md` section 5).
-    @ViewBuilder
-    private func retroField(_ prompt: LocalizedStringKey, _ text: String) -> some View {
-        if !text.isEmpty {
-            VStack(alignment: .leading, spacing: promptGap) {
-                Text(prompt).font(.think(.secondary)).fontWeight(.semibold).foregroundStyle(ThinkColor.secondaryLabel)
-                Text(text).font(.think(.body)).foregroundStyle(ThinkColor.label)
-            }
-        }
-    }
-
-    private func load() {
-        guard !lock.isLocked else { return }
-        do {
-            guard let value = try repository.retro(id: recordID) else { retro = nil; missing = true; return }
-            retro = value
-            missing = false
-            variants = try repository.retro(for: value.day)?.all.filter { $0.recordID != recordID } ?? []
-        } catch {
-            self.error = String(localized: "Could not load this retrospective. Try again.")
-        }
-    }
-
-    private func edit() {
-        guard let retro else { return }
-        do {
-            if let draft = try existingEditingDraft(for: recordID, in: drafts) { editing = draft; return }
-            guard let draft = JournalDraft.editing(retro) else {
-                error = String(localized: "This entry has no identity yet and cannot be edited.")
-                return
-            }
-            editing = draft
-        } catch {
-            self.error = String(localized: "Could not read the saved edit. Your retrospective is unchanged. Try again.")
-        }
-    }
-
-    private func delete() {
-        do {
-            try repository.deleteRetro(id: recordID)
-        } catch {
-            self.error = String(localized: "Could not delete this retrospective. It is still here. Try again.")
-            return
-        }
-        do {
-            if let draft = try existingEditingDraft(for: recordID, in: drafts) {
-                try drafts.delete(id: draft.id)
-            }
-        } catch {
-            self.error = String(localized: "Retrospective deleted. Its unsaved edit is still here; retry cleanup from Drafts.")
-            return
-        }
-        dismiss()
-    }
-}
-
-// MARK: - Same-day conflict chooser
-
-/// Lists every record that claims one day so the person picks which to
-/// open. Nothing is merged or discarded on their behalf.
-struct JournalDayVariantsView: View {
-    enum Records {
-        case answers([JournalRepository.EntrySnapshot])
-        case retros([JournalRepository.RetroSnapshot])
-    }
-    let day: CivilDay
-    let records: Records
-    @Environment(JournalLock.self) private var lock
+    @State private var versions: [JournalVersion] = []
+    @State private var loadFailed = false
 
     var body: some View {
         Group {
@@ -450,34 +506,38 @@ struct JournalDayVariantsView: View {
                 JournalGate()
             } else {
                 List {
-                    Section {
-                        switch records {
-                        case .answers(let entries):
-                            ForEach(entries) { entry in
-                                if let id = entry.recordID {
-                                    NavigationLink { JournalEntryDetailView(recordID: id) } label: { JournalRow(content: JournalRowContent(entry)) }
-                                } else {
-                                    JournalRow(content: JournalRowContent(entry))
-                                }
-                            }
-                        case .retros(let retros):
-                            ForEach(retros) { retro in
-                                if let id = retro.recordID {
-                                    NavigationLink { JournalRetroDetailView(recordID: id) } label: { JournalRow(content: JournalRowContent(retro)) }
-                                } else {
-                                    JournalRow(content: JournalRowContent(retro))
-                                }
-                            }
+                    if loadFailed {
+                        Text("Could not load this entry. Try again.")
+                            .foregroundStyle(ThinkColor.destructive)
+                    }
+                    ForEach(versions) { version in
+                        NavigationLink {
+                            JournalDetailView(record: version.record)
+                        } label: {
+                            JournalRow(content: version.row)
                         }
-                    } footer: {
-                        Text("More than one version was written for \(day.key), usually from two devices. All are kept; open one to edit or delete it.")
+                        .accessibilityIdentifier("JournalVersion.\(version.id.uuidString)")
                     }
                 }
+                .listStyle(.insetGrouped)
             }
         }
-        .navigationTitle("Versions for this day")
+        .navigationTitle("Versions")
         .navigationBarTitleDisplayMode(.inline)
-        .accessibilityIdentifier("JournalDayVariants")
+        .accessibilityIdentifier("JournalVersions")
+        .task { load() }
+        .onChange(of: repository.revision) { _, _ in load() }
+        .onChange(of: lock.isLocked) { _, locked in if locked { versions = [] } else { load() } }
+    }
+
+    private func load() {
+        guard !lock.isLocked else { return }
+        do {
+            versions = try repository.otherVersions(of: record)
+            loadFailed = false
+        } catch {
+            loadFailed = true
+        }
     }
 }
 
@@ -516,16 +576,32 @@ struct JournalRecoveryView: View {
                     } else {
                         Section {
                             ForEach(recoverable) { draft in
-                                Button { opening = draft } label: { recoveryRow(draft) }
-                                    .buttonStyle(.plain)
-                                    .accessibilityIdentifier("RecoverDraft.\(draft.id.uuidString)")
-                                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                        Button(role: .destructive) { discarding = draft } label: { Label("Discard", systemImage: "trash") }
+                                Button {
+                                    opening = draft
+                                } label: {
+                                    recoveryRow(draft)
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityIdentifier("RecoverDraft.\(draft.id.uuidString)")
+                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                    Button(role: .destructive) {
+                                        discarding = draft
+                                    } label: {
+                                        Label("Discard", systemImage: "trash")
                                     }
-                                    .contextMenu {
-                                        Button { opening = draft } label: { Label("Open", systemImage: "pencil") }
-                                        Button(role: .destructive) { discarding = draft } label: { Label("Discard", systemImage: "trash") }
+                                }
+                                .contextMenu {
+                                    Button {
+                                        opening = draft
+                                    } label: {
+                                        Label("Open", systemImage: "pencil")
                                     }
+                                    Button(role: .destructive) {
+                                        discarding = draft
+                                    } label: {
+                                        Label("Discard", systemImage: "trash")
+                                    }
+                                }
                             }
                         } footer: {
                             Text("Drafts stay on this device until you save or discard them. Opening one continues it with its original day and prompt.")
@@ -547,7 +623,14 @@ struct JournalRecoveryView: View {
         }
         .task { load() }
         .onChange(of: drafts.revision) { _, _ in load() }
-        .onChange(of: lock.isLocked) { _, locked in if locked { recoverable = []; unreadableCount = 0 } else { load() } }
+        .onChange(of: lock.isLocked) { _, locked in
+            if locked {
+                recoverable = []
+                unreadableCount = 0
+            } else {
+                load()
+            }
+        }
     }
 
     private func recoveryRow(_ draft: JournalDraft) -> some View {
@@ -582,7 +665,10 @@ struct JournalRecoveryView: View {
 
     private func discard() {
         guard let draft = discarding else { return }
-        do { try drafts.delete(id: draft.id); discarding = nil; load() }
-        catch { self.error = String(localized: "Could not discard this draft. It is still here. Try again.") }
+        do {
+            try drafts.delete(id: draft.id)
+            discarding = nil
+            load()
+        } catch { self.error = String(localized: "Could not discard this draft. It is still here. Try again.") }
     }
 }

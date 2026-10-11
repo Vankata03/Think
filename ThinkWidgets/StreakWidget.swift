@@ -66,9 +66,6 @@ struct StreakWidgetView: View {
     let entry: StreakWidgetEntry
     private let familyOverride: WidgetFamily?
 
-    private let ink = Color(red: 0.07, green: 0.07, blue: 0.08)
-    private let brandYellow = Color(red: 1.0, green: 0.83, blue: 0.20)
-
     init(entry: StreakWidgetEntry, familyOverride: WidgetFamily? = nil) {
         self.entry = entry
         self.familyOverride = familyOverride
@@ -82,7 +79,7 @@ struct StreakWidgetView: View {
         content
             .containerBackground(for: .widget) {
                 if family == .systemSmall {
-                    ink
+                    ThinkColor.surface
                 }
             }
     }
@@ -103,7 +100,7 @@ struct StreakWidgetView: View {
 
     private var circularContent: some View {
         Gauge(value: entry.presentation.practiceProgress) {
-            Image(systemName: "figure.mind.and.body")
+            Image(systemName: ThinkSymbol.practice)
         } currentValueLabel: {
             if entry.presentation.isTodayComplete {
                 Image(systemName: "checkmark")
@@ -111,67 +108,87 @@ struct StreakWidgetView: View {
             } else {
                 Text("\(entry.presentation.completedPracticeCount)")
                     .font(.headline.monospacedDigit())
+                    .fontDesign(.rounded)
             }
         }
         .gaugeStyle(.accessoryCircularCapacity)
-        .tint(brandYellow)
+        .tint(ThinkColor.accent)
         .widgetAccentable()
         .accessibilityLabel(Text("Daily practice", tableName: "StreakWidget"))
         .accessibilityValue(entry.presentation.todayText)
     }
 
     private var rectangularContent: some View {
-        VStack(alignment: .leading, spacing: 3) {
-            Label(entry.presentation.streakText, systemImage: "flame.fill")
-                .font(.headline)
-                .foregroundStyle(brandYellow)
-            Label(
-                entry.presentation.todayText,
-                systemImage: entry.presentation.isTodayComplete ? "checkmark.circle.fill" : "circle.dotted"
-            )
+        VStack(alignment: .leading, spacing: ThinkSpacing.xs) {
+            streakLabel
+            Label {
+                Text(entry.presentation.todayText)
+                    .foregroundStyle(ThinkColor.secondaryLabel)
+            } icon: {
+                Image(systemName: entry.presentation.isTodayComplete ? ThinkSymbol.done : ThinkSymbol.pathStepPending)
+                    .foregroundStyle(
+                        entry.presentation.isTodayComplete ? ThinkColor.success : ThinkColor.secondaryLabel
+                    )
+            }
             .font(.caption)
-            .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
     }
 
     private var smallContent: some View {
-        VStack(alignment: .leading, spacing: 9) {
-            Label(entry.presentation.streakText, systemImage: "flame.fill")
-                .font(.headline)
-                .foregroundStyle(brandYellow)
+        VStack(alignment: .leading, spacing: ThinkSpacing.s) {
+            streakLabel
                 .lineLimit(1)
 
-            VStack(alignment: .leading, spacing: 5) {
-                HStack {
+            VStack(alignment: .leading, spacing: ThinkSpacing.xs) {
+                // Stacked, not side by side: in bg and de, and at larger
+                // text sizes, the value clipped against the title (WID-1).
+                VStack(alignment: .leading, spacing: 0) {
                     Text("Daily practice", tableName: "StreakWidget")
-                    Spacer(minLength: 4)
+                        .foregroundStyle(ThinkColor.label)
                     Text(entry.presentation.todayText)
                         .monospacedDigit()
+                        .foregroundStyle(ThinkColor.secondaryLabel)
                 }
                 .font(.caption.weight(.semibold))
                 ProgressView(value: entry.presentation.practiceProgress)
-                    .tint(brandYellow)
+                    .tint(ThinkColor.accent)
+                    .widgetAccentable()
             }
-            .foregroundStyle(.white)
 
-            Spacer(minLength: 0)
+            Spacer(minLength: ThinkSpacing.xs)
 
             Button(intent: StartFocusSessionIntent(preset: .classic)) {
                 Label {
                     Text("Start focus", tableName: "AppIntents")
                 } icon: {
-                    Image(systemName: "timer")
+                    Image(systemName: ThinkSymbol.focus)
                 }
                 .font(.caption.weight(.semibold))
                 .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
-            .tint(brandYellow)
-            .foregroundStyle(ink)
+            .tint(ThinkColor.accent)
+            .foregroundStyle(ThinkColor.accentOnFill)
+            .widgetAccentable()
         }
         .accessibilityElement(children: .contain)
+    }
+
+    /// Text in `label`; the flame is the evidence, so it carries the accent
+    /// while a streak runs and goes quiet when it reads "Start today." or
+    /// "Begin again.".
+    private var streakLabel: some View {
+        Label {
+            Text(entry.presentation.streakText)
+                .foregroundStyle(ThinkColor.label)
+        } icon: {
+            Image(systemName: ThinkSymbol.streak)
+                .foregroundStyle(entry.presentation.streak > 0 ? ThinkColor.accent : ThinkColor.secondaryLabel)
+                .widgetAccentable(entry.presentation.streak > 0)
+        }
+        .font(.headline)
     }
 }
 
@@ -207,4 +224,17 @@ struct StreakWidget: Widget {
     StreakWidget()
 } timeline: {
     StreakWidgetEntry(date: .now, presentation: .placeholder)
+}
+
+#Preview("Small, begin again", as: .systemSmall) {
+    StreakWidget()
+} timeline: {
+    StreakWidgetEntry(
+        date: .now,
+        presentation: StreakPresentation(streak: 0, completedPracticeCount: 0, hasPractised: true)
+    )
+    StreakWidgetEntry(
+        date: .now,
+        presentation: StreakPresentation(streak: 12, completedPracticeCount: 1)
+    )
 }

@@ -46,20 +46,7 @@ struct PathsList {
         /// "Opens tomorrow at 06:00" in the locale's time format (paths.md section 7).
         func opening(locale: Locale = .current) -> String {
             guard case .done(_, let tomorrow) = form else { return "" }
-            let day = calendar.date(byAdding: .day, value: tomorrow ? 1 : 0, to: calendar.startOfDay(for: now))!
-            let six = calendar.date(bySettingHour: 6, minute: 0, second: 0, of: day)!
-            // The locale's own hour pattern: "06:00" in 24-hour locales, "6:00 AM" in 12-hour ones.
-            let formatter = DateFormatter()
-            formatter.locale = locale
-            formatter.calendar = calendar
-            formatter.timeZone = calendar.timeZone
-            formatter.setLocalizedDateFormatFromTemplate("jmm")
-            let time = formatter.string(from: six)
-            return tomorrow
-                ? String(localized: "Opens tomorrow at \(time)", comment: "Paths: when the next step opens.")
-                : String(
-                    localized: "Opens today at \(time)",
-                    comment: "Paths: when the next step opens, before 06:00 on the day it opens.")
+            return PathsList.opening(tomorrow: tomorrow, now: now, calendar: calendar, locale: locale)
         }
 
         /// The hero is one VoiceOver element (paths.md section 4.1).
@@ -149,6 +136,28 @@ struct PathsList {
             return Row(path: path, state: .inRun(done: done, total: path.steps.count, openStepToday: openToday))
         }
         pathsInDevelopment = library.count - available.count
+    }
+
+    /// "Opens tomorrow at 06:00", or "Opens today at 06:00" before 06:00 (paths.md section 7).
+    static func opening(tomorrow: Bool, now: Date, calendar: Calendar, locale: Locale) -> String {
+        let time = openingTime(now: now, calendar: calendar, locale: locale)
+        return tomorrow
+            ? String(localized: "Opens tomorrow at \(time)", comment: "Paths: when the next step opens.")
+            : String(
+                localized: "Opens today at \(time)",
+                comment: "Paths: when the next step opens, before 06:00 on the day it opens.")
+    }
+
+    /// 06:00, when the next step opens, in the locale's own hour pattern:
+    /// "06:00" in 24-hour locales, "6:00 AM" in 12-hour ones.
+    static func openingTime(now: Date, calendar: Calendar, locale: Locale) -> String {
+        let six = calendar.date(bySettingHour: 6, minute: 0, second: 0, of: calendar.startOfDay(for: now))!
+        let formatter = DateFormatter()
+        formatter.locale = locale
+        formatter.calendar = calendar
+        formatter.timeZone = calendar.timeZone
+        formatter.setLocalizedDateFormatFromTemplate("jmm")
+        return formatter.string(from: six)
     }
 
     /// Most recently practised first; a path with no date ranks last, and a
