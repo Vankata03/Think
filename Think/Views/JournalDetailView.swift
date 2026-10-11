@@ -254,6 +254,9 @@ extension JournalRepository {
 /// underneath shows the Locked state (section 7).
 struct JournalDetailView: View {
     let record: JournalRecordID
+    /// Told when a delete succeeded but left something behind, after the
+    /// view has popped. The presenting screen shows it.
+    var onNotice: ((String) -> Void)?
 
     private struct Loaded {
         let content: JournalDetailContent
@@ -466,26 +469,17 @@ struct JournalDetailView: View {
     }
 
     /// Asks first (the dialog), then removes the record and any unsaved
-    /// edit of it, and pops.
+    /// edit of it, and pops. The record being gone is what pops the view;
+    /// a leftover edit is reported to the screen underneath, because this
+    /// one is leaving (`design/journal.md` section 5).
     private func delete() {
-        do {
-            switch record {
-            case .entry(let id): try repository.deleteEntry(id: id)
-            case .retro(let id): try repository.deleteRetro(id: id)
-            }
-        } catch {
-            self.error = String(localized: "Could not delete this entry. It is still here. Try again.")
+        let outcome = JournalDeletion.delete(record, repository: repository, drafts: drafts)
+        guard outcome.recordRemoved else {
+            error = outcome.notice
             return
         }
         deleted = true
-        do {
-            if let draft = try existingEditingDraft(for: record.uuid, in: drafts) {
-                try drafts.delete(id: draft.id)
-            }
-        } catch {
-            self.error = String(localized: "Entry deleted. Its unsaved edit is still here; retry cleanup from Drafts.")
-            return
-        }
+        if let notice = outcome.notice { onNotice?(notice) }
         dismiss()
     }
 }

@@ -8,6 +8,13 @@ import Foundation
 /// What the Journal list's filter menu has chosen (`design/journal.md`
 /// section 3): one kind, one mood, one theme and one date range.
 struct JournalFilter: Hashable {
+    /// Whether the menu is offered. Locked, empty, unloaded or failed
+    /// lists have nothing to filter, and a filter set on a list that
+    /// cannot show it would hide the next note behind a menu nobody sees.
+    static func showsMenu(locked: Bool, loaded: Bool, journalEmpty: Bool, loadFailed: Bool) -> Bool {
+        !locked && loaded && !journalEmpty && !loadFailed
+    }
+
     enum Kind: CaseIterable, Hashable {
         case all, answers, notes, retros, weeklyReviews, focusNotes
 

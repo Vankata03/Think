@@ -7,6 +7,15 @@ import Testing
 @MainActor struct JournalFilterTests {
     private let versions: Set<UUID> = [UUID()]
 
+    /// A list that failed to load has nothing to filter (journal.md section 3).
+    @Test func menuIsOfferedOnlyOverALoadedNonEmptyUnlockedList() {
+        #expect(JournalFilter.showsMenu(locked: false, loaded: true, journalEmpty: false, loadFailed: false))
+        #expect(!JournalFilter.showsMenu(locked: false, loaded: true, journalEmpty: false, loadFailed: true))
+        #expect(!JournalFilter.showsMenu(locked: true, loaded: true, journalEmpty: false, loadFailed: false))
+        #expect(!JournalFilter.showsMenu(locked: false, loaded: false, journalEmpty: false, loadFailed: false))
+        #expect(!JournalFilter.showsMenu(locked: false, loaded: true, journalEmpty: true, loadFailed: false))
+    }
+
     @Test func noFilterListsPrimariesOfBothTables() throws {
         let filter = JournalFilter()
         let (entries, retros) = filter.queries(search: "", versions: versions)

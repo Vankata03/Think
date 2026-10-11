@@ -71,7 +71,7 @@ struct JournalView: View {
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("JournalView")
         .toolbar {
-            if !lock.isLocked && loaded && !journalEmpty {
+            if JournalFilter.showsMenu(locked: lock.isLocked, loaded: loaded, journalEmpty: journalEmpty, loadFailed: loadFailed) {
                 ToolbarItem(placement: .topBarTrailing) { filterMenu }
             }
         }
@@ -253,8 +253,8 @@ struct JournalView: View {
         if let id = record.recordID {
             NavigationLink {
                 switch record {
-                case .entry: JournalDetailView(record: .entry(id))
-                case .retro: JournalDetailView(record: .retro(id))
+                case .entry: JournalDetailView(record: .entry(id), onNotice: { actionError = $0 })
+                case .retro: JournalDetailView(record: .retro(id), onNotice: { actionError = $0 })
                 }
             } label: {
                 JournalRow(content: content)
@@ -343,23 +343,11 @@ struct JournalView: View {
     /// failure messages.
     private func delete(_ record: JournalTimeline.Record) {
         guard let id = record.recordID else { return }
-        do {
-            switch record {
-            case .entry: try repository.deleteEntry(id: id)
-            case .retro: try repository.deleteRetro(id: id)
-            }
-        } catch {
-            actionError = String(localized: "Could not delete this entry. It is still here. Try again.")
-            return
+        let target: JournalRecordID = switch record {
+        case .entry: .entry(id)
+        case .retro: .retro(id)
         }
-        do {
-            if let draft = try existingEditingDraft(for: id, in: drafts) {
-                try drafts.delete(id: draft.id)
-            }
-            actionError = nil
-        } catch {
-            actionError = String(localized: "Entry deleted. Its unsaved edit is still here; retry cleanup from Drafts.")
-        }
+        actionError = JournalDeletion.delete(target, repository: repository, drafts: drafts).notice
     }
 
     // MARK: Loading
