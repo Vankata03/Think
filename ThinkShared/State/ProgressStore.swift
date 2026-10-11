@@ -202,10 +202,8 @@ final class ProgressStore {
         }
         if let data = defaults.data(forKey: Key.pathRuns) {
             pathRuns = (try? SyncCodec.decode([PathRunProgress].self, from: data)) ?? []
-        } else if pathCompletedDays > 0 {
-            pathRuns = [PathRunProgress(id: UUID(), pathID: PathLibrary.deepFocus.id,
-                totalSteps: PathLibrary.deepFocus.steps.count, startedAt: nil,
-                legacyCompletedSteps: pathCompletedDays, completions: [])]
+        } else {
+            pathRuns = Self.legacyPathRuns(completedSteps: pathCompletedDays)
         }
         seenFocusIDs = Set(defaults.stringArray(forKey: Key.seenFocusIDs) ?? [])
         seenFocusIDs.formUnion(focusHistoryByDay.values.flatMap { $0.map(\.id) })
@@ -472,7 +470,8 @@ final class ProgressStore {
             appliedEventIDs: appliedEventIDs,
             publishedAt: publishedAt,
             resetBoundary: resetBoundary,
-            practiceActivities: practiceActivities
+            practiceActivities: practiceActivities,
+            pathRuns: pathRuns
         )
     }
 
@@ -486,6 +485,7 @@ final class ProgressStore {
         // Snapshots replace canonical counters; pending Watch events are replayed afterwards.
         seenFocusIDs = Set(snapshot.appliedEventIDs)
         legacyDays = Set(snapshot.completedDays).subtracting(practiceActivities.map { calendar.startOfDay(for: $0.date) })
+        pathRuns = snapshot.pathRuns ?? Self.legacyPathRuns(completedSteps: snapshot.pathCompletedDays)
         persistPractice()
         streak = snapshot.streak
         lastCompletedDay = snapshot.lastCompletedDay.map(calendar.startOfDay(for:))
@@ -706,6 +706,14 @@ final class ProgressStore {
         "move-\(practiceID)-\(calendar.startOfDay(for: date).timeIntervalSince1970)"
     }
 
+    /// Deep focus progress from before dated runs: one undated run, or none.
+    private static func legacyPathRuns(completedSteps: Int) -> [PathRunProgress] {
+        guard completedSteps > 0 else { return [] }
+        return [PathRunProgress(id: UUID(), pathID: PathLibrary.deepFocus.id,
+            totalSteps: PathLibrary.deepFocus.steps.count, startedAt: nil,
+            legacyCompletedSteps: completedSteps, completions: [])]
+    }
+
     func runs(for pathID: String) -> [PathRunProgress] { pathRuns.filter { $0.pathID == pathID } }
     func activeRun(for pathID: String) -> PathRunProgress? { runs(for: pathID).last }
 
@@ -761,6 +769,12 @@ final class ProgressStore {
         guard let run = activeRun(for: pathID) else { return true }
         guard !run.isComplete else { return false }
         return lastCompletionDate(of: run).map { date >= nextStepOpening(after: $0) } ?? true
+    }
+
+    /// When the active run's next step opens, or nil when nothing dated holds it back.
+    /// Read it with `canCompletePathStep`: a past date means the step is open.
+    func nextPathStepOpening(pathID: String) -> Date? {
+        activeRun(for: pathID).flatMap(lastCompletionDate(of:)).map(nextStepOpening(after:))
     }
 
     /// The next step opens at 06:00 on the day after a completion, when the day arc starts.

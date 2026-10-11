@@ -135,6 +135,28 @@ struct ProgressSyncTests {
         #expect(mutations.count == 7)
     }
 
+    @Test func watchOpensTheNextStepAtSixAfterAPhoneCompletionAt2330() throws {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = try #require(TimeZone(identifier: "Europe/Sofia"))
+        let lateEvening = try #require(calendar.date(from: DateComponents(year: 2026, month: 3, day: 10, hour: 23, minute: 30)))
+        let nextDay = try #require(calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: lateEvening)))
+        let deepFocus = PathLibrary.deepFocus
+        let phone = ProgressStore(defaults: makeDefaults(), calendar: calendar, now: { lateEvening })
+        #expect(phone.completePathStep(pathID: deepFocus.id, totalSteps: deepFocus.steps.count, at: lateEvening))
+        var watchNow = lateEvening
+        let watch = ProgressStore(defaults: makeDefaults(), calendar: calendar, now: { watchNow })
+
+        watch.apply(try SyncCodec.decode(ProgressSnapshot.self, from: SyncCodec.encode(phone.snapshot(publishedAt: lateEvening))))
+
+        #expect(!watch.canCompletePathStepToday)
+        watchNow = nextDay.addingTimeInterval(5 * 3600 + 59 * 60)
+        #expect(!watch.canCompletePathStepToday)
+        #expect(watch.canCompletePathStepToday == phone.canCompletePathStep(pathID: deepFocus.id, totalSteps: deepFocus.steps.count, at: watchNow))
+        watchNow = nextDay.addingTimeInterval(6 * 3600)
+        #expect(watch.canCompletePathStepToday)
+        #expect(watch.activeRun(for: deepFocus.id)?.completedSteps == 1)
+    }
+
     private func makeDefaults() -> UserDefaults {
         let suiteName = "ThinkTests.ProgressSync.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
