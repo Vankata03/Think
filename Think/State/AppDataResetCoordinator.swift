@@ -10,7 +10,7 @@ final class AppDataResetCoordinator {
     private let drafts: JournalDraftStore
     private let sync: SyncCoordinator
     private let mindfulMinutes: MindfulMinutesStore
-    private let favorites: FavoritesStore
+    private let savedLines: SavedLinesStore
     private let lock: JournalLock
     private let defaults: UserDefaults
     private let preferences: PracticePreferencesStore?
@@ -18,10 +18,10 @@ final class AppDataResetCoordinator {
     private(set) var isResetting = false
 
     init(journal: JournalRepository, drafts: JournalDraftStore, sync: SyncCoordinator,
-         mindfulMinutes: MindfulMinutesStore, favorites: FavoritesStore,
+         mindfulMinutes: MindfulMinutesStore, savedLines: SavedLinesStore,
          lock: JournalLock, preferences: PracticePreferencesStore? = nil, defaults: UserDefaults = .standard) {
         self.journal = journal; self.drafts = drafts; self.sync = sync
-        self.mindfulMinutes = mindfulMinutes; self.favorites = favorites
+        self.mindfulMinutes = mindfulMinutes; self.savedLines = savedLines
         self.lock = lock; self.defaults = defaults
         self.preferences = preferences
     }
@@ -38,7 +38,7 @@ final class AppDataResetCoordinator {
         RetroReminder.cancelSchedule()
         try journal.deleteAllJournalData()
         try drafts.deleteAll()
-        favorites.removeAll()
+        savedLines.removeAll()
         preferences?.reset()
         defaults.removeObject(forKey: DailyQuoteNotifier.minutesKey)
         defaults.removeObject(forKey: RetroReminder.minutesKey)

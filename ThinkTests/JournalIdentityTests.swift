@@ -34,7 +34,7 @@ struct JournalIdentityTests {
         let selected = select([phone, iPad, edited])
 
         #expect(selected?.primary.text == "Edited")
-        #expect(selected?.variants.map(\.text) == ["iPad", "Phone"])
+        #expect(selected?.otherVersions.map(\.text) == ["iPad", "Phone"])
     }
 
     /// Equal edit times fall back to the record ID, then the tiebreak, so

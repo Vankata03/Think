@@ -390,14 +390,14 @@ final class JournalRepository {
     /// `answer(for:)`, `retro(for:)` and `weeklyReview(weekStart:)` group.
     /// Fetches the grouping columns only, never the writing: the list runs
     /// this on every revision bump. A text tiebreak never changes which IDs
-    /// are variants, so none is needed.
+    /// are other versions, so none is needed.
     func versionRecordIDs() throws -> Set<UUID> {
         struct Key { let recordID: UUID?; let latestEdit: Date }
-        func variants(_ groups: [String: [Key]]) -> [UUID] {
+        func otherVersionIDs(_ groups: [String: [Key]]) -> [UUID] {
             groups.values.compactMap {
                 JournalIdentity.select($0, latestEdit: \.latestEdit, recordID: { $0.recordID })
             }
-            .flatMap(\.variants).compactMap(\.recordID)
+            .flatMap(\.otherVersions).compactMap(\.recordID)
         }
         func dayKey(_ stored: String?, _ zone: String?, _ date: Date) -> String {
             (CivilDay(storedKey: stored, timeZoneIdentifier: zone) ?? CivilDay(date: date)).key
@@ -424,7 +424,7 @@ final class JournalRepository {
                 retros[dayKey(retro.civilDay, retro.timeZoneIdentifier, retro.date), default: []]
                     .append(Key(recordID: retro.recordID, latestEdit: retro.updatedAt ?? retro.date))
             }
-            return Set(variants(answers) + variants(reviews) + variants(retros))
+            return Set(otherVersionIDs(answers) + otherVersionIDs(reviews) + otherVersionIDs(retros))
         }
     }
 

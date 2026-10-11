@@ -26,7 +26,7 @@ struct StreakCardView: View {
     let kind: StreakCardKind
     let streak: Int
     let month: Date
-    let completedDays: Set<Date>
+    let practiceDays: Set<Date>
     let style: CardStyle
 
     static let designSize = QuoteCardView.designSize
@@ -123,7 +123,7 @@ struct StreakCardView: View {
     }
 
     private func calendarDay(_ day: Date) -> some View {
-        let completed = completedDays.contains(calendar.startOfDay(for: day))
+        let completed = practiceDays.contains(calendar.startOfDay(for: day))
 
         return Text("\(calendar.component(.day, from: day))")
             .font(.system(size: 40, weight: completed ? .bold : .regular, design: .serif))
@@ -148,7 +148,7 @@ struct StreakCardView: View {
 }
 
 #Preview("Streak") {
-    StreakCardView(kind: .streak, streak: 12, month: .now, completedDays: [], style: .paper)
+    StreakCardView(kind: .streak, streak: 12, month: .now, practiceDays: [], style: .paper)
         .scaleEffect(0.2)
         .frame(width: 216, height: 384)
 }
@@ -158,7 +158,7 @@ struct StreakCardView: View {
         kind: .calendar,
         streak: 5,
         month: .now,
-        completedDays: Set((0..<5).compactMap {
+        practiceDays: Set((0..<5).compactMap {
             Calendar.current.date(byAdding: .day, value: -$0, to: Calendar.current.startOfDay(for: .now))
         }),
         style: .midnight

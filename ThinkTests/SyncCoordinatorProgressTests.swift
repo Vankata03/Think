@@ -93,7 +93,7 @@ struct SyncCoordinatorProgressTests {
         let publishedUndo = try latestSnapshot(receivedBy: watchTransport)
         #expect(publishedUndo.pathCompletedDays == 0)
         #expect(publishedUndo.lastPathCompletionDay == nil)
-        #expect(publishedUndo.completedDays.isEmpty)
+        #expect(publishedUndo.practiceDays.isEmpty)
         #expect(publishedUndo.practiceActivities?.isEmpty == true)
     }
 
@@ -287,7 +287,7 @@ struct SyncCoordinatorProgressTests {
         let snapshot = ProgressSnapshot(
             streak: 0,
             lastCompletedDay: nil,
-            completedDays: [],
+            practiceDays: [],
             pathCompletedDays: 0,
             lastPathCompletionDay: nil,
             totalFocusSessions: 0,

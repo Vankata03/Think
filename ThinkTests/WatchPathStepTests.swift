@@ -50,7 +50,7 @@ struct WatchPathStepTests {
         let watch = ProgressStore(defaults: makeDefaults(), calendar: calendar, now: { lateEvening })
         watch.apply(
             ProgressSnapshot(
-                streak: 1, lastCompletedDay: lateEvening, completedDays: [lateEvening],
+                streak: 1, lastCompletedDay: lateEvening, practiceDays: [lateEvening],
                 pathCompletedDays: 3, lastPathCompletionDay: lateEvening,
                 totalFocusSessions: 0, focusSessionDay: nil, focusSessionDayCount: 0,
                 lastOpenDay: nil, appliedEventIDs: [], publishedAt: lateEvening))

@@ -147,7 +147,7 @@ import Testing
 
         let versions = try repository.versionRecordIDs()
 
-        #expect(versions == Set((answer.variants.map(\.recordID) + retro.variants.map(\.recordID)).compactMap { $0 }))
+        #expect(versions == Set((answer.otherVersions.map(\.recordID) + retro.otherVersions.map(\.recordID)).compactMap { $0 }))
         #expect(versions.count == 2)
         let entries = try repository.entries(matching: .init(excluding: versions))
         #expect(entries.totalCount == 3)
@@ -180,9 +180,9 @@ import Testing
 
         let answer = try #require(try repository.answer(for: day))
         let review = try #require(try repository.weeklyReview(weekStart: weekStart))
-        #expect(answer.variants.count == 1)
-        #expect(review.variants.count == 1)
-        #expect(versions == Set((answer.variants + review.variants).compactMap(\.recordID)))
+        #expect(answer.otherVersions.count == 1)
+        #expect(review.otherVersions.count == 1)
+        #expect(versions == Set((answer.otherVersions + review.otherVersions).compactMap(\.recordID)))
         #expect(versions.count == 2)
     }
 

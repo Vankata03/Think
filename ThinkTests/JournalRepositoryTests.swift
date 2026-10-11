@@ -63,7 +63,7 @@ import Testing
         try repository.ensureRecordIdentities()
         let selection = try #require(try repository.answer(for: day))
         #expect(selection.all.count == 2)
-        #expect(selection.hasConflicts)
+        #expect(selection.hasOtherVersions)
         #expect(selection.all.allSatisfy { $0.recordID != nil && $0.civilDay == nil })
         let before = selection.primary.recordID
         try repository.ensureRecordIdentities()
@@ -164,10 +164,10 @@ import Testing
 
         let answer = try #require(try repository.answer(for: day))
         #expect(answer.primary.recordID == phone.recordID)
-        #expect(answer.variants.map(\.recordID) == [iPad.recordID])
+        #expect(answer.otherVersions.map(\.recordID) == [iPad.recordID])
         let retro = try #require(try repository.retro(for: day))
         #expect(retro.primary.recordID == phoneRetro.recordID)
-        #expect(retro.variants.map(\.recordID) == [iPadRetro.recordID])
+        #expect(retro.otherVersions.map(\.recordID) == [iPadRetro.recordID])
     }
 
     /// The read detail's "Another version from this day": the records that

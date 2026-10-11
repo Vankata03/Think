@@ -151,7 +151,7 @@ struct PathsList {
     /// 06:00, when the next step opens, in the locale's own hour pattern:
     /// "06:00" in 24-hour locales, "6:00 AM" in 12-hour ones.
     static func openingTime(now: Date, calendar: Calendar, locale: Locale) -> String {
-        let six = calendar.date(bySettingHour: 6, minute: 0, second: 0, of: calendar.startOfDay(for: now))!
+        let six = calendar.date(bySettingHour: ProgressStore.nextStepOpeningHour, minute: 0, second: 0, of: calendar.startOfDay(for: now))!
         let formatter = DateFormatter()
         formatter.locale = locale
         formatter.calendar = calendar

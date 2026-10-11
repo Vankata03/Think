@@ -9,7 +9,7 @@ import SwiftUI
 /// (`design/today.md` section 4). Just the lines: a row opens nothing.
 /// Swipe to remove; long-press for Share and Remove.
 struct SavedLinesView: View {
-    @Environment(FavoritesStore.self) private var favorites
+    @Environment(SavedLinesStore.self) private var savedLines
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.haptics) private var haptics
     @State private var sharedQuote: Quote?
@@ -17,13 +17,13 @@ struct SavedLinesView: View {
 
     var body: some View {
         List {
-            ForEach(favorites.favorites) { quote in
+            ForEach(savedLines.lines) { quote in
                 row(quote)
             }
         }
         .listStyle(.insetGrouped)
         .overlay {
-            if favorites.isEmpty {
+            if savedLines.isEmpty {
                 ContentUnavailableView {
                     Label("Lines you keep appear here.", systemImage: ThinkSymbol.dailyLine)
                 }
@@ -71,7 +71,7 @@ struct SavedLinesView: View {
     private func remove(_ quote: Quote) {
         haptics.play(.selection)
         withAnimation(ThinkMotion.stateAnimation(reduceMotion: reduceMotion)) {
-            favorites.remove(quote)
+            savedLines.remove(quote)
         }
     }
 }
@@ -80,5 +80,5 @@ struct SavedLinesView: View {
     NavigationStack {
         SavedLinesView()
     }
-    .environment(FavoritesStore(defaults: .standard))
+    .environment(SavedLinesStore(defaults: .standard))
 }

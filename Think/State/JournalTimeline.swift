@@ -41,10 +41,8 @@ struct JournalTimeline {
         /// back to their timestamp.
         var day: CivilDay {
             switch self {
-            case .entry(let value):
-                CivilDay(storedKey: value.civilDay, timeZoneIdentifier: value.timeZoneIdentifier) ?? CivilDay(date: value.date)
-            case .retro(let value):
-                CivilDay(storedKey: value.civilDay, timeZoneIdentifier: value.timeZoneIdentifier) ?? CivilDay(date: value.date)
+            case .entry(let value): value.day
+            case .retro(let value): value.day
             }
         }
     }

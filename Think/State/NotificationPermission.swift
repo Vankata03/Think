@@ -18,13 +18,15 @@ enum NotificationPermission {
         case .denied:
             return false
         case .notDetermined:
-            return
-                (try? await UNUserNotificationCenter.current().requestAuthorization(
-                    options: [.alert, .sound]
-                )) ?? false
+            return await requestAuthorization()
         @unknown default:
             return false
         }
+    }
+
+    /// Shows the system prompt. False when refused or when it cannot show.
+    static func requestAuthorization() async -> Bool {
+        (try? await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound])) ?? false
     }
 }
 
@@ -41,7 +43,7 @@ struct SystemNotificationAuthorization: NotificationAuthorizing {
     }
 
     func requestAuthorization() async -> Bool {
-        (try? await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound])) ?? false
+        await NotificationPermission.requestAuthorization()
     }
 }
 

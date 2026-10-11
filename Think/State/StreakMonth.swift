@@ -48,14 +48,14 @@ struct StreakMonth {
             defaultValue: "\(title), \(practisedCount) of \(countedDays) days practised")
     }
 
-    init(containing date: Date, completedDays: Set<Date>, now: Date = .now, calendar: Calendar = .current) {
+    init(containing date: Date, practiceDays: Set<Date>, now: Date = .now, calendar: Calendar = .current) {
         grid = MonthGrid(containing: date, calendar: calendar)
         title = grid.monthStart.formatted(
             Date.FormatStyle(locale: calendar.locale ?? .current, calendar: calendar, timeZone: calendar.timeZone)
                 .month(.wide).year())
         let today = calendar.startOfDay(for: now)
         let currentMonth = MonthGrid(containing: now, calendar: calendar).monthStart
-        let firstMonth = completedDays.min().map { MonthGrid(containing: $0, calendar: calendar).monthStart }
+        let firstMonth = practiceDays.min().map { MonthGrid(containing: $0, calendar: calendar).monthStart }
         canShowPrevious = grid.monthStart > min(firstMonth ?? currentMonth, currentMonth)
         canShowNext = grid.monthStart < currentMonth
         countedDays = grid.days.count { calendar.startOfDay(for: $0) <= today }
@@ -64,7 +64,7 @@ struct StreakMonth {
             .day().month(.wide)
         let days: [Day?] = grid.days.map { date in
             let start = calendar.startOfDay(for: date)
-            let isPractised = completedDays.contains(start)
+            let isPractised = practiceDays.contains(start)
             let isToday = start == today
             let name = date.formatted(dayFormat)
             let label: String =
@@ -83,7 +83,7 @@ struct StreakMonth {
         weeks = stride(from: 0, to: padded.count, by: 7).map { Array(padded[$0..<min($0 + 7, padded.count)]) }
 
         let practised = grid.days
-            .filter { completedDays.contains(calendar.startOfDay(for: $0)) }
+            .filter { practiceDays.contains(calendar.startOfDay(for: $0)) }
             .map { calendar.component(.day, from: $0) }
         practisedCount = practised.count
         practisedDaysText = Self.rangesText(

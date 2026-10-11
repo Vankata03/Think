@@ -34,7 +34,7 @@ struct ThinkApp: App {
     @State private var mindfulMinutes: MindfulMinutesStore
     @State private var cloudBackup: CloudBackupState
     @State private var journalLock: JournalLock
-    @State private var favorites: FavoritesStore
+    @State private var savedLines: SavedLinesStore
     @State private var journalRepository: JournalRepository
     @State private var journalDrafts: JournalDraftStore
     @State private var dataReset: AppDataResetCoordinator
@@ -235,10 +235,10 @@ struct ThinkApp: App {
                 progressStore.recordFocusSession(at: date, durationMinutes: 25, eventID: "audit-streak-\(offset)")
             }
         }
-        // Same isolated suite as progress under UI tests, so a favorited
+        // Same isolated suite as progress under UI tests, so a saved
         // line never leaks between runs.
-        let favorites = FavoritesStore(defaults: progressDefaults)
-        _favorites = State(initialValue: favorites)
+        let savedLines = SavedLinesStore(defaults: progressDefaults)
+        _savedLines = State(initialValue: savedLines)
         let practicePreferences = PracticePreferencesStore(defaults: progressDefaults)
         _practicePreferences = State(initialValue: practicePreferences)
         let timer = PomodoroTimer(
@@ -300,7 +300,7 @@ struct ThinkApp: App {
         _mindfulMinutes = State(initialValue: mindfulMinutes)
         _dataReset = State(initialValue: AppDataResetCoordinator(
             journal: repository, drafts: drafts, sync: coordinator,
-            mindfulMinutes: mindfulMinutes, favorites: favorites, lock: journalLock,
+            mindfulMinutes: mindfulMinutes, savedLines: savedLines, lock: journalLock,
             preferences: practicePreferences
         ))
         let appIntentRouter = AppIntentRouter.shared
@@ -371,7 +371,7 @@ struct ThinkApp: App {
             .environment(mindfulMinutes)
             .environment(cloudBackup)
             .environment(journalLock)
-            .environment(favorites)
+            .environment(savedLines)
             .environment(journalRepository)
             .environment(journalDrafts)
             .environment(dataReset)

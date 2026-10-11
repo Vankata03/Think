@@ -753,7 +753,7 @@ struct ProgressStoreTests {
         #expect(store.displayedStreak == 0)
         #expect(store.totalFocusSessions == 0)
         #expect(store.pathCompletedDays == 0)
-        #expect(store.completedDays.isEmpty)
+        #expect(store.practiceDays.isEmpty)
         #expect(store.focusHistory.isEmpty)
         #expect(!store.openedToday)
         #expect(!store.answeredDailyQuestionToday)
@@ -762,7 +762,7 @@ struct ProgressStoreTests {
         let reloaded = ProgressStore(defaults: defaults)
         #expect(reloaded.totalFocusSessions == 0)
         #expect(reloaded.pathCompletedDays == 0)
-        #expect(reloaded.completedDays.isEmpty)
+        #expect(reloaded.practiceDays.isEmpty)
         #expect(reloaded.focusHistory.isEmpty)
     }
 
@@ -867,12 +867,12 @@ struct ProgressStoreTests {
         defaults: UserDefaults
     ) -> ProgressStore {
         let calendar = Calendar.current
-        let completedDays = (1..<milestone.rawValue).compactMap {
+        let practiceDays = (1..<milestone.rawValue).compactMap {
             calendar.date(byAdding: .day, value: -$0, to: .now)
         }
-        defaults.set(completedDays, forKey: "completedDays")
+        defaults.set(practiceDays, forKey: "completedDays")
         defaults.set(milestone.rawValue - 1, forKey: "streak")
-        defaults.set(completedDays.first, forKey: "lastCompletedDay")
+        defaults.set(practiceDays.first, forKey: "lastCompletedDay")
         return ProgressStore(defaults: defaults)
     }
 }

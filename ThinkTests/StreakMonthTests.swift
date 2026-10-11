@@ -14,13 +14,13 @@ import Testing
 struct StreakMonthTests {
 
     @Test func currentMonthCountsDaysUpToAndIncludingToday() {
-        let month = StreakMonth(containing: date(9, 28), completedDays: [], now: date(9, 28, hour: 21), calendar: calendar)
+        let month = StreakMonth(containing: date(9, 28), practiceDays: [], now: date(9, 28, hour: 21), calendar: calendar)
 
         #expect(month.countedDays == 28)
     }
 
     @Test func pastMonthCountsEveryDay() {
-        let month = StreakMonth(containing: date(8, 10), completedDays: [], now: date(9, 28), calendar: calendar)
+        let month = StreakMonth(containing: date(8, 10), practiceDays: [], now: date(9, 28), calendar: calendar)
 
         #expect(month.countedDays == 31)
     }
@@ -32,7 +32,7 @@ struct StreakMonthTests {
         let completed = Set(days.map { calendar.startOfDay(for: date(9, $0)) })
             .union([calendar.startOfDay(for: date(8, 31)), calendar.startOfDay(for: date(10, 1))])
 
-        let month = StreakMonth(containing: date(9, 15), completedDays: completed, now: date(9, 28), calendar: calendar)
+        let month = StreakMonth(containing: date(9, 15), practiceDays: completed, now: date(9, 28), calendar: calendar)
 
         #expect(month.practisedCount == 23)
         #expect(month.practisedDaysText == "1 to 5, 8, 9, 11 to 14 and 17 to 28 September")
@@ -42,7 +42,7 @@ struct StreakMonthTests {
     @Test func linearFormReadsMonthAndCount() {
         let completed = Set((8...28).map { calendar.startOfDay(for: date(9, $0)) })
 
-        let month = StreakMonth(containing: date(9, 1), completedDays: completed, now: date(9, 28), calendar: calendar)
+        let month = StreakMonth(containing: date(9, 1), practiceDays: completed, now: date(9, 28), calendar: calendar)
 
         #expect(month.title == "September 2026")
         #expect(month.linearAccessibilityLabel == "September 2026, 21 of 28 days practised")
@@ -51,14 +51,14 @@ struct StreakMonthTests {
     @Test func singlePractisedDayReadsAsOneDate() {
         let completed: Set<Date> = [calendar.startOfDay(for: date(8, 3))]
 
-        let month = StreakMonth(containing: date(8, 1), completedDays: completed, now: date(9, 28), calendar: calendar)
+        let month = StreakMonth(containing: date(8, 1), practiceDays: completed, now: date(9, 28), calendar: calendar)
 
         #expect(month.practisedCount == 1)
         #expect(month.practisedDaysText == "3 August")
     }
 
     @Test func monthWithoutPractiseHasNoPractisedDaysText() {
-        let month = StreakMonth(containing: date(9, 1), completedDays: [], now: date(9, 28), calendar: calendar)
+        let month = StreakMonth(containing: date(9, 1), practiceDays: [], now: date(9, 28), calendar: calendar)
 
         #expect(month.practisedCount == 0)
         #expect(month.practisedDaysText == nil)
@@ -67,9 +67,9 @@ struct StreakMonthTests {
     @Test func pagerRunsFromTheFirstPracticeMonthToTheCurrentMonth() {
         let completed: Set<Date> = [calendar.startOfDay(for: date(7, 20)), calendar.startOfDay(for: date(9, 2))]
 
-        let first = StreakMonth(containing: date(7, 1), completedDays: completed, now: date(9, 28), calendar: calendar)
-        let middle = StreakMonth(containing: date(8, 1), completedDays: completed, now: date(9, 28), calendar: calendar)
-        let current = StreakMonth(containing: date(9, 1), completedDays: completed, now: date(9, 28), calendar: calendar)
+        let first = StreakMonth(containing: date(7, 1), practiceDays: completed, now: date(9, 28), calendar: calendar)
+        let middle = StreakMonth(containing: date(8, 1), practiceDays: completed, now: date(9, 28), calendar: calendar)
+        let current = StreakMonth(containing: date(9, 1), practiceDays: completed, now: date(9, 28), calendar: calendar)
 
         #expect(!first.canShowPrevious && first.canShowNext)
         #expect(middle.canShowPrevious && middle.canShowNext)
@@ -77,7 +77,7 @@ struct StreakMonthTests {
     }
 
     @Test func pagerStaysOnTheCurrentMonthWithoutPractice() {
-        let month = StreakMonth(containing: date(9, 1), completedDays: [], now: date(9, 28), calendar: calendar)
+        let month = StreakMonth(containing: date(9, 1), practiceDays: [], now: date(9, 28), calendar: calendar)
 
         #expect(!month.canShowPrevious)
         #expect(!month.canShowNext)
@@ -87,8 +87,8 @@ struct StreakMonthTests {
     /// never resizes the sheet (`STK-1`). February 2027 starts on a Monday
     /// and fills four rows; August 2026 starts on a Saturday and needs six.
     @Test func everyMonthReservesSixWeeks() {
-        let short = StreakMonth(containing: date(2, 1, year: 2027), completedDays: [], now: date(9, 28), calendar: calendar)
-        let long = StreakMonth(containing: date(8, 1), completedDays: [], now: date(9, 28), calendar: calendar)
+        let short = StreakMonth(containing: date(2, 1, year: 2027), practiceDays: [], now: date(9, 28), calendar: calendar)
+        let long = StreakMonth(containing: date(8, 1), practiceDays: [], now: date(9, 28), calendar: calendar)
 
         #expect(short.weeks.count == 6)
         #expect(long.weeks.count == 6)
@@ -100,7 +100,7 @@ struct StreakMonthTests {
 
     @Test func eachDayCarriesItsMarkerStateAndSpokenLabel() {
         let completed: Set<Date> = [27, 28].map { calendar.startOfDay(for: date(9, $0)) }.reduce(into: []) { $0.insert($1) }
-        let month = StreakMonth(containing: date(9, 1), completedDays: completed, now: date(9, 28, hour: 8), calendar: calendar)
+        let month = StreakMonth(containing: date(9, 1), practiceDays: completed, now: date(9, 28, hour: 8), calendar: calendar)
         let days = month.weeks.flatMap { $0 }.compactMap { $0 }
 
         let today = days[27]
@@ -114,7 +114,7 @@ struct StreakMonthTests {
     }
 
     @Test func todayNotYetPractisedSaysToday() {
-        let month = StreakMonth(containing: date(9, 1), completedDays: [], now: date(9, 28), calendar: calendar)
+        let month = StreakMonth(containing: date(9, 1), practiceDays: [], now: date(9, 28), calendar: calendar)
         let today = month.weeks.flatMap { $0 }.compactMap { $0 }[27]
 
         #expect(today.isToday && !today.isPractised)

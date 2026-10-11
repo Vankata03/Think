@@ -177,7 +177,7 @@ nonisolated struct FocusSessionEvent: Codable, Equatable, Sendable {
 nonisolated struct ProgressSnapshot: Codable, Equatable, Sendable {
     let streak: Int
     let lastCompletedDay: Date?
-    let completedDays: [Date]
+    let practiceDays: [Date]
     let pathCompletedDays: Int
     let lastPathCompletionDay: Date?
     let totalFocusSessions: Int
@@ -196,7 +196,7 @@ nonisolated struct ProgressSnapshot: Codable, Equatable, Sendable {
     init(
         streak: Int,
         lastCompletedDay: Date?,
-        completedDays: [Date],
+        practiceDays: [Date],
         pathCompletedDays: Int,
         lastPathCompletionDay: Date?,
         totalFocusSessions: Int,
@@ -212,7 +212,7 @@ nonisolated struct ProgressSnapshot: Codable, Equatable, Sendable {
     ) {
         self.streak = streak
         self.lastCompletedDay = lastCompletedDay
-        self.completedDays = completedDays
+        self.practiceDays = practiceDays
         self.pathCompletedDays = pathCompletedDays
         self.lastPathCompletionDay = lastPathCompletionDay
         self.totalFocusSessions = totalFocusSessions
@@ -230,7 +230,7 @@ nonisolated struct ProgressSnapshot: Codable, Equatable, Sendable {
     private enum CodingKeys: String, CodingKey {
         case streak
         case lastCompletedDay
-        case completedDays
+        case practiceDays = "completedDays"
         case pathCompletedDays
         case lastPathCompletionDay
         case totalFocusSessions

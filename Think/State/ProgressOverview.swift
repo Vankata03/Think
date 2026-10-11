@@ -23,7 +23,7 @@ struct ProgressOverview {
 
     @MainActor
     init(progress: ProgressStore, now: Date = .now, calendar: Calendar = ProgressOverview.weekCalendar) {
-        practiceDays = progress.completedDays.count
+        practiceDays = progress.practiceDays.count
         completedPathSteps = progress.pathRuns.reduce(0) { $0 + $1.completedSteps }
         completedFocusSessions = progress.totalFocusSessions
         week = progress.weeklySummary(containing: now, calendar: calendar)

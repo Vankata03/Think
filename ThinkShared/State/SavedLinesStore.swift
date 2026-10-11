@@ -1,12 +1,12 @@
 //
-//  FavoritesStore.swift
+//  SavedLinesStore.swift
 //  Think
 //
 
 import Foundation
 import Observation
 
-nonisolated struct FavoriteRecord: Codable, Equatable, Identifiable, Sendable {
+nonisolated struct SavedLineRecord: Codable, Equatable, Identifiable, Sendable {
     let quoteID: String
     let savedAt: Date
 
@@ -15,19 +15,19 @@ nonisolated struct FavoriteRecord: Codable, Equatable, Identifiable, Sendable {
 
 /// Keeps the lines someone wants to come back to.
 ///
-/// Favorites are references, not copies: `Quote.id` is the stable catalog
+/// Saved lines are references, not copies: `Quote.id` is the stable catalog
 /// key, so a saved line follows the user's language instead of freezing
 /// the words that were on screen when they tapped. The price is that a
 /// line removed from the library in a later release leaves a dangling ID,
-/// which `favorites` filters out rather than rendering blank.
+/// which `lines` filters out rather than rendering blank.
 @MainActor
 @Observable
-final class FavoritesStore {
+final class SavedLinesStore {
     static let storageKey = "favorites.quotes"
 
     private let defaults: UserDefaults
     private let now: () -> Date
-    private(set) var records: [FavoriteRecord]
+    private(set) var records: [SavedLineRecord]
 
     init(defaults: UserDefaults = SharedDefaults.appGroup(), now: @escaping () -> Date = { .now }) {
         self.defaults = defaults
@@ -36,7 +36,7 @@ final class FavoritesStore {
     }
 
     /// Newest first, resolved against the library the app is running with.
-    var favorites: [Quote] {
+    var lines: [Quote] {
         let quotesByID = Dictionary(
             ContentLibrary.quotes.map { ($0.id, $0) },
             uniquingKeysWith: { first, _ in first }
@@ -46,9 +46,9 @@ final class FavoritesStore {
             .compactMap { quotesByID[$0.quoteID] }
     }
 
-    var isEmpty: Bool { favorites.isEmpty }
+    var isEmpty: Bool { lines.isEmpty }
 
-    func isFavorite(_ quote: Quote) -> Bool {
+    func isSaved(_ quote: Quote) -> Bool {
         records.contains { $0.quoteID == quote.id }
     }
 
@@ -60,7 +60,7 @@ final class FavoritesStore {
             return false
         }
 
-        records.append(FavoriteRecord(quoteID: quote.id, savedAt: now()))
+        records.append(SavedLineRecord(quoteID: quote.id, savedAt: now()))
         persist()
         return true
     }
@@ -85,9 +85,9 @@ final class FavoritesStore {
         }
     }
 
-    private static func decodeRecords(from defaults: UserDefaults) -> [FavoriteRecord] {
+    private static func decodeRecords(from defaults: UserDefaults) -> [SavedLineRecord] {
         guard let data = defaults.data(forKey: storageKey),
-              let decoded = try? JSONDecoder().decode([FavoriteRecord].self, from: data)
+              let decoded = try? JSONDecoder().decode([SavedLineRecord].self, from: data)
         else { return [] }
 
         // Drop empties and duplicates written by a damaged or older

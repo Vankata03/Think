@@ -123,10 +123,10 @@ nonisolated struct CivilDay: Hashable, Codable, Sendable, Comparable, CustomStri
 /// both devices land on the same primary.
 nonisolated struct DailySelection<Record> {
     let primary: Record
-    let variants: [Record]
+    let otherVersions: [Record]
 
-    var all: [Record] { [primary] + variants }
-    var hasConflicts: Bool { !variants.isEmpty }
+    var all: [Record] { [primary] + otherVersions }
+    var hasOtherVersions: Bool { !otherVersions.isEmpty }
 }
 
 nonisolated enum JournalIdentity {
@@ -152,7 +152,7 @@ nonisolated enum JournalIdentity {
             if lhsID != rhsID { return lhsID < rhsID }
             return tiebreak(lhs) < tiebreak(rhs)
         }
-        return DailySelection(primary: ordered[0], variants: Array(ordered.dropFirst()))
+        return DailySelection(primary: ordered[0], otherVersions: Array(ordered.dropFirst()))
     }
 
     /// Whether a stored row belongs to `day`. Rows written with a captured
