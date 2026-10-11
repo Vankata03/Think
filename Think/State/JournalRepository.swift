@@ -388,23 +388,43 @@ final class JournalRepository {
     /// day or week: the other versions of `design/journal.md` section 6,
     /// which the unfiltered Journal list leaves out. Grouped the way
     /// `answer(for:)`, `retro(for:)` and `weeklyReview(weekStart:)` group.
+    /// Fetches the grouping columns only, never the writing: the list runs
+    /// this on every revision bump. A text tiebreak never changes which IDs
+    /// are variants, so none is needed.
     func versionRecordIDs() throws -> Set<UUID> {
+        struct Key { let recordID: UUID?; let latestEdit: Date }
+        func variants(_ groups: [String: [Key]]) -> [UUID] {
+            groups.values.compactMap {
+                JournalIdentity.select($0, latestEdit: \.latestEdit, recordID: { $0.recordID })
+            }
+            .flatMap(\.variants).compactMap(\.recordID)
+        }
+        func dayKey(_ stored: String?, _ zone: String?, _ date: Date) -> String {
+            (CivilDay(storedKey: stored, timeZoneIdentifier: zone) ?? CivilDay(date: date)).key
+        }
         let reader = context()
         return try withExtendedLifetime(reader) {
             let question = JournalEntry.kindQuestion; let weekly = JournalEntry.kindWeeklyReview
-            let entries = try reader.fetch(FetchDescriptor<JournalEntry>(predicate: #Predicate { $0.kind == question || $0.kind == weekly }))
-                .map(EntrySnapshot.init)
-            let retros = try reader.fetch(FetchDescriptor<DailyRetro>()).map(RetroSnapshot.init)
-            func dayKey(_ stored: String?, _ zone: String?, _ date: Date) -> String {
-                (CivilDay(storedKey: stored, timeZoneIdentifier: zone) ?? CivilDay(date: date)).key
+            var entryColumns = FetchDescriptor<JournalEntry>(predicate: #Predicate { $0.kind == question || $0.kind == weekly })
+            entryColumns.propertiesToFetch = [\.kind, \.recordID, \.civilDay, \.timeZoneIdentifier, \.date, \.periodKey, \.updatedAt]
+            var answers: [String: [Key]] = [:]
+            var reviews: [String: [Key]] = [:]
+            for entry in try reader.fetch(entryColumns) {
+                let key = Key(recordID: entry.recordID, latestEdit: entry.updatedAt ?? entry.date)
+                if entry.kind == question {
+                    answers[dayKey(entry.civilDay, entry.timeZoneIdentifier, entry.date), default: []].append(key)
+                } else if let period = entry.periodKey {
+                    reviews[period, default: []].append(key)
+                }
             }
-            let answers = Dictionary(grouping: entries.filter { $0.kind == question }) { dayKey($0.civilDay, $0.timeZoneIdentifier, $0.date) }
-            let reviews = Dictionary(grouping: entries.filter { $0.kind == weekly && $0.periodKey != nil }) { $0.periodKey ?? "" }
-            let days = Dictionary(grouping: retros) { dayKey($0.civilDay, $0.timeZoneIdentifier, $0.date) }
-            let variants = answers.values.compactMap(Self.selectAnswer).flatMap(\.variants).map(\.recordID)
-                + reviews.values.compactMap(Self.selectWeeklyReview).flatMap(\.variants).map(\.recordID)
-                + days.values.compactMap(Self.selectRetro).flatMap(\.variants).map(\.recordID)
-            return Set(variants.compactMap { $0 })
+            var retroColumns = FetchDescriptor<DailyRetro>()
+            retroColumns.propertiesToFetch = [\.recordID, \.civilDay, \.timeZoneIdentifier, \.date, \.updatedAt]
+            var retros: [String: [Key]] = [:]
+            for retro in try reader.fetch(retroColumns) {
+                retros[dayKey(retro.civilDay, retro.timeZoneIdentifier, retro.date), default: []]
+                    .append(Key(recordID: retro.recordID, latestEdit: retro.updatedAt ?? retro.date))
+            }
+            return Set(variants(answers) + variants(reviews) + variants(retros))
         }
     }
 

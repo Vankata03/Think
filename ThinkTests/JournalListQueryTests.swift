@@ -156,6 +156,47 @@ import Testing
         #expect(try texts(repository, .init(search: "answer from")) == ["Answer from phone", "Answer from iPad"])
     }
 
+    /// The grouping reads columns, not the writing, so it has to agree with
+    /// the per-day selection on every shape of record: a stamped answer, a
+    /// legacy answer with no stored day, and a weekly review from two
+    /// devices.
+    @Test func versionsGroupLegacyRowsAndWeeklyReviewsLikeTheSelections() throws {
+        let repository = try repository()
+        let date = Date(timeIntervalSince1970: 1_790_000_000)
+        let day = CivilDay(date: date)
+        _ = try repository.saveAnswer(text: "Stamped answer", prompt: "Question", day: day, date: date.addingTimeInterval(60))
+        let legacy = JournalEntry(date: date, prompt: "Question", text: "Legacy answer", kind: JournalEntry.kindQuestion)
+        legacy.civilDay = nil
+        legacy.timeZoneIdentifier = nil
+        container.mainContext.insert(legacy)
+        try container.mainContext.save()
+        let weekStart = day.start
+        _ = try repository.saveWeeklyReview(text: "Review from phone", nextIntention: nil, weekStart: weekStart)
+        _ = try repository.saveWeeklyReview(text: "Review from iPad", nextIntention: nil, weekStart: weekStart)
+        _ = try repository.saveWeeklyReview(text: "Review next week", nextIntention: nil, weekStart: weekStart.addingTimeInterval(7 * 86_400))
+        _ = try repository.saveRetro(wentWell: "Only retro", improve: "", tomorrow: "", day: day.next, date: day.next.start)
+
+        let versions = try repository.versionRecordIDs()
+
+        let answer = try #require(try repository.answer(for: day))
+        let review = try #require(try repository.weeklyReview(weekStart: weekStart))
+        #expect(answer.variants.count == 1)
+        #expect(review.variants.count == 1)
+        #expect(versions == Set((answer.variants + review.variants).compactMap(\.recordID)))
+        #expect(versions.count == 2)
+    }
+
+    @Test func aJournalOfSingleRecordsHasNoVersions() throws {
+        let repository = try repository()
+        let date = Date(timeIntervalSince1970: 1_790_000_000)
+        _ = try repository.saveAnswer(text: "Answer", prompt: "Question", day: CivilDay(date: date), date: date)
+        _ = try repository.saveRetro(wentWell: "Retro", improve: "", tomorrow: "", day: CivilDay(date: date), date: date)
+        _ = try repository.saveNote(text: "Note", date: date)
+        _ = try repository.saveNote(text: "Another note", date: date)
+
+        #expect(try repository.versionRecordIDs().isEmpty)
+    }
+
     @Test func reportsWhetherAnythingOrAKindWasWritten() throws {
         let repository = try repository()
         #expect(try !repository.hasRecords())
